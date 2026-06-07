@@ -211,7 +211,7 @@ async function loadSession(id: number) {
     if (res.ok) {
       const history = await res.json() as Array<{ role: string; content: string; createdAt: string; toolName?: string; isResult?: boolean }>
       for (const msg of history) {
-        if (msg.toolName !== undefined) {
+        if (msg.toolName != null) {
           messages.value.push({
             role: 'tool',
             content: msg.content,
