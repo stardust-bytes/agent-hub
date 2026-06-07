@@ -1,11 +1,12 @@
+<!-- frontend/src/components/KanbanBoard.vue -->
 <template>
   <div class="flex flex-1 overflow-hidden">
     <div
       v-for="col in COLUMNS"
       :key="col.key"
-      class="flex-1 flex flex-col border-r border-cyber-border/50 last:border-r-0 min-w-0"
+      class="flex-1 flex flex-col min-w-0"
     >
-      <div class="px-2 py-2 border-b border-cyber-border/50 flex items-center gap-2 shrink-0 bg-cyber-dark/30">
+      <div class="px-2 py-2 flex items-center gap-2 shrink-0 bg-cyber-dark/30">
         <span :class="['text-[9px] tracking-widest font-mono uppercase', col.headerClass]">
           {{ t(col.labelKey) }}
         </span>
@@ -40,14 +41,14 @@
             :placeholder="t('tasks.add.placeholder')"
             @keydown.escape="addingTask = false; newTaskTitle = ''"
             @blur="onBlurNewTask"
-            class="flex-1 bg-cyber-dark border border-cyber-dim rounded px-2 py-1 text-[10px] font-mono text-slate-100 placeholder-cyber-accent/30 outline-none"
+            class="flex-1 bg-cyber-dark px-2 py-1 text-[10px] font-mono text-[#EEEEEE] placeholder-[#888888]/40 outline-none"
             autofocus
           />
         </form>
         <button
           v-else
           @click="addingTask = true"
-          class="w-full text-[9px] font-mono text-cyber-accent/40 border border-dashed border-cyber-border rounded px-2 py-1.5 hover:text-cyber-accent/70 hover:border-cyber-accent/30 transition-colors duration-150 text-left"
+          class="w-full text-[9px] font-mono text-[#888888] bg-cyber-dark px-2 py-1.5 hover:text-cyber-accent transition-colors duration-150 text-left"
         >{{ t('tasks.add') }}</button>
       </div>
     </div>
@@ -86,7 +87,7 @@ const STATUS_KEYS = ['TODO', 'PROCESSING', 'DONE', 'FAILED'] as const
 
 const COLUMNS = [
   { key: 'TODO',       labelKey: 'tasks.col.todo',       headerClass: 'text-cyber-accent' },
-  { key: 'PROCESSING', labelKey: 'tasks.col.processing', headerClass: 'text-cyber-orange' },
+  { key: 'PROCESSING', labelKey: 'tasks.col.processing', headerClass: 'text-cyber-accent' },
   { key: 'DONE',       labelKey: 'tasks.col.done',       headerClass: 'text-cyber-green' },
   { key: 'FAILED',     labelKey: 'tasks.col.failed',     headerClass: 'text-red-400'      },
 ]
@@ -179,6 +180,7 @@ onMounted(async () => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     populateColumns(await res.json() as Task[])
   } catch {
+    // board starts empty
   }
 
   socket = io('/tasks')
