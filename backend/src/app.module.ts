@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { TasksModule } from './tasks/tasks.module';
 import { AgentModule } from './agent/agent.module';
+import { OllamaModule } from './ollama/ollama.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { AgentModule } from './agent/agent.module';
     PrismaModule,
     TasksModule,
     AgentModule,
+    OllamaModule,
   ],
   controllers: [AppController],
 })
