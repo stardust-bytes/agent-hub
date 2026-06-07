@@ -12,10 +12,15 @@ export class OllamaProvider implements LLMProvider {
     model: string,
     res: Response,
     signal: AbortSignal,
+    context?: string,
   ): Promise<void> {
     if (signal.aborted) return;
 
     const ollamaUrl = await this.settings.get('ollama.baseUrl', 'http://localhost:11434');
+
+    const messages: Array<{ role: string; content: string }> = [];
+    if (context) messages.push({ role: 'system', content: context });
+    messages.push({ role: 'user', content: message });
 
     let ollamaRes: globalThis.Response;
     try {
@@ -24,7 +29,7 @@ export class OllamaProvider implements LLMProvider {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model,
-          messages: [{ role: 'user', content: message }],
+          messages,
           stream: true,
         }),
         signal,

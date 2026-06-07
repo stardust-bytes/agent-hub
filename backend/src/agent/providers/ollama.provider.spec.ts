@@ -45,7 +45,7 @@ describe('OllamaProvider', () => {
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
 
-    await provider.streamChat('hi', 'llama3.2', mockRes as any, signal);
+    await provider.streamChat('hi', 'llama3.2', mockRes as any, signal, '');
 
     expect(mockRes.write).toHaveBeenCalledWith('data: {"token":"Hello"}\n\n');
     expect(mockRes.write).toHaveBeenCalledWith('data: {"token":" world"}\n\n');
@@ -58,7 +58,7 @@ describe('OllamaProvider', () => {
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
 
-    await provider.streamChat('hi', 'llama3.2', mockRes as any, signal);
+    await provider.streamChat('hi', 'llama3.2', mockRes as any, signal, '');
 
     expect(mockRes.write).toHaveBeenCalledWith('data: {"error":"ollama_unreachable"}\n\n');
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
@@ -74,7 +74,7 @@ describe('OllamaProvider', () => {
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
 
-    await provider.streamChat('hi', 'llama3.2', mockRes as any, signal);
+    await provider.streamChat('hi', 'llama3.2', mockRes as any, signal, '');
 
     expect(mockRes.write).toHaveBeenCalledWith('data: {"error":"ollama_error_404"}\n\n');
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
@@ -93,7 +93,7 @@ describe('OllamaProvider', () => {
     const mockRes = { write: jest.fn() };
 
     ctrl.abort();
-    await provider.streamChat('hi', 'llama3.2', mockRes as any, ctrl.signal);
+    await provider.streamChat('hi', 'llama3.2', mockRes as any, ctrl.signal, '');
 
     expect(mockRes.write).not.toHaveBeenCalledWith('data: [DONE]\n\n');
   });

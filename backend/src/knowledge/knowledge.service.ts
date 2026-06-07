@@ -18,4 +18,10 @@ export class KnowledgeService {
     if (!file) throw new NotFoundException(`KnowledgeFile ${id} not found`);
     return this.prisma.knowledgeFile.delete({ where: { id } });
   }
+
+  async search(query: string): Promise<Array<{ filename: string; text: string }>> {
+    // Phase 5a: implement LanceDB vector search
+    // For now, return empty — RAG is wired but inactive without indexed data
+    return [];
+  }
 }

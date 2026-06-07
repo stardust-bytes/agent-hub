@@ -6,5 +6,6 @@ export interface LLMProvider {
     model: string,
     res: Response,
     signal: AbortSignal,
+    context?: string,
   ): Promise<void>;
 }
