@@ -4,7 +4,6 @@
   "nav.files": "Tệp tin",
   "nav.settings": "Cài đặt",
   "nav.lang": "VI",
-  "chat.header": "AGENT CHAT",
   "chat.mode.stub": "chế độ stub",
   "chat.mode.ollama": "chế độ ollama",
   "chat.placeholder": "nhập lệnh hoặc câu hỏi_",
