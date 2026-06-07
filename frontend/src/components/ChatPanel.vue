@@ -1,27 +1,5 @@
 <template>
   <div class="flex flex-col bg-cyber-bg min-w-0">
-    <div class="px-3 py-2 bg-cyber-dark flex items-center justify-between shrink-0">
-      <div class="flex items-center gap-2">
-        <span class="text-cyber-accent text-xs tracking-widest font-mono">
-          <HiTerminal class="w-3 h-3 inline" /> {{ t('chat.header') }}
-        </span>
-        <button
-          @click="showSessionModal = true"
-          class="text-cyber-accent/70 text-xs font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent"
-        >{{ t('sessions.header') }}</button>
-      </div>
-      <div class="flex items-center gap-2">
-        <button
-          v-if="streaming"
-          @click="stopStream"
-          class="text-cyber-accent/80 text-xs font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent"
-        >{{ t('chat.stop') }}</button>
-        <span class="text-cyber-muted text-xs font-mono">
-          {{ ollamaOnline ? t('chat.mode.ollama') : t('chat.mode.stub') }}
-        </span>
-      </div>
-    </div>
-
     <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2 min-h-0">
       <div v-for="(msg, i) in messages" :key="i" class="font-mono">
 
@@ -113,7 +91,7 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { HiTerminal, HiChevronRight } from 'vue-icons-plus/hi'
+import { HiChevronRight } from 'vue-icons-plus/hi'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import ModelSelector from './ModelSelector.vue'
