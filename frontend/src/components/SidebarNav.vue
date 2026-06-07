@@ -37,15 +37,11 @@
       {{ t('nav.lang') }}
     </button>
 
-    <div
-      :title="healthStatus"
-      :class="['w-2 h-2 rounded-full mt-1 transition-colors duration-500 self-center', isHealthy ? 'bg-cyber-green' : 'bg-red-500']"
-    />
   </nav>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, type Component } from 'vue'
+import { ref, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Locale } from '../i18n'
 import { HiTerminal, HiChatAlt2, HiClipboardList, HiFolder, HiCog } from 'vue-icons-plus/hi'
@@ -67,23 +63,9 @@ const navItems: NavItem[] = [
   { view: 'files', labelKey: 'nav.files', icon: HiFolder },
 ]
 
-const isHealthy = ref(false)
-const healthStatus = ref(t('health.checking'))
-
 function toggleLang() {
   const next: Locale = locale.value === 'vi' ? 'en' : 'vi'
   locale.value = next
   localStorage.setItem('workspace.lang', next)
 }
-
-onMounted(async () => {
-  try {
-    const res = await fetch('/api/health')
-    const data = await res.json()
-    isHealthy.value = data.status === 'ok'
-    healthStatus.value = t('health.ok')
-  } catch {
-    healthStatus.value = t('health.error')
-  }
-})
 </script>
