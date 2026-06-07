@@ -148,12 +148,16 @@ export class KnowledgeService {
     return this.prisma.knowledgeFile.delete({ where: { id } });
   }
 
-  async search(query: string): Promise<Array<{ filename: string; text: string }>> {
+  async search(query: string): Promise<Array<{ filename: string; chunkIndex: number; text: string }>> {
     try {
       const vector = await this.embed(query);
       await this.ensureTable();
       const results = await this.table.search(vector).limit(5).toArray() as ChunkRecord[];
-      return results.filter(r => r.fileId > 0).map(r => ({ filename: r.filename, text: r.text }));
+      return results.filter(r => r.fileId > 0).map(r => ({
+        filename: r.filename,
+        chunkIndex: r.chunkIndex,
+        text: r.text,
+      }));
     } catch {
       return [];
     }

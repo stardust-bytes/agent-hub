@@ -261,8 +261,8 @@ export class OllamaProvider implements LLMProvider {
       case 'search_knowledge': {
         const chunks = await this.knowledgeService.search(args.query as string);
         if (chunks.length === 0) return 'No relevant information found.';
-        return chunks.map((c: { filename: string; text: string }) =>
-          `[${c.filename}]: ${c.text}`
+        return chunks.map((c: { filename: string; chunkIndex: number; text: string }, i: number) =>
+          `[${i + 1}] Source: "${c.filename}", §${c.chunkIndex}\n${c.text}`
         ).join('\n---\n');
       }
       default:

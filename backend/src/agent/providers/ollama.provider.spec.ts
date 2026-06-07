@@ -195,7 +195,7 @@ describe('OllamaProvider', () => {
   });
 
   it('handles search_knowledge results', async () => {
-    const chunks = [{ filename: 'doc.md', text: 'relevant content' }];
+    const chunks = [{ filename: 'doc.md', chunkIndex: 0, text: 'relevant content' }];
     mockKnowledgeService.search.mockResolvedValue(chunks);
 
     const reader = makeReader([
@@ -223,7 +223,7 @@ describe('OllamaProvider', () => {
       'data: {"toolCall":{"name":"search_knowledge","args":{"query":"test"}}}\n\n',
     );
     expect(mockRes.write).toHaveBeenCalledWith(
-      'data: {"toolResult":{"name":"search_knowledge","result":"[doc.md]: relevant content"}}\n\n',
+      'data: {"toolResult":{"name":"search_knowledge","result":"[1] Source: \\"doc.md\\", §0\\nrelevant content"}}\n\n',
     );
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
   });
