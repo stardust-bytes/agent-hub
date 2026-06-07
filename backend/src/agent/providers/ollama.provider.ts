@@ -162,6 +162,11 @@ export class OllamaProvider implements LLMProvider {
 
       if (signal.aborted) return;
 
+      // Fallback: detect JSON tool calls in text content (models without native tool_calls support)
+      if (!currentToolCalls || currentToolCalls.length === 0) {
+        currentToolCalls = this.detectTextToolCalls(responseContent);
+      }
+
       const assistantMsg: Record<string, unknown> = { role: 'assistant', content: responseContent };
       if (currentToolCalls && currentToolCalls.length > 0) {
         assistantMsg.tool_calls = currentToolCalls.map(tc => ({
@@ -254,6 +259,18 @@ export class OllamaProvider implements LLMProvider {
       default:
         return `Unknown tool: ${name}`;
     }
+  }
+
+  private detectTextToolCalls(text: string): Array<{ function: { name: string; arguments: unknown } }> | null {
+    const trimmed = text.trim();
+    if (!trimmed.startsWith('{')) return null;
+    try {
+      const parsed = JSON.parse(trimmed) as { name?: string; arguments?: unknown };
+      if (parsed.name && TOOLS.some(t => t.function.name === parsed.name)) {
+        return [{ function: { name: parsed.name, arguments: parsed.arguments ?? {} } }];
+      }
+    } catch { /* not JSON */ }
+    return null;
   }
 
 }
