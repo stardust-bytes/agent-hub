@@ -1,43 +1,46 @@
 <template>
-  <nav class="w-[3.25rem] bg-cyber-dark hidden sm:flex flex-col items-center py-3 gap-2 shrink-0">
-    <HiTerminal class="text-cyber-accent w-5 h-5 mb-2" />
+  <nav class="w-32 bg-cyber-dark hidden sm:flex flex-col items-stretch py-3 gap-1 shrink-0">
+    <div class="flex items-center gap-2 px-3 py-1 mb-1">
+      <HiTerminal class="text-cyber-accent w-5 h-5 shrink-0" />
+      <span class="text-xs text-cyber-accent/50 truncate">workspace</span>
+    </div>
 
     <button
       v-for="item in navItems"
       :key="item.view"
-      :title="t(item.labelKey)"
       @click="$emit('navigate', item.view)"
       :class="[
-        'w-9 h-9 rounded flex items-center justify-center text-base transition-colors duration-150',
+        'w-full px-3 py-2 rounded flex items-center gap-2 transition-colors duration-150',
         activeView === item.view
           ? 'bg-cyber-accent/10 text-cyber-accent'
           : 'text-cyber-muted hover:text-cyber-accent'
       ]"
     >
-      <component :is="item.icon" class="w-4 h-4" />
+      <component :is="item.icon" class="w-4 h-4 shrink-0" />
+      <span class="text-xs truncate">{{ t(item.labelKey) }}</span>
     </button>
 
     <div class="flex-1" />
 
     <button
-      :title="t('nav.settings')"
       @click="$emit('navigate', 'settings')"
-      class="w-9 h-9 rounded flex items-center justify-center text-base text-cyber-muted hover:text-cyber-accent"
+      class="w-full px-3 py-2 rounded flex items-center gap-2 text-cyber-muted hover:text-cyber-accent transition-colors duration-150"
     >
-      <HiCog class="w-4 h-4" />
+      <HiCog class="w-4 h-4 shrink-0" />
+      <span class="text-xs truncate">{{ t('nav.settings') }}</span>
     </button>
 
     <button
       :title="locale === 'vi' ? 'Switch to English' : 'Chuyển sang Tiếng Việt'"
       @click="toggleLang"
-      class="w-9 h-6 rounded flex items-center justify-center text-xs font-mono text-cyber-muted hover:text-cyber-accent transition-colors duration-150"
+      class="w-9 h-6 rounded flex items-center justify-center text-xs font-mono text-cyber-muted hover:text-cyber-accent transition-colors duration-150 self-center"
     >
       {{ t('nav.lang') }}
     </button>
 
     <div
       :title="healthStatus"
-      :class="['w-2 h-2 rounded-full mt-1 transition-colors duration-500', isHealthy ? 'bg-cyber-green' : 'bg-red-500']"
+      :class="['w-2 h-2 rounded-full mt-1 transition-colors duration-500 self-center', isHealthy ? 'bg-cyber-green' : 'bg-red-500']"
     />
   </nav>
 </template>
