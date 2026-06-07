@@ -4,7 +4,7 @@ import { ToolDefinition } from '../services/context-builder.service';
 export interface OllamaMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content: string;
-  toolCalls?: Array<{ function: { name: string; arguments: string } }>;
+  toolCalls?: Array<{ function: { name: string; arguments: unknown } }>;
 }
 
 export interface LLMProvider {

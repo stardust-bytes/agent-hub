@@ -154,12 +154,18 @@ export class OllamaProvider implements LLMProvider {
         contextMessages.push({
           role: 'assistant',
           content: responseText || '',
-          toolCalls: toolCalls.map(tc => ({
-            function: {
-              name: tc.name,
-              arguments: typeof tc.arguments === 'string' ? tc.arguments : JSON.stringify(tc.arguments),
-            },
-          })),
+          toolCalls: toolCalls.map(tc => {
+            let args = tc.arguments;
+            if (typeof args === 'string') {
+              try { args = JSON.parse(args); } catch {}
+            }
+            return {
+              function: {
+                name: tc.name,
+                arguments: args,
+              },
+            };
+          }),
         });
 
         for (const tc of toolCalls) {
@@ -194,7 +200,7 @@ export class OllamaProvider implements LLMProvider {
           } else {
             contextMessages.push({
               role: 'tool',
-              content: JSON.stringify(matchingStep?.result ?? { error: 'No result' }),
+              content: String(matchingStep?.result ?? 'No result'),
             });
           }
         }
