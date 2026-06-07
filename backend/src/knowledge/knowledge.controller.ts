@@ -1,7 +1,13 @@
-import { Controller, Get, Post, Delete, Param, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { IsString } from 'class-validator';
 import { KnowledgeService } from './knowledge.service';
 import * as fs from 'fs';
+
+class SearchDto {
+  @IsString()
+  query: string;
+}
 
 @Controller('knowledge')
 export class KnowledgeController {
@@ -19,6 +25,11 @@ export class KnowledgeController {
     fs.writeFileSync(record.filepath, file.buffer);
     await this.knowledgeService.updateStatus(record.id, 'ready');
     return { id: record.id, filename: file.originalname, status: 'ready' };
+  }
+
+  @Post('search')
+  async search(@Body() dto: SearchDto) {
+    return this.knowledgeService.search(dto.query);
   }
 
   @Delete(':id')

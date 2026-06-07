@@ -42,8 +42,36 @@ export class KnowledgeService {
   }
 
   async search(query: string): Promise<Array<{ filename: string; text: string }>> {
-    // Phase 5a: implement LanceDB vector search
-    // For now, return empty — RAG is wired but inactive without indexed data
-    return [];
+    const files = await this.prisma.knowledgeFile.findMany({ where: { status: 'ready' } });
+    const results: Array<{ filename: string; text: string; score: number }> = [];
+    const q = query.toLowerCase();
+
+    for (const file of files) {
+      try {
+        const content = fs.readFileSync(file.filepath, 'utf-8');
+        const chunks = this.chunkText(content, 512, 50);
+        for (const chunk of chunks) {
+          const lower = chunk.toLowerCase();
+          let score = 0;
+          if (lower.includes(q)) score = q.length / lower.length;
+          if (score > 0) results.push({ filename: file.filename, text: chunk, score });
+        }
+      } catch { /* skip unreadable files */ }
+    }
+
+    results.sort((a, b) => b.score - a.score);
+    return results.slice(0, 5).map(({ filename, text }) => ({ filename, text }));
+  }
+
+  private chunkText(text: string, chunkSize: number, overlap: number): string[] {
+    if (text.length <= chunkSize) return [text];
+    const chunks: string[] = [];
+    let start = 0;
+    while (start < text.length) {
+      const end = Math.min(start + chunkSize, text.length);
+      chunks.push(text.slice(start, end));
+      start += chunkSize - overlap;
+    }
+    return chunks;
   }
 }
