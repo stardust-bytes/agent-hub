@@ -62,30 +62,38 @@
       @created="(id: number) => { currentSessionId = id; loadSession(id) }"
     />
     <div class="shrink-0">
-      <div class="px-3 py-2 bg-cyber-dark">
-        <form @submit.prevent="submit" class="flex items-center gap-2 bg-cyber-dark px-3 py-2">
-          <span class="text-cyber-accent text-sm font-mono">$</span>
-          <span v-if="!streaming" class="animate-blink text-cyber-text text-sm">█</span>
-          <input
-            ref="inputEl"
-            v-model="input"
-            class="flex-1 bg-transparent text-cyber-text text-sm outline-none font-mono placeholder-cyber-muted/40 caret-white"
-            :placeholder="t('chat.placeholder')"
+      <div class="max-w-2xl mx-auto w-full px-3 pb-3">
+        <div class="bg-cyber-dark px-3 py-2">
+          <form @submit.prevent="submit" class="flex items-center gap-2">
+            <span class="text-cyber-accent text-sm font-mono shrink-0">$</span>
+            <span v-if="!streaming" class="animate-blink text-cyber-text text-sm shrink-0">█</span>
+            <input
+              ref="inputEl"
+              v-model="input"
+              class="flex-1 bg-transparent text-cyber-text text-sm outline-none font-mono placeholder-cyber-muted/40 caret-white"
+              :placeholder="t('chat.placeholder')"
+              :disabled="streaming"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button
+              v-if="streaming"
+              @click="stopStream"
+              class="text-cyber-accent/80 text-xs font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent shrink-0"
+            >{{ t('chat.stop') }}</button>
+          </form>
+        </div>
+        <div class="flex items-center justify-between pt-2">
+          <ModelSelector
+            v-model="selectedModel"
+            :models="availableModels"
             :disabled="streaming"
-            autocomplete="off"
-            spellcheck="false"
           />
-        </form>
-      </div>
-      <div class="px-3 pb-2 bg-cyber-dark flex items-center gap-2">
-        <ModelSelector
-          v-model="selectedModel"
-          :models="availableModels"
-          :disabled="streaming"
-        />
-        <span v-if="streaming" class="text-[0.625rem] text-cyber-accent/50 font-mono">{{ t('chat.streaming') }}</span>
-      </div>
-      </div>
+          <button
+            @click="showSessionModal = true"
+            class="text-cyber-accent/70 text-xs font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent"
+          >{{ t('sessions.header') }}</button>
+        </div>
       </div>
     </div>
 </template>
