@@ -90,22 +90,24 @@ export class OllamaProvider implements LLMProvider {
     if (context) messages.push({ role: 'system', content: context });
     messages.push({ role: 'user', content: message });
 
+    const MAX_TOOL_CALLS = 10;
     let toolCallCount = 0;
 
     while (!signal.aborted) {
-      const body = JSON.stringify({
+      const body: Record<string, unknown> = {
         model,
         messages,
         stream: true,
-        tools: TOOLS,
-      });
+      };
+      // Only send tools on first iteration to avoid re-triggering
+      if (toolCallCount === 0) body.tools = TOOLS;
 
       let ollamaRes: globalThis.Response;
       try {
         ollamaRes = await fetch(`${ollamaUrl}/api/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body,
+          body: JSON.stringify(body),
           signal,
         });
       } catch {
@@ -128,7 +130,7 @@ export class OllamaProvider implements LLMProvider {
 
       const reader = ollamaRes.body!.getReader();
       const decoder = new TextDecoder();
-      let buffer = '';
+      let buf = '';
       let currentToolCalls: Array<{ function: { name: string; arguments: unknown } }> | null = null;
       let responseContent = '';
 
@@ -136,9 +138,9 @@ export class OllamaProvider implements LLMProvider {
         const { done, value } = await reader.read();
         if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() ?? '';
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop() ?? '';
 
         for (const line of lines) {
           if (!line.trim()) continue;
@@ -163,12 +165,17 @@ export class OllamaProvider implements LLMProvider {
       const assistantMsg: Record<string, unknown> = { role: 'assistant', content: responseContent };
       if (currentToolCalls && currentToolCalls.length > 0) {
         assistantMsg.tool_calls = currentToolCalls.map(tc => ({
-          function: { name: tc.function.name, arguments: tc.function.arguments },
+          function: {
+            name: tc.function.name,
+            arguments: typeof tc.function.arguments === 'string'
+              ? tc.function.arguments
+              : JSON.stringify(tc.function.arguments),
+          },
         }));
       }
       messages.push(assistantMsg);
 
-      if (!currentToolCalls || currentToolCalls.length === 0) {
+      if (!currentToolCalls || currentToolCalls.length === 0 || toolCallCount >= MAX_TOOL_CALLS) {
         break;
       }
 
