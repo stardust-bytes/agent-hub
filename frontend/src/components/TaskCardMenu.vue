@@ -1,15 +1,15 @@
 <!-- frontend/src/components/TaskCardMenu.vue -->
 <template>
-  <div class="absolute right-0 top-5 z-20 bg-cyber-dark border border-cyber-dim rounded min-w-[128px]">
-    <div class="px-2 py-1.5 border-b border-cyber-border">
-      <div class="text-[9px] text-cyber-accent/40 font-mono mb-1">{{ t('tasks.filter.label') }}</div>
+  <div class="absolute right-0 top-5 z-20 bg-cyber-dark min-w-[128px]">
+    <div class="px-2 py-1.5">
+      <div class="text-[9px] text-[#888888] font-mono mb-1">{{ t('tasks.filter.label') }}</div>
       <div class="flex gap-1">
         <button
           v-for="p in PRIORITIES"
           :key="p.value"
           @click="$emit('update-priority', taskId, p.value)"
           :class="[
-            'text-[8px] px-1.5 py-px rounded border font-mono transition-colors duration-150',
+            'text-[8px] px-1.5 py-px font-mono transition-colors duration-150',
             p.value === currentPriority ? p.activeClass : p.inactiveClass,
           ]"
         >{{ t(p.labelKey) }}</button>
@@ -41,20 +41,20 @@ const PRIORITIES = [
   {
     value: 2,
     labelKey: 'tasks.priority.high',
-    activeClass: 'text-red-400 border-red-400/50 bg-red-400/15',
-    inactiveClass: 'text-red-400/50 border-red-400/20 hover:border-red-400/40',
+    activeClass: 'text-red-400 bg-red-400/15',
+    inactiveClass: 'text-red-400/50 hover:text-red-400',
   },
   {
     value: 1,
     labelKey: 'tasks.priority.medium',
-    activeClass: 'text-cyber-orange border-cyber-orange/50 bg-cyber-orange/15',
-    inactiveClass: 'text-cyber-orange/50 border-cyber-orange/20 hover:border-cyber-orange/40',
+    activeClass: 'text-cyber-accent bg-cyber-accent/15',
+    inactiveClass: 'text-cyber-accent/50 hover:text-cyber-accent',
   },
   {
     value: 0,
     labelKey: 'tasks.priority.low',
-    activeClass: 'text-cyber-accent border-cyber-dim bg-cyber-accent/15',
-    inactiveClass: 'text-cyber-accent/50 border-cyber-border hover:border-cyber-dim',
+    activeClass: 'text-cyber-blue bg-cyber-blue/15',
+    inactiveClass: 'text-cyber-blue/50 hover:text-cyber-blue',
   },
 ] as const
 
