@@ -6,11 +6,9 @@ export default {
     extend: {
       colors: {
         'cyber-bg':     '#000000',
-        'cyber-dark':   '#141414',
-        'cyber-accent': '#3B82F6',
-        'cyber-border': 'rgba(59, 130, 246, 0.13)',
-        'cyber-dim':    'rgba(59, 130, 246, 0.33)',
-        'cyber-orange': '#FFA500',
+        'cyber-dark':   '#111111',
+        'cyber-status': '#161616',
+        'cyber-accent': '#FFA500',
         'cyber-green':  '#22C55E',
         'cyber-blue':   '#3B82F6',
       },
