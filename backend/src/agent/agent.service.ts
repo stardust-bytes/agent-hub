@@ -1,8 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import { Response } from 'express';
+import { OllamaProvider } from './providers/ollama.provider';
 
 @Injectable()
 export class AgentService {
-  mockReply(message: string): string {
-    return `[stub] Received: ${message}. Ollama integration coming in Phase 2.`;
+  constructor(private readonly provider: OllamaProvider) {}
+
+  async streamChat(
+    message: string,
+    model: string,
+    res: Response,
+    signal: AbortSignal,
+  ): Promise<void> {
+    await this.provider.streamChat(message, model, res, signal);
   }
 }
