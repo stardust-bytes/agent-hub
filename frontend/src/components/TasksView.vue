@@ -1,11 +1,8 @@
 <template>
   <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
-    <div class="px-3 py-2 bg-cyber-dark flex items-center justify-between shrink-0">
+    <div class="px-3 py-2 bg-cyber-dark flex items-center shrink-0">
       <span class="text-cyber-accent text-xs tracking-widest font-mono">
         <HiClipboardList class="w-3 h-3 inline" /> {{ t('tasks.header') }}
-      </span>
-      <span :class="['text-xs font-mono', wsConnected ? 'text-cyber-green' : 'text-cyber-muted']">
-        {{ wsConnected ? t('tasks.ws.connected') : t('tasks.ws.disconnected') }}
       </span>
     </div>
 
@@ -25,20 +22,23 @@
     <KanbanBoard
       :active-filters="activeFilters"
       class="flex-1 overflow-hidden"
-      @ws-status="wsConnected = $event"
+      @ws-status="emit('ws-status', $event)"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiClipboardList } from 'vue-icons-plus/hi'
 import KanbanBoard from './KanbanBoard.vue'
 
 const { t } = useI18n()
-const wsConnected = ref(false)
 const activeFilters = reactive(new Set<number>())
+
+const emit = defineEmits<{
+  'ws-status': [connected: boolean]
+}>()
 
 const PRIORITY_FILTERS = [
   {

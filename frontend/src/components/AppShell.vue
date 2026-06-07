@@ -4,7 +4,7 @@
       <SidebarNav :active-view="activeView" @navigate="activeView = $event" />
       <FilesView v-if="activeView === 'files'" class="flex-1 overflow-hidden" />
       <SettingsView v-else-if="activeView === 'settings'" class="flex-1 overflow-hidden" />
-      <TasksView v-else-if="activeView === 'tasks'" class="flex-1 overflow-hidden" />
+      <TasksView v-else-if="activeView === 'tasks'" class="flex-1 overflow-hidden" @ws-status="wsConnected = $event" />
       <ChatPanel v-else class="flex-1 overflow-hidden" />
     </div>
     <BottomTabBar :active-view="activeView" @navigate="activeView = $event" />
