@@ -237,7 +237,7 @@ async function submit() {
             await scrollToBottom()
           } else if (parsed.token) {
             if (messages.value[thinkIdx]?.role === 'system' && messages.value[thinkIdx]?.content === t('chat.thinking')) {
-              messages.value.splice(thinkIdx, 1)
+              messages.value[thinkIdx].content = ''
             }
             tokenBatch += parsed.token
             if (!batchTimer) {
