@@ -39,5 +39,13 @@
   "tasks.ws.disconnected": "○ ws offline",
 
   "status.db": "db",
-  "status.model": "model"
+  "status.model": "model",
+
+  "settings.header": "SETTINGS",
+  "settings.ollamaUrl": "Ollama Base URL",
+  "settings.defaultModel": "Default Model",
+  "settings.save": "Save",
+  "settings.saved": "✓ Saved",
+  "settings.version": "Version",
+  "settings.info": "INFO"
 }

@@ -39,5 +39,13 @@
   "tasks.ws.disconnected": "○ ws offline",
 
   "status.db": "db",
-  "status.model": "model"
+  "status.model": "model",
+
+  "settings.header": "CÀI ĐẶT",
+  "settings.ollamaUrl": "Ollama Base URL",
+  "settings.defaultModel": "Model mặc định",
+  "settings.save": "Lưu",
+  "settings.saved": "✓ Đã lưu",
+  "settings.version": "Phiên bản",
+  "settings.info": "THÔNG TIN"
 }
