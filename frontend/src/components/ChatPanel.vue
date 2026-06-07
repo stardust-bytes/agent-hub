@@ -176,14 +176,19 @@ async function submit() {
   const ctrl = new AbortController()
   abortController.value = ctrl
 
-  const thinkIdx = messages.value.length
-  messages.value.push({ role: 'system', content: t('chat.thinking'), timestamp: now() })
+  const thinkingMsg: Message = { role: 'system', content: t('chat.thinking'), timestamp: now() }
+  messages.value.push(thinkingMsg)
   await scrollToBottom()
 
   const agentMsg: Message = { role: 'agent', content: '', timestamp: now(), typing: true }
+  const msgIdx = messages.value.length
   messages.value.push(agentMsg)
-  const msgIdx = messages.value.length - 1
   await scrollToBottom()
+
+  function clearThinking() {
+    const idx = messages.value.indexOf(thinkingMsg)
+    if (idx !== -1) messages.value[idx].content = ''
+  }
 
   try {
     const res = await fetch('/api/agent/chat', {
@@ -197,80 +202,66 @@ async function submit() {
 
     const reader = res.body.getReader()
     const decoder = new TextDecoder()
-    let buffer = ''
+    let buf = ''
     let done = false
-    let tokenBatch = ''
-    let batchTimer: ReturnType<typeof setTimeout> | null = null
-
-    function flushBatch() {
-      if (tokenBatch) {
-        messages.value[msgIdx].content += tokenBatch
-        tokenBatch = ''
-        scrollToBottom()
-      }
-      batchTimer = null
-    }
 
     while (!done) {
       const { done: streamDone, value } = await reader.read()
       if (streamDone) break
 
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() ?? ''
+      buf += decoder.decode(value, { stream: true })
+      const lines = buf.split('\n')
+      buf = lines.pop() ?? ''
 
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue
         const payload = line.slice(6)
         if (payload === '[DONE]') { done = true; break }
         try {
-          const parsed = JSON.parse(payload) as { token?: string; error?: string; toolCall?: { name: string; args: Record<string, unknown> }; toolResult?: { name: string; result: string } }
+          const parsed = JSON.parse(payload) as Record<string, unknown>
+
           if (parsed.error) {
             done = true
-            messages.value[msgIdx].typing = false
+            agentMsg.typing = false
             messages.value.push({
               role: 'system',
-              content: `${t('chat.error.unreachable')} (${parsed.error})`,
+              content: `${t('chat.error.unreachable')} (${String(parsed.error)})`,
               timestamp: now(),
             })
             await scrollToBottom()
           } else if (parsed.toolCall) {
-            flushBatch()
-            const argsStr = Object.entries(parsed.toolCall.args)
-              .map(([k, v]) => `${k}=${v}`).join(', ')
+            clearThinking()
+            const tc = parsed.toolCall as { name: string; args: Record<string, unknown> }
+            const argsStr = Object.entries(tc.args).map(([k, v]) => `${k}=${v}`).join(', ')
             messages.value.push({
               role: 'tool',
-              content: `${parsed.toolCall.name}(${argsStr})`,
+              content: `${tc.name}(${argsStr})`,
               timestamp: now(),
-              toolName: parsed.toolCall.name,
+              toolName: tc.name,
               isResult: false,
             })
             await scrollToBottom()
           } else if (parsed.toolResult) {
-            flushBatch()
+            const tr = parsed.toolResult as { name: string; result: string }
             messages.value.push({
               role: 'tool',
-              content: parsed.toolResult.result,
+              content: tr.result,
               timestamp: now(),
-              toolName: parsed.toolResult.name,
+              toolName: tr.name,
               isResult: true,
             })
             await scrollToBottom()
           } else if (parsed.token) {
-            if (messages.value[thinkIdx]?.role === 'system' && messages.value[thinkIdx]?.content === t('chat.thinking')) {
-              messages.value[thinkIdx].content = ''
-            }
-            tokenBatch += parsed.token
-            if (!batchTimer) {
-              batchTimer = setTimeout(flushBatch, 50)
-            }
+            clearThinking()
+            messages.value[msgIdx].content += String(parsed.token)
+            if (!done) scrollToBottom()
           }
         } catch { /* skip malformed SSE line */ }
       }
     }
 
-    flushBatch()
     messages.value[msgIdx].typing = false
+    await scrollToBottom()
   } catch (e) {
     messages.value[msgIdx].typing = false
     if (e instanceof Error && e.name !== 'AbortError') {
@@ -282,9 +273,7 @@ async function submit() {
       await scrollToBottom()
     }
   } finally {
-    if (messages.value[thinkIdx]?.role === 'system' && messages.value[thinkIdx]?.content === t('chat.thinking')) {
-      messages.value.splice(thinkIdx, 1)
-    }
+    clearThinking()
     streaming.value = false
     abortController.value = null
   }
