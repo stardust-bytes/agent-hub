@@ -103,13 +103,16 @@ export class ContextBuilderService {
         type: 'function',
         function: {
           name: 'update_task',
-          description: 'Update a task status or priority',
+          description: 'Update a task (title, description, status, priority, dueDate)',
           parameters: {
             type: 'object',
             properties: {
               id: { type: 'number', description: 'Task ID' },
+              title: { type: 'string', description: 'New title' },
+              description: { type: 'string', description: 'New description' },
               status: { type: 'string', enum: ['TODO', 'PROCESSING', 'DONE', 'FAILED'] },
               priority: { type: 'number', enum: [0, 1, 2] },
+              dueDate: { type: 'string', description: 'ISO 8601 due date' },
             },
             required: ['id'],
           },
@@ -125,6 +128,38 @@ export class ContextBuilderService {
             properties: {
               status: { type: 'string', enum: ['TODO', 'PROCESSING', 'DONE', 'FAILED'] },
             },
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'get_task',
+          description: 'Get details of a specific task by ID',
+          parameters: {
+            type: 'object',
+            properties: {
+              id: { type: 'number', description: 'Task ID' },
+            },
+            required: ['id'],
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'delete_tasks',
+          description: 'Delete one or more tasks by their IDs',
+          parameters: {
+            type: 'object',
+            properties: {
+              ids: {
+                type: 'array',
+                items: { type: 'number' },
+                description: 'Task IDs to delete',
+              },
+            },
+            required: ['ids'],
           },
         },
       },
