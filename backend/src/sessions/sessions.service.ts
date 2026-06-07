@@ -42,9 +42,9 @@ export class SessionsService {
     return messages.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
   }
 
-  async saveMessage(sessionId: number, role: 'user' | 'assistant', content: string) {
+  async saveMessage(sessionId: number, role: string, content: string, toolName?: string, isResult?: boolean) {
     return this.prisma.chatMessage.create({
-      data: { sessionId, role, content },
+      data: { sessionId, role, content, toolName, isResult },
     });
   }
 

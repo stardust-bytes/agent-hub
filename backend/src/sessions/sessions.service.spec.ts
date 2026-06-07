@@ -95,11 +95,19 @@ describe('SessionsService', () => {
   });
 
   describe('saveMessage', () => {
-    it('creates a ChatMessage record', async () => {
+    it('creates a ChatMessage record with role and content', async () => {
       mockPrisma.chatMessage.create.mockResolvedValue({ id: 1 });
       await service.saveMessage(1, 'user', 'test message');
       expect(mockPrisma.chatMessage.create).toHaveBeenCalledWith({
         data: { sessionId: 1, role: 'user', content: 'test message' },
+      });
+    });
+
+    it('creates a ChatMessage record with toolName and isResult', async () => {
+      mockPrisma.chatMessage.create.mockResolvedValue({ id: 2 });
+      await service.saveMessage(1, 'tool', 'create_task({"title":"x"})', 'create_task', false);
+      expect(mockPrisma.chatMessage.create).toHaveBeenCalledWith({
+        data: { sessionId: 1, role: 'tool', content: 'create_task({"title":"x"})', toolName: 'create_task', isResult: false },
       });
     });
   });
