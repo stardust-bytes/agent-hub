@@ -31,7 +31,7 @@ export class AgentService {
       { role: 'user', content: message },
     ];
 
-    const { finalText } = await this.provider.streamChat(messages, model, res, signal);
+    const { finalText } = await this.provider.streamChat(messages, model, res, signal, sessionId);
 
     if (!signal.aborted) {
       await this.sessionsService.saveMessage(sessionId, 'user', message);
