@@ -143,6 +143,7 @@ async function submit() {
 
   const agentMsg: Message = { role: 'agent', content: '', timestamp: now(), typing: true }
   messages.value.push(agentMsg)
+  const msgIdx = messages.value.length - 1
   await scrollToBottom()
 
   try {
@@ -176,7 +177,7 @@ async function submit() {
           const parsed = JSON.parse(payload) as { token?: string; error?: string }
           if (parsed.error) {
             done = true
-            agentMsg.typing = false
+            messages.value[msgIdx].typing = false
             messages.value.push({
               role: 'system',
               content: `${t('chat.error.unreachable')} (${parsed.error})`,
@@ -184,17 +185,17 @@ async function submit() {
             })
             await scrollToBottom()
           } else if (parsed.token) {
-            agentMsg.content += parsed.token
+            messages.value[msgIdx].content += parsed.token
             await scrollToBottom()
           }
         } catch { /* skip malformed SSE line */ }
       }
     }
 
-    agentMsg.typing = false
-    if (agentMsg.content) emit('lastMessage', agentMsg.content)
+    messages.value[msgIdx].typing = false
+    if (messages.value[msgIdx].content) emit('lastMessage', messages.value[msgIdx].content)
   } catch (e) {
-    agentMsg.typing = false
+    messages.value[msgIdx].typing = false
     if (e instanceof Error && e.name !== 'AbortError') {
       messages.value.push({
         role: 'system',
