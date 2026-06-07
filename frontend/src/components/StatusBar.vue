@@ -1,15 +1,11 @@
-<!-- frontend/src/components/StatusBar.vue -->
 <template>
   <div class="h-[1.75rem] bg-cyber-status flex items-center justify-between px-3 shrink-0">
     <div class="flex items-center gap-3">
-      <span class="text-[0.625rem] font-mono text-cyber-muted">
-        <span class="text-cyber-blue">{{ modelName }}</span>
+      <span class="text-[0.625rem] font-mono" :class="backendOnline ? 'text-cyber-green' : 'text-cyber-muted'">
+        {{ backendOnline ? '●' : '○' }} {{ t('status.backend') }}
       </span>
       <span class="text-[0.625rem] font-mono" :class="dbConnected ? 'text-cyber-green' : 'text-cyber-muted'">
         [{{ dbConnected ? '✓' : '✗' }}] {{ t('status.db') }}
-      </span>
-      <span class="text-[0.625rem] font-mono text-cyber-accent/50">
-        {{ ollamaOnline ? 'ollama' : 'stub' }}
       </span>
     </div>
     <div class="flex items-center gap-3">
@@ -28,22 +24,33 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
 defineProps<{
-  modelName?: string
   dbConnected?: boolean
   wsConnected?: boolean
-  ollamaOnline?: boolean
 }>()
 
+const backendOnline = ref(false)
 const time = ref(new Date().toLocaleTimeString('vi-VN', { hour12: false }))
 let timer: ReturnType<typeof setInterval>
+let healthTimer: ReturnType<typeof setInterval>
 
 onMounted(() => {
   timer = setInterval(() => {
     time.value = new Date().toLocaleTimeString('vi-VN', { hour12: false })
   }, 1000)
+  const checkHealth = async () => {
+    try {
+      const res = await fetch('/api/health')
+      backendOnline.value = res.ok
+    } catch {
+      backendOnline.value = false
+    }
+  }
+  checkHealth()
+  healthTimer = setInterval(checkHealth, 15000)
 })
 
 onUnmounted(() => {
   clearInterval(timer)
+  clearInterval(healthTimer)
 })
 </script>

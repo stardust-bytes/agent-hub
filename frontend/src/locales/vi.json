@@ -39,8 +39,8 @@
   "tasks.ws.connected": "● ws kết nối",
   "tasks.ws.disconnected": "○ ws offline",
 
+  "status.backend": "backend",
   "status.db": "db",
-  "status.model": "model",
 
   "settings.header": "CÀI ĐẶT",
   "settings.ollamaUrl": "Ollama Base URL",
