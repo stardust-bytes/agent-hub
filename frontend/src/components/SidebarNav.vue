@@ -29,27 +29,18 @@
       <span class="text-xs truncate">{{ t('nav.settings') }}</span>
     </button>
 
-    <button
-      :title="locale === 'vi' ? 'Switch to English' : 'Chuyển sang Tiếng Việt'"
-      @click="toggleLang"
-      class="w-9 h-6 rounded flex items-center justify-center text-xs font-mono text-cyber-muted hover:text-cyber-accent transition-colors duration-150 self-center"
-    >
-      {{ t('nav.lang') }}
-    </button>
-
   </nav>
 </template>
 
 <script setup lang="ts">
-import { ref, type Component } from 'vue'
+import { type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { Locale } from '../i18n'
-import { HiTerminal, HiChatAlt2, HiClipboardList, HiFolder, HiCog } from 'vue-icons-plus/hi'
+import { HiChatAlt2, HiClipboardList, HiFolder, HiCog } from 'vue-icons-plus/hi'
 
 defineProps<{ activeView: 'chat' | 'tasks' | 'files' | 'settings' }>()
 defineEmits<{ navigate: [view: 'chat' | 'tasks' | 'files' | 'settings'] }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 interface NavItem {
   view: 'chat' | 'tasks' | 'files'
@@ -62,10 +53,4 @@ const navItems: NavItem[] = [
   { view: 'tasks', labelKey: 'nav.tasks', icon: HiClipboardList },
   { view: 'files', labelKey: 'nav.files', icon: HiFolder },
 ]
-
-function toggleLang() {
-  const next: Locale = locale.value === 'vi' ? 'en' : 'vi'
-  locale.value = next
-  localStorage.setItem('workspace.lang', next)
-}
 </script>
