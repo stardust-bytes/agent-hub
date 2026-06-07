@@ -66,11 +66,10 @@
       <div class="max-w-2xl mx-auto w-full px-3 pb-3">
         <div class="bg-cyber-dark px-3 py-2">
           <form @submit.prevent="submit" class="flex items-center gap-2">
-            <span class="text-cyber-accent text-sm font-mono shrink-0">$</span>
             <input
               ref="inputEl"
               v-model="input"
-              class="flex-1 bg-transparent text-cyber-text text-sm outline-none font-mono placeholder-cyber-muted/40 caret-white"
+              class="flex-1 bg-transparent text-cyber-text text-xs outline-none font-mono placeholder-cyber-muted/40 caret-white"
               :placeholder="t('chat.placeholder')"
               :disabled="streaming"
               autocomplete="off"
@@ -179,13 +178,6 @@ onMounted(async () => {
     ollamaOnline.value = false
     emit('update:ollamaOnline', false)
   }
-  try {
-    const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
-    if (res.ok) {
-      const session = await res.json() as { id: number }
-      currentSessionId.value = session.id
-    }
-  } catch { /* ignore */ }
 })
 
 watch(selectedModel, (val) => {
@@ -217,6 +209,15 @@ async function loadSession(id: number) {
 async function submit() {
   const text = input.value.trim()
   if (!text || streaming.value) return
+  if (currentSessionId.value === null) {
+    try {
+      const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+      if (res.ok) {
+        const session = await res.json() as { id: number }
+        currentSessionId.value = session.id
+      }
+    } catch { /* ignore */ }
+  }
   input.value = ''
   streaming.value = true
 
