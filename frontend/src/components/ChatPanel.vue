@@ -194,13 +194,29 @@ async function loadSession(id: number) {
   try {
     const res = await fetch(`/api/sessions/${id}/messages`)
     if (res.ok) {
-      const history = await res.json() as Array<{ role: string; content: string; createdAt: string }>
+      const history = await res.json() as Array<{ role: string; content: string; createdAt: string; toolName?: string; isResult?: boolean }>
       for (const msg of history) {
-        messages.value.push({
-          role: msg.role as 'user' | 'agent',
-          content: msg.content,
-          timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-        })
+        if (msg.toolName !== undefined) {
+          messages.value.push({
+            role: 'tool',
+            content: msg.content,
+            timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+            toolName: msg.toolName,
+            isResult: msg.isResult ?? false,
+          })
+        } else if (msg.role === 'system') {
+          messages.value.push({
+            role: 'system',
+            content: msg.content,
+            timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+          })
+        } else {
+          messages.value.push({
+            role: msg.role as 'user' | 'agent',
+            content: msg.content,
+            timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+          })
+        }
       }
     }
   } catch { /* ignore */ }
