@@ -36,5 +36,8 @@
   "tasks.menu.delete": "Delete",
   "tasks.menu.delete.confirm": "Delete this task?",
   "tasks.ws.connected": "● ws connected",
-  "tasks.ws.disconnected": "○ ws offline"
+  "tasks.ws.disconnected": "○ ws offline",
+
+  "status.db": "db",
+  "status.model": "model"
 }

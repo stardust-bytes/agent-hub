@@ -36,5 +36,8 @@
   "tasks.menu.delete": "Xóa",
   "tasks.menu.delete.confirm": "Xóa task này?",
   "tasks.ws.connected": "● ws kết nối",
-  "tasks.ws.disconnected": "○ ws offline"
+  "tasks.ws.disconnected": "○ ws offline",
+
+  "status.db": "db",
+  "status.model": "model"
 }
