@@ -12,17 +12,17 @@ html, body, #app {
   margin: 0;
   padding: 0;
   height: 100%;
-  background-color: #0a0e1a;
-  color: #e2e8f0;
+  background-color: #000000;
+  color: #EEEEEE;
 }
 
 ::-webkit-scrollbar {
   width: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #060911;
+  background: #141414;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 212, 255, 0.2);
+  background: rgba(59, 130, 246, 0.2);
   border-radius: 2px;
 }

@@ -1,41 +1,41 @@
 <template>
   <div class="flex flex-col bg-cyber-bg min-w-0">
     <div class="px-3 py-2 border-b border-cyber-border bg-cyber-dark flex items-center justify-between shrink-0">
-      <span class="text-cyber-accent text-xs tracking-widest font-mono">◈ {{ t('chat.header') }}</span>
-      <span class="text-cyber-accent/40 text-xs font-mono">{{ t('chat.mode.stub') }}</span>
+      <span class="text-cyber-orange text-xs tracking-widest font-mono"><HiTerminal class="w-3 h-3 inline" /> {{ t('chat.header') }}</span>
+      <span class="text-cyber-orange/40 text-xs font-mono">{{ t('chat.mode.stub') }}</span>
     </div>
 
     <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 min-h-0">
       <div v-for="(msg, i) in messages" :key="i" class="font-mono">
         <div class="text-xs mb-1" :class="roleColor(msg.role)">
+          <HiChevronRight v-if="msg.role === 'agent'" class="w-3 h-3 inline" />
           {{ rolePrefix(msg.role) }} · {{ msg.timestamp }}
         </div>
         <div
           class="text-sm leading-relaxed break-words"
           :class="{
-            'text-cyber-accent/50': msg.role === 'system',
-            'text-slate-300': msg.role === 'agent',
-            'text-slate-100': msg.role === 'user',
+            'text-cyber-orange/50': msg.role === 'system',
+            'text-slate-100': msg.role === 'user' || msg.role === 'agent',
           }"
         >
-          {{ msg.content }}<span v-if="msg.typing" class="animate-blink text-cyber-accent ml-px">█</span>
+          {{ msg.content }}<span v-if="msg.typing" class="animate-blink text-cyber-orange ml-px">█</span>
         </div>
       </div>
     </div>
 
     <div class="px-3 py-2 border-t border-cyber-border bg-cyber-dark shrink-0">
       <form @submit.prevent="submit" class="flex items-center gap-2 border border-cyber-dim rounded px-3 py-2">
-        <span class="text-cyber-accent text-sm font-mono">$</span>
+        <span class="text-cyber-orange text-sm font-mono">$</span>
         <input
           v-model="input"
-          class="flex-1 bg-transparent text-slate-100 text-sm outline-none font-mono placeholder-cyber-accent/30"
+          class="flex-1 bg-transparent text-slate-100 text-sm outline-none font-mono placeholder-cyber-orange/30"
           :placeholder="t('chat.placeholder')"
           :disabled="loading"
           autocomplete="off"
           spellcheck="false"
         />
-        <span v-if="!loading" class="animate-blink text-cyber-accent text-sm">█</span>
-        <span v-else class="text-cyber-accent/50 text-xs">{{ t('chat.loading') }}</span>
+        <span v-if="!loading" class="animate-blink text-cyber-orange text-sm">█</span>
+        <span v-else class="text-cyber-orange/50 text-xs">{{ t('chat.loading') }}</span>
       </form>
     </div>
   </div>
@@ -44,6 +44,7 @@
 <script setup lang="ts">
 import { ref, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { HiTerminal, HiChevronRight } from 'vue-icons-plus/hi'
 
 interface Message {
   role: 'user' | 'agent' | 'system'
@@ -77,9 +78,9 @@ function rolePrefix(role: string): string {
 }
 
 function roleColor(role: string): string {
-  if (role === 'user') return 'text-cyber-accent/60'
-  if (role === 'agent') return 'text-cyber-accent'
-  return 'text-cyber-accent/40'
+  if (role === 'user') return 'text-cyber-orange/60'
+  if (role === 'agent') return 'text-cyber-orange'
+  return 'text-cyber-orange/40'
 }
 
 async function scrollToBottom() {

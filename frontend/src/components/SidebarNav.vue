@@ -1,6 +1,6 @@
 <template>
   <nav class="w-[52px] bg-cyber-dark border-r border-cyber-border flex flex-col items-center py-3 gap-2 shrink-0">
-    <div class="text-cyber-accent text-lg mb-2 font-mono" style="text-shadow: 0 0 8px #00d4ff">◈</div>
+    <HiTerminal class="text-cyber-accent w-5 h-5 mb-2" style="text-shadow: 0 0 8px #3B82F6" />
 
     <button
       v-for="item in navItems"
@@ -14,7 +14,7 @@
           : 'border border-transparent text-cyber-accent/40 hover:text-cyber-accent/70'
       ]"
     >
-      {{ item.icon }}
+      <component :is="item.icon" class="w-4 h-4" />
     </button>
 
     <div class="flex-1" />
@@ -23,7 +23,7 @@
       :title="t('nav.settings')"
       class="w-9 h-9 rounded flex items-center justify-center text-base border border-transparent text-cyber-accent/40 hover:text-cyber-accent/70"
     >
-      ⚙️
+      <HiCog class="w-4 h-4" />
     </button>
 
     <button
@@ -36,27 +36,34 @@
 
     <div
       :title="healthStatus"
-      :class="['w-2 h-2 rounded-full mt-1 transition-colors duration-500', isHealthy ? 'bg-cyber-accent' : 'bg-red-500']"
-      :style="isHealthy ? 'box-shadow: 0 0 6px #00d4ff' : ''"
+      :class="['w-2 h-2 rounded-full mt-1 transition-colors duration-500', isHealthy ? 'bg-cyber-green' : 'bg-red-500']"
+      :style="isHealthy ? 'box-shadow: 0 0 6px #22C55E' : ''"
     />
   </nav>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Locale } from '../i18n'
+import { HiTerminal, HiChatAlt2, HiClipboardList, HiFolder, HiCog } from 'vue-icons-plus/hi'
 
 defineProps<{ activeView: 'chat' | 'tasks' | 'files' }>()
 defineEmits<{ navigate: [view: 'chat' | 'tasks' | 'files'] }>()
 
 const { t, locale } = useI18n()
 
-const navItems = [
-  { view: 'chat',  labelKey: 'nav.chat',  icon: '💬' },
-  { view: 'tasks', labelKey: 'nav.tasks', icon: '📋' },
-  { view: 'files', labelKey: 'nav.files', icon: '📁' },
-] as const
+interface NavItem {
+  view: 'chat' | 'tasks' | 'files'
+  labelKey: string
+  icon: Component
+}
+
+const navItems: NavItem[] = [
+  { view: 'chat',  labelKey: 'nav.chat',  icon: HiChatAlt2 },
+  { view: 'tasks', labelKey: 'nav.tasks', icon: HiClipboardList },
+  { view: 'files', labelKey: 'nav.files', icon: HiFolder },
+]
 
 const isHealthy = ref(false)
 const healthStatus = ref(t('health.checking'))
