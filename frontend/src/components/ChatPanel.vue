@@ -1,7 +1,8 @@
 <template>
   <div class="flex flex-col bg-cyber-bg min-w-0">
-    <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2 min-h-0">
-      <div v-for="(msg, i) in messages" :key="i" class="font-mono">
+    <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 min-h-0">
+      <div class="max-w-2xl mx-auto space-y-4">
+        <div v-for="(msg, i) in messages" :key="i" class="font-mono">
 
         <!-- Thinking block -->
         <div v-if="msg.role === 'system' && msg.content === '⟳ thinking...' || msg.content === '⟳ đang nghĩ...'"
@@ -84,8 +85,9 @@
         />
         <span v-if="streaming" class="text-[0.625rem] text-cyber-accent/50 font-mono">{{ t('chat.streaming') }}</span>
       </div>
+      </div>
+      </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
