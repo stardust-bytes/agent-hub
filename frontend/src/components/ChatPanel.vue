@@ -132,6 +132,10 @@ const messagesEl = ref<HTMLElement | null>(null)
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
 
+const emit = defineEmits<{
+  (e: 'update:ollamaOnline', value: boolean): void
+}>()
+
 function now(): string {
   return new Date().toLocaleTimeString('vi-VN', { hour12: false })
 }
@@ -166,11 +170,13 @@ onMounted(async () => {
     if (!res.ok) throw new Error('fetch failed')
     const models = (await res.json()) as string[]
     availableModels.value = models
+    emit('update:ollamaOnline', true)
     if (models.length > 0 && !models.includes(selectedModel.value)) {
       selectedModel.value = models[0]
     }
   } catch {
     ollamaOnline.value = false
+    emit('update:ollamaOnline', false)
   }
   try {
     const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })

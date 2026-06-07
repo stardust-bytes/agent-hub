@@ -5,13 +5,18 @@
       <FilesView v-if="activeView === 'files'" class="flex-1 overflow-hidden" />
       <SettingsView v-else-if="activeView === 'settings'" class="flex-1 overflow-hidden" />
       <TasksView v-else-if="activeView === 'tasks'" class="flex-1 overflow-hidden" />
-      <ChatPanel v-else class="flex-1 overflow-hidden" />
+      <ChatPanel
+        v-else
+        class="flex-1 overflow-hidden"
+        @update:ollamaOnline="ollamaOnline = $event"
+      />
     </div>
     <BottomTabBar :active-view="activeView" @navigate="activeView = $event" />
     <StatusBar
       :model-name="modelName"
       :db-connected="dbConnected"
       :ws-connected="wsConnected"
+      :ollama-online="ollamaOnline"
     />
   </div>
 </template>
@@ -30,4 +35,5 @@ const activeView = ref<'chat' | 'tasks' | 'files' | 'settings'>('chat')
 const modelName = ref('llama3.2')
 const dbConnected = ref(true)
 const wsConnected = ref(false)
+const ollamaOnline = ref(true)
 </script>

@@ -8,6 +8,9 @@
       <span class="text-[0.625rem] font-mono" :class="dbConnected ? 'text-cyber-green' : 'text-cyber-muted'">
         [{{ dbConnected ? '✓' : '✗' }}] {{ t('status.db') }}
       </span>
+      <span class="text-[0.625rem] font-mono text-cyber-accent/50">
+        {{ ollamaOnline ? 'ollama' : 'stub' }}
+      </span>
     </div>
     <div class="flex items-center gap-3">
       <span class="text-[0.625rem] font-mono" :class="wsConnected ? 'text-cyber-green' : 'text-cyber-muted'">
@@ -28,6 +31,7 @@ defineProps<{
   modelName?: string
   dbConnected?: boolean
   wsConnected?: boolean
+  ollamaOnline?: boolean
 }>()
 
 const time = ref(new Date().toLocaleTimeString('vi-VN', { hour12: false }))
