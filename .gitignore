@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Environment
+.env
+*.env.local
+
+# Database / data
+workspace_data/
+!.gitkeep
+*.db
+*.db-journal
+
+# Superpowers
+.superpowers/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db
