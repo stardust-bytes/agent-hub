@@ -301,6 +301,11 @@ async function submit() {
               isResult: true,
             })
             await scrollToBottom()
+          } else if (parsed.thinking) {
+            clearThinking()
+            const thinkingMsg: Message = { role: 'system', content: `⟳ ${String(parsed.thinking)}`, timestamp: now() }
+            messages.value.push(thinkingMsg)
+            await scrollToBottom()
           } else if (parsed.token) {
             clearThinking()
             messages.value[msgIdx].content += String(parsed.token)

@@ -232,6 +232,7 @@ export class OllamaProvider implements LLMProvider {
       }
 
       if (searchResults.length > 0) {
+        res.write(`data: ${JSON.stringify({ thinking: 'Synthesizing search results...' })}\n\n`);
         msgs.push({
           role: 'user',
           content: `I searched the knowledge base and found these results:\n\n${searchResults.join('\n\n---\n\n')}\n\nBased on these results, provide a comprehensive answer with inline citations [Source: "filename", §N].`,
