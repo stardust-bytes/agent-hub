@@ -21,6 +21,11 @@ describe('AgentService', () => {
     const mockRes = {} as any;
     const signal = new AbortController().signal;
     await service.streamChat('hello', 'llama3.2', mockRes, signal);
-    expect(mockProvider.streamChat).toHaveBeenCalledWith('hello', 'llama3.2', mockRes, signal);
+    expect(mockProvider.streamChat).toHaveBeenCalledWith(
+      [{ role: 'user', content: 'hello' }],
+      'llama3.2',
+      mockRes,
+      signal,
+    );
   });
 });

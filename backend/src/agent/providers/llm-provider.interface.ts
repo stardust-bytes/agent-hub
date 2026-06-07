@@ -1,11 +1,15 @@
 import { Response } from 'express';
 
+export interface OllamaMessage {
+  role: 'user' | 'assistant' | 'tool';
+  content: string;
+}
+
 export interface LLMProvider {
   streamChat(
-    message: string,
+    messages: OllamaMessage[],
     model: string,
     res: Response,
     signal: AbortSignal,
-    context?: string,
-  ): Promise<void>;
+  ): Promise<{ finalText: string }>;
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Response } from 'express';
 import { OllamaProvider } from './providers/ollama.provider';
+import { OllamaMessage } from './providers/llm-provider.interface';
 
 @Injectable()
 export class AgentService {
@@ -12,6 +13,7 @@ export class AgentService {
     res: Response,
     signal: AbortSignal,
   ): Promise<void> {
-    await this.provider.streamChat(message, model, res, signal);
+    const messages: OllamaMessage[] = [{ role: 'user', content: message }];
+    await this.provider.streamChat(messages, model, res, signal);
   }
 }

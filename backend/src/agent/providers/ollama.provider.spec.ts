@@ -3,6 +3,7 @@ import { OllamaProvider } from './ollama.provider';
 import { SettingsService } from '../../settings/settings.service';
 import { TasksService } from '../../tasks/tasks.service';
 import { KnowledgeService } from '../../knowledge/knowledge.service';
+import { OllamaMessage } from './llm-provider.interface';
 
 function makeReader(chunks: string[]) {
   const encoder = new TextEncoder();
@@ -14,6 +15,8 @@ function makeReader(chunks: string[]) {
     }),
   };
 }
+
+const userMsg: OllamaMessage = { role: 'user', content: 'hi' };
 
 describe('OllamaProvider', () => {
   let provider: OllamaProvider;
@@ -59,11 +62,12 @@ describe('OllamaProvider', () => {
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
 
-    await provider.streamChat('hi', 'llama3.2', mockRes as any, signal, '');
+    const result = await provider.streamChat([userMsg], 'llama3.2', mockRes as any, signal);
 
     expect(mockRes.write).toHaveBeenCalledWith('data: {"token":"Hello"}\n\n');
     expect(mockRes.write).toHaveBeenCalledWith('data: {"token":" world"}\n\n');
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
+    expect(result.finalText).toBe('Hello world');
   });
 
   it('writes error event and [DONE] when fetch throws', async () => {
@@ -72,10 +76,11 @@ describe('OllamaProvider', () => {
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
 
-    await provider.streamChat('hi', 'llama3.2', mockRes as any, signal, '');
+    const result = await provider.streamChat([userMsg], 'llama3.2', mockRes as any, signal);
 
     expect(mockRes.write).toHaveBeenCalledWith('data: {"error":"ollama_unreachable"}\n\n');
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
+    expect(result.finalText).toBe('');
   });
 
   it('writes error event when Ollama returns non-ok status', async () => {
@@ -88,10 +93,11 @@ describe('OllamaProvider', () => {
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
 
-    await provider.streamChat('hi', 'llama3.2', mockRes as any, signal, '');
+    const result = await provider.streamChat([userMsg], 'llama3.2', mockRes as any, signal);
 
     expect(mockRes.write).toHaveBeenCalledWith('data: {"error":"ollama_error_404"}\n\n');
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
+    expect(result.finalText).toBe('');
   });
 
   it('stops writing when signal is aborted', async () => {
@@ -107,7 +113,7 @@ describe('OllamaProvider', () => {
     const mockRes = { write: jest.fn() };
 
     ctrl.abort();
-    await provider.streamChat('hi', 'llama3.2', mockRes as any, ctrl.signal, '');
+    await provider.streamChat([userMsg], 'llama3.2', mockRes as any, ctrl.signal);
 
     expect(mockRes.write).not.toHaveBeenCalledWith('data: [DONE]\n\n');
   });
@@ -135,7 +141,7 @@ describe('OllamaProvider', () => {
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
 
-    await provider.streamChat('create a task', 'llama3.2', mockRes as any, signal, '');
+    await provider.streamChat([{ role: 'user', content: 'create a task' }], 'llama3.2', mockRes as any, signal);
 
     expect(mockRes.write).toHaveBeenCalledWith(
       'data: {"toolCall":{"name":"create_task","args":{"title":"Test task","priority":1}}}\n\n',
@@ -172,7 +178,7 @@ describe('OllamaProvider', () => {
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
 
-    await provider.streamChat('list tasks', 'llama3.2', mockRes as any, signal, '');
+    await provider.streamChat([{ role: 'user', content: 'list tasks' }], 'llama3.2', mockRes as any, signal);
 
     expect(mockRes.write).toHaveBeenCalledWith(
       'data: {"toolCall":{"name":"list_tasks","args":{"status":"TODO"}}}\n\n',
@@ -211,7 +217,7 @@ describe('OllamaProvider', () => {
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
 
-    await provider.streamChat('search test', 'llama3.2', mockRes as any, signal, '');
+    await provider.streamChat([{ role: 'user', content: 'search test' }], 'llama3.2', mockRes as any, signal);
 
     expect(mockRes.write).toHaveBeenCalledWith(
       'data: {"toolCall":{"name":"search_knowledge","args":{"query":"test"}}}\n\n',

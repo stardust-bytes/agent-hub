@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Response } from 'express';
-import { LLMProvider } from './llm-provider.interface';
+import { LLMProvider, OllamaMessage } from './llm-provider.interface';
 import { SettingsService } from '../../settings/settings.service';
 import { TasksService } from '../../tasks/tasks.service';
 import { KnowledgeService } from '../../knowledge/knowledge.service';
@@ -76,27 +76,26 @@ export class OllamaProvider implements LLMProvider {
   ) {}
 
   async streamChat(
-    message: string,
+    messages: OllamaMessage[],
     model: string,
     res: Response,
     signal: AbortSignal,
-    context?: string,
-  ): Promise<void> {
-    if (signal.aborted) return;
+  ): Promise<{ finalText: string }> {
+    if (signal.aborted) return { finalText: '' };
 
     const ollamaUrl = await this.settings.get('ollama.baseUrl', 'http://localhost:11434');
 
-    const messages: Array<Record<string, unknown>> = [];
-    if (context) messages.push({ role: 'system', content: context });
-    messages.push({ role: 'user', content: message });
+    const msgs: Array<Record<string, unknown>> = messages.map(m => ({ ...m }));
 
     const MAX_TOOL_CALLS = 10;
     let toolCallCount = 0;
 
+    let finalText = '';
+
     while (!signal.aborted) {
       const body: Record<string, unknown> = {
         model,
-        messages,
+        messages: msgs,
         stream: true,
       };
       // Only send tools on first iteration to avoid re-triggering
@@ -111,10 +110,10 @@ export class OllamaProvider implements LLMProvider {
           signal,
         });
       } catch {
-        if (signal.aborted) return;
+        if (signal.aborted) return { finalText: '' };
         res.write('data: {"error":"ollama_unreachable"}\n\n');
         res.write('data: [DONE]\n\n');
-        return;
+        return { finalText: '' };
       }
 
       if (!ollamaRes.ok) {
@@ -125,7 +124,7 @@ export class OllamaProvider implements LLMProvider {
         } catch { /* ignore */ }
         res.write(`data: ${JSON.stringify({ error: detail })}\n\n`);
         res.write('data: [DONE]\n\n');
-        return;
+        return { finalText: '' };
       }
 
       const reader = ollamaRes.body!.getReader();
@@ -160,7 +159,7 @@ export class OllamaProvider implements LLMProvider {
         }
       }
 
-      if (signal.aborted) return;
+      if (signal.aborted) return { finalText: '' };
 
       // Fallback: detect JSON tool calls in text content (models without native tool_calls support)
       if (!currentToolCalls || currentToolCalls.length === 0) {
@@ -178,9 +177,10 @@ export class OllamaProvider implements LLMProvider {
           },
         }));
       }
-      messages.push(assistantMsg);
+      msgs.push(assistantMsg);
 
       if (!currentToolCalls || currentToolCalls.length === 0 || toolCallCount >= MAX_TOOL_CALLS) {
+        finalText = responseContent;
         break;
       }
 
@@ -207,7 +207,7 @@ export class OllamaProvider implements LLMProvider {
 
         res.write(`data: ${JSON.stringify({ toolResult: { name, result } })}\n\n`);
 
-        messages.push({
+        msgs.push({
           role: 'tool',
           content: result,
         });
@@ -220,6 +220,7 @@ export class OllamaProvider implements LLMProvider {
     if (!signal.aborted) {
       res.write('data: [DONE]\n\n');
     }
+    return { finalText };
   }
 
   private async executeTool(name: string, args: Record<string, unknown>): Promise<string> {
