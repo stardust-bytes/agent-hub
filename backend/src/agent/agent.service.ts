@@ -20,6 +20,7 @@ export class AgentService {
     res: Response,
     signal: AbortSignal,
     sessionId: number,
+    mode: string = 'agent',
   ): Promise<void> {
     const runState = new AgentRunState(10, String(sessionId));
     const context = await this.contextBuilder.build(runState, sessionId);
@@ -31,7 +32,7 @@ export class AgentService {
       { role: 'user', content: message },
     ];
 
-    const { finalText } = await this.provider.streamChat(messages, model, res, signal, sessionId);
+    const { finalText } = await this.provider.streamChat(messages, model, res, signal, sessionId, mode);
 
     if (!signal.aborted) {
       await this.sessionsService.saveMessage(sessionId, 'user', message);

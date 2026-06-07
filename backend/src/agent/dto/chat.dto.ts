@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsIn } from 'class-validator';
 
 export class ChatDto {
   @IsString()
@@ -10,4 +10,9 @@ export class ChatDto {
 
   @IsInt()
   sessionId: number;
+
+  @IsString()
+  @IsOptional()
+  @IsIn(['agent', 'chat'])
+  mode?: string;
 }

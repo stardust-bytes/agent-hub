@@ -83,11 +83,25 @@
           </form>
         </div>
         <div class="flex items-center justify-between pt-2">
-          <ModelSelector
-            v-model="selectedModel"
-            :models="availableModels"
-            :disabled="streaming"
-          />
+          <div class="flex items-center gap-2">
+            <ModelSelector
+              v-model="selectedModel"
+              :models="availableModels"
+              :disabled="streaming"
+            />
+            <div class="flex border border-cyber-accent/20 rounded">
+              <button
+                @click="agentMode = true"
+                :class="agentMode ? 'bg-cyber-accent/20 text-cyber-accent' : 'text-cyber-muted'"
+                class="px-2 py-0.5 text-[10px] font-mono transition-colors duration-150"
+              >{{ t('chat.mode.agent') }}</button>
+              <button
+                @click="agentMode = false"
+                :class="!agentMode ? 'bg-cyber-accent/20 text-cyber-accent' : 'text-cyber-muted'"
+                class="px-2 py-0.5 text-[10px] font-mono transition-colors duration-150"
+              >{{ t('chat.mode.chat') }}</button>
+            </div>
+          </div>
           <button
             @click="showSessionModal = true"
             class="text-cyber-accent/70 text-xs font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent"
@@ -131,6 +145,7 @@ const inputEl = ref<HTMLInputElement | null>(null)
 const messagesEl = ref<HTMLElement | null>(null)
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
+const agentMode = ref(true)
 
 const emit = defineEmits<{
   (e: 'update:ollamaOnline', value: boolean): void
@@ -268,7 +283,7 @@ async function submit() {
     const res = await fetch('/api/agent/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, model: selectedModel.value, sessionId: currentSessionId.value }),
+      body: JSON.stringify({ message: text, model: selectedModel.value, sessionId: currentSessionId.value, mode: agentMode.value ? 'agent' : 'chat' }),
       signal: ctrl.signal,
     })
 

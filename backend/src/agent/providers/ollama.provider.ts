@@ -26,6 +26,7 @@ export class OllamaProvider implements LLMProvider {
     res: Response,
     signal: AbortSignal,
     sessionId?: number,
+    mode: string = 'agent',
   ): Promise<{ finalText: string }> {
     if (signal.aborted) return { finalText: '' };
 
@@ -33,7 +34,7 @@ export class OllamaProvider implements LLMProvider {
     const context = await this.contextBuilder.build(runState, 0);
     context.messages = messages;
 
-    const tools = context.tools;
+    const tools = mode === 'chat' ? [] : context.tools;
     const maxIterations = 10;
     let finalText = '';
     let iterationCount = 0;

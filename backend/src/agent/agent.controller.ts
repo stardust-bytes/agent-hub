@@ -22,7 +22,7 @@ export class AgentController {
     req.on('close', () => ctrl.abort());
 
     try {
-      await this.agentService.streamChat(dto.message, dto.model ?? 'llama3.2', res, ctrl.signal, dto.sessionId);
+      await this.agentService.streamChat(dto.message, dto.model ?? 'llama3.2', res, ctrl.signal, dto.sessionId, dto.mode ?? 'agent');
     } catch {
       res.write('data: {"error":"internal_error"}\n\n');
     } finally {

@@ -34,18 +34,18 @@ describe('AgentController', () => {
     expect(res.setHeader).toHaveBeenCalledWith('Connection', 'keep-alive');
   });
 
-  it('calls agentService.streamChat with message, model, sessionId', async () => {
+  it('calls agentService.streamChat with message, model, sessionId, mode', async () => {
     const { req, res } = makeReqRes();
-    await controller.chatStream({ message: 'hello', model: 'codestral', sessionId: 1 }, req, res);
+    await controller.chatStream({ message: 'hello', model: 'codestral', sessionId: 1, mode: 'agent' }, req, res);
     expect(mockStreamChat).toHaveBeenCalledWith(
-      'hello', 'codestral', res, expect.any(Object), 1,
+      'hello', 'codestral', res, expect.any(Object), 1, 'agent',
     );
   });
 
-  it('uses fallback model llama3.2 when model is undefined', async () => {
+  it('uses fallback model llama3.2 and mode agent when undefined', async () => {
     const { req, res } = makeReqRes();
     await controller.chatStream({ message: 'hi', sessionId: 1 }, req, res);
-    expect(mockStreamChat).toHaveBeenCalledWith('hi', 'llama3.2', res, expect.any(Object), 1);
+    expect(mockStreamChat).toHaveBeenCalledWith('hi', 'llama3.2', res, expect.any(Object), 1, 'agent');
   });
 
   it('binds req close event to abort controller', async () => {
