@@ -29,7 +29,11 @@ export class LLMCallerService {
     const ollamaUrl = await this.settings.get('ollama.baseUrl', 'http://localhost:11434');
 
     const msgs: Array<Record<string, unknown>> = [
-      ...messages.map(m => ({ role: m.role, content: m.content })),
+      ...messages.map(m => ({
+        role: m.role,
+        content: m.content,
+        ...(m.toolCalls ? { tool_calls: m.toolCalls } : {}),
+      })),
     ];
 
     const body: Record<string, unknown> = {

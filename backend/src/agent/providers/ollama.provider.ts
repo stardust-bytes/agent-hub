@@ -154,6 +154,12 @@ export class OllamaProvider implements LLMProvider {
         contextMessages.push({
           role: 'assistant',
           content: responseText || '',
+          toolCalls: toolCalls.map(tc => ({
+            function: {
+              name: tc.name,
+              arguments: typeof tc.arguments === 'string' ? tc.arguments : JSON.stringify(tc.arguments),
+            },
+          })),
         });
 
         for (const tc of toolCalls) {
