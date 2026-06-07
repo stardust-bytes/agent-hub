@@ -6,6 +6,7 @@ import { TasksModule } from './tasks/tasks.module';
 import { AgentModule } from './agent/agent.module';
 import { OllamaModule } from './ollama/ollama.module';
 import { SettingsModule } from './settings/settings.module';
+import { KnowledgeModule } from './knowledge/knowledge.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { SettingsModule } from './settings/settings.module';
     AgentModule,
     OllamaModule,
     SettingsModule,
+    KnowledgeModule,
   ],
   controllers: [AppController],
 })
