@@ -11,6 +11,7 @@
     "test:cov": "jest --coverage"
   },
   "dependencies": {
+    "@lancedb/lancedb": "^0.30.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^10.0.0",
@@ -19,8 +20,11 @@
     "@nestjs/platform-socket.io": "^10.4.22",
     "@nestjs/websockets": "^10.4.22",
     "@prisma/client": "^5.0.0",
+    "chokidar": "^3.6.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "mammoth": "^1.12.0",
+    "pdf-parse": "^2.4.5",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
     "socket.io": "^4.8.3"
