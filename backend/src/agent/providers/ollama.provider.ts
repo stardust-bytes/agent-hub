@@ -291,9 +291,31 @@ export class OllamaProvider implements LLMProvider {
     const trimmed = text.trim();
     if (!trimmed.startsWith('{')) return null;
     try {
-      const parsed = JSON.parse(trimmed) as { name?: string; arguments?: unknown };
-      if (parsed.name && TOOLS.some(t => t.function.name === parsed.name)) {
-        return [{ function: { name: parsed.name, arguments: parsed.arguments ?? {} } }];
+      const parsed = JSON.parse(trimmed) as Record<string, unknown>;
+      let name: string | undefined;
+      let args: unknown = {};
+
+      // Format 1: {"name": "tool_name", "arguments": {...}}
+      if (typeof parsed.name === 'string') {
+        name = parsed.name;
+        args = parsed.arguments ?? {};
+      }
+      // Format 2: {"function": "tool_name", "arguments": {...}}
+      else if (typeof parsed.function === 'string') {
+        name = parsed.function;
+        args = parsed.arguments ?? {};
+      }
+      // Format 3: {"function": {"name": "tool_name", "arguments": {...}}}
+      else if (typeof parsed.function === 'object' && parsed.function !== null) {
+        const fn = parsed.function as Record<string, unknown>;
+        if (typeof fn.name === 'string') {
+          name = fn.name;
+          args = fn.arguments ?? {};
+        }
+      }
+
+      if (name && TOOLS.some(t => t.function.name === name)) {
+        return [{ function: { name, arguments: args } }];
       }
     } catch { /* not JSON */ }
     return null;
