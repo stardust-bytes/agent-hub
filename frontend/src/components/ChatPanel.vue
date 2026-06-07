@@ -54,7 +54,6 @@
       <form @submit.prevent="submit" class="flex items-center gap-2 bg-cyber-dark px-3 py-2">
         <span class="text-cyber-accent text-sm font-mono">$</span>
         <span v-if="!streaming" class="animate-blink text-[#EEEEEE] text-sm">█</span>
-        <span v-if="streaming" class="text-[#888888] text-xs">{{ t('chat.thinking') }}</span>
         <input
           ref="inputEl"
           v-model="input"
@@ -156,6 +155,10 @@ async function submit() {
   const ctrl = new AbortController()
   abortController.value = ctrl
 
+  const thinkIdx = messages.value.length
+  messages.value.push({ role: 'system', content: t('chat.thinking'), timestamp: now() })
+  await scrollToBottom()
+
   const agentMsg: Message = { role: 'agent', content: '', timestamp: now(), typing: true }
   messages.value.push(agentMsg)
   const msgIdx = messages.value.length - 1
@@ -175,6 +178,17 @@ async function submit() {
     const decoder = new TextDecoder()
     let buffer = ''
     let done = false
+    let tokenBatch = ''
+    let batchTimer: ReturnType<typeof setTimeout> | null = null
+
+    function flushBatch() {
+      if (tokenBatch) {
+        messages.value[msgIdx].content += tokenBatch
+        tokenBatch = ''
+        scrollToBottom()
+      }
+      batchTimer = null
+    }
 
     while (!done) {
       const { done: streamDone, value } = await reader.read()
@@ -200,6 +214,7 @@ async function submit() {
             })
             await scrollToBottom()
           } else if (parsed.toolCall) {
+            flushBatch()
             const argsStr = Object.entries(parsed.toolCall.args)
               .map(([k, v]) => `${k}=${v}`).join(', ')
             messages.value.push({
@@ -211,6 +226,7 @@ async function submit() {
             })
             await scrollToBottom()
           } else if (parsed.toolResult) {
+            flushBatch()
             messages.value.push({
               role: 'tool',
               content: parsed.toolResult.result,
@@ -220,13 +236,19 @@ async function submit() {
             })
             await scrollToBottom()
           } else if (parsed.token) {
-            messages.value[msgIdx].content += parsed.token
-            await scrollToBottom()
+            if (messages.value[thinkIdx]?.role === 'system' && messages.value[thinkIdx]?.content === t('chat.thinking')) {
+              messages.value.splice(thinkIdx, 1)
+            }
+            tokenBatch += parsed.token
+            if (!batchTimer) {
+              batchTimer = setTimeout(flushBatch, 50)
+            }
           }
         } catch { /* skip malformed SSE line */ }
       }
     }
 
+    flushBatch()
     messages.value[msgIdx].typing = false
   } catch (e) {
     messages.value[msgIdx].typing = false
@@ -239,6 +261,9 @@ async function submit() {
       await scrollToBottom()
     }
   } finally {
+    if (messages.value[thinkIdx]?.role === 'system' && messages.value[thinkIdx]?.content === t('chat.thinking')) {
+      messages.value.splice(thinkIdx, 1)
+    }
     streaming.value = false
     abortController.value = null
   }
