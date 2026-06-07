@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { OllamaProvider } from './ollama.provider';
+import { SettingsService } from '../../settings/settings.service';
 
 function makeReader(chunks: string[]) {
   const encoder = new TextEncoder();
@@ -21,8 +21,8 @@ describe('OllamaProvider', () => {
       providers: [
         OllamaProvider,
         {
-          provide: ConfigService,
-          useValue: { get: jest.fn().mockReturnValue('http://localhost:11434') },
+          provide: SettingsService,
+          useValue: { get: jest.fn().mockResolvedValue('http://localhost:11434') },
         },
       ],
     }).compile();

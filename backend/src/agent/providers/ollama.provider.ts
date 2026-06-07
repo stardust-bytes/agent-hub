@@ -1,15 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { LLMProvider } from './llm-provider.interface';
+import { SettingsService } from '../../settings/settings.service';
 
 @Injectable()
 export class OllamaProvider implements LLMProvider {
-  private readonly ollamaUrl: string;
-
-  constructor(private readonly config: ConfigService) {
-    this.ollamaUrl = this.config.get<string>('OLLAMA_URL', 'http://localhost:11434');
-  }
+  constructor(private readonly settings: SettingsService) {}
 
   async streamChat(
     message: string,
@@ -19,9 +15,11 @@ export class OllamaProvider implements LLMProvider {
   ): Promise<void> {
     if (signal.aborted) return;
 
+    const ollamaUrl = await this.settings.get('ollama.baseUrl', 'http://localhost:11434');
+
     let ollamaRes: globalThis.Response;
     try {
-      ollamaRes = await fetch(`${this.ollamaUrl}/api/chat`, {
+      ollamaRes = await fetch(`${ollamaUrl}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
