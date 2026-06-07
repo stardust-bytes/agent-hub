@@ -39,7 +39,7 @@
             v-model="newTaskTitle"
             :placeholder="t('tasks.add.placeholder')"
             @keydown.escape="addingTask = false; newTaskTitle = ''"
-            @blur="if (!newTaskTitle.trim()) addingTask = false"
+            @blur="onBlurNewTask"
             class="flex-1 bg-cyber-dark border border-cyber-dim rounded px-2 py-1 text-[10px] font-mono text-slate-100 placeholder-cyber-accent/30 outline-none"
             autofocus
           />
@@ -99,6 +99,10 @@ const addingTask = ref(false)
 const newTaskTitle = ref('')
 
 let socket: Socket | null = null
+
+function onBlurNewTask() {
+  if (!newTaskTitle.value.trim()) addingTask.value = false
+}
 
 function shouldShow(task: Task): boolean {
   return props.activeFilters.size === 0 || props.activeFilters.has(task.priority)
