@@ -21,6 +21,7 @@
 
     <button
       :title="t('nav.settings')"
+      @click="$emit('navigate', 'settings')"
       class="w-9 h-9 rounded flex items-center justify-center text-base text-[#888888] hover:text-cyber-accent"
     >
       <HiCog class="w-4 h-4" />
@@ -47,8 +48,8 @@ import { useI18n } from 'vue-i18n'
 import type { Locale } from '../i18n'
 import { HiTerminal, HiChatAlt2, HiClipboardList, HiFolder, HiCog } from 'vue-icons-plus/hi'
 
-defineProps<{ activeView: 'chat' | 'tasks' | 'files' }>()
-defineEmits<{ navigate: [view: 'chat' | 'tasks' | 'files'] }>()
+defineProps<{ activeView: 'chat' | 'tasks' | 'files' | 'settings' }>()
+defineEmits<{ navigate: [view: 'chat' | 'tasks' | 'files' | 'settings'] }>()
 
 const { t, locale } = useI18n()
 
