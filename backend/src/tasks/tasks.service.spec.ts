@@ -128,15 +128,15 @@ describe('TasksService', () => {
     expect(mockPrisma.task.deleteMany).toHaveBeenCalledWith({
       where: { id: { in: [1, 2] } },
     });
+    expect(mockGateway.emitDeleted).toHaveBeenCalledWith(1);
+    expect(mockGateway.emitDeleted).toHaveBeenCalledWith(2);
     expect(result).toBe(2);
   });
 
   it('removeMany returns 0 for empty array', async () => {
-    mockPrisma.task.deleteMany.mockResolvedValue({ count: 0 });
     const result = await service.removeMany([]);
-    expect(mockPrisma.task.deleteMany).toHaveBeenCalledWith({
-      where: { id: { in: [] } },
-    });
+    expect(mockPrisma.task.deleteMany).not.toHaveBeenCalled();
+    expect(mockGateway.emitDeleted).not.toHaveBeenCalled();
     expect(result).toBe(0);
   });
 });
