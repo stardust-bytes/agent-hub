@@ -87,7 +87,7 @@ const STATUS_KEYS = ['TODO', 'PROCESSING', 'DONE', 'FAILED'] as const
 
 const COLUMNS = [
   { key: 'TODO',       labelKey: 'tasks.col.todo',       headerClass: 'text-cyber-accent' },
-  { key: 'PROCESSING', labelKey: 'tasks.col.processing', headerClass: 'text-cyber-accent' },
+  { key: 'PROCESSING', labelKey: 'tasks.col.processing', headerClass: 'text-[#FFA500]' },
   { key: 'DONE',       labelKey: 'tasks.col.done',       headerClass: 'text-cyber-green' },
   { key: 'FAILED',     labelKey: 'tasks.col.failed',     headerClass: 'text-red-400'      },
 ]

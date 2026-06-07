@@ -47,14 +47,14 @@ const PRIORITIES = [
   {
     value: 1,
     labelKey: 'tasks.priority.medium',
-    activeClass: 'text-cyber-accent bg-cyber-accent/15',
-    inactiveClass: 'text-cyber-accent/50 hover:text-cyber-accent',
+    activeClass: 'text-[#FFA500] bg-[#FFA500]/15',
+    inactiveClass: 'text-[#FFA500]/50 hover:text-[#FFA500]',
   },
   {
     value: 0,
     labelKey: 'tasks.priority.low',
-    activeClass: 'text-cyber-blue bg-cyber-blue/15',
-    inactiveClass: 'text-cyber-blue/50 hover:text-cyber-blue',
+    activeClass: 'text-[#888888] bg-[#888888]/15',
+    inactiveClass: 'text-[#888888]/50 hover:text-[#888888]',
   },
 ] as const
 

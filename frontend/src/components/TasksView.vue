@@ -50,14 +50,14 @@ const PRIORITY_FILTERS = [
   {
     value: 1,
     labelKey: 'tasks.priority.medium',
-    activeClass: 'text-cyber-accent bg-cyber-accent/10',
-    inactiveClass: 'text-cyber-accent/40 hover:text-cyber-accent',
+    activeClass: 'text-[#FFA500] bg-[#FFA500]/10',
+    inactiveClass: 'text-[#FFA500]/40 hover:text-[#FFA500]',
   },
   {
     value: 0,
     labelKey: 'tasks.priority.low',
-    activeClass: 'text-cyber-blue bg-cyber-blue/10',
-    inactiveClass: 'text-cyber-blue/40 hover:text-cyber-blue',
+    activeClass: 'text-[#888888] bg-[#888888]/10',
+    inactiveClass: 'text-[#888888]/40 hover:text-[#888888]',
   },
 ] as const
 

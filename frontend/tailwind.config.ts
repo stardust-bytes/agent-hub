@@ -8,12 +8,12 @@ export default {
         'cyber-bg':     '#000000',
         'cyber-dark':   '#111111',
         'cyber-status': '#161616',
-        'cyber-accent': '#FFA500',
+        'cyber-accent': '#3B82F6',
         'cyber-green':  '#22C55E',
         'cyber-blue':   '#3B82F6',
       },
       fontFamily: {
-        mono: ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace'],
+        mono: ['monospace'],
       },
       keyframes: {
         blink: {

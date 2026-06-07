@@ -44,16 +44,17 @@
     <div class="px-3 py-2 bg-cyber-dark shrink-0">
       <form @submit.prevent="submit" class="flex items-center gap-2 bg-cyber-dark px-3 py-2">
         <span class="text-cyber-accent text-sm font-mono">$</span>
+        <span v-if="!streaming" class="animate-blink text-[#EEEEEE] text-sm">█</span>
+        <span v-if="streaming" class="text-[#888888] text-xs">{{ t('chat.thinking') }}</span>
         <input
+          ref="inputEl"
           v-model="input"
-          class="flex-1 bg-transparent text-[#EEEEEE] text-sm outline-none font-mono placeholder-[#888888]/40"
+          class="flex-1 bg-transparent text-[#EEEEEE] text-sm outline-none font-mono placeholder-[#888888]/40 caret-white"
           :placeholder="t('chat.placeholder')"
           :disabled="streaming"
           autocomplete="off"
           spellcheck="false"
         />
-        <span v-if="!streaming" class="animate-blink text-cyber-accent text-sm">█</span>
-        <span v-else class="text-[#888888] text-xs">{{ t('chat.thinking') }}</span>
       </form>
     </div>
   </div>
@@ -83,6 +84,7 @@ const selectedModel = ref(localStorage.getItem('workspace.model') ?? 'llama3.2')
 const availableModels = ref<string[]>([])
 const ollamaOnline = ref(true)
 const abortController = ref<AbortController | null>(null)
+const inputEl = ref<HTMLInputElement | null>(null)
 const messagesEl = ref<HTMLElement | null>(null)
 
 function now(): string {
@@ -107,6 +109,7 @@ async function scrollToBottom() {
 }
 
 onMounted(async () => {
+  inputEl.value?.focus()
   try {
     const res = await fetch('/api/ollama/models')
     if (!res.ok) throw new Error('fetch failed')

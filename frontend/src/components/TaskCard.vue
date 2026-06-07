@@ -67,8 +67,8 @@ function priorityLabel(p: number): string {
 
 function priorityClass(p: number): string {
   if (p >= 2) return 'text-red-400 bg-red-400/10'
-  if (p === 1) return 'text-cyber-accent bg-cyber-accent/10'
-  return 'text-cyber-blue bg-cyber-blue/10'
+  if (p === 1) return 'text-[#FFA500] bg-[#FFA500]/10'
+  return 'text-[#888888] bg-[#888888]/10'
 }
 
 function formatDate(d: string): string {
