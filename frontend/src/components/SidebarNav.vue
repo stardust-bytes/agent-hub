@@ -1,6 +1,6 @@
 <template>
-  <nav class="w-[52px] bg-cyber-dark border-r border-cyber-border flex flex-col items-center py-3 gap-2 shrink-0">
-    <HiTerminal class="text-cyber-accent w-5 h-5 mb-2" style="text-shadow: 0 0 8px #3B82F6" />
+  <nav class="w-[52px] bg-cyber-dark flex flex-col items-center py-3 gap-2 shrink-0">
+    <HiTerminal class="text-cyber-accent w-5 h-5 mb-2" />
 
     <button
       v-for="item in navItems"
@@ -10,8 +10,8 @@
       :class="[
         'w-9 h-9 rounded flex items-center justify-center text-base transition-colors duration-150',
         activeView === item.view
-          ? 'bg-cyber-accent/10 border border-cyber-dim text-cyber-accent'
-          : 'border border-transparent text-cyber-accent/40 hover:text-cyber-accent/70'
+          ? 'bg-cyber-accent/10 text-cyber-accent'
+          : 'text-[#888888] hover:text-cyber-accent'
       ]"
     >
       <component :is="item.icon" class="w-4 h-4" />
@@ -21,7 +21,7 @@
 
     <button
       :title="t('nav.settings')"
-      class="w-9 h-9 rounded flex items-center justify-center text-base border border-transparent text-cyber-accent/40 hover:text-cyber-accent/70"
+      class="w-9 h-9 rounded flex items-center justify-center text-base text-[#888888] hover:text-cyber-accent"
     >
       <HiCog class="w-4 h-4" />
     </button>
@@ -29,7 +29,7 @@
     <button
       :title="locale === 'vi' ? 'Switch to English' : 'Chuyển sang Tiếng Việt'"
       @click="toggleLang"
-      class="w-9 h-6 rounded flex items-center justify-center text-xs font-mono border border-cyber-dim text-cyber-accent hover:bg-cyber-accent/10 transition-colors duration-150"
+      class="w-9 h-6 rounded flex items-center justify-center text-xs font-mono text-[#888888] hover:text-cyber-accent transition-colors duration-150"
     >
       {{ t('nav.lang') }}
     </button>
@@ -37,7 +37,6 @@
     <div
       :title="healthStatus"
       :class="['w-2 h-2 rounded-full mt-1 transition-colors duration-500', isHealthy ? 'bg-cyber-green' : 'bg-red-500']"
-      :style="isHealthy ? 'box-shadow: 0 0 6px #22C55E' : ''"
     />
   </nav>
 </template>
