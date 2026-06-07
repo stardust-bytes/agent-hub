@@ -200,7 +200,7 @@ export class OllamaProvider implements LLMProvider {
         break;
       }
 
-      let hadSearchCall = false;
+      let searchResults: string[] = [];
       for (const tc of currentToolCalls) {
         if (signal.aborted) return;
         toolCallCount++;
@@ -213,7 +213,6 @@ export class OllamaProvider implements LLMProvider {
           args = tc.function.arguments as Record<string, unknown>;
         }
 
-        if (name === 'search_knowledge') hadSearchCall = true;
         res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
 
         let result = '';
@@ -225,16 +224,17 @@ export class OllamaProvider implements LLMProvider {
 
         res.write(`data: ${JSON.stringify({ toolResult: { name, result } })}\n\n`);
 
-        msgs.push({
-          role: 'tool',
-          content: result,
-        });
+        if (name === 'search_knowledge') {
+          searchResults.push(result);
+        } else {
+          msgs.push({ role: 'tool', content: result });
+        }
       }
 
-      if (hadSearchCall) {
+      if (searchResults.length > 0) {
         msgs.push({
           role: 'user',
-          content: 'Based on the search results above, write a comprehensive answer with inline citations [Source: "filename", §N].',
+          content: `I searched the knowledge base and found these results:\n\n${searchResults.join('\n\n---\n\n')}\n\nBased on these results, provide a comprehensive answer with inline citations [Source: "filename", §N].`,
         });
       }
 
