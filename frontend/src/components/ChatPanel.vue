@@ -53,6 +53,7 @@
         </div>
 
       </div>
+      </div>
     </div>
 
     <SessionModal
@@ -66,7 +67,6 @@
         <div class="bg-cyber-dark px-3 py-2">
           <form @submit.prevent="submit" class="flex items-center gap-2">
             <span class="text-cyber-accent text-sm font-mono shrink-0">$</span>
-            <span v-if="!streaming" class="animate-blink text-cyber-text text-sm shrink-0">█</span>
             <input
               ref="inputEl"
               v-model="input"
@@ -96,6 +96,7 @@
         </div>
       </div>
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
