@@ -1,8 +1,8 @@
 <template>
   <div class="flex flex-col bg-cyber-bg min-w-0">
     <div class="px-3 py-2 border-b border-cyber-border bg-cyber-dark flex items-center justify-between shrink-0">
-      <span class="text-cyber-accent text-xs tracking-widest font-mono">◈ ARTIFACTS</span>
-      <span v-if="lastMessage" class="text-cyber-accent/40 text-xs font-mono">last reply</span>
+      <span class="text-cyber-accent text-xs tracking-widest font-mono">◈ {{ t('artifacts.header') }}</span>
+      <span v-if="lastMessage" class="text-cyber-accent/40 text-xs font-mono">{{ t('artifacts.label.lastReply') }}</span>
     </div>
 
     <div class="flex-1 overflow-y-auto px-3 py-3 min-h-0">
@@ -10,7 +10,7 @@
         v-if="!lastMessage"
         class="flex items-center justify-center h-full text-cyber-accent/30 text-sm font-mono"
       >
-        ◈ No artifacts yet
+        {{ t('artifacts.empty') }}
       </div>
 
       <template v-else>
@@ -35,10 +35,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 
 const props = defineProps<{ lastMessage: string }>()
+const { t } = useI18n()
 
 interface CodeBlock {
   lang: string
