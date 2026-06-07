@@ -35,6 +35,19 @@ export class TasksService {
     return task;
   }
 
+  async findOne(id: number) {
+    const task = await this.prisma.task.findUnique({ where: { id } });
+    if (!task) throw new NotFoundException(`Task ${id} not found`);
+    return task;
+  }
+
+  async removeMany(ids: number[]) {
+    const result = await this.prisma.task.deleteMany({
+      where: { id: { in: ids } },
+    });
+    return result.count;
+  }
+
   private async findOneOrFail(id: number) {
     const task = await this.prisma.task.findUnique({ where: { id } });
     if (!task) throw new NotFoundException(`Task ${id} not found`);

@@ -22,6 +22,7 @@ const mockPrisma = {
     findUnique: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    deleteMany: jest.fn(),
   },
 };
 
@@ -107,5 +108,35 @@ describe('TasksService', () => {
     mockPrisma.task.delete.mockResolvedValue(mockTask);
     await service.remove(1);
     expect(mockGateway.emitDeleted).toHaveBeenCalledWith(1);
+  });
+
+  it('findOne returns task when found', async () => {
+    mockPrisma.task.findUnique.mockResolvedValue(mockTask);
+    const result = await service.findOne(1);
+    expect(mockPrisma.task.findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+    expect(result).toEqual(mockTask);
+  });
+
+  it('findOne throws NotFoundException when task not found', async () => {
+    mockPrisma.task.findUnique.mockResolvedValue(null);
+    await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
+  });
+
+  it('removeMany deletes tasks by ids and returns count', async () => {
+    mockPrisma.task.deleteMany.mockResolvedValue({ count: 2 });
+    const result = await service.removeMany([1, 2]);
+    expect(mockPrisma.task.deleteMany).toHaveBeenCalledWith({
+      where: { id: { in: [1, 2] } },
+    });
+    expect(result).toBe(2);
+  });
+
+  it('removeMany returns 0 for empty array', async () => {
+    mockPrisma.task.deleteMany.mockResolvedValue({ count: 0 });
+    const result = await service.removeMany([]);
+    expect(mockPrisma.task.deleteMany).toHaveBeenCalledWith({
+      where: { id: { in: [] } },
+    });
+    expect(result).toBe(0);
   });
 });
