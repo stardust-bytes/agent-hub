@@ -39,7 +39,12 @@ export class OllamaProvider implements LLMProvider {
     }
 
     if (!ollamaRes.ok) {
-      res.write(`data: {"error":"ollama_error_${ollamaRes.status}"}\n\n`);
+      let detail = `ollama_error_${ollamaRes.status}`;
+      try {
+        const errBody = (await ollamaRes.json()) as { error?: string };
+        if (errBody.error) detail = errBody.error;
+      } catch { /* ignore parse error */ }
+      res.write(`data: ${JSON.stringify({ error: detail })}\n\n`);
       res.write('data: [DONE]\n\n');
       return;
     }

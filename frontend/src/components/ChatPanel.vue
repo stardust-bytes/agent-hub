@@ -111,7 +111,11 @@ onMounted(async () => {
   try {
     const res = await fetch('/api/ollama/models')
     if (!res.ok) throw new Error('fetch failed')
-    availableModels.value = (await res.json()) as string[]
+    const models = (await res.json()) as string[]
+    availableModels.value = models
+    if (models.length > 0 && !models.includes(selectedModel.value)) {
+      selectedModel.value = models[0]
+    }
   } catch {
     ollamaOnline.value = false
   }
