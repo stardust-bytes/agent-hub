@@ -1,8 +1,8 @@
 <template>
   <div class="flex flex-col bg-cyber-bg min-w-0">
-    <div class="px-3 py-2 border-b border-cyber-border bg-cyber-dark flex items-center justify-between shrink-0">
+    <div class="px-3 py-2 bg-cyber-dark flex items-center justify-between shrink-0">
       <div class="flex items-center gap-2">
-        <span class="text-cyber-orange text-xs tracking-widest font-mono">
+        <span class="text-cyber-accent text-xs tracking-widest font-mono">
           <HiTerminal class="w-3 h-3 inline" /> {{ t('chat.header') }}
         </span>
         <ModelSelector
@@ -15,9 +15,9 @@
         <button
           v-if="streaming"
           @click="stopStream"
-          class="text-cyber-orange/80 text-xs font-mono border border-cyber-dim rounded px-2 py-0.5 transition-colors duration-150 hover:border-cyber-accent"
+          class="text-cyber-accent/80 text-xs font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent"
         >{{ t('chat.stop') }}</button>
-        <span class="text-cyber-orange/40 text-xs font-mono">
+        <span class="text-[#888888] text-xs font-mono">
           {{ ollamaOnline ? t('chat.mode.ollama') : t('chat.mode.stub') }}
         </span>
       </div>
@@ -32,28 +32,28 @@
         <div
           class="text-sm leading-relaxed break-words"
           :class="{
-            'text-cyber-orange/50': msg.role === 'system',
-            'text-slate-100': msg.role === 'user' || msg.role === 'agent',
+            'text-[#888888]': msg.role === 'system',
+            'text-[#EEEEEE]': msg.role === 'user' || msg.role === 'agent',
           }"
         >
-          {{ msg.content }}<span v-if="msg.typing" class="animate-blink text-cyber-orange ml-px">█</span>
+          {{ msg.content }}<span v-if="msg.typing" class="animate-blink text-cyber-accent ml-px">█</span>
         </div>
       </div>
     </div>
 
-    <div class="px-3 py-2 border-t border-cyber-border bg-cyber-dark shrink-0">
-      <form @submit.prevent="submit" class="flex items-center gap-2 border border-cyber-dim rounded px-3 py-2">
-        <span class="text-cyber-orange text-sm font-mono">$</span>
+    <div class="px-3 py-2 bg-cyber-dark shrink-0">
+      <form @submit.prevent="submit" class="flex items-center gap-2 bg-cyber-dark px-3 py-2">
+        <span class="text-cyber-accent text-sm font-mono">$</span>
         <input
           v-model="input"
-          class="flex-1 bg-transparent text-slate-100 text-sm outline-none font-mono placeholder-cyber-orange/30"
+          class="flex-1 bg-transparent text-[#EEEEEE] text-sm outline-none font-mono placeholder-[#888888]/40"
           :placeholder="t('chat.placeholder')"
           :disabled="streaming"
           autocomplete="off"
           spellcheck="false"
         />
-        <span v-if="!streaming" class="animate-blink text-cyber-orange text-sm">█</span>
-        <span v-else class="text-cyber-orange/50 text-xs">{{ t('chat.thinking') }}</span>
+        <span v-if="!streaming" class="animate-blink text-cyber-accent text-sm">█</span>
+        <span v-else class="text-[#888888] text-xs">{{ t('chat.thinking') }}</span>
       </form>
     </div>
   </div>
@@ -96,9 +96,9 @@ function rolePrefix(role: string): string {
 }
 
 function roleColor(role: string): string {
-  if (role === 'user') return 'text-cyber-orange/60'
-  if (role === 'agent') return 'text-cyber-orange'
-  return 'text-cyber-orange/40'
+  if (role === 'user') return 'text-cyber-accent/80'
+  if (role === 'agent') return 'text-cyber-accent'
+  return 'text-[#888888]'
 }
 
 async function scrollToBottom() {
