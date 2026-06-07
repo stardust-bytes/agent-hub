@@ -1,8 +1,26 @@
 <template>
   <div class="flex flex-col bg-cyber-bg min-w-0">
     <div class="px-3 py-2 border-b border-cyber-border bg-cyber-dark flex items-center justify-between shrink-0">
-      <span class="text-cyber-orange text-xs tracking-widest font-mono"><HiTerminal class="w-3 h-3 inline" /> {{ t('chat.header') }}</span>
-      <span class="text-cyber-orange/40 text-xs font-mono">{{ t('chat.mode.stub') }}</span>
+      <div class="flex items-center gap-2">
+        <span class="text-cyber-orange text-xs tracking-widest font-mono">
+          <HiTerminal class="w-3 h-3 inline" /> {{ t('chat.header') }}
+        </span>
+        <ModelSelector
+          v-model="selectedModel"
+          :models="availableModels"
+          :disabled="streaming"
+        />
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          v-if="streaming"
+          @click="stopStream"
+          class="text-cyber-orange/80 text-xs font-mono border border-cyber-dim rounded px-2 py-0.5 transition-colors duration-150 hover:border-cyber-accent"
+        >{{ t('chat.stop') }}</button>
+        <span class="text-cyber-orange/40 text-xs font-mono">
+          {{ ollamaOnline ? t('chat.mode.ollama') : t('chat.mode.stub') }}
+        </span>
+      </div>
     </div>
 
     <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 min-h-0">
@@ -30,21 +48,22 @@
           v-model="input"
           class="flex-1 bg-transparent text-slate-100 text-sm outline-none font-mono placeholder-cyber-orange/30"
           :placeholder="t('chat.placeholder')"
-          :disabled="loading"
+          :disabled="streaming"
           autocomplete="off"
           spellcheck="false"
         />
-        <span v-if="!loading" class="animate-blink text-cyber-orange text-sm">█</span>
-        <span v-else class="text-cyber-orange/50 text-xs">{{ t('chat.loading') }}</span>
+        <span v-if="!streaming" class="animate-blink text-cyber-orange text-sm">█</span>
+        <span v-else class="text-cyber-orange/50 text-xs">{{ t('chat.thinking') }}</span>
       </form>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiTerminal, HiChevronRight } from 'vue-icons-plus/hi'
+import ModelSelector from './ModelSelector.vue'
 
 interface Message {
   role: 'user' | 'agent' | 'system'
@@ -57,14 +76,14 @@ const emit = defineEmits<{ lastMessage: [content: string] }>()
 const { t } = useI18n()
 
 const messages = ref<Message[]>([
-  {
-    role: 'system',
-    content: t('chat.system.init'),
-    timestamp: now(),
-  },
+  { role: 'system', content: t('chat.system.init'), timestamp: now() },
 ])
 const input = ref('')
-const loading = ref(false)
+const streaming = ref(false)
+const selectedModel = ref(localStorage.getItem('workspace.model') ?? 'llama3.2')
+const availableModels = ref<string[]>([])
+const ollamaOnline = ref(true)
+const abortController = ref<AbortController | null>(null)
 const messagesEl = ref<HTMLElement | null>(null)
 
 function now(): string {
@@ -85,58 +104,104 @@ function roleColor(role: string): string {
 
 async function scrollToBottom() {
   await nextTick()
-  if (messagesEl.value) {
-    messagesEl.value.scrollTop = messagesEl.value.scrollHeight
+  if (messagesEl.value) messagesEl.value.scrollTop = messagesEl.value.scrollHeight
+}
+
+onMounted(async () => {
+  try {
+    const res = await fetch('/api/ollama/models')
+    if (!res.ok) throw new Error('fetch failed')
+    availableModels.value = (await res.json()) as string[]
+  } catch {
+    ollamaOnline.value = false
   }
+})
+
+watch(selectedModel, (val) => {
+  localStorage.setItem('workspace.model', val)
+})
+
+function stopStream() {
+  abortController.value?.abort()
 }
 
 async function submit() {
   const text = input.value.trim()
-  if (!text || loading.value) return
+  if (!text || streaming.value) return
   input.value = ''
-  loading.value = true
+  streaming.value = true
 
   messages.value.push({ role: 'user', content: text, timestamp: now() })
+  await scrollToBottom()
+
+  const ctrl = new AbortController()
+  abortController.value = ctrl
+
+  const agentMsg: Message = { role: 'agent', content: '', timestamp: now(), typing: true }
+  messages.value.push(agentMsg)
   await scrollToBottom()
 
   try {
     const res = await fetch('/api/agent/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text }),
+      body: JSON.stringify({ message: text, model: selectedModel.value }),
+      signal: ctrl.signal,
     })
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }))
-      throw new Error(err.message ?? `HTTP ${res.status}`)
+    if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`)
+
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let done = false
+
+    while (!done) {
+      const { done: streamDone, value } = await reader.read()
+      if (streamDone) break
+
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        const payload = line.slice(6)
+        if (payload === '[DONE]') { done = true; break }
+        try {
+          const parsed = JSON.parse(payload) as { token?: string; error?: string }
+          if (parsed.error) {
+            done = true
+            agentMsg.typing = false
+            messages.value.push({
+              role: 'system',
+              content: `${t('chat.error.unreachable')} (${parsed.error})`,
+              timestamp: now(),
+            })
+            await scrollToBottom()
+          } else if (parsed.token) {
+            agentMsg.content += parsed.token
+            await scrollToBottom()
+          }
+        } catch { /* skip malformed SSE line */ }
+      }
     }
 
-    const data: { reply: string; timestamp: string } = await res.json()
-    await typewriterAppend(data.reply)
-    emit('lastMessage', data.reply)
+    agentMsg.typing = false
+    if (agentMsg.content) emit('lastMessage', agentMsg.content)
   } catch (e) {
-    const errMsg = e instanceof Error ? e.message : 'Unknown error'
-    messages.value.push({
-      role: 'system',
-      content: `${t('chat.error.unreachable')} (${errMsg})`,
-      timestamp: now(),
-    })
-    await scrollToBottom()
+    agentMsg.typing = false
+    if (e instanceof Error && e.name !== 'AbortError') {
+      messages.value.push({
+        role: 'system',
+        content: `${t('chat.error.unreachable')} (${e.message})`,
+        timestamp: now(),
+      })
+      await scrollToBottom()
+    }
   } finally {
-    loading.value = false
+    streaming.value = false
+    abortController.value = null
   }
-}
-
-async function typewriterAppend(fullText: string) {
-  const msg: Message = { role: 'agent', content: '', timestamp: now(), typing: true }
-  messages.value.push(msg)
-  await scrollToBottom()
-
-  for (const char of fullText) {
-    msg.content += char
-    await new Promise<void>(resolve => setTimeout(resolve, 18))
-    await scrollToBottom()
-  }
-  msg.typing = false
 }
 </script>
