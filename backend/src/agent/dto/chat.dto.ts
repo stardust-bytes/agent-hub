@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsInt } from 'class-validator';
 
 export class ChatDto {
   @IsString()
@@ -7,4 +7,7 @@ export class ChatDto {
   @IsString()
   @IsOptional()
   model?: string;
+
+  @IsInt()
+  sessionId: number;
 }

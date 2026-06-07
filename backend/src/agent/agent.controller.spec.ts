@@ -28,38 +28,35 @@ describe('AgentController', () => {
 
   it('sets SSE headers', async () => {
     const { req, res } = makeReqRes();
-    await controller.chatStream({ message: 'hi', model: 'llama3.2' }, req, res);
+    await controller.chatStream({ message: 'hi', model: 'llama3.2', sessionId: 1 }, req, res);
     expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/event-stream');
     expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-cache');
     expect(res.setHeader).toHaveBeenCalledWith('Connection', 'keep-alive');
   });
 
-  it('calls agentService.streamChat with message and model', async () => {
+  it('calls agentService.streamChat with message, model, sessionId', async () => {
     const { req, res } = makeReqRes();
-    await controller.chatStream({ message: 'hello', model: 'codestral' }, req, res);
+    await controller.chatStream({ message: 'hello', model: 'codestral', sessionId: 1 }, req, res);
     expect(mockStreamChat).toHaveBeenCalledWith(
-      'hello',
-      'codestral',
-      res,
-      expect.any(Object),
+      'hello', 'codestral', res, expect.any(Object), 1,
     );
   });
 
   it('uses fallback model llama3.2 when model is undefined', async () => {
     const { req, res } = makeReqRes();
-    await controller.chatStream({ message: 'hi' }, req, res);
-    expect(mockStreamChat).toHaveBeenCalledWith('hi', 'llama3.2', res, expect.any(Object));
+    await controller.chatStream({ message: 'hi', sessionId: 1 }, req, res);
+    expect(mockStreamChat).toHaveBeenCalledWith('hi', 'llama3.2', res, expect.any(Object), 1);
   });
 
   it('binds req close event to abort controller', async () => {
     const { req, res } = makeReqRes();
-    await controller.chatStream({ message: 'test' }, req, res);
+    await controller.chatStream({ message: 'test', sessionId: 1 }, req, res);
     expect(req.on).toHaveBeenCalledWith('close', expect.any(Function));
   });
 
   it('calls res.end() after streaming completes', async () => {
     const { req, res } = makeReqRes();
-    await controller.chatStream({ message: 'hi' }, req, res);
+    await controller.chatStream({ message: 'hi', sessionId: 1 }, req, res);
     expect(res.end).toHaveBeenCalled();
   });
 });
