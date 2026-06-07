@@ -23,8 +23,8 @@ export class KnowledgeController {
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
     const record = await this.knowledgeService.create(file.originalname, file.size, file.mimetype);
     fs.writeFileSync(record.filepath, file.buffer);
-    await this.knowledgeService.updateStatus(record.id, 'ready');
-    return { id: record.id, filename: file.originalname, status: 'ready' };
+    this.knowledgeService.processFile(record.id).catch(() => {});
+    return { id: record.id, filename: file.originalname, status: 'indexing' };
   }
 
   @Post('search')

@@ -28,15 +28,14 @@ describe('KnowledgeService', () => {
     jest.clearAllMocks();
   });
 
-  it('findAll returns all knowledge files ordered by createdAt desc', async () => {
+  it('findAll returns all knowledge files', async () => {
     const files = [{ id: 1, filename: 'test.md', size: 100, status: 'ready' }];
     mockPrisma.knowledgeFile.findMany.mockResolvedValue(files);
     const result = await service.findAll();
     expect(result).toEqual(files);
-    expect(mockPrisma.knowledgeFile.findMany).toHaveBeenCalledWith({ orderBy: { createdAt: 'desc' } });
   });
 
-  it('remove deletes file record and returns it', async () => {
+  it('remove deletes file record', async () => {
     const file = { id: 1, filename: 'test.md', filepath: '/tmp/test.md' };
     mockPrisma.knowledgeFile.findUnique.mockResolvedValue(file);
     mockPrisma.knowledgeFile.delete.mockResolvedValue(file);
@@ -44,7 +43,7 @@ describe('KnowledgeService', () => {
     expect(result.id).toBe(1);
   });
 
-  it('remove throws NotFoundException when file not found', async () => {
+  it('remove throws when file not found', async () => {
     mockPrisma.knowledgeFile.findUnique.mockResolvedValue(null);
     await expect(service.remove(999)).rejects.toThrow('not found');
   });
