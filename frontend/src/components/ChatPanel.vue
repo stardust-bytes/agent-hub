@@ -31,7 +31,7 @@
           <div
             v-if="msg.typing"
             class="text-[0.6875rem] leading-relaxed break-words text-cyber-text"
-          >{{ msg.content }}<span class="animate-blink text-cyber-accent ml-px">&#9608;</span></div>
+          >{{ msg.content }}</div>
           <div
             v-else
             class="text-[0.6875rem] leading-relaxed break-words text-cyber-text markdown-body"
