@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AgentService } from './agent.service';
 import { AgentController } from './agent.controller';
+import { AgentService } from './agent.service';
+import { OllamaProvider } from './providers/ollama.provider';
 
 @Module({
   controllers: [AgentController],
-  providers: [AgentService],
+  providers: [AgentService, OllamaProvider],
 })
 export class AgentModule {}
