@@ -1,11 +1,13 @@
 <template>
   <BaseModal v-model="show" closable max-height="480px" @update:model-value="onClose">
     <template #header>
-      <span class="text-cyber-accent text-xs font-mono tracking-widest">{{ t('sessions.header') }}</span>
-      <button
-        @click="createSession"
-        class="text-cyber-accent/70 text-xs font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent"
-      >{{ t('sessions.new') }}</button>
+      <div class="flex items-center gap-2">
+        <span class="text-cyber-accent text-xs font-mono tracking-widest">{{ t('sessions.header') }}</span>
+        <button
+          @click="createSession"
+          class="text-cyber-accent text-xs font-mono px-2 py-0.5 bg-cyber-accent/15 hover:bg-cyber-accent/25 transition-colors duration-150"
+        >{{ t('sessions.new') }}</button>
+      </div>
     </template>
 
     <div v-if="sessions.length === 0" class="px-3 py-4 text-xs text-cyber-accent/40 font-mono">
