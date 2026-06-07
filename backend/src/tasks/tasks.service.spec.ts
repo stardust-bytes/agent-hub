@@ -2,6 +2,18 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { TasksGateway } from './tasks.gateway';
+
+const mockTask = {
+  id: 1,
+  title: 'Test',
+  description: null,
+  status: 'TODO',
+  priority: 0,
+  dueDate: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
 
 const mockPrisma = {
   task: {
@@ -13,6 +25,12 @@ const mockPrisma = {
   },
 };
 
+const mockGateway = {
+  emitCreated: jest.fn(),
+  emitUpdated: jest.fn(),
+  emitDeleted: jest.fn(),
+};
+
 describe('TasksService', () => {
   let service: TasksService;
 
@@ -21,6 +39,7 @@ describe('TasksService', () => {
       providers: [
         TasksService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: TasksGateway, useValue: mockGateway },
       ],
     }).compile();
     service = module.get<TasksService>(TasksService);
@@ -42,6 +61,12 @@ describe('TasksService', () => {
     expect(result).toMatchObject({ id: 1, title: 'New task' });
   });
 
+  it('create calls gateway.emitCreated with created task', async () => {
+    mockPrisma.task.create.mockResolvedValue(mockTask);
+    await service.create({ title: 'Test' });
+    expect(mockGateway.emitCreated).toHaveBeenCalledWith(mockTask);
+  });
+
   it('update throws NotFoundException when task not found', async () => {
     mockPrisma.task.findUnique.mockResolvedValue(null);
     await expect(service.update(999, { title: 'x' })).rejects.toThrow(NotFoundException);
@@ -56,6 +81,14 @@ describe('TasksService', () => {
     expect(result).toMatchObject({ title: 'New' });
   });
 
+  it('update calls gateway.emitUpdated with updated task', async () => {
+    mockPrisma.task.findUnique.mockResolvedValue(mockTask);
+    const updated = { ...mockTask, status: 'DONE' };
+    mockPrisma.task.update.mockResolvedValue(updated);
+    await service.update(1, { status: 'DONE' });
+    expect(mockGateway.emitUpdated).toHaveBeenCalledWith(updated);
+  });
+
   it('remove throws NotFoundException when task not found', async () => {
     mockPrisma.task.findUnique.mockResolvedValue(null);
     await expect(service.remove(999)).rejects.toThrow(NotFoundException);
@@ -67,5 +100,12 @@ describe('TasksService', () => {
     mockPrisma.task.delete.mockResolvedValue({ id: 1 });
     await service.remove(1);
     expect(mockPrisma.task.delete).toHaveBeenCalledWith({ where: { id: 1 } });
+  });
+
+  it('remove calls gateway.emitDeleted with task id', async () => {
+    mockPrisma.task.findUnique.mockResolvedValue(mockTask);
+    mockPrisma.task.delete.mockResolvedValue(mockTask);
+    await service.remove(1);
+    expect(mockGateway.emitDeleted).toHaveBeenCalledWith(1);
   });
 });
