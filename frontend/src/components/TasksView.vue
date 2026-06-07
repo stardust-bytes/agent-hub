@@ -4,13 +4,13 @@
       <span class="text-cyber-accent text-xs tracking-widest font-mono">
         <HiClipboardList class="w-3 h-3 inline" /> {{ t('tasks.header') }}
       </span>
-      <span :class="['text-xs font-mono', wsConnected ? 'text-cyber-green' : 'text-[#888888]']">
+      <span :class="['text-xs font-mono', wsConnected ? 'text-cyber-green' : 'text-cyber-muted']">
         {{ wsConnected ? t('tasks.ws.connected') : t('tasks.ws.disconnected') }}
       </span>
     </div>
 
     <div class="px-3 py-1.5 bg-cyber-dark/40 flex items-center gap-2 shrink-0">
-      <span class="text-[#888888] text-[10px] font-mono">{{ t('tasks.filter.label') }}</span>
+      <span class="text-cyber-muted text-[0.625rem] font-mono">{{ t('tasks.filter.label') }}</span>
       <button
         v-for="p in PRIORITY_FILTERS"
         :key="p.value"
@@ -50,14 +50,14 @@ const PRIORITY_FILTERS = [
   {
     value: 1,
     labelKey: 'tasks.priority.medium',
-    activeClass: 'text-[#FFA500] bg-[#FFA500]/10',
-    inactiveClass: 'text-[#FFA500]/40 hover:text-[#FFA500]',
+    activeClass: 'text-cyber-orange bg-cyber-orange/10',
+    inactiveClass: 'text-cyber-orange/40 hover:text-cyber-orange',
   },
   {
     value: 0,
     labelKey: 'tasks.priority.low',
-    activeClass: 'text-[#888888] bg-[#888888]/10',
-    inactiveClass: 'text-[#888888]/40 hover:text-[#888888]',
+    activeClass: 'text-cyber-muted bg-cyber-muted/10',
+    inactiveClass: 'text-cyber-muted/40 hover:text-cyber-muted',
   },
 ] as const
 

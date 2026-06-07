@@ -2,7 +2,7 @@
 <template>
   <div class="absolute right-0 top-5 z-20 bg-cyber-dark min-w-[128px]">
     <div class="px-2 py-1.5">
-      <div class="text-[10px] text-[#888888] font-mono mb-1">{{ t('tasks.filter.label') }}</div>
+      <div class="text-[0.625rem] text-cyber-muted font-mono mb-1">{{ t('tasks.filter.label') }}</div>
       <div class="flex gap-1">
         <button
           v-for="p in PRIORITIES"
@@ -47,14 +47,14 @@ const PRIORITIES = [
   {
     value: 1,
     labelKey: 'tasks.priority.medium',
-    activeClass: 'text-[#FFA500] bg-[#FFA500]/15',
-    inactiveClass: 'text-[#FFA500]/50 hover:text-[#FFA500]',
+    activeClass: 'text-cyber-orange bg-cyber-orange/15',
+    inactiveClass: 'text-cyber-orange/50 hover:text-cyber-orange',
   },
   {
     value: 0,
     labelKey: 'tasks.priority.low',
-    activeClass: 'text-[#888888] bg-[#888888]/15',
-    inactiveClass: 'text-[#888888]/50 hover:text-[#888888]',
+    activeClass: 'text-cyber-muted bg-cyber-muted/15',
+    inactiveClass: 'text-cyber-muted/50 hover:text-cyber-muted',
   },
 ] as const
 

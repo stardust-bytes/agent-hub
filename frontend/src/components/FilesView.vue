@@ -17,36 +17,36 @@
           @drop.prevent="onDrop"
         >
           <input ref="fileInput" type="file" class="hidden" multiple @change="onFileChange" />
-          <p class="text-[#888888] text-sm font-mono">{{ t('files.dropzone') }}</p>
-          <p class="text-[#888888]/60 text-[10px] font-mono mt-1">.pdf .docx .txt .md .ts .js .py</p>
+          <p class="text-cyber-muted text-sm font-mono">{{ t('files.dropzone') }}</p>
+          <p class="text-cyber-muted/60 text-[0.625rem] font-mono mt-1">.pdf .docx .txt .md .ts .js .py</p>
         </div>
 
         <!-- Filter -->
         <input
           v-model="filter"
           :placeholder="t('files.filter')"
-          class="w-full bg-cyber-dark text-[#EEEEEE] text-sm px-2 py-1.5 font-mono outline-none"
+          class="w-full bg-cyber-dark text-cyber-text text-sm px-2 py-1.5 font-mono outline-none"
         />
 
         <!-- File list -->
-        <div v-if="files.length === 0" class="text-center text-[#888888] text-xs font-mono py-8">
+        <div v-if="files.length === 0" class="text-center text-cyber-muted text-xs font-mono py-8">
           {{ t('files.empty') }}
         </div>
         <div v-for="f in filteredFiles" :key="f.id"
           class="flex items-center gap-3 bg-cyber-dark px-3 py-2 text-xs font-mono"
         >
-          <span class="flex-1 text-[#EEEEEE] truncate">{{ f.filename }}</span>
-          <span class="text-[#888888] shrink-0 w-16 text-right">{{ formatSize(f.size) }}</span>
+          <span class="flex-1 text-cyber-text truncate">{{ f.filename }}</span>
+          <span class="text-cyber-muted shrink-0 w-16 text-right">{{ formatSize(f.size) }}</span>
           <span :class="statusClass(f.status)" class="shrink-0 w-20 text-center">{{ statusLabel(f.status) }}</span>
-          <button @click="deleteFile(f.id)" class="text-[#888888] hover:text-red-400 shrink-0 transition-colors duration-150">{{ t('files.delete') }}</button>
+          <button @click="deleteFile(f.id)" class="text-cyber-muted hover:text-red-400 shrink-0 transition-colors duration-150">{{ t('files.delete') }}</button>
         </div>
 
         <!-- Codebase watcher -->
         <div class="border-t border-cyber-accent/10 pt-4">
-          <div class="text-[#888888] text-[10px] font-mono mb-2">{{ t('files.watch.title') }}</div>
+          <div class="text-cyber-muted text-[0.625rem] font-mono mb-2">{{ t('files.watch.title') }}</div>
           <div class="flex gap-2 items-center">
-            <span class="text-[#888888] text-xs font-mono">{{ t('files.watch.path') }}</span>
-            <input v-model="watchDir" placeholder="/workspace" class="flex-1 bg-cyber-dark text-[#EEEEEE] text-sm px-2 py-1.5 font-mono outline-none" />
+            <span class="text-cyber-muted text-xs font-mono">{{ t('files.watch.path') }}</span>
+            <input v-model="watchDir" placeholder="/workspace" class="flex-1 bg-cyber-dark text-cyber-text text-sm px-2 py-1.5 font-mono outline-none" />
             <button @click="toggleWatch" class="px-3 py-1.5 text-xs font-mono text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20 transition-colors duration-150">{{ t('files.watch.btn') }}</button>
           </div>
           <div v-if="watching" class="text-cyber-green text-[10px] font-mono mt-1">{{ t('files.watch.status') }} ({{ indexedCount }} files)</div>
@@ -92,7 +92,7 @@ function formatSize(bytes: number): string {
 
 function statusClass(status: string): string {
   if (status === 'ready') return 'text-cyber-green'
-  if (status === 'indexing') return 'text-[#FFA500]'
+  if (status === 'indexing') return 'text-cyber-orange'
   return 'text-red-400'
 }
 

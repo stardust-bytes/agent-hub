@@ -41,14 +41,14 @@
             :placeholder="t('tasks.add.placeholder')"
             @keydown.escape="addingTask = false; newTaskTitle = ''"
             @blur="onBlurNewTask"
-            class="flex-1 bg-cyber-dark px-2 py-1 text-[11px] font-mono text-[#EEEEEE] placeholder-[#888888]/40 outline-none"
+            class="flex-1 bg-cyber-dark px-2 py-1 text-[0.6875rem] font-mono text-cyber-text placeholder-cyber-muted/40 outline-none"
             autofocus
           />
         </form>
         <button
           v-else
           @click="addingTask = true"
-           class="w-full text-[10px] font-mono text-[#888888] bg-cyber-dark px-2 py-1.5 hover:text-cyber-accent transition-colors duration-150 text-left"
+           class="w-full text-[0.625rem] font-mono text-cyber-muted bg-cyber-dark px-2 py-1.5 hover:text-cyber-accent transition-colors duration-150 text-left"
         >{{ t('tasks.add') }}</button>
       </div>
     </div>
@@ -87,7 +87,7 @@ const STATUS_KEYS = ['TODO', 'PROCESSING', 'DONE', 'FAILED'] as const
 
 const COLUMNS = [
   { key: 'TODO',       labelKey: 'tasks.col.todo',       headerClass: 'text-cyber-accent', headerBgClass: 'bg-cyber-accent/8'    },
-  { key: 'PROCESSING', labelKey: 'tasks.col.processing', headerClass: 'text-[#FFA500]',     headerBgClass: 'bg-[#FFA500]/8'       },
+  { key: 'PROCESSING', labelKey: 'tasks.col.processing', headerClass: 'text-cyber-orange',  headerBgClass: 'bg-cyber-orange/8'  },
   { key: 'DONE',       labelKey: 'tasks.col.done',       headerClass: 'text-cyber-green',  headerBgClass: 'bg-cyber-green/8'      },
   { key: 'FAILED',     labelKey: 'tasks.col.failed',     headerClass: 'text-red-400',      headerBgClass: 'bg-red-400/8'         },
 ]

@@ -10,11 +10,11 @@
     <div class="flex-1 overflow-y-auto px-4 py-4">
       <div class="max-w-xl">
         <div class="mb-4">
-          <label class="text-[#888888] text-[10px] font-mono block mb-1">{{ t('settings.ollamaUrl') }}</label>
+          <label class="text-cyber-muted text-[0.625rem] font-mono block mb-1">{{ t('settings.ollamaUrl') }}</label>
           <div class="flex gap-2">
             <input
               v-model="ollamaUrl"
-              class="flex-1 bg-cyber-dark text-[#EEEEEE] text-sm px-2 py-1.5 font-mono outline-none"
+              class="flex-1 bg-cyber-dark text-cyber-text text-sm px-2 py-1.5 font-mono outline-none"
               :disabled="saving === 'ollama.baseUrl'"
             />
             <button
@@ -26,11 +26,11 @@
         </div>
 
         <div class="mb-6">
-          <label class="text-[#888888] text-[10px] font-mono block mb-1">{{ t('settings.defaultModel') }}</label>
+          <label class="text-cyber-muted text-[0.625rem] font-mono block mb-1">{{ t('settings.defaultModel') }}</label>
           <div class="flex gap-2 items-center">
             <input
               v-model="defaultModel"
-              class="flex-1 bg-cyber-dark text-[#EEEEEE] text-sm px-2 py-1.5 font-mono outline-none"
+              class="flex-1 bg-cyber-dark text-cyber-text text-sm px-2 py-1.5 font-mono outline-none"
               :disabled="saving === 'ollama.defaultModel'"
             />
             <button
@@ -42,8 +42,8 @@
         </div>
 
         <div class="border-t border-cyber-accent/10 pt-4">
-          <div class="text-[#888888] text-[10px] font-mono mb-2">{{ t('settings.info') }}</div>
-          <div class="text-xs font-mono text-[#888888] space-y-1">
+          <div class="text-cyber-muted text-[0.625rem] font-mono mb-2">{{ t('settings.info') }}</div>
+          <div class="text-xs font-mono text-cyber-muted space-y-1">
             <div>{{ t('settings.version') }}: 0.1.0</div>
             <div :class="healthy ? 'text-cyber-green' : 'text-red-400'">
               ● {{ healthy ? t('health.ok') : t('health.error') }}

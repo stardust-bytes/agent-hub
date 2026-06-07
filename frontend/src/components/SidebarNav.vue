@@ -1,5 +1,5 @@
 <template>
-  <nav class="w-[52px] bg-cyber-dark flex flex-col items-center py-3 gap-2 shrink-0">
+  <nav class="w-[3.25rem] bg-cyber-dark hidden sm:flex flex-col items-center py-3 gap-2 shrink-0">
     <HiTerminal class="text-cyber-accent w-5 h-5 mb-2" />
 
     <button
@@ -11,7 +11,7 @@
         'w-9 h-9 rounded flex items-center justify-center text-base transition-colors duration-150',
         activeView === item.view
           ? 'bg-cyber-accent/10 text-cyber-accent'
-          : 'text-[#888888] hover:text-cyber-accent'
+          : 'text-cyber-muted hover:text-cyber-accent'
       ]"
     >
       <component :is="item.icon" class="w-4 h-4" />
@@ -22,7 +22,7 @@
     <button
       :title="t('nav.settings')"
       @click="$emit('navigate', 'settings')"
-      class="w-9 h-9 rounded flex items-center justify-center text-base text-[#888888] hover:text-cyber-accent"
+      class="w-9 h-9 rounded flex items-center justify-center text-base text-cyber-muted hover:text-cyber-accent"
     >
       <HiCog class="w-4 h-4" />
     </button>
@@ -30,7 +30,7 @@
     <button
       :title="locale === 'vi' ? 'Switch to English' : 'Chuyển sang Tiếng Việt'"
       @click="toggleLang"
-      class="w-9 h-6 rounded flex items-center justify-center text-xs font-mono text-[#888888] hover:text-cyber-accent transition-colors duration-150"
+      class="w-9 h-6 rounded flex items-center justify-center text-xs font-mono text-cyber-muted hover:text-cyber-accent transition-colors duration-150"
     >
       {{ t('nav.lang') }}
     </button>

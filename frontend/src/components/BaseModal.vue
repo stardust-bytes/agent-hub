@@ -5,7 +5,7 @@
       class="fixed inset-0 bg-cyber-dark/80 z-50 flex items-center justify-center"
       @click.self="$emit('update:modelValue', false)"
     >
-      <div class="w-80 bg-[#0a0e1a] border-t border-orange-500 flex flex-col" :style="{ maxHeight }">
+      <div class="w-80 bg-cyber-modal-bg border-t border-cyber-orange flex flex-col" :style="{ maxHeight }">
         <div v-if="$slots.header" class="px-3 py-2 bg-cyber-dark flex items-center justify-between shrink-0">
           <slot name="header" />
           <button

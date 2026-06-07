@@ -19,7 +19,7 @@
       class="px-3 py-2 flex items-center justify-between cursor-pointer transition-colors duration-150"
       :class="s.id === currentSessionId
         ? 'bg-cyber-accent/10'
-        : 'hover:bg-[#1a1a2e]'"
+        : 'hover:bg-cyber-accent/5'"
       @click="selectSession(s.id)"
     >
       <div class="min-w-0 flex-1">

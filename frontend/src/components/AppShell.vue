@@ -7,6 +7,7 @@
       <TasksView v-else-if="activeView === 'tasks'" class="flex-1 overflow-hidden" />
       <ChatPanel v-else class="flex-1 overflow-hidden" />
     </div>
+    <BottomTabBar :active-view="activeView" @navigate="activeView = $event" />
     <StatusBar
       :model-name="modelName"
       :db-connected="dbConnected"
@@ -18,6 +19,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import SidebarNav from './SidebarNav.vue'
+import BottomTabBar from './BottomTabBar.vue'
 import ChatPanel from './ChatPanel.vue'
 import TasksView from './TasksView.vue'
 import SettingsView from './SettingsView.vue'
