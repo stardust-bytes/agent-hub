@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import * as fs from 'fs';
 import * as path from 'path';
+const mammoth = require('mammoth');
 
 @Injectable()
 export class KnowledgeService {
@@ -48,7 +49,8 @@ export class KnowledgeService {
 
     for (const file of files) {
       try {
-        const content = fs.readFileSync(file.filepath, 'utf-8');
+        const content = await this.extractText(file.filepath, file.mimeType);
+        if (!content) continue;
         const chunks = this.chunkText(content, 512, 50);
         for (const chunk of chunks) {
           const lower = chunk.toLowerCase();
@@ -61,6 +63,25 @@ export class KnowledgeService {
 
     results.sort((a, b) => b.score - a.score);
     return results.slice(0, 5).map(({ filename, text }) => ({ filename, text }));
+  }
+
+  private async extractText(filepath: string, mimeType: string): Promise<string | null> {
+    const ext = path.extname(filepath).toLowerCase();
+    if (ext === '.docx') {
+      const result = await mammoth.extractRawText({ path: filepath });
+      return result.value || null;
+    }
+    if (ext === '.pdf') {
+      try {
+        const pdf = require('pdf-parse');
+        const buf = fs.readFileSync(filepath);
+        const data = await pdf(buf);
+        return data.text || null;
+      } catch { return null; }
+    }
+    try {
+      return fs.readFileSync(filepath, 'utf-8');
+    } catch { return null; }
   }
 
   private chunkText(text: string, chunkSize: number, overlap: number): string[] {
