@@ -85,7 +85,10 @@ export class OllamaProvider implements LLMProvider {
 
     const ollamaUrl = await this.settings.get('ollama.baseUrl', 'http://localhost:11434');
 
-    const msgs: Array<Record<string, unknown>> = messages.map(m => ({ ...m }));
+    const msgs: Array<Record<string, unknown>> = [
+      { role: 'system', content: 'You are a helpful assistant. Always respond in the same language the user writes in. For tool calls, use the provided tools.' },
+      ...messages.map(m => ({ ...m })),
+    ];
 
     const MAX_TOOL_CALLS = 10;
     let toolCallCount = 0;
@@ -117,6 +120,11 @@ export class OllamaProvider implements LLMProvider {
       }
 
       if (!ollamaRes.ok) {
+        // If this is a follow-up iteration (after tool calls), end gracefully
+        if (toolCallCount > 0) {
+          res.write('data: [DONE]\n\n');
+          return { finalText };
+        }
         let detail = `ollama_error_${ollamaRes.status}`;
         try {
           const errBody = await ollamaRes.json() as { error?: string };
