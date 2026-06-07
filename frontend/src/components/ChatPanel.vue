@@ -16,7 +16,7 @@
           @click="stopStream"
           class="text-cyber-accent/80 text-xs font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent"
         >{{ t('chat.stop') }}</button>
-        <span class="text-[#888888] text-xs font-mono">
+        <span class="text-cyber-muted text-xs font-mono">
           {{ ollamaOnline ? t('chat.mode.ollama') : t('chat.mode.stub') }}
         </span>
       </div>
@@ -33,14 +33,14 @@
 
         <!-- Tool call block -->
         <div v-else-if="msg.role === 'tool' && !msg.isResult"
-          class="border-l-2 border-[#FFA500]/50 pl-3 py-1.5">
-          <div class="text-[11px] text-[#FFA500] font-mono mb-0.5">[⚙] {{ msg.content }}</div>
+          class="border-l-2 border-cyber-orange/50 pl-3 py-1.5">
+          <div class="text-[0.6875rem] text-cyber-orange font-mono mb-0.5">[⚙] {{ msg.content }}</div>
         </div>
 
         <!-- Tool result block -->
         <div v-else-if="msg.role === 'tool' && msg.isResult"
           class="border-l-2 border-cyber-green/50 pl-3 py-1.5">
-          <div class="text-[11px] text-cyber-green font-mono">{{ msg.content }}</div>
+          <div class="text-[0.6875rem] text-cyber-green font-mono">{{ msg.content }}</div>
         </div>
 
         <!-- Agent answer block -->
@@ -51,11 +51,11 @@
           </div>
           <div
             v-if="msg.typing"
-            class="text-sm leading-relaxed break-words text-[#EEEEEE]"
+            class="text-sm leading-relaxed break-words text-cyber-text"
           >{{ msg.content }}<span class="animate-blink text-cyber-accent ml-px">&#9608;</span></div>
           <div
             v-else
-            class="text-sm leading-relaxed break-words text-[#EEEEEE] markdown-body"
+            class="text-sm leading-relaxed break-words text-cyber-text markdown-body"
             v-html="renderMarkdown(msg.content)"
           />
         </div>
@@ -64,13 +64,13 @@
         <div v-else-if="msg.role === 'user'"
           class="border-l-2 border-cyber-accent/20 pl-3 py-1">
           <div class="text-xs text-cyber-accent/80 mb-0.5 font-mono">{{ rolePrefix(msg.role) }} · {{ msg.timestamp }}</div>
-          <div class="text-sm leading-relaxed break-words text-[#EEEEEE]">{{ msg.content }}</div>
+          <div class="text-sm leading-relaxed break-words text-cyber-text">{{ msg.content }}</div>
         </div>
 
         <!-- System message (other) -->
         <div v-else-if="msg.role === 'system'"
           class="pl-3 py-0.5">
-          <div class="text-xs text-[#888888] font-mono">{{ msg.content }}</div>
+          <div class="text-xs text-cyber-muted font-mono">{{ msg.content }}</div>
         </div>
 
       </div>
@@ -86,11 +86,11 @@
       <div class="px-3 py-2 bg-cyber-dark">
         <form @submit.prevent="submit" class="flex items-center gap-2 bg-cyber-dark px-3 py-2">
           <span class="text-cyber-accent text-sm font-mono">$</span>
-          <span v-if="!streaming" class="animate-blink text-[#EEEEEE] text-sm">█</span>
+          <span v-if="!streaming" class="animate-blink text-cyber-text text-sm">█</span>
           <input
             ref="inputEl"
             v-model="input"
-            class="flex-1 bg-transparent text-[#EEEEEE] text-sm outline-none font-mono placeholder-[#888888]/40 caret-white"
+            class="flex-1 bg-transparent text-cyber-text text-sm outline-none font-mono placeholder-cyber-muted/40 caret-white"
             :placeholder="t('chat.placeholder')"
             :disabled="streaming"
             autocomplete="off"
@@ -104,7 +104,7 @@
           :models="availableModels"
           :disabled="streaming"
         />
-        <span v-if="streaming" class="text-[10px] text-cyber-accent/50 font-mono">{{ t('chat.streaming') }}</span>
+        <span v-if="streaming" class="text-[0.625rem] text-cyber-accent/50 font-mono">{{ t('chat.streaming') }}</span>
       </div>
     </div>
   </div>
@@ -158,8 +158,8 @@ function rolePrefix(role: string): string {
 function roleColor(role: string): string {
   if (role === 'user') return 'text-cyber-accent/80'
   if (role === 'agent') return 'text-cyber-accent'
-  if (role === 'system') return 'text-[#888888]'
-  return 'text-[#888888]'
+  if (role === 'system') return 'text-cyber-muted'
+  return 'text-cyber-muted'
 }
 
 function renderMarkdown(content: string): string {
