@@ -1,21 +1,27 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { IsString } from 'class-validator';
+import { Controller, Post, Body, Req, Res } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { AgentService } from './agent.service';
-
-class ChatDto {
-  @IsString()
-  message: string;
-}
+import { ChatDto } from './dto/chat.dto';
 
 @Controller('agent')
 export class AgentController {
   constructor(private readonly agentService: AgentService) {}
 
   @Post('chat')
-  async chat(@Body() dto: ChatDto) {
-    return {
-      reply: this.agentService.mockReply(dto.message),
-      timestamp: new Date().toISOString(),
-    };
+  async chatStream(
+    @Body() dto: ChatDto,
+    @Req() req: Request,
+    @Res({ passthrough: false }) res: Response,
+  ): Promise<void> {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const ctrl = new AbortController();
+    req.on('close', () => ctrl.abort());
+
+    await this.agentService.streamChat(dto.message, dto.model ?? 'llama3.2', res, ctrl.signal);
+    res.end();
   }
 }

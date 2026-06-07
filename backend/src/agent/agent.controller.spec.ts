@@ -1,28 +1,65 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { AgentController } from './agent.controller';
 import { AgentService } from './agent.service';
-
-const mockService = {
-  mockReply: jest.fn().mockReturnValue('[stub] Received: hi. Ollama integration coming in Phase 2.'),
-};
+import { Request, Response } from 'express';
 
 describe('AgentController', () => {
   let controller: AgentController;
+  const mockStreamChat = jest.fn().mockResolvedValue(undefined);
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    const module = await Test.createTestingModule({
       controllers: [AgentController],
-      providers: [{ provide: AgentService, useValue: mockService }],
+      providers: [{ provide: AgentService, useValue: { streamChat: mockStreamChat } }],
     }).compile();
-    controller = module.get<AgentController>(AgentController);
+    controller = module.get(AgentController);
     jest.clearAllMocks();
   });
 
-  it('chat returns reply and timestamp', async () => {
-    mockService.mockReply.mockReturnValue('[stub] Received: hi.');
-    const result = await controller.chat({ message: 'hi' });
-    expect(result.reply).toBe('[stub] Received: hi.');
-    expect(result.timestamp).toBeDefined();
-    expect(mockService.mockReply).toHaveBeenCalledWith('hi');
+  function makeReqRes() {
+    const req = { on: jest.fn() } as unknown as Request;
+    const res = {
+      setHeader: jest.fn(),
+      flushHeaders: jest.fn(),
+      end: jest.fn(),
+    } as unknown as Response;
+    return { req, res };
+  }
+
+  it('sets SSE headers', async () => {
+    const { req, res } = makeReqRes();
+    await controller.chatStream({ message: 'hi', model: 'llama3.2' }, req, res);
+    expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/event-stream');
+    expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-cache');
+    expect(res.setHeader).toHaveBeenCalledWith('Connection', 'keep-alive');
+  });
+
+  it('calls agentService.streamChat with message and model', async () => {
+    const { req, res } = makeReqRes();
+    await controller.chatStream({ message: 'hello', model: 'codestral' }, req, res);
+    expect(mockStreamChat).toHaveBeenCalledWith(
+      'hello',
+      'codestral',
+      res,
+      expect.any(Object),
+    );
+  });
+
+  it('uses fallback model llama3.2 when model is undefined', async () => {
+    const { req, res } = makeReqRes();
+    await controller.chatStream({ message: 'hi' }, req, res);
+    expect(mockStreamChat).toHaveBeenCalledWith('hi', 'llama3.2', res, expect.any(Object));
+  });
+
+  it('binds req close event to abort controller', async () => {
+    const { req, res } = makeReqRes();
+    await controller.chatStream({ message: 'test' }, req, res);
+    expect(req.on).toHaveBeenCalledWith('close', expect.any(Function));
+  });
+
+  it('calls res.end() after streaming completes', async () => {
+    const { req, res } = makeReqRes();
+    await controller.chatStream({ message: 'hi' }, req, res);
+    expect(res.end).toHaveBeenCalled();
   });
 });
