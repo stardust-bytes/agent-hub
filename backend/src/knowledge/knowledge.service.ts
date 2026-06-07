@@ -50,12 +50,31 @@ export class KnowledgeService {
 
   private async embed(text: string): Promise<number[]> {
     const ollamaUrl = this.config.get<string>('OLLAMA_URL', 'http://localhost:11434');
+    const model = this.config.get<string>('EMBED_MODEL', 'nomic-embed-text');
     const res = await fetch(`${ollamaUrl}/api/embeddings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'nomic-embed-text', prompt: text }),
+      body: JSON.stringify({ model, prompt: text }),
     });
-    if (!res.ok) throw new Error(`embedding failed: ${res.status}`);
+    if (!res.ok) {
+      // If embed model not found, try pulling it
+      if (res.status === 404) {
+        await fetch(`${ollamaUrl}/api/pull`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model, stream: false }),
+        });
+        const retry = await fetch(`${ollamaUrl}/api/embeddings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model, prompt: text }),
+        });
+        if (!retry.ok) throw new Error(`embedding failed after pull: ${retry.status}`);
+        const data = await retry.json() as { embedding: number[] };
+        return data.embedding;
+      }
+      throw new Error(`embedding failed: ${res.status}`);
+    }
     const data = await res.json() as { embedding: number[] };
     return data.embedding;
   }

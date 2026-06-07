@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiFolder } from 'vue-icons-plus/hi'
 
@@ -120,6 +120,7 @@ async function uploadFiles(fileList: FileList) {
     try {
       await fetch('/api/knowledge/upload', { method: 'POST', body: form })
       await loadFiles()
+      startPolling()
     } catch { /* ignore */ }
   }
 }
@@ -150,5 +151,26 @@ async function toggleWatch() {
   } catch { /* ignore */ }
 }
 
-onMounted(loadFiles)
+let pollTimer: ReturnType<typeof setInterval> | null = null
+
+function startPolling() {
+  if (pollTimer) return
+  pollTimer = setInterval(async () => {
+    const hasIndexing = files.value.some(f => f.status === 'indexing')
+    if (!hasIndexing && pollTimer) { clearInterval(pollTimer); pollTimer = null; return }
+    try {
+      const res = await fetch('/api/knowledge')
+      if (res.ok) files.value = await res.json()
+    } catch { /* ignore */ }
+  }, 2000)
+}
+
+onMounted(async () => {
+  await loadFiles()
+  if (files.value.some(f => f.status === 'indexing')) startPolling()
+})
+
+onUnmounted(() => {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
+})
 </script>
