@@ -1,8 +1,7 @@
 <template>
   <nav class="w-32 bg-cyber-dark hidden sm:flex flex-col items-stretch py-3 gap-1 shrink-0">
-    <div class="flex items-center gap-2 px-3 py-1 mb-1">
-      <HiTerminal class="text-cyber-accent w-5 h-5 shrink-0" />
-      <span class="text-xs text-cyber-accent/50 truncate">workspace</span>
+    <div class="flex items-center justify-center gap-2 px-3 py-1 mb-1">
+      <span class="text-xs text-cyber-accent font-bold truncate">960513-wp</span>
     </div>
 
     <button
