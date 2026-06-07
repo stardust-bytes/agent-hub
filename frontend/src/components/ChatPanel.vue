@@ -1,8 +1,8 @@
 <template>
   <div class="flex flex-col bg-cyber-bg min-w-0">
     <div class="px-3 py-2 border-b border-cyber-border bg-cyber-dark flex items-center justify-between shrink-0">
-      <span class="text-cyber-accent text-xs tracking-widest font-mono">◈ AGENT CHAT</span>
-      <span class="text-cyber-accent/40 text-xs font-mono">stub mode</span>
+      <span class="text-cyber-accent text-xs tracking-widest font-mono">◈ {{ t('chat.header') }}</span>
+      <span class="text-cyber-accent/40 text-xs font-mono">{{ t('chat.mode.stub') }}</span>
     </div>
 
     <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 min-h-0">
@@ -29,13 +29,13 @@
         <input
           v-model="input"
           class="flex-1 bg-transparent text-slate-100 text-sm outline-none font-mono placeholder-cyber-accent/30"
-          placeholder="type a command or question_"
+          :placeholder="t('chat.placeholder')"
           :disabled="loading"
           autocomplete="off"
           spellcheck="false"
         />
         <span v-if="!loading" class="animate-blink text-cyber-accent text-sm">█</span>
-        <span v-else class="text-cyber-accent/50 text-xs">…</span>
+        <span v-else class="text-cyber-accent/50 text-xs">{{ t('chat.loading') }}</span>
       </form>
     </div>
   </div>
@@ -43,6 +43,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 interface Message {
   role: 'user' | 'agent' | 'system'
@@ -52,11 +53,12 @@ interface Message {
 }
 
 const emit = defineEmits<{ lastMessage: [content: string] }>()
+const { t } = useI18n()
 
 const messages = ref<Message[]>([
   {
     role: 'system',
-    content: 'Agent initialized. SQLite connected. Stub mode active.',
+    content: t('chat.system.init'),
     timestamp: now(),
   },
 ])
@@ -65,13 +67,13 @@ const loading = ref(false)
 const messagesEl = ref<HTMLElement | null>(null)
 
 function now(): string {
-  return new Date().toLocaleTimeString('en-US', { hour12: false })
+  return new Date().toLocaleTimeString('vi-VN', { hour12: false })
 }
 
 function rolePrefix(role: string): string {
-  if (role === 'user') return '$ user'
-  if (role === 'agent') return '▶ agent'
-  return '[system]'
+  if (role === 'user') return t('chat.user.prefix')
+  if (role === 'agent') return t('chat.agent.prefix')
+  return t('chat.system.prefix')
 }
 
 function roleColor(role: string): string {
@@ -112,10 +114,10 @@ async function submit() {
     await typewriterAppend(data.reply)
     emit('lastMessage', data.reply)
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Unknown error'
+    const errMsg = e instanceof Error ? e.message : 'Unknown error'
     messages.value.push({
       role: 'system',
-      content: `[error] ${msg}. Is the backend running?`,
+      content: `${t('chat.error.unreachable')} (${errMsg})`,
       timestamp: now(),
     })
     await scrollToBottom()
