@@ -60,5 +60,11 @@
   "files.watch.title": "Codebase Watcher",
   "files.watch.path": "Directory:",
   "files.watch.btn": "Watch",
-  "files.watch.status": "● watching"
+  "files.watch.status": "● watching",
+
+  "sessions.header": "SESSIONS",
+  "sessions.new": "+ New",
+  "sessions.empty": "No sessions yet",
+  "sessions.messages": "{n} messages",
+  "sessions.delete.confirm": "Delete this session?"
 }
