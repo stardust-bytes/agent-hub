@@ -1,0 +1,22 @@
+{
+  "nav.chat": "Trò chuyện",
+  "nav.tasks": "Nhiệm vụ",
+  "nav.files": "Tệp tin",
+  "nav.settings": "Cài đặt",
+  "nav.lang": "VI",
+  "chat.header": "AGENT CHAT",
+  "chat.mode.stub": "chế độ stub",
+  "chat.placeholder": "nhập lệnh hoặc câu hỏi_",
+  "chat.system.init": "Agent đã khởi động. SQLite đã kết nối. Đang ở chế độ stub.",
+  "chat.user.prefix": "$ người dùng",
+  "chat.agent.prefix": "▶ agent",
+  "chat.system.prefix": "[hệ thống]",
+  "chat.error.unreachable": "[lỗi] Không kết nối được agent. Backend đang chạy chưa?",
+  "chat.loading": "…",
+  "artifacts.header": "KẾT QUẢ",
+  "artifacts.empty": "◈ Chưa có kết quả",
+  "artifacts.label.lastReply": "phản hồi cuối",
+  "health.checking": "Đang kiểm tra...",
+  "health.ok": "Backend: hoạt động · DB: đã kết nối",
+  "health.error": "Không kết nối được backend"
+}

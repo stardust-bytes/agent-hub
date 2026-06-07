@@ -37,14 +37,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
-defineProps<{ activeView: string }>()
-defineEmits<{ navigate: [view: string] }>()
+defineProps<{ activeView: 'chat' | 'tasks' | 'files' }>()
+defineEmits<{ navigate: [view: 'chat' | 'tasks' | 'files'] }>()
 
 const navItems = [
   { view: 'chat',  label: 'Chat',  icon: '💬' },
   { view: 'tasks', label: 'Tasks', icon: '📋' },
   { view: 'files', label: 'Files', icon: '📁' },
-]
+] as const
 
 const isHealthy = ref(false)
 const healthStatus = ref('Checking backend...')
