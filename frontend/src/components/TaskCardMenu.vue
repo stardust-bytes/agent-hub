@@ -2,14 +2,14 @@
 <template>
   <div class="absolute right-0 top-5 z-20 bg-cyber-dark min-w-[128px]">
     <div class="px-2 py-1.5">
-      <div class="text-[9px] text-[#888888] font-mono mb-1">{{ t('tasks.filter.label') }}</div>
+      <div class="text-[10px] text-[#888888] font-mono mb-1">{{ t('tasks.filter.label') }}</div>
       <div class="flex gap-1">
         <button
           v-for="p in PRIORITIES"
           :key="p.value"
           @click="$emit('update-priority', taskId, p.value)"
           :class="[
-            'text-[8px] px-1.5 py-px font-mono transition-colors duration-150',
+            'text-[9px] px-1.5 py-0.5 font-mono transition-colors duration-150',
             p.value === currentPriority ? p.activeClass : p.inactiveClass,
           ]"
         >{{ t(p.labelKey) }}</button>

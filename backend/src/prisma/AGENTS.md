@@ -33,11 +33,45 @@ export class SomeService {
 ## Current Prisma Schema
 
 ```prisma
+model Setting {
+  key   String @id
+  value String
+}
+
+model KnowledgeFile {
+  id         Int      @id @default(autoincrement())
+  filename   String
+  filepath   String
+  size       Int
+  mimeType   String
+  status     String   @default("indexing")
+  chunkCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Session {
+  id        Int           @id @default(autoincrement())
+  title     String        @default("New Session")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id        Int      @id @default(autoincrement())
+  sessionId Int
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+}
+
 model Task {
   id          Int       @id @default(autoincrement())
   title       String
   description String?
-  status      String    @default("TODO")   // TODO | PROCESSING | DONE | FAILED
+  status      String    @default("TODO")
   priority    Int       @default(0)
   dueDate     DateTime?
   createdAt   DateTime  @default(now())

@@ -10,13 +10,13 @@
     </div>
 
     <div class="px-3 py-1.5 bg-cyber-dark/40 flex items-center gap-2 shrink-0">
-      <span class="text-[#888888] text-[9px] font-mono">{{ t('tasks.filter.label') }}</span>
+      <span class="text-[#888888] text-[10px] font-mono">{{ t('tasks.filter.label') }}</span>
       <button
         v-for="p in PRIORITY_FILTERS"
         :key="p.value"
         @click="toggleFilter(p.value)"
         :class="[
-          'text-[9px] px-2 py-0.5 font-mono transition-colors duration-150',
+          'text-[10px] px-2 py-0.5 font-mono transition-colors duration-150',
           activeFilters.has(p.value) ? p.activeClass : p.inactiveClass,
         ]"
       >{{ t(p.labelKey) }}</button>

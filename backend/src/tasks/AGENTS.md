@@ -1,6 +1,6 @@
 # tasks/ — Agent Context
 
-Task management module. Full CRUD for the `Task` entity. The Kanban board (Phase 3) will extend this module with status transitions and Socket.io events.
+Task management module. Full CRUD for the `Task` entity. Includes Socket.io gateway (`/tasks` namespace) emitting `task:created`, `task:updated`, `task:deleted` events for real-time sync.
 
 ## Responsibility
 
@@ -17,6 +17,8 @@ tasks/
 ├── tasks.controller.spec.ts
 ├── tasks.service.ts
 ├── tasks.service.spec.ts
+├── tasks.gateway.ts          — Socket.io /tasks namespace
+├── tasks.gateway.spec.ts
 └── dto/
     ├── create-task.dto.ts
     └── update-task.dto.ts
@@ -104,6 +106,6 @@ Always write the failing test before implementing any new service method.
 
 Phase 3 (Kanban) will add:
 - `PATCH /api/tasks/:id/status` — dedicated status transition endpoint
-- Socket.io gateway emitting `task:updated` events when status changes
+- Task status transitions connected to Websocket events
 
-Do not add Socket.io imports to this module before Phase 3 planning is complete.
+Socket.io gateway (`/tasks` namespace) is already implemented.

@@ -4,7 +4,7 @@ Local-First AI Agent Workspace · NestJS backend service.
 
 ## What this is
 
-REST API server for the AI Workspace. Handles task CRUD, agent stub chat, and health checks. Backed by SQLite via Prisma. Runs on port **3001** (internal); in production traffic comes through Nginx on port 3000.
+REST API server for the AI Workspace. Handles task CRUD, agent chat (Ollama ReAct loop), sessions, settings, knowledge base indexing, and health checks. Backed by SQLite via Prisma. Runs on port **3001** (internal); in production traffic comes through Nginx on port 3000.
 
 ---
 
@@ -26,7 +26,7 @@ REST API server for the AI Workspace. Handles task CRUD, agent stub chat, and he
 ```
 src/
 ├── main.ts                  — bootstrap, global prefix /api, CORS, ValidationPipe, HttpExceptionFilter
-├── app.module.ts            — root module: imports PrismaModule, TasksModule, AgentModule
+├── app.module.ts            — root module
 ├── app.controller.ts        — GET /api/health → { status, db, timestamp }
 ├── http-exception.filter.ts — global filter: returns { statusCode, message, timestamp }
 │
@@ -36,20 +36,44 @@ src/
 │
 ├── tasks/
 │   ├── tasks.module.ts
-│   ├── tasks.controller.ts  — CRUD endpoints under /api/tasks
-│   ├── tasks.service.ts     — Prisma queries (typed, no raw SQL)
-│   ├── tasks.service.spec.ts
-│   ├── tasks.controller.spec.ts
-│   └── dto/
-│       ├── create-task.dto.ts
-│       └── update-task.dto.ts
+│   ├── tasks.controller.ts    — CRUD endpoints under /api/tasks
+│   ├── tasks.service.ts       — Prisma queries (typed, no raw SQL)
+│   ├── tasks.gateway.ts       — Socket.io gateway (namespace /tasks)
+│   ├── tasks.service.spec.ts, tasks.controller.spec.ts, tasks.gateway.spec.ts
+│   └── dto/ (create-task.dto.ts, update-task.dto.ts)
 │
-└── agent/
-    ├── agent.module.ts
-    ├── agent.controller.ts  — POST /api/agent/chat
-    ├── agent.service.ts     — mockReply() stub (real Ollama in Phase 2)
-    ├── agent.service.spec.ts
-    └── agent.controller.spec.ts
+├── agent/
+│   ├── agent.module.ts
+│   ├── agent.controller.ts    — POST /api/agent/chat (SSE streaming)
+│   ├── agent.service.ts       — orchestrator: context builder + provider + persistence
+│   ├── dto/ (chat.dto.ts, agent-run-state.ts, agent-action.dto.ts)
+│   ├── services/ (context-builder.service.ts, llm-caller.service.ts)
+│   ├── providers/ (llm-provider.interface.ts, ollama.provider.ts)
+│   └── *.spec.ts
+│
+├── sessions/
+│   ├── sessions.module.ts
+│   ├── sessions.controller.ts — CRUD under /api/sessions
+│   ├── sessions.service.ts    — chat history + auto-title
+│   └── *.spec.ts
+│
+├── settings/
+│   ├── settings.module.ts     — @Global()
+│   ├── settings.controller.ts — GET /api/settings
+│   ├── settings.service.ts    — key-value store in Setting table
+│   └── *.spec.ts
+│
+├── knowledge/
+│   ├── knowledge.module.ts
+│   ├── knowledge.controller.ts — file upload + search under /api/knowledge
+│   ├── knowledge.service.ts    — LanceDB vector search + file indexing
+│   └── *.spec.ts
+│
+└── ollama/
+    ├── ollama.module.ts
+    ├── ollama.controller.ts   — GET /api/ollama/models
+    ├── ollama.service.ts      — lists available Ollama models
+    └── *.spec.ts
 ```
 
 ---
@@ -58,23 +82,30 @@ src/
 
 All routes are prefixed with `/api`.
 
-| Method | Path | Description | Body |
-|---|---|---|---|
-| `GET` | `/api/health` | Health + DB check | — |
-| `GET` | `/api/tasks` | List all tasks | — |
-| `POST` | `/api/tasks` | Create task | `CreateTaskDto` |
-| `PATCH` | `/api/tasks/:id` | Update task | `UpdateTaskDto` |
-| `DELETE` | `/api/tasks/:id` | Delete task | — |
-| `POST` | `/api/agent/chat` | Stub chat reply | `{ message: string }` |
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/health` | Health + DB check |
+| `GET` | `/api/tasks` | List all tasks |
+| `POST` | `/api/tasks` | Create task |
+| `PATCH` | `/api/tasks/:id` | Update task |
+| `DELETE` | `/api/tasks/:id` | Delete task |
+| `POST` | `/api/agent/chat` | Agent chat (SSE stream) |
+| `GET` | `/api/sessions` | List sessions |
+| `POST` | `/api/sessions` | Create session |
+| `DELETE` | `/api/sessions/:id` | Delete session |
+| `GET` | `/api/sessions/:id/messages` | Get session messages |
+| `GET` | `/api/ollama/models` | List Ollama models |
+| `GET` | `/api/settings` | Get settings |
+| `GET` | `/api/knowledge` | List knowledge files |
+| `POST` | `/api/knowledge/upload` | Upload file for indexing |
 
-**Health response:**
-```json
-{ "status": "ok", "db": "connected", "timestamp": "2026-06-07T..." }
+**Agent chat response:** SSE stream (`text/event-stream`)
 ```
-
-**Agent chat response:**
-```json
-{ "reply": "...", "timestamp": "2026-06-07T..." }
+data: {"token":"..."}
+data: {"toolCall":{"name":"...","args":{...}}}
+data: {"toolResult":{"name":"...","result":"..."}}
+data: {"thinking":"..."}
+data: [DONE]
 ```
 
 ---
@@ -82,11 +113,45 @@ All routes are prefixed with `/api`.
 ## Prisma Schema
 
 ```prisma
+model Setting {
+  key   String @id
+  value String
+}
+
+model KnowledgeFile {
+  id         Int      @id @default(autoincrement())
+  filename   String
+  filepath   String
+  size       Int
+  mimeType   String
+  status     String   @default("indexing")
+  chunkCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Session {
+  id        Int           @id @default(autoincrement())
+  title     String        @default("New Session")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id        Int      @id @default(autoincrement())
+  sessionId Int
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+}
+
 model Task {
   id          Int       @id @default(autoincrement())
   title       String
   description String?
-  status      String    @default("TODO")   // TODO | PROCESSING | DONE | FAILED
+  status      String    @default("TODO")
   priority    Int       @default(0)
   dueDate     DateTime?
   createdAt   DateTime  @default(now())
@@ -94,26 +159,17 @@ model Task {
 }
 ```
 
-**Run migrations:**
-```bash
-npx prisma migrate dev --name <name>
-npx prisma generate
-```
+Run: `npx prisma migrate dev --name <name>` then `npx prisma generate`.
 
 ---
 
 ## DTOs
 
-**`CreateTaskDto`** (all optional except title):
-```ts
-title: string
-description?: string
-status?: 'TODO' | 'PROCESSING' | 'DONE' | 'FAILED'
-priority?: number
-dueDate?: string  // ISO date string
-```
+**`CreateTaskDto`**: `title` (required), `description?`, `status?` (TODO|PROCESSING|DONE|FAILED), `priority?` (0|1|2), `dueDate?` (ISO string).
 
-**`UpdateTaskDto`** — same fields as CreateTaskDto, all optional (uses PartialType).
+**`UpdateTaskDto`**: `PartialType(CreateTaskDto)` — all optional.
+
+**`ChatDto`**: `message` (required), `model?` (default `llama3.2`), `sessionId` (required).
 
 ---
 
@@ -123,25 +179,23 @@ dueDate?: string  // ISO date string
 ```
 DATABASE_URL="file:../workspace_data/dev.db"
 PORT=3001
+OLLAMA_URL=http://localhost:11434
 ```
-
-`.env.example` — committed reference.
 
 ---
 
 ## Commands
 
 ```bash
-# Development (hot reload)
+# Development
 npm run start:dev
 
-# Production build
+# Production
 npm run build && npm run start:prod
 
 # Tests
-npx jest                    # all
-npx jest --watch            # watch mode
-npx jest src/tasks          # specific module
+npx jest                    # all (15 suites, 61 tests)
+npx jest src/agent          # specific module
 
 # Prisma
 npx prisma studio           # GUI for SQLite
@@ -163,20 +217,7 @@ Never add `origin: '*'`.
 
 ## Coding Rules
 
-1. **ORM only** — all DB access through `PrismaService`. No `$queryRaw` except the health-check ping (`SELECT 1`).
+1. **ORM only** — all DB access through `PrismaService`. No `$queryRaw` except the health-check ping.
 2. **Typed DTOs** — every POST/PATCH body must use a DTO class with `class-validator` decorators.
-3. **No `any`** — TypeScript strict. Use Prisma's generated types (`Prisma.TaskCreateInput`, etc.).
-4. **TDD** — write the failing test first, then implement. Run `npx jest` before committing.
-5. **No comments** unless the WHY is non-obvious (a hidden constraint, a workaround, a subtle invariant).
-
----
-
-## Upcoming Phases (context for what NOT to break)
-
-| Phase | Feature | Backend impact |
-|---|---|---|
-| 2 | Ollama integration | `AgentService` gains real SSE streaming, replaces `mockReply()` |
-| 3 | Kanban (Socket.io) | Add `@nestjs/websockets`, Task status transitions via WS events |
-| 4 | Settings panel | New `SettingsModule`, key-value store in SQLite |
-| 5 | RAG / LanceDB | New `RagModule`, vector store alongside SQLite |
-| 6 | Agent tool calls | AgentService orchestrates multi-step tool execution |
+3. **No `any`** — TypeScript strict. Use Prisma's generated types.
+4. **No comments** unless the WHY is non-obvious.

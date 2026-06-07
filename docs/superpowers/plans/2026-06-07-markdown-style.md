@@ -1,36 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+# Markdown Preview Styling Implementation Plan
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-* {
-  box-sizing: border-box;
-}
+**Goal:** Add CSS styling to `.markdown-body` class for rendered agent messages (code blocks, tables, links, headings, inline code).
 
-html, body, #app {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  background-color: #000000;
-  color: #EEEEEE;
-}
+**Architecture:** Single CSS file change in `frontend/src/assets/main.css`. All styles scoped under `.markdown-body` selector. No component logic, no JS, no build changes.
 
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: #141414;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(59, 130, 246, 0.2);
-  border-radius: 2px;
-}
+**Tech Stack:** TailwindCSS custom CSS, existing `cyber-*` color tokens referenced where applicable.
 
-.markdown-body {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-}
+---
 
+### Task 1: Add markdown-body CSS styles
+
+**Files:**
+- Modify: `frontend/src/assets/main.css` — append `.markdown-body` block
+
+- [ ] **Step 1: Open and read current main.css**
+
+Read `frontend/src/assets/main.css` to confirm current content.
+
+- [ ] **Step 2: Append markdown-body styles**
+
+Append to `frontend/src/assets/main.css`:
+
+```css
 .markdown-body h1,
 .markdown-body h2,
 .markdown-body h3,
@@ -69,7 +62,7 @@ html, body, #app {
   background: rgba(110, 118, 129, 0.4);
   color: #f08383;
   padding: 1px 6px;
-  border-radius: 4px;
+  border-radius: 3px;
   font-size: 0.9em;
 }
 
@@ -145,3 +138,30 @@ html, body, #app {
   max-width: 100%;
   border-radius: 4px;
 }
+```
+
+- [ ] **Step 3: Verify frontend compiles**
+
+Run: `npx vue-tsc --noEmit` from `frontend/`
+Expected: no output (clean compilation)
+
+- [ ] **Step 4: Verify frontend build**
+
+Run: `npm run build` from `frontend/`
+Expected: Build succeeds, no errors
+
+- [ ] **Step 5: Run full backend test suite**
+
+Run: `npx jest --no-coverage` from `backend/`
+Expected: All 61 tests pass
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add frontend/src/assets/main.css docs/superpowers/specs/2026-06-07-markdown-style-design.md docs/superpowers/plans/2026-06-07-markdown-style.md
+git commit -m "feat: add markdown-body CSS styling for agent messages
+
+- Style code blocks, tables, links, headings, lists, blockquotes
+- Terminal/IDE aesthetic with #00d4ff accent, #0d1117 surfaces
+- All styles scoped under .markdown-body selector"
+```

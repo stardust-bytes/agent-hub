@@ -5,11 +5,6 @@
         <span class="text-cyber-accent text-xs tracking-widest font-mono">
           <HiTerminal class="w-3 h-3 inline" /> {{ t('chat.header') }}
         </span>
-        <ModelSelector
-          v-model="selectedModel"
-          :models="availableModels"
-          :disabled="streaming"
-        />
         <button
           @click="showSessionModal = true"
           class="text-cyber-accent/70 text-xs font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent"
@@ -87,20 +82,30 @@
       @select="loadSession"
       @created="(id: number) => { currentSessionId = id; loadSession(id) }"
     />
-    <div class="px-3 py-2 bg-cyber-dark shrink-0">
-      <form @submit.prevent="submit" class="flex items-center gap-2 bg-cyber-dark px-3 py-2">
-        <span class="text-cyber-accent text-sm font-mono">$</span>
-        <span v-if="!streaming" class="animate-blink text-[#EEEEEE] text-sm">█</span>
-        <input
-          ref="inputEl"
-          v-model="input"
-          class="flex-1 bg-transparent text-[#EEEEEE] text-sm outline-none font-mono placeholder-[#888888]/40 caret-white"
-          :placeholder="t('chat.placeholder')"
+    <div class="shrink-0">
+      <div class="px-3 py-2 bg-cyber-dark">
+        <form @submit.prevent="submit" class="flex items-center gap-2 bg-cyber-dark px-3 py-2">
+          <span class="text-cyber-accent text-sm font-mono">$</span>
+          <span v-if="!streaming" class="animate-blink text-[#EEEEEE] text-sm">█</span>
+          <input
+            ref="inputEl"
+            v-model="input"
+            class="flex-1 bg-transparent text-[#EEEEEE] text-sm outline-none font-mono placeholder-[#888888]/40 caret-white"
+            :placeholder="t('chat.placeholder')"
+            :disabled="streaming"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </form>
+      </div>
+      <div class="px-3 pb-2 bg-cyber-dark flex items-center gap-2">
+        <ModelSelector
+          v-model="selectedModel"
+          :models="availableModels"
           :disabled="streaming"
-          autocomplete="off"
-          spellcheck="false"
         />
-      </form>
+        <span v-if="streaming" class="text-[10px] text-cyber-accent/50 font-mono">{{ t('chat.streaming') }}</span>
+      </div>
     </div>
   </div>
 </template>
@@ -226,18 +231,24 @@ async function submit() {
   const ctrl = new AbortController()
   abortController.value = ctrl
 
+  let currentAgentIdx = -1
   const thinkingMsg: Message = { role: 'system', content: t('chat.thinking'), timestamp: now() }
   messages.value.push(thinkingMsg)
-  await scrollToBottom()
-
-  const agentMsg: Message = { role: 'agent', content: '', timestamp: now(), typing: true }
-  const msgIdx = messages.value.length
-  messages.value.push(agentMsg)
   await scrollToBottom()
 
   function clearThinking() {
     const idx = messages.value.indexOf(thinkingMsg)
     if (idx !== -1) messages.value[idx].content = ''
+  }
+
+  function getOrCreateAgentMsg(): number {
+    if (currentAgentIdx >= 0 && currentAgentIdx < messages.value.length) {
+      return currentAgentIdx
+    }
+    const newMsg: Message = { role: 'agent', content: '', timestamp: now(), typing: true }
+    currentAgentIdx = messages.value.length
+    messages.value.push(newMsg)
+    return currentAgentIdx
   }
 
   try {
@@ -272,7 +283,9 @@ async function submit() {
 
           if (parsed.error) {
             done = true
-            agentMsg.typing = false
+            if (currentAgentIdx >= 0) {
+              messages.value[currentAgentIdx].typing = false
+            }
             messages.value.push({
               role: 'system',
               content: `${t('chat.error.unreachable')} (${String(parsed.error)})`,
@@ -281,6 +294,7 @@ async function submit() {
             await scrollToBottom()
           } else if (parsed.toolCall) {
             clearThinking()
+            currentAgentIdx = -1
             const tc = parsed.toolCall as { name: string; args: Record<string, unknown> }
             const argsStr = Object.entries(tc.args).map(([k, v]) => `${k}=${v}`).join(', ')
             messages.value.push({
@@ -303,22 +317,28 @@ async function submit() {
             await scrollToBottom()
           } else if (parsed.thinking) {
             clearThinking()
+            currentAgentIdx = -1
             const thinkingMsg: Message = { role: 'system', content: `⟳ ${String(parsed.thinking)}`, timestamp: now() }
             messages.value.push(thinkingMsg)
             await scrollToBottom()
           } else if (parsed.token) {
             clearThinking()
-            messages.value[msgIdx].content += String(parsed.token)
+            const idx = getOrCreateAgentMsg()
+            messages.value[idx].content += String(parsed.token)
             if (!done) scrollToBottom()
           }
         } catch { /* skip malformed SSE line */ }
       }
     }
 
-    messages.value[msgIdx].typing = false
+    if (currentAgentIdx >= 0) {
+      messages.value[currentAgentIdx].typing = false
+    }
     await scrollToBottom()
   } catch (e) {
-    messages.value[msgIdx].typing = false
+    if (currentAgentIdx >= 0) {
+      messages.value[currentAgentIdx].typing = false
+    }
     if (e instanceof Error && e.name !== 'AbortError') {
       messages.value.push({
         role: 'system',

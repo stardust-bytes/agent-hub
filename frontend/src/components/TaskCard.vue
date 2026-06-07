@@ -1,25 +1,26 @@
 <!-- frontend/src/components/TaskCard.vue -->
 <template>
   <div
-    class="bg-cyber-dark p-2 cursor-grab select-none relative group transition-colors duration-150"
+    class="p-2 cursor-grab select-none relative group transition-colors duration-150"
+    :class="cardBgClass(task.priority)"
   >
     <div class="flex items-start justify-between gap-1">
-      <span class="text-[#EEEEEE] text-[11px] leading-snug flex-1 font-mono">{{ task.title }}</span>
+      <span class="text-[#EEEEEE] text-xs leading-snug flex-1 font-mono">{{ task.title }}</span>
       <button
         @click.stop="menuOpen = !menuOpen"
         class="opacity-0 group-hover:opacity-100 text-cyber-accent/40 text-sm font-mono hover:text-cyber-accent/70 shrink-0 leading-none transition-colors duration-150"
       >···</button>
     </div>
 
-    <p v-if="task.description" class="text-[#888888]/60 text-[9px] mt-1 truncate font-mono">
+    <p v-if="task.description" class="text-[#888888]/60 text-[10px] mt-1 truncate font-mono">
       {{ task.description }}
     </p>
 
     <div class="flex items-center gap-1.5 mt-1.5">
-      <span :class="['text-[8px] px-1 py-px font-mono', priorityClass(task.priority)]">
+      <span :class="['text-[9px] px-1.5 py-0.5 font-mono', priorityClass(task.priority)]">
         {{ priorityLabel(task.priority) }}
       </span>
-      <span v-if="task.dueDate" class="text-[8px] text-[#888888]/60 font-mono">
+      <span v-if="task.dueDate" class="text-[9px] text-[#888888]/60 font-mono">
         {{ formatDate(task.dueDate) }}
       </span>
     </div>
@@ -65,10 +66,16 @@ function priorityLabel(p: number): string {
   return t('tasks.priority.low')
 }
 
+function cardBgClass(p: number): string {
+  if (p >= 2) return 'bg-red-400/5 border-l-2 border-red-400'
+  if (p === 1) return 'bg-[#FFA500]/5 border-l-2 border-[#FFA500]'
+  return 'bg-cyber-dark border-l-2 border-transparent'
+}
+
 function priorityClass(p: number): string {
-  if (p >= 2) return 'text-red-400 bg-red-400/10'
-  if (p === 1) return 'text-[#FFA500] bg-[#FFA500]/10'
-  return 'text-[#888888] bg-[#888888]/10'
+  if (p >= 2) return 'text-red-400 bg-red-400/20'
+  if (p === 1) return 'text-[#FFA500] bg-[#FFA500]/20'
+  return 'text-[#888888] bg-[#888888]/20'
 }
 
 function formatDate(d: string): string {

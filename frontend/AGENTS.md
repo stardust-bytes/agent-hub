@@ -14,25 +14,22 @@ Single-page application with a 3-panel IDE layout: icon sidebar + chat panel (45
 |---|---|
 | Framework | Vue 3 (Composition API, `<script setup>`) |
 | Build | Vite |
-| Styling | TailwindCSS — custom `cyber-*` color tokens |
+| Styling | TailwindCSS — custom `cyber-*` color tokens + `.markdown-body` CSS |
 | i18n | vue-i18n v9 (`legacy: false`, Composition API mode) |
 | Type safety | TypeScript strict |
 | Sanitization | DOMPurify — required on every `v-html` binding |
+| Markdown | `marked` + `DOMPurify` via `renderMarkdown()` |
 
 ---
 
 ## Color Tokens (tailwind.config.ts)
 
-Always use these tokens. Never use raw hex values in components.
-
 | Token | Hex / Value | Usage |
 |---|---|---|
 | `cyber-bg` | `#000000` | Page background |
-| `cyber-dark` | `#141414` | Panel backgrounds, cards |
+| `cyber-dark` | `#111111` | Panel backgrounds, cards |
+| `cyber-status` | `#161616` | Status bar |
 | `cyber-accent` | `#3B82F6` | Primary accent (blue), borders, interactive elements |
-| `cyber-border` | `rgba(59,130,246,0.13)` | Subtle dividers |
-| `cyber-dim` | `rgba(59,130,246,0.33)` | Hover states, secondary borders |
-| `cyber-orange` | `#FFA500` | Warnings, agent prefix color |
 | `cyber-green` | `#22C55E` | Success, connected state |
 | `cyber-blue` | `#3B82F6` | Alias for accent |
 
@@ -49,12 +46,16 @@ Always use these tokens. Never use raw hex values in components.
 ```
 App.vue
 └── AppShell.vue
-    ├── SidebarNav.vue    — 52px icon column, navigation + VI/EN toggle
-    ├── ChatPanel.vue     — 45% width, message history + input
-    └── ArtifactsPanel.vue — flex-1, displays last agent reply
+    ├── SidebarNav.vue       — 52px icon column, navigation + VI/EN toggle + health dot
+    ├── ChatPanel.vue        — 45% width, message history + SSE streaming + input
+    ├── ArtifactsPanel.vue   — flex-1, displays last agent reply
+    ├── TasksView.vue        — full-width when activeView === 'tasks'
+    ├── SettingsView.vue     — full-width when activeView === 'settings'
+    ├── FilesView.vue        — full-width when activeView === 'files'
+    ├── SessionModal.vue     — session list modal (teleported to body)
+    ├── ModelSelector.vue    — Ollama model dropdown
+    └── StatusBar.vue        — bottom bar: model, DB, WS status, clock
 ```
-
-**Layout rule:** When `activeView === 'tasks'` (Phase 3), ChatPanel and ArtifactsPanel are hidden and a full-width `TasksView` takes their place. SidebarNav is always visible.
 
 ---
 
@@ -62,11 +63,11 @@ App.vue
 
 ```
 src/
-├── App.vue              — mounts AppShell
+├── App.vue
 ├── main.ts              — createApp + app.use(i18n) + app.mount('#app')
-├── i18n.ts              — createI18n instance (see below)
+├── i18n.ts              — createI18n instance
 ├── assets/
-│   └── main.css         — Tailwind @base/@components/@utilities imports
+│   └── main.css         — Tailwind imports + scrollbar + .markdown-body styles
 ├── locales/
 │   ├── vi.json          — Vietnamese (primary, default)
 │   └── en.json          — English (secondary/fallback)
@@ -74,127 +75,56 @@ src/
     ├── AppShell.vue
     ├── SidebarNav.vue
     ├── ChatPanel.vue
-    └── ArtifactsPanel.vue
+    ├── ArtifactsPanel.vue
+    ├── TasksView.vue
+    ├── SettingsView.vue
+    ├── FilesView.vue
+    ├── SessionModal.vue
+    ├── ModelSelector.vue
+    └── StatusBar.vue
 ```
 
 ---
 
-## i18n Setup
+## ChatPanel.vue — SSE Event Handling
 
-**`src/i18n.ts`:**
-```ts
-import { createI18n } from 'vue-i18n'
-import vi from './locales/vi.json'
-import en from './locales/en.json'
+The chat panel reads an SSE stream from `POST /api/agent/chat` and handles these event types:
 
-const savedLang = localStorage.getItem('workspace.lang') ?? 'vi'
+| Event | Frontend Handling |
+|---|---|
+| `token` | Append to current agent message (lazy-created on first token) |
+| `toolCall` | Reset currentAgentIdx, push tool call notification message |
+| `toolResult` | Push tool result message with raw text |
+| `thinking` | Reset currentAgentIdx, push thinking indicator message |
+| `[DONE]` | Stop stream, set agent message typing=false |
+| `error` | Push error system message |
 
-export const i18n = createI18n({
-  legacy: false,          // Composition API mode — required
-  locale: savedLang,
-  fallbackLocale: 'en',
-  messages: { vi, en },
-})
-
-export type Locale = 'vi' | 'en'
-```
-
-**In components:**
-```ts
-import { useI18n } from 'vue-i18n'
-const { t, locale } = useI18n()
-```
-
-**Never** hardcode user-facing strings in `.vue` files. All strings go through `t('key')`.
-
-**Language toggle** (SidebarNav):
-```ts
-function toggleLang() {
-  const next: Locale = locale.value === 'vi' ? 'en' : 'vi'
-  locale.value = next
-  localStorage.setItem('workspace.lang', next)
-}
-```
-
-**localStorage key:** `workspace.lang` — values: `'vi'` | `'en'`
+**Message ordering:** Agent message is NOT created upfront — created lazily on first `token` event. This ensures tool call/result/thinking messages always appear BEFORE the agent response text.
 
 ---
 
-## Locale Keys (21 keys each)
+## i18n
 
-| Key | vi | en |
-|---|---|---|
-| `nav.chat` | Trò chuyện | Chat |
-| `nav.tasks` | Nhiệm vụ | Tasks |
-| `nav.files` | Tệp tin | Files |
-| `nav.settings` | Cài đặt | Settings |
-| `nav.lang` | VI | EN |
-| `chat.header` | AGENT CHAT | AGENT CHAT |
-| `chat.mode.stub` | chế độ stub | stub mode |
-| `chat.placeholder` | nhập lệnh hoặc câu hỏi_ | type a command or question_ |
-| `chat.system.init` | Agent đã khởi động... | Agent initialized... |
-| `chat.user.prefix` | $ người dùng | $ user |
-| `chat.agent.prefix` | ▶ agent | ▶ agent |
-| `chat.system.prefix` | [hệ thống] | [system] |
-| `chat.error.unreachable` | [lỗi] Không kết nối... | [error] Could not reach... |
-| `chat.loading` | … | … |
-| `artifacts.header` | KẾT QUẢ | ARTIFACTS |
-| `artifacts.empty` | ◈ Chưa có kết quả | ◈ No artifacts yet |
-| `artifacts.label.lastReply` | phản hồi cuối | last reply |
-| `health.checking` | Đang kiểm tra... | Checking backend... |
-| `health.ok` | Backend: hoạt động · DB: đã kết nối | Backend: ok · DB: connected |
-| `health.error` | Không kết nối được backend | Backend unreachable |
+All components use `useI18n()` with `t('key')`. Never hardcode user-facing strings.
 
----
-
-## API Proxy
-
-`vite.config.ts` proxies to backend:
-```
-/api  →  http://localhost:3001
-/socket.io  →  http://localhost:3001  (WebSocket, for Phase 3)
-```
-
-In production, Nginx handles the same proxy rules (see `nginx.conf`).
-
-**Base URL for fetch:** just `/api/...` — no hostname needed.
+Language toggle persists to `localStorage('workspace.lang')` (values: `'vi'` | `'en'`).
 
 ---
 
 ## Security Rules
 
-- **Every `v-html` binding** must sanitize with DOMPurify first:
-  ```ts
-  import DOMPurify from 'dompurify'
-  const safeHtml = DOMPurify.sanitize(rawHtml)
-  ```
-- Never bind unsanitized user content to `v-html`.
-
----
-
-## Date Formatting
-
-Display dates as DD/MM/YYYY. Format times with:
-```ts
-new Date().toLocaleTimeString('vi-VN', { hour12: false })
-```
+- Every `v-html` binding must sanitize with `DOMPurify.sanitize()` first
+- Never bind unsanitized user content to `v-html`
 
 ---
 
 ## Commands
 
 ```bash
-# Development (hot reload, port 5173)
-npm run dev
-
-# Type check
-npm run type-check
-
-# Production build
-npm run build           # outputs to dist/
-
-# Preview production build
-npm run preview
+npm run dev              # Hot reload, port 5173
+npm run type-check       # vue-tsc --noEmit
+npm run build            # Production build to dist/
+npm run preview          # Preview production build
 ```
 
 ---
@@ -203,21 +133,7 @@ npm run preview
 
 1. **`<script setup>` always** — no Options API.
 2. **`font-mono`** on every text element. Never use system sans-serif.
-3. **`cyber-*` tokens only** — see color table above. No raw hex.
-4. **`rounded` max** — 4px border radius. Never `rounded-lg` or `rounded-xl`.
-5. **No shadows, no gradients.**
-6. **No `any` types** — TypeScript strict throughout.
-7. **No comments** unless the WHY is non-obvious.
-8. **i18n required** — all user-facing strings via `t('key')`.
-
----
-
-## Upcoming Phases (context for what NOT to break)
-
-| Phase | Feature | Frontend impact |
-|---|---|---|
-| 2 | Ollama streaming | ChatPanel reads SSE stream instead of single POST response |
-| 3 | Kanban | New `TasksView.vue` full-width when `activeView === 'tasks'`; Socket.io client |
-| 4 | Settings | New `SettingsView.vue`, `activeView === 'settings'` |
-| 5 | RAG | File upload UI, indexing progress in ArtifactsPanel |
-| 6 | Agent tools | Tool call display cards in ArtifactsPanel |
+3. **`rounded` max** — 4px border radius.
+4. **No shadows, no gradients.**
+5. **No `any` types** — TypeScript strict throughout.
+6. **i18n required** — all user-facing strings via `t('key')`.

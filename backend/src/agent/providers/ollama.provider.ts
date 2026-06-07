@@ -1,76 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { Response } from 'express';
 import { LLMProvider, OllamaMessage } from './llm-provider.interface';
-import { SettingsService } from '../../settings/settings.service';
+import { LLMCallerService } from '../services/llm-caller.service';
+import { ContextBuilderService, ToolDefinition } from '../services/context-builder.service';
+import { AgentRunState } from '../dto/agent-run-state';
 import { TasksService } from '../../tasks/tasks.service';
 import { KnowledgeService } from '../../knowledge/knowledge.service';
 
-const TOOLS = [
-  {
-    type: 'function',
-    function: {
-      name: 'create_task',
-      description: 'Create a new task in the task board',
-      parameters: {
-        type: 'object',
-        properties: {
-          title: { type: 'string', description: 'Task title' },
-          priority: { type: 'number', enum: [0, 1, 2], description: '0=low, 1=medium, 2=high' },
-          description: { type: 'string', description: 'Optional description' },
-        },
-        required: ['title'],
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'update_task',
-      description: 'Update a task status or priority',
-      parameters: {
-        type: 'object',
-        properties: {
-          id: { type: 'number', description: 'Task ID' },
-          status: { type: 'string', enum: ['TODO', 'PROCESSING', 'DONE', 'FAILED'] },
-          priority: { type: 'number', enum: [0, 1, 2] },
-        },
-        required: ['id'],
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'list_tasks',
-      description: 'List all tasks, optionally filter by status',
-      parameters: {
-        type: 'object',
-        properties: {
-          status: { type: 'string', enum: ['TODO', 'PROCESSING', 'DONE', 'FAILED'] },
-        },
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'search_knowledge',
-      description: 'Search the knowledge base for relevant information',
-      parameters: {
-        type: 'object',
-        properties: {
-          query: { type: 'string', description: 'Search query' },
-        },
-        required: ['query'],
-      },
-    },
-  },
-];
+const KB_NO_RESULTS = 'No relevant information found in knowledge base.';
 
 @Injectable()
 export class OllamaProvider implements LLMProvider {
   constructor(
-    private readonly settings: SettingsService,
+    private readonly llmCaller: LLMCallerService,
+    private readonly contextBuilder: ContextBuilderService,
     private readonly tasksService: TasksService,
     private readonly knowledgeService: KnowledgeService,
   ) {}
@@ -83,174 +26,163 @@ export class OllamaProvider implements LLMProvider {
   ): Promise<{ finalText: string }> {
     if (signal.aborted) return { finalText: '' };
 
-    const ollamaUrl = await this.settings.get('ollama.baseUrl', 'http://localhost:11434');
+    const runState = new AgentRunState(10);
+    const context = await this.contextBuilder.build(runState, 0);
+    context.messages = messages;
 
-    const msgs: Array<Record<string, unknown>> = [
-      { role: 'system', content: [
-        'You are a helpful AI assistant with access to tools including a knowledge base search.',
-        'When using search_knowledge:',
-        '- ALWAYS synthesize the results into a coherent, comprehensive answer — never copy-paste raw chunks.',
-        '- Cite each fact inline using the format [Source: "filename.pdf", §N] where N is the section number.',
-        '- If multiple sources agree, cite all of them.',
-        'Respond in the same language the user writes in. For tool calls, use the provided tools.',
-      ].join('\n') },
-      ...messages.map(m => ({ ...m })),
-    ];
-
-    const MAX_TOOL_CALLS = 10;
-    let toolCallCount = 0;
-
+    const tools = context.tools;
+    const maxIterations = 10;
     let finalText = '';
+    let iterationCount = 0;
 
-    while (!signal.aborted) {
-      const body: Record<string, unknown> = {
-        model,
-        messages: msgs,
-        stream: true,
-      };
-      // Only send tools on first iteration to avoid re-triggering
-      if (toolCallCount === 0) body.tools = TOOLS;
+    while (!signal.aborted && iterationCount < maxIterations) {
+      iterationCount++;
+      runState.step = iterationCount;
 
-      let ollamaRes: globalThis.Response;
+      let responseText = '';
+      const toolCalls: Array<{ name: string; arguments: unknown }> = [];
+      let streamError: string | null = null;
+
       try {
-        ollamaRes = await fetch(`${ollamaUrl}/api/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-          signal,
-        });
-      } catch {
-        if (signal.aborted) return { finalText: '' };
-        res.write('data: {"error":"ollama_unreachable"}\n\n');
+        const stream = this.llmCaller.streamChat(model, context.messages, tools, signal);
+
+        for await (const chunk of stream) {
+          if (signal.aborted) return { finalText: '' };
+
+          switch (chunk.type) {
+            case 'token':
+              if (chunk.token) {
+                responseText += chunk.token;
+                res.write(`data: ${JSON.stringify({ token: chunk.token })}\n\n`);
+              }
+              break;
+
+            case 'tool_call':
+              if (chunk.toolCall) {
+                toolCalls.push(chunk.toolCall);
+              }
+              break;
+
+            case 'thinking':
+              if (chunk.thinking) {
+                res.write(`data: ${JSON.stringify({ thinking: chunk.thinking })}\n\n`);
+              }
+              break;
+
+            case 'error':
+              streamError = chunk.error ?? 'Unknown streaming error';
+              break;
+
+            case 'done':
+              break;
+          }
+        }
+      } catch (error) {
+        const errMsg = error instanceof Error ? error.message : 'Unknown error';
+        res.write(`data: ${JSON.stringify({ error: `LLM stream failed: ${errMsg}` })}\n\n`);
         res.write('data: [DONE]\n\n');
         return { finalText: '' };
       }
 
-      if (!ollamaRes.ok) {
-        // If this is a follow-up iteration (after tool calls), end gracefully
-        if (toolCallCount > 0) {
-          res.write(`data: ${JSON.stringify({ token: '\n\n_(synthesis unavailable — see results above)_' })}\n\n`);
+      if (streamError) {
+        if (streamError === 'ollama_unreachable') {
+          res.write('data: {"error":"ollama_unreachable"}\n\n');
           res.write('data: [DONE]\n\n');
-          return { finalText };
+          return { finalText: '' };
         }
-        let detail = `ollama_error_${ollamaRes.status}`;
-        try {
-          const errBody = await ollamaRes.json() as { error?: string };
-          if (errBody.error) detail = errBody.error;
-        } catch { /* ignore */ }
-        res.write(`data: ${JSON.stringify({ error: detail })}\n\n`);
+        res.write(`data: ${JSON.stringify({ error: streamError })}\n\n`);
         res.write('data: [DONE]\n\n');
         return { finalText: '' };
       }
 
-      const reader = ollamaRes.body!.getReader();
-      const decoder = new TextDecoder();
-      let buf = '';
-      let currentToolCalls: Array<{ function: { name: string; arguments: unknown } }> | null = null;
-      let responseContent = '';
+      if (toolCalls.length > 0) {
+        for (const tc of toolCalls) {
+          if (signal.aborted) return { finalText: '' };
 
-      while (!signal.aborted) {
-        const { done, value } = await reader.read();
-        if (done) break;
+          const name = tc.name;
+          let args: Record<string, unknown> = {};
+          if (typeof tc.arguments === 'string') {
+            try { args = JSON.parse(tc.arguments); } catch { args = { raw: tc.arguments }; }
+          } else if (typeof tc.arguments === 'object' && tc.arguments !== null) {
+            args = tc.arguments as Record<string, unknown>;
+          }
 
-        buf += decoder.decode(value, { stream: true });
-        const lines = buf.split('\n');
-        buf = lines.pop() ?? '';
+          runState.steps.push({
+            step: iterationCount,
+            type: 'tool_call',
+            toolSlug: name,
+            args,
+          });
 
-        for (const line of lines) {
-          if (!line.trim()) continue;
+          res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
+
+          let result = '';
           try {
-            const parsed = JSON.parse(line) as {
-              message?: { content?: string; tool_calls?: Array<{ function: { name: string; arguments: unknown } }> };
-              done?: boolean;
-            };
-            if (parsed.message?.content) {
-              responseContent += parsed.message.content;
-              res.write(`data: ${JSON.stringify({ token: parsed.message.content })}\n\n`);
-            }
-            if (parsed.message?.tool_calls) {
-              currentToolCalls = parsed.message.tool_calls;
-            }
-          } catch { /* skip malformed */ }
-        }
-      }
+            result = await this.executeTool(name, args);
+          } catch (e) {
+            result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
+          }
 
-      if (signal.aborted) return { finalText: '' };
+          runState.steps.push({
+            step: iterationCount,
+            type: 'tool_result',
+            toolSlug: name,
+            result,
+          });
 
-      // Fallback: detect JSON tool calls in text content (models without native tool_calls support)
-      if (!currentToolCalls || currentToolCalls.length === 0) {
-        currentToolCalls = this.detectTextToolCalls(responseContent);
-      }
-
-      // When tool calls are present, clear content — Ollama rejects messages with both content AND tool_calls
-      if (currentToolCalls && currentToolCalls.length > 0) {
-        responseContent = '';
-      }
-
-      const assistantMsg: Record<string, unknown> = { role: 'assistant', content: responseContent };
-      if (currentToolCalls && currentToolCalls.length > 0) {
-        assistantMsg.tool_calls = currentToolCalls.map(tc => ({
-          function: {
-            name: tc.function.name,
-            arguments: typeof tc.function.arguments === 'string'
-              ? tc.function.arguments
-              : JSON.stringify(tc.function.arguments),
-          },
-        }));
-      }
-      msgs.push(assistantMsg);
-
-      if (!currentToolCalls || currentToolCalls.length === 0 || toolCallCount >= MAX_TOOL_CALLS) {
-        finalText = responseContent;
-        break;
-      }
-
-      let searchResults: string[] = [];
-      for (const tc of currentToolCalls) {
-        if (signal.aborted) return;
-        toolCallCount++;
-
-        const name = tc.function.name;
-        let args: Record<string, unknown> = {};
-        if (typeof tc.function.arguments === 'string') {
-          try { args = JSON.parse(tc.function.arguments); } catch { /* ignore */ }
-        } else if (typeof tc.function.arguments === 'object' && tc.function.arguments !== null) {
-          args = tc.function.arguments as Record<string, unknown>;
+          res.write(`data: ${JSON.stringify({ toolResult: { name, result } })}\n\n`);
         }
 
-        res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
-
-        let result = '';
-        try {
-          result = await this.executeTool(name, args);
-        } catch (e) {
-          result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
-        }
-
-        res.write(`data: ${JSON.stringify({ toolResult: { name, result } })}\n\n`);
-
-        if (name === 'search_knowledge') {
-          searchResults.push(result);
-        } else {
-          msgs.push({ role: 'tool', content: result });
-        }
-      }
-
-      if (searchResults.length > 0) {
-        res.write(`data: ${JSON.stringify({ thinking: 'Synthesizing search results...' })}\n\n`);
-        msgs.push({
-          role: 'user',
-          content: `I searched the knowledge base and found these results:\n\n${searchResults.join('\n\n---\n\n')}\n\nBased on these results, provide a comprehensive answer with inline citations [Source: "filename", §N].`,
+        const contextMessages = context.messages;
+        contextMessages.push({
+          role: 'assistant',
+          content: responseText || '',
         });
+
+        for (const tc of toolCalls) {
+          const matchingStep = runState.steps.find(
+            s => s.type === 'tool_result' && s.toolSlug === tc.name,
+          );
+          const stepName = tc.name;
+          if (stepName === 'search_knowledge') {
+            res.write(`data: ${JSON.stringify({ thinking: 'Synthesizing search results...' })}\n\n`);
+            const kbResult = String(matchingStep?.result ?? '');
+            if (kbResult === KB_NO_RESULTS) {
+              let fileList = 'none indexed yet';
+              try {
+                const files = await this.knowledgeService.findAll();
+                if (files.length > 0) {
+                  fileList = files.slice(0, 10).map(f => `"${f.filename}"`).join(', ');
+                }
+              } catch { /* fallback: leave fileList as 'none indexed yet' */ }
+              contextMessages.push({
+                role: 'user',
+                content: `The knowledge base returned no results for the query.\nAvailable KB files: ${fileList}.\nFollow the KB guidance in your system prompt to decide whether to use general knowledge (with disclaimer), ask clarifying questions, or suggest relevant files to the user.`,
+              });
+            } else {
+              contextMessages.push({
+                role: 'user',
+                content: `I searched the knowledge base and found:\n\n${kbResult}\n\nBased on these results, provide a comprehensive answer with inline citations [Source: "filename", §N].`,
+              });
+            }
+          } else {
+            contextMessages.push({
+              role: 'tool',
+              content: JSON.stringify(matchingStep?.result ?? { error: 'No result' }),
+            });
+          }
+        }
+        continue;
       }
 
-      currentToolCalls = null;
-      responseContent = '';
+      finalText = responseText;
+      break;
     }
 
     if (!signal.aborted) {
       res.write('data: [DONE]\n\n');
     }
+
     return { finalText };
   }
 
@@ -274,17 +206,17 @@ export class OllamaProvider implements LLMProvider {
       case 'list_tasks': {
         const tasks = await this.tasksService.findAll();
         const filtered = args.status
-          ? tasks.filter((t: { status: string }) => t.status === args.status)
+          ? tasks.filter(t => t.status === args.status)
           : tasks;
         if (filtered.length === 0) return 'No tasks found.';
-        return filtered.map((t: { id: number; title: string; status: string; priority: number }) =>
+        return filtered.map(t =>
           `#${t.id} ${t.title} [${t.status}] (priority: ${t.priority})`
         ).join('\n');
       }
       case 'search_knowledge': {
         const chunks = await this.knowledgeService.search(args.query as string);
-        if (chunks.length === 0) return 'No relevant information found in knowledge base.';
-        return chunks.map((c: { filename: string; chunkIndex: number; text: string }, i: number) =>
+        if (chunks.length === 0) return KB_NO_RESULTS;
+        return chunks.map((c, i) =>
           `[${i + 1}] Source: "${c.filename}", §${c.chunkIndex}\n${c.text}`
         ).join('\n\n---\n\n');
       }
@@ -292,39 +224,4 @@ export class OllamaProvider implements LLMProvider {
         return `Unknown tool: ${name}`;
     }
   }
-
-  private detectTextToolCalls(text: string): Array<{ function: { name: string; arguments: unknown } }> | null {
-    const trimmed = text.trim();
-    if (!trimmed.startsWith('{')) return null;
-    try {
-      const parsed = JSON.parse(trimmed) as Record<string, unknown>;
-      let name: string | undefined;
-      let args: unknown = {};
-
-      // Format 1: {"name": "tool_name", "arguments": {...}}
-      if (typeof parsed.name === 'string') {
-        name = parsed.name;
-        args = parsed.arguments ?? {};
-      }
-      // Format 2: {"function": "tool_name", "arguments": {...}}
-      else if (typeof parsed.function === 'string') {
-        name = parsed.function;
-        args = parsed.arguments ?? {};
-      }
-      // Format 3: {"function": {"name": "tool_name", "arguments": {...}}}
-      else if (typeof parsed.function === 'object' && parsed.function !== null) {
-        const fn = parsed.function as Record<string, unknown>;
-        if (typeof fn.name === 'string') {
-          name = fn.name;
-          args = fn.arguments ?? {};
-        }
-      }
-
-      if (name && TOOLS.some(t => t.function.name === name)) {
-        return [{ function: { name, arguments: args } }];
-      }
-    } catch { /* not JSON */ }
-    return null;
-  }
-
 }

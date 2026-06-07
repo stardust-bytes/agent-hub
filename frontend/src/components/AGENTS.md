@@ -1,26 +1,33 @@
 # components/ — Agent Context
 
-All UI components for the AI Workspace. The layout is a 3-panel IDE: fixed icon sidebar + chat column (45%) + artifacts column (flex-1).
+All UI components for the AI Workspace. The layout is a 3-panel IDE: fixed icon sidebar + chat column (45%) + artifacts column (flex-1). Additional full-width views for tasks, settings, and files.
 
 ## Component Map
 
 ```
-AppShell.vue         — layout coordinator, owns activeView state
-├── SidebarNav.vue   — 52px icon column, emits navigate events, health dot, VI/EN toggle
-├── ChatPanel.vue    — message history, command input, calls /api/agent/chat
-└── ArtifactsPanel.vue — renders last agent reply (code blocks + prose markdown)
+AppShell.vue              — layout coordinator, owns activeView state
+├── SidebarNav.vue        — 52px icon column, emits navigate events, health dot, VI/EN toggle
+├── ChatPanel.vue         — SSE streaming agent chat + message history + tool call display
+├── ArtifactsPanel.vue    — renders last agent reply (code blocks + prose markdown)
+├── TasksView.vue         — full-width kanban board (activeView === 'tasks')
+├── SettingsView.vue      — full-width settings panel (activeView === 'settings')
+├── FilesView.vue         — full-width knowledge base file manager (activeView === 'files')
+├── SessionModal.vue      — session list modal (teleported to body, session CRUD)
+├── ModelSelector.vue     — Ollama model dropdown
+└── StatusBar.vue         — bottom bar: model name, DB status, WS status, live clock
 ```
+
+---
 
 ## AppShell.vue
 
-**Owns:** `activeView` (`'chat' | 'tasks' | 'files'`), `lastAgentMessage`.
+**Owns:** `activeView` (`'chat' | 'tasks' | 'files' | 'settings'`), `modelName`, `dbConnected`, `wsConnected`.
 
-**Connects components:**
-- Passes `activeView` to `SidebarNav` as prop.
-- Listens to `@navigate` from `SidebarNav` → updates `activeView`.
-- Listens to `@last-message` from `ChatPanel` → passes to `ArtifactsPanel` as `:last-message`.
-
-**Phase 3 note:** When `activeView === 'tasks'`, hide `ChatPanel` + `ArtifactsPanel`, render full-width `TasksView` in their place. The `SidebarNav` stays visible always.
+**Conditional rendering:**
+- `activeView === 'chat'` → ChatPanel (default)
+- `activeView === 'tasks'` → TasksView
+- `activeView === 'settings'` → SettingsView
+- `activeView === 'files'` → FilesView
 
 ---
 
@@ -30,113 +37,73 @@ AppShell.vue         — layout coordinator, owns activeView state
 
 **Emits:** `navigate: [view: 'chat' | 'tasks' | 'files']`
 
-**Responsibilities:**
-- Navigation buttons for Chat, Tasks, Files (icons from `vue-icons-plus/hi`).
-- Settings button (inactive — Phase 4).
-- **`VI / EN` language toggle** at bottom — calls `toggleLang()`, persists to `localStorage('workspace.lang')`.
-- **Health dot** — polls `GET /api/health` on mount. Green (`bg-cyber-green`) when `status === 'ok'`, red otherwise.
+**Navigation:** Chat, Tasks, Files (icons from `vue-icons-plus/hi`), Settings (inactive).
 
-**Language toggle logic:**
-```ts
-const { t, locale } = useI18n()
+**Language toggle:** VI/EN at bottom — `toggleLang()`, persists to `localStorage('workspace.lang')`.
 
-function toggleLang() {
-  const next: Locale = locale.value === 'vi' ? 'en' : 'vi'
-  locale.value = next
-  localStorage.setItem('workspace.lang', next)
-}
-```
-
-The button renders `{{ t('nav.lang') }}` — shows `"VI"` when locale is `vi`, `"EN"` when `en`.
-
-**Health check:**
-```ts
-onMounted(async () => {
-  const res = await fetch('/api/health')
-  const data = await res.json()
-  isHealthy.value = data.status === 'ok'
-})
-```
+**Health dot:** Polls `GET /api/health` on mount. Green when `status === 'ok'`, red otherwise.
 
 ---
 
 ## ChatPanel.vue
 
-**Props:** none
+**Emits:** none (ArtifactsPanel reads from API directly)
 
-**Emits:** `lastMessage: [content: string]` — fires after each successful agent reply.
+**Message types:**
+| role | Display | Prefix |
+|---|---|---|
+| `user` | Plain text, slate-100 | `$ người dùng` / `$ user` |
+| `agent` | Markdown via renderMarkdown() | `▶ agent` |
+| `tool` (call) | `[⚙] toolName(args)`, orange | — |
+| `tool` (result) | Raw result text, green | — |
+| `system` | Thinking indicator / errors, muted | `[hệ thống]` / `[system]` |
 
-**State:**
-- `messages: Message[]` — array of `{ role, content, timestamp, typing? }`.
-- `input: string` — bound to the command input.
-- `loading: boolean` — disables input while waiting for response.
+**SSE streaming:** Reads `POST /api/agent/chat` SSE stream. Lazy agent message creation (created on first `token` event) ensures correct ordering: toolCall → toolResult → thinking → response tokens.
 
-**Message roles:**
-- `'user'` — text-slate-100, prefix from `t('chat.user.prefix')` = `"$ người dùng"` / `"$ user"`
-- `'agent'` — text-slate-100, prefix from `t('chat.agent.prefix')`, typewriter effect on arrival
-- `'system'` — text-cyber-orange/50, prefix from `t('chat.system.prefix')`
+**Stop stream:** `AbortController.abort()` on button click or client disconnect.
 
-**Typewriter effect** (`typewriterAppend`): Appends characters one at a time with 18ms delay. Shows `█` cursor via `animate-blink` while `msg.typing === true`.
-
-**Error handling:** On `fetch` failure, appends a `system` role message with `t('chat.error.unreachable')`. Never `console.error` only.
-
-**Time format:** `new Date().toLocaleTimeString('vi-VN', { hour12: false })` — 24-hour.
-
-**API call:**
-```ts
-POST /api/agent/chat
-Body: { message: string }
-Response: { reply: string, timestamp: string }
-```
-
-Phase 2 will change this to an SSE stream — the input/submission logic stays the same, the response reading changes.
+**renderMarkdown:** `DOMPurify.sanitize(marked.parse(content))`. Styled via `.markdown-body` CSS.
 
 ---
 
-## ArtifactsPanel.vue
+## SessionModal.vue
 
-**Props:** `lastMessage: string`
+**Props:** `modelValue: boolean`, `currentSessionId: number | null`.
 
-**Emits:** none
+**Emits:** `update:modelValue`, `select(sessionId)`, `created(sessionId)`.
 
-**Responsibilities:**
-- Parses `lastMessage` to extract fenced code blocks (regex: `/```(\w*)\n([\s\S]*?)```/g`).
-- Renders each code block in a `cyber-dark` container with a language label row.
-- Renders remaining prose through `marked.parse()` → `DOMPurify.sanitize()` → `v-html`.
-- Shows empty state (`t('artifacts.empty')`) when `lastMessage` is empty.
-
-**Security invariant:** `v-html` binding MUST use `DOMPurify.sanitize(marked.parse(prose))`. This is already in place — do not remove it.
+**Features:** Lists sessions (title, date, message count), create new, delete with confirm, select to switch. Teleported to `<body>`. Fetches session list on open.
 
 ---
 
-## Design Rules (apply to all components here)
+## ModelSelector.vue
+
+**Props:** `modelValue: string`, `models: string[]`, `disabled: boolean`.
+
+**Emits:** `update:modelValue`.
+
+Fetches model list from `GET /api/ollama/models`. Shows "ollama offline" when unavailable.
+
+---
+
+## StatusBar.vue
+
+Bottom bar showing model name, DB connection status, WebSocket connection status, and live 24h clock.
+
+---
+
+## Design Rules
 
 | Rule | Value |
 |---|---|
 | Font | `font-mono` everywhere. Never sans or serif. |
-| Background | `bg-cyber-bg` (`#000000`) for main areas, `bg-cyber-dark` (`#141414`) for panels/headers |
-| Accent color | `text-cyber-accent`, `border-cyber-border`, `border-cyber-dim` — never raw hex |
-| Orange (chat) | `text-cyber-orange` — used for chat headers, prefixes, cursor blink |
-| Border radius | Max `rounded` (4px). Never `rounded-lg`, `rounded-xl` |
+| Background | `bg-cyber-bg` / `bg-cyber-dark` |
+| Border radius | Max `rounded` (4px). Never `rounded-lg` |
 | Shadows | Forbidden (`shadow-*`) |
 | Gradients | Forbidden |
-| Animations | `animate-blink` for cursor only. `transition-colors duration-150` on interactive elements only |
+| Animations | `animate-blink` for cursor only. `transition-colors duration-150` on interactive elements |
 | Icons | `vue-icons-plus/hi` (Hero Icons). No inline SVG |
-
-## Adding a New View (Phase 3+ pattern)
-
-1. Create `NewView.vue` in `components/`.
-2. In `AppShell.vue`, add the view name to the `activeView` type union.
-3. Conditionally render: `<NewView v-if="activeView === 'new'" class="flex-1" />`.
-4. Pass the new nav item to `SidebarNav` or handle navigation in `AppShell`.
-5. Add locale keys to `src/locales/vi.json` and `src/locales/en.json`.
 
 ## i18n in Components
 
-All components use `useI18n()`:
-```ts
-import { useI18n } from 'vue-i18n'
-const { t } = useI18n()
-```
-
-Never hardcode user-facing strings. Always `t('key')`. See `src/locales/` for all 21 keys.
+All components use `useI18n()`. Never hardcode user-facing strings. Always `t('key')`.

@@ -6,11 +6,11 @@
       :key="col.key"
       class="flex-1 flex flex-col min-w-0"
     >
-      <div class="px-2 py-2 flex items-center gap-2 shrink-0 bg-cyber-dark/30">
-        <span :class="['text-[9px] tracking-widest font-mono uppercase', col.headerClass]">
+      <div :class="['px-2 py-2 flex items-center gap-2 shrink-0', col.headerBgClass]">
+        <span :class="['text-[10px] tracking-widest font-mono uppercase', col.headerClass]">
           {{ t(col.labelKey) }}
         </span>
-        <span class="text-[8px] bg-cyber-accent/10 text-cyber-accent/50 px-1 rounded font-mono">
+        <span class="text-[9px] bg-cyber-accent/10 text-cyber-accent/50 px-1.5 rounded font-mono">
           {{ visibleCount(col.key) }}
         </span>
       </div>
@@ -41,14 +41,14 @@
             :placeholder="t('tasks.add.placeholder')"
             @keydown.escape="addingTask = false; newTaskTitle = ''"
             @blur="onBlurNewTask"
-            class="flex-1 bg-cyber-dark px-2 py-1 text-[10px] font-mono text-[#EEEEEE] placeholder-[#888888]/40 outline-none"
+            class="flex-1 bg-cyber-dark px-2 py-1 text-[11px] font-mono text-[#EEEEEE] placeholder-[#888888]/40 outline-none"
             autofocus
           />
         </form>
         <button
           v-else
           @click="addingTask = true"
-          class="w-full text-[9px] font-mono text-[#888888] bg-cyber-dark px-2 py-1.5 hover:text-cyber-accent transition-colors duration-150 text-left"
+           class="w-full text-[10px] font-mono text-[#888888] bg-cyber-dark px-2 py-1.5 hover:text-cyber-accent transition-colors duration-150 text-left"
         >{{ t('tasks.add') }}</button>
       </div>
     </div>
@@ -86,10 +86,10 @@ const { t } = useI18n()
 const STATUS_KEYS = ['TODO', 'PROCESSING', 'DONE', 'FAILED'] as const
 
 const COLUMNS = [
-  { key: 'TODO',       labelKey: 'tasks.col.todo',       headerClass: 'text-cyber-accent' },
-  { key: 'PROCESSING', labelKey: 'tasks.col.processing', headerClass: 'text-[#FFA500]' },
-  { key: 'DONE',       labelKey: 'tasks.col.done',       headerClass: 'text-cyber-green' },
-  { key: 'FAILED',     labelKey: 'tasks.col.failed',     headerClass: 'text-red-400'      },
+  { key: 'TODO',       labelKey: 'tasks.col.todo',       headerClass: 'text-cyber-accent', headerBgClass: 'bg-cyber-accent/8'    },
+  { key: 'PROCESSING', labelKey: 'tasks.col.processing', headerClass: 'text-[#FFA500]',     headerBgClass: 'bg-[#FFA500]/8'       },
+  { key: 'DONE',       labelKey: 'tasks.col.done',       headerClass: 'text-cyber-green',  headerBgClass: 'bg-cyber-green/8'      },
+  { key: 'FAILED',     labelKey: 'tasks.col.failed',     headerClass: 'text-red-400',      headerBgClass: 'bg-red-400/8'         },
 ]
 
 const columnTasks = reactive<Record<string, Task[]>>({

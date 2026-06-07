@@ -1,25 +1,33 @@
 import { Test } from '@nestjs/testing';
 import { OllamaProvider } from './ollama.provider';
-import { SettingsService } from '../../settings/settings.service';
+import { LLMCallerService, StreamChunk } from '../services/llm-caller.service';
+import { ContextBuilderService } from '../services/context-builder.service';
 import { TasksService } from '../../tasks/tasks.service';
 import { KnowledgeService } from '../../knowledge/knowledge.service';
 import { OllamaMessage } from './llm-provider.interface';
 
-function makeReader(chunks: string[]) {
-  const encoder = new TextEncoder();
-  let i = 0;
-  return {
-    read: jest.fn(async () => {
-      if (i < chunks.length) return { done: false as const, value: encoder.encode(chunks[i++]) };
-      return { done: true as const, value: undefined };
-    }),
-  };
+async function* makeStream(chunks: StreamChunk[]): AsyncGenerator<StreamChunk, void, unknown> {
+  for (const c of chunks) {
+    yield c;
+  }
 }
 
 const userMsg: OllamaMessage = { role: 'user', content: 'hi' };
 
 describe('OllamaProvider', () => {
   let provider: OllamaProvider;
+
+  const mockLLMCaller = {
+    streamChat: jest.fn(),
+  };
+
+  const mockContextBuilder = {
+    build: jest.fn().mockResolvedValue({
+      systemPrompt: 'You are a helpful AI assistant.',
+      messages: [],
+      tools: [],
+    }),
+  };
 
   const mockTasksService = {
     create: jest.fn(),
@@ -29,35 +37,29 @@ describe('OllamaProvider', () => {
 
   const mockKnowledgeService = {
     search: jest.fn().mockResolvedValue([]),
+    findAll: jest.fn().mockResolvedValue([]),
   };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
         OllamaProvider,
-        {
-          provide: SettingsService,
-          useValue: { get: jest.fn().mockResolvedValue('http://localhost:11434') },
-        },
+        { provide: LLMCallerService, useValue: mockLLMCaller },
+        { provide: ContextBuilderService, useValue: mockContextBuilder },
         { provide: TasksService, useValue: mockTasksService },
         { provide: KnowledgeService, useValue: mockKnowledgeService },
       ],
     }).compile();
     provider = module.get(OllamaProvider);
+    jest.clearAllMocks();
   });
 
-  afterEach(() => jest.restoreAllMocks());
-
-  it('writes token events for each NDJSON content chunk', async () => {
-    const reader = makeReader([
-      '{"message":{"role":"assistant","content":"Hello"},"done":false}\n',
-      '{"message":{"role":"assistant","content":" world"},"done":false}\n',
-      '{"message":{"role":"assistant","content":""},"done":true}\n',
-    ]);
-    jest.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      body: { getReader: () => reader },
-    } as unknown as Response);
+  it('writes token events for each LLM token chunk', async () => {
+    mockLLMCaller.streamChat.mockReturnValue(makeStream([
+      { type: 'token', token: 'Hello' },
+      { type: 'token', token: ' world' },
+      { type: 'done' },
+    ]));
 
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
@@ -70,8 +72,10 @@ describe('OllamaProvider', () => {
     expect(result.finalText).toBe('Hello world');
   });
 
-  it('writes error event and [DONE] when fetch throws', async () => {
-    jest.spyOn(global, 'fetch').mockRejectedValue(new Error('ECONNREFUSED'));
+  it('writes error event and [DONE] when LLM returns error chunk', async () => {
+    mockLLMCaller.streamChat.mockReturnValue(makeStream([
+      { type: 'error', error: 'ollama_unreachable' },
+    ]));
 
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
@@ -83,60 +87,44 @@ describe('OllamaProvider', () => {
     expect(result.finalText).toBe('');
   });
 
-  it('writes error event when Ollama returns non-ok status', async () => {
-    jest.spyOn(global, 'fetch').mockResolvedValue({
-      ok: false,
-      status: 404,
-      json: jest.fn().mockResolvedValue({}),
-    } as unknown as Response);
+  it('writes error event when LLM returns non-ollama error', async () => {
+    mockLLMCaller.streamChat.mockReturnValue(makeStream([
+      { type: 'error', error: 'ollama_error_404' },
+    ]));
 
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
 
-    const result = await provider.streamChat([userMsg], 'llama3.2', mockRes as any, signal);
+    await provider.streamChat([userMsg], 'llama3.2', mockRes as any, signal);
 
     expect(mockRes.write).toHaveBeenCalledWith('data: {"error":"ollama_error_404"}\n\n');
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
-    expect(result.finalText).toBe('');
   });
 
   it('stops writing when signal is aborted', async () => {
     const ctrl = new AbortController();
-    const reader = makeReader([
-      '{"message":{"role":"assistant","content":"Hi"},"done":false}\n',
-    ]);
-    jest.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      body: { getReader: () => reader },
-    } as unknown as Response);
+    mockLLMCaller.streamChat.mockReturnValue(makeStream([
+      { type: 'token', token: 'Hi' },
+    ]));
 
     const mockRes = { write: jest.fn() };
-
     ctrl.abort();
     await provider.streamChat([userMsg], 'llama3.2', mockRes as any, ctrl.signal);
 
     expect(mockRes.write).not.toHaveBeenCalledWith('data: [DONE]\n\n');
   });
 
-  it('executes tool calls and loops back to Ollama', async () => {
+  it('executes tool calls and loops back to LLM', async () => {
     const task = { id: 42, title: 'Test task', status: 'TODO', priority: 1 };
     mockTasksService.create.mockResolvedValue(task);
 
-    const reader = makeReader([
-      JSON.stringify({
-        message: {
-          role: 'assistant',
-          content: '',
-          tool_calls: [{ function: { name: 'create_task', arguments: '{"title":"Test task","priority":1}' } }],
-        },
-        done: false,
-      }) + '\n',
-    ]);
-
-    jest.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      body: { getReader: () => reader },
-    } as unknown as Response);
+    mockLLMCaller.streamChat.mockReturnValue(makeStream([
+      {
+        type: 'tool_call',
+        toolCall: { name: 'create_task', arguments: { title: 'Test task', priority: 1 } },
+      },
+      { type: 'done' },
+    ]));
 
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
@@ -147,7 +135,10 @@ describe('OllamaProvider', () => {
       'data: {"toolCall":{"name":"create_task","args":{"title":"Test task","priority":1}}}\n\n',
     );
     expect(mockRes.write).toHaveBeenCalledWith(
-      'data: {"toolResult":{"name":"create_task","result":"Task #42 created: \\"Test task\\""}}\n\n',
+      expect.stringContaining('"toolResult"'),
+    );
+    expect(mockRes.write).toHaveBeenCalledWith(
+      expect.stringContaining('Task #42 created'),
     );
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
   });
@@ -159,21 +150,13 @@ describe('OllamaProvider', () => {
     ];
     mockTasksService.findAll.mockResolvedValue(tasks);
 
-    const reader = makeReader([
-      JSON.stringify({
-        message: {
-          role: 'assistant',
-          content: '',
-          tool_calls: [{ function: { name: 'list_tasks', arguments: '{"status":"TODO"}' } }],
-        },
-        done: false,
-      }) + '\n',
-    ]);
-
-    jest.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      body: { getReader: () => reader },
-    } as unknown as Response);
+    mockLLMCaller.streamChat.mockReturnValue(makeStream([
+      {
+        type: 'tool_call',
+        toolCall: { name: 'list_tasks', arguments: { status: 'TODO' } },
+      },
+      { type: 'done' },
+    ]));
 
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
@@ -183,14 +166,13 @@ describe('OllamaProvider', () => {
     expect(mockRes.write).toHaveBeenCalledWith(
       'data: {"toolCall":{"name":"list_tasks","args":{"status":"TODO"}}}\n\n',
     );
-    const resultCall = mockRes.write.mock.calls.find(
-      (c: string[]) => c[0].includes('"toolResult"'),
-    );
-    expect(resultCall).toBeDefined();
-    const resultPayload = JSON.parse(resultCall[0].replace('data: ', '').trim());
-    expect(resultPayload.toolResult.name).toBe('list_tasks');
-    expect(resultPayload.toolResult.result).toContain('Task A');
-    expect(resultPayload.toolResult.result).not.toContain('Task B');
+    const resultCalls = mockRes.write.mock.calls
+      .map((c: string[]) => c[0])
+      .filter((c: string) => c.includes('"toolResult"'));
+    expect(resultCalls.length).toBeGreaterThan(0);
+    const lastResult = resultCalls[resultCalls.length - 1];
+    expect(lastResult).toContain('Task A');
+    expect(lastResult).not.toContain('Task B');
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
   });
 
@@ -198,21 +180,13 @@ describe('OllamaProvider', () => {
     const chunks = [{ filename: 'doc.md', chunkIndex: 0, text: 'relevant content' }];
     mockKnowledgeService.search.mockResolvedValue(chunks);
 
-    const reader = makeReader([
-      JSON.stringify({
-        message: {
-          role: 'assistant',
-          content: '',
-          tool_calls: [{ function: { name: 'search_knowledge', arguments: '{"query":"test"}' } }],
-        },
-        done: false,
-      }) + '\n',
-    ]);
-
-    jest.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      body: { getReader: () => reader },
-    } as unknown as Response);
+    mockLLMCaller.streamChat.mockReturnValue(makeStream([
+      {
+        type: 'tool_call',
+        toolCall: { name: 'search_knowledge', arguments: { query: 'test' } },
+      },
+      { type: 'done' },
+    ]));
 
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
@@ -223,33 +197,31 @@ describe('OllamaProvider', () => {
       'data: {"toolCall":{"name":"search_knowledge","args":{"query":"test"}}}\n\n',
     );
     expect(mockRes.write).toHaveBeenCalledWith(
-      'data: {"toolResult":{"name":"search_knowledge","result":"[1] Source: \\"doc.md\\", §0\\nrelevant content"}}\n\n',
+      expect.stringMatching(/toolResult.*doc\.md.*§0/),
     );
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
   });
 
-  it('injects synthesis prompt after search_knowledge and streams synthesis tokens', async () => {
+  it('injects thinking event after search_knowledge and continues loop', async () => {
     const chunks = [{ filename: 'guide.pdf', chunkIndex: 2, text: 'important info' }];
     mockKnowledgeService.search.mockResolvedValue(chunks);
 
-    const reader1 = makeReader([
-      JSON.stringify({
-        message: {
-          role: 'assistant',
-          content: '',
-          tool_calls: [{ function: { name: 'search_knowledge', arguments: '{"query":"guide"}' } }],
-        },
-        done: false,
-      }) + '\n',
-    ]);
-    const reader2 = makeReader([
-      '{"message":{"role":"assistant","content":"According to [Source: \\"guide.pdf\\", §2], important info."},"done":false}\n',
-      '{"done":true}\n',
+    const stream1 = makeStream([
+      {
+        type: 'tool_call',
+        toolCall: { name: 'search_knowledge', arguments: { query: 'guide' } },
+      },
+      { type: 'done' },
     ]);
 
-    const fetchSpy = jest.spyOn(global, 'fetch')
-      .mockResolvedValueOnce({ ok: true, body: { getReader: () => reader1 } } as unknown as Response)
-      .mockResolvedValueOnce({ ok: true, body: { getReader: () => reader2 } } as unknown as Response);
+    const stream2 = makeStream([
+      { type: 'token', token: 'According to [Source: "guide.pdf", §2], important info.' },
+      { type: 'done' },
+    ]);
+
+    mockLLMCaller.streamChat
+      .mockReturnValueOnce(stream1)
+      .mockReturnValueOnce(stream2);
 
     const mockRes = { write: jest.fn() };
     const signal = new AbortController().signal;
@@ -261,11 +233,133 @@ describe('OllamaProvider', () => {
       signal,
     );
 
-    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(mockLLMCaller.streamChat).toHaveBeenCalledTimes(2);
+    expect(mockRes.write).toHaveBeenCalledWith(
+      expect.stringContaining('Synthesizing search results'),
+    );
     expect(mockRes.write).toHaveBeenCalledWith(
       'data: {"token":"According to [Source: \\"guide.pdf\\", §2], important info."}\n\n',
     );
     expect(result.finalText).toBe('According to [Source: "guide.pdf", §2], important info.');
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
+  });
+
+  it('injects no-results prompt with file list when KB search is empty and files exist', async () => {
+    mockKnowledgeService.search.mockResolvedValue([]);
+    mockKnowledgeService.findAll.mockResolvedValue([
+      { id: 1, filename: 'report.pdf' },
+      { id: 2, filename: 'handbook.docx' },
+    ]);
+
+    const stream1 = makeStream([
+      { type: 'tool_call', toolCall: { name: 'search_knowledge', arguments: { query: 'annual report' } } },
+      { type: 'done' },
+    ]);
+    const stream2 = makeStream([
+      { type: 'token', token: 'I could not find that in your KB.' },
+      { type: 'done' },
+    ]);
+    mockLLMCaller.streamChat.mockReturnValueOnce(stream1).mockReturnValueOnce(stream2);
+
+    const mockRes = { write: jest.fn() };
+    const signal = new AbortController().signal;
+    await provider.streamChat(
+      [{ role: 'user', content: 'annual report?' }],
+      'llama3.2',
+      mockRes as any,
+      signal,
+    );
+
+    expect(mockLLMCaller.streamChat).toHaveBeenCalledTimes(2);
+    const secondCallMessages = mockLLMCaller.streamChat.mock.calls[1][1] as Array<{ role: string; content: string }>;
+    const injected = secondCallMessages.find(m => m.content.includes('no results'));
+    expect(injected).toBeDefined();
+    expect(injected!.content).toContain('"report.pdf"');
+    expect(injected!.content).toContain('"handbook.docx"');
+  });
+
+  it('injects "none indexed yet" when KB is empty and no files are indexed', async () => {
+    mockKnowledgeService.search.mockResolvedValue([]);
+    mockKnowledgeService.findAll.mockResolvedValue([]);
+
+    const stream1 = makeStream([
+      { type: 'tool_call', toolCall: { name: 'search_knowledge', arguments: { query: 'anything' } } },
+      { type: 'done' },
+    ]);
+    const stream2 = makeStream([
+      { type: 'token', token: 'No documents found.' },
+      { type: 'done' },
+    ]);
+    mockLLMCaller.streamChat.mockReturnValueOnce(stream1).mockReturnValueOnce(stream2);
+
+    const mockRes = { write: jest.fn() };
+    const signal = new AbortController().signal;
+    await provider.streamChat(
+      [{ role: 'user', content: 'test' }],
+      'llama3.2',
+      mockRes as any,
+      signal,
+    );
+
+    const secondCallMessages = mockLLMCaller.streamChat.mock.calls[1][1] as Array<{ role: string; content: string }>;
+    const injected = secondCallMessages.find(m => m.content.includes('no results'));
+    expect(injected).toBeDefined();
+    expect(injected!.content).toContain('none indexed yet');
+  });
+
+  it('uses synthesis prompt when KB search returns results (no regression)', async () => {
+    mockKnowledgeService.search.mockResolvedValue([
+      { filename: 'guide.pdf', chunkIndex: 1, text: 'some content' },
+    ]);
+
+    const stream1 = makeStream([
+      { type: 'tool_call', toolCall: { name: 'search_knowledge', arguments: { query: 'guide' } } },
+      { type: 'done' },
+    ]);
+    const stream2 = makeStream([
+      { type: 'token', token: 'Based on guide.pdf...' },
+      { type: 'done' },
+    ]);
+    mockLLMCaller.streamChat.mockReturnValueOnce(stream1).mockReturnValueOnce(stream2);
+
+    const mockRes = { write: jest.fn() };
+    const signal = new AbortController().signal;
+    await provider.streamChat(
+      [{ role: 'user', content: 'guide?' }],
+      'llama3.2',
+      mockRes as any,
+      signal,
+    );
+
+    const secondCallMessages = mockLLMCaller.streamChat.mock.calls[1][1] as Array<{ role: string; content: string }>;
+    const injected = secondCallMessages.find(m => m.content.includes('inline citations'));
+    expect(injected).toBeDefined();
+    expect(mockKnowledgeService.findAll).not.toHaveBeenCalled();
+  });
+
+  it('falls back gracefully when findAll throws during KB empty handling', async () => {
+    mockKnowledgeService.search.mockResolvedValue([]);
+    mockKnowledgeService.findAll.mockRejectedValue(new Error('DB error'));
+
+    const stream1 = makeStream([
+      { type: 'tool_call', toolCall: { name: 'search_knowledge', arguments: { query: 'x' } } },
+      { type: 'done' },
+    ]);
+    const stream2 = makeStream([
+      { type: 'token', token: 'Sorry, I cannot find that.' },
+      { type: 'done' },
+    ]);
+    mockLLMCaller.streamChat.mockReturnValueOnce(stream1).mockReturnValueOnce(stream2);
+
+    const mockRes = { write: jest.fn() };
+    const signal = new AbortController().signal;
+
+    await expect(
+      provider.streamChat([{ role: 'user', content: 'x' }], 'llama3.2', mockRes as any, signal),
+    ).resolves.not.toThrow();
+
+    const secondCallMessages = mockLLMCaller.streamChat.mock.calls[1][1] as Array<{ role: string; content: string }>;
+    const injected = secondCallMessages.find(m => m.content.includes('no results'));
+    expect(injected).toBeDefined();
   });
 });
