@@ -32,14 +32,15 @@ export class AgentService {
       { role: 'user', content: message },
     ];
 
-    const { finalText } = await this.provider.streamChat(messages, model, res, signal, sessionId, mode);
-
     if (!signal.aborted) {
       await this.sessionsService.saveMessage(sessionId, 'user', message);
-      if (finalText) {
-        await this.sessionsService.saveMessage(sessionId, 'assistant', finalText);
-        await this.sessionsService.autoTitle(sessionId, message);
-      }
+    }
+
+    const { finalText } = await this.provider.streamChat(messages, model, res, signal, sessionId, mode);
+
+    if (!signal.aborted && finalText) {
+      await this.sessionsService.saveMessage(sessionId, 'assistant', finalText);
+      await this.sessionsService.autoTitle(sessionId, message);
     }
   }
 }

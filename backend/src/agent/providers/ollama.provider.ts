@@ -102,6 +102,8 @@ export class OllamaProvider implements LLMProvider {
         return { finalText: '' };
       }
 
+      finalText += responseText;
+
       if (toolCalls.length > 0) {
         for (const tc of toolCalls) {
           if (signal.aborted) return { finalText: '' };
@@ -193,7 +195,6 @@ export class OllamaProvider implements LLMProvider {
         continue;
       }
 
-      finalText = responseText;
       break;
     }
 
