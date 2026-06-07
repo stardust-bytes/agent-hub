@@ -86,7 +86,14 @@ export class OllamaProvider implements LLMProvider {
     const ollamaUrl = await this.settings.get('ollama.baseUrl', 'http://localhost:11434');
 
     const msgs: Array<Record<string, unknown>> = [
-      { role: 'system', content: 'You are a helpful assistant. Always respond in the same language the user writes in. For tool calls, use the provided tools.' },
+      { role: 'system', content: [
+        'You are a helpful AI assistant with access to tools including a knowledge base search.',
+        'When using search_knowledge:',
+        '- ALWAYS synthesize the results into a coherent, comprehensive answer — never copy-paste raw chunks.',
+        '- Cite each fact inline using the format [Source: "filename.pdf", §N] where N is the section number.',
+        '- If multiple sources agree, cite all of them.',
+        'Respond in the same language the user writes in. For tool calls, use the provided tools.',
+      ].join('\n') },
       ...messages.map(m => ({ ...m })),
     ];
 
@@ -122,6 +129,7 @@ export class OllamaProvider implements LLMProvider {
       if (!ollamaRes.ok) {
         // If this is a follow-up iteration (after tool calls), end gracefully
         if (toolCallCount > 0) {
+          res.write(`data: ${JSON.stringify({ token: '\n\n_(synthesis unavailable — see results above)_' })}\n\n`);
           res.write('data: [DONE]\n\n');
           return { finalText };
         }
@@ -192,6 +200,7 @@ export class OllamaProvider implements LLMProvider {
         break;
       }
 
+      let hadSearchCall = false;
       for (const tc of currentToolCalls) {
         if (signal.aborted) return;
         toolCallCount++;
@@ -204,6 +213,7 @@ export class OllamaProvider implements LLMProvider {
           args = tc.function.arguments as Record<string, unknown>;
         }
 
+        if (name === 'search_knowledge') hadSearchCall = true;
         res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
 
         let result = '';
@@ -218,6 +228,13 @@ export class OllamaProvider implements LLMProvider {
         msgs.push({
           role: 'tool',
           content: result,
+        });
+      }
+
+      if (hadSearchCall) {
+        msgs.push({
+          role: 'user',
+          content: 'Based on the search results above, write a comprehensive answer with inline citations [Source: "filename", §N].',
         });
       }
 
@@ -260,10 +277,10 @@ export class OllamaProvider implements LLMProvider {
       }
       case 'search_knowledge': {
         const chunks = await this.knowledgeService.search(args.query as string);
-        if (chunks.length === 0) return 'No relevant information found.';
+        if (chunks.length === 0) return 'No relevant information found in knowledge base.';
         return chunks.map((c: { filename: string; chunkIndex: number; text: string }, i: number) =>
           `[${i + 1}] Source: "${c.filename}", §${c.chunkIndex}\n${c.text}`
-        ).join('\n---\n');
+        ).join('\n\n---\n\n');
       }
       default:
         return `Unknown tool: ${name}`;

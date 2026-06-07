@@ -227,4 +227,45 @@ describe('OllamaProvider', () => {
     );
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
   });
+
+  it('injects synthesis prompt after search_knowledge and streams synthesis tokens', async () => {
+    const chunks = [{ filename: 'guide.pdf', chunkIndex: 2, text: 'important info' }];
+    mockKnowledgeService.search.mockResolvedValue(chunks);
+
+    const reader1 = makeReader([
+      JSON.stringify({
+        message: {
+          role: 'assistant',
+          content: '',
+          tool_calls: [{ function: { name: 'search_knowledge', arguments: '{"query":"guide"}' } }],
+        },
+        done: false,
+      }) + '\n',
+    ]);
+    const reader2 = makeReader([
+      '{"message":{"role":"assistant","content":"According to [Source: \\"guide.pdf\\", §2], important info."},"done":false}\n',
+      '{"done":true}\n',
+    ]);
+
+    const fetchSpy = jest.spyOn(global, 'fetch')
+      .mockResolvedValueOnce({ ok: true, body: { getReader: () => reader1 } } as unknown as Response)
+      .mockResolvedValueOnce({ ok: true, body: { getReader: () => reader2 } } as unknown as Response);
+
+    const mockRes = { write: jest.fn() };
+    const signal = new AbortController().signal;
+
+    const result = await provider.streamChat(
+      [{ role: 'user', content: 'tell me about guide' }],
+      'llama3.2',
+      mockRes as any,
+      signal,
+    );
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(mockRes.write).toHaveBeenCalledWith(
+      'data: {"token":"According to [Source: \\"guide.pdf\\", §2], important info."}\n\n',
+    );
+    expect(result.finalText).toBe('According to [Source: "guide.pdf", §2], important info.');
+    expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
+  });
 });
