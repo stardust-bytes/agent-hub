@@ -86,7 +86,7 @@ export class OllamaProvider implements LLMProvider {
 
     const ollamaUrl = await this.settings.get('ollama.baseUrl', 'http://localhost:11434');
 
-    const messages: Array<{ role: string; content: string }> = [];
+    const messages: Array<Record<string, unknown>> = [];
     if (context) messages.push({ role: 'system', content: context });
     messages.push({ role: 'user', content: message });
 
@@ -129,7 +129,7 @@ export class OllamaProvider implements LLMProvider {
       const reader = ollamaRes.body!.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      let currentToolCalls: Array<{ function: { name: string; arguments: string } }> | null = null;
+      let currentToolCalls: Array<{ function: { name: string; arguments: unknown } }> | null = null;
       let responseContent = '';
 
       while (!signal.aborted) {
@@ -144,7 +144,7 @@ export class OllamaProvider implements LLMProvider {
           if (!line.trim()) continue;
           try {
             const parsed = JSON.parse(line) as {
-              message?: { content?: string; tool_calls?: Array<{ function: { name: string; arguments: string } }> };
+              message?: { content?: string; tool_calls?: Array<{ function: { name: string; arguments: unknown } }> };
               done?: boolean;
             };
             if (parsed.message?.content) {
@@ -160,9 +160,13 @@ export class OllamaProvider implements LLMProvider {
 
       if (signal.aborted) return;
 
-      if (responseContent) {
-        messages.push({ role: 'assistant', content: responseContent });
+      const assistantMsg: Record<string, unknown> = { role: 'assistant', content: responseContent };
+      if (currentToolCalls && currentToolCalls.length > 0) {
+        assistantMsg.tool_calls = currentToolCalls.map(tc => ({
+          function: { name: tc.function.name, arguments: tc.function.arguments },
+        }));
       }
+      messages.push(assistantMsg);
 
       if (!currentToolCalls || currentToolCalls.length === 0) {
         break;
@@ -174,7 +178,11 @@ export class OllamaProvider implements LLMProvider {
 
         const name = tc.function.name;
         let args: Record<string, unknown> = {};
-        try { args = JSON.parse(tc.function.arguments); } catch { /* ignore */ }
+        if (typeof tc.function.arguments === 'string') {
+          try { args = JSON.parse(tc.function.arguments); } catch { /* ignore */ }
+        } else if (typeof tc.function.arguments === 'object' && tc.function.arguments !== null) {
+          args = tc.function.arguments as Record<string, unknown>;
+        }
 
         res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
 
