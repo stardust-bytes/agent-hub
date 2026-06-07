@@ -2,11 +2,9 @@
   <div class="flex h-screen bg-cyber-bg font-mono overflow-hidden">
     <SidebarNav :active-view="activeView" @navigate="activeView = $event" />
     <ChatPanel
-      class="border-r border-cyber-border"
-      style="width: 45%"
-      @last-message="lastAgentMessage = $event"
+      class="mx-auto border-x border-cyber-border"
+      style="width: 45%; max-width: 48rem"
     />
-    <ArtifactsPanel class="flex-1" :last-message="lastAgentMessage" />
   </div>
 </template>
 
@@ -14,8 +12,6 @@
 import { ref } from 'vue'
 import SidebarNav from './SidebarNav.vue'
 import ChatPanel from './ChatPanel.vue'
-import ArtifactsPanel from './ArtifactsPanel.vue'
 
 const activeView = ref<'chat' | 'tasks' | 'files'>('chat')
-const lastAgentMessage = ref('')
 </script>

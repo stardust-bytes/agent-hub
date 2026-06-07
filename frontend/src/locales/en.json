@@ -17,9 +17,7 @@
   "chat.model.offline": "ollama offline",
   "chat.stop": "◼ Stop",
   "chat.thinking": "⟳ thinking...",
-  "artifacts.header": "ARTIFACTS",
-  "artifacts.empty": "No artifacts yet",
-  "artifacts.label.lastReply": "last reply",
+
   "health.checking": "Checking backend...",
   "health.ok": "Backend: ok · DB: connected",
   "health.error": "Backend unreachable"

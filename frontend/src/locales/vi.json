@@ -17,9 +17,7 @@
   "chat.model.offline": "ollama offline",
   "chat.stop": "◼ Dừng",
   "chat.thinking": "⟳ đang nghĩ...",
-  "artifacts.header": "KẾT QUẢ",
-  "artifacts.empty": "Chưa có kết quả",
-  "artifacts.label.lastReply": "phản hồi cuối",
+
   "health.checking": "Đang kiểm tra...",
   "health.ok": "Backend: hoạt động · DB: đã kết nối",
   "health.error": "Không kết nối được backend"

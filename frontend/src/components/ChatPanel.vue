@@ -72,7 +72,6 @@ interface Message {
   typing?: boolean
 }
 
-const emit = defineEmits<{ lastMessage: [content: string] }>()
 const { t } = useI18n()
 
 const messages = ref<Message[]>([
@@ -193,7 +192,6 @@ async function submit() {
     }
 
     messages.value[msgIdx].typing = false
-    if (messages.value[msgIdx].content) emit('lastMessage', messages.value[msgIdx].content)
   } catch (e) {
     messages.value[msgIdx].typing = false
     if (e instanceof Error && e.name !== 'AbortError') {
