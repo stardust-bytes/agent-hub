@@ -20,5 +20,21 @@
 
   "health.checking": "Đang kiểm tra...",
   "health.ok": "Backend: hoạt động · DB: đã kết nối",
-  "health.error": "Không kết nối được backend"
+  "health.error": "Không kết nối được backend",
+
+  "tasks.header": "NHIỆM VỤ",
+  "tasks.col.todo": "CẦN LÀM",
+  "tasks.col.processing": "ĐANG LÀM",
+  "tasks.col.done": "HOÀN THÀNH",
+  "tasks.col.failed": "THẤT BẠI",
+  "tasks.filter.label": "LỌC:",
+  "tasks.priority.high": "CAO",
+  "tasks.priority.medium": "TB",
+  "tasks.priority.low": "THẤP",
+  "tasks.add": "+ thêm task",
+  "tasks.add.placeholder": "tiêu đề task_",
+  "tasks.menu.delete": "Xóa",
+  "tasks.menu.delete.confirm": "Xóa task này?",
+  "tasks.ws.connected": "● ws kết nối",
+  "tasks.ws.disconnected": "○ ws offline"
 }

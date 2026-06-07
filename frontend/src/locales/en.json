@@ -20,5 +20,21 @@
 
   "health.checking": "Checking backend...",
   "health.ok": "Backend: ok · DB: connected",
-  "health.error": "Backend unreachable"
+  "health.error": "Backend unreachable",
+
+  "tasks.header": "TASKS",
+  "tasks.col.todo": "TODO",
+  "tasks.col.processing": "IN PROGRESS",
+  "tasks.col.done": "DONE",
+  "tasks.col.failed": "FAILED",
+  "tasks.filter.label": "FILTER:",
+  "tasks.priority.high": "HIGH",
+  "tasks.priority.medium": "MED",
+  "tasks.priority.low": "LOW",
+  "tasks.add": "+ add task",
+  "tasks.add.placeholder": "task title_",
+  "tasks.menu.delete": "Delete",
+  "tasks.menu.delete.confirm": "Delete this task?",
+  "tasks.ws.connected": "● ws connected",
+  "tasks.ws.disconnected": "○ ws offline"
 }
