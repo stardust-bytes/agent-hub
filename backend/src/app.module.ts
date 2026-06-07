@@ -7,6 +7,7 @@ import { AgentModule } from './agent/agent.module';
 import { OllamaModule } from './ollama/ollama.module';
 import { SettingsModule } from './settings/settings.module';
 import { KnowledgeModule } from './knowledge/knowledge.module';
+import { SessionsModule } from './sessions/sessions.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { KnowledgeModule } from './knowledge/knowledge.module';
     OllamaModule,
     SettingsModule,
     KnowledgeModule,
+    SessionsModule,
   ],
   controllers: [AppController],
 })
