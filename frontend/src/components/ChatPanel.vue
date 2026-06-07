@@ -211,8 +211,9 @@ async function loadSession(id: number) {
             timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
           })
         } else {
+          const mappedRole = msg.role === 'assistant' ? 'agent' : msg.role
           messages.value.push({
-            role: msg.role as 'user' | 'agent',
+            role: mappedRole as 'user' | 'agent',
             content: msg.content,
             timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
           })
