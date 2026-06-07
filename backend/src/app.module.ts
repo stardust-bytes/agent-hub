@@ -5,6 +5,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { TasksModule } from './tasks/tasks.module';
 import { AgentModule } from './agent/agent.module';
 import { OllamaModule } from './ollama/ollama.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { OllamaModule } from './ollama/ollama.module';
     TasksModule,
     AgentModule,
     OllamaModule,
+    SettingsModule,
   ],
   controllers: [AppController],
 })
