@@ -88,12 +88,6 @@ export class OllamaProvider implements LLMProvider {
 
     const messages: Array<Record<string, unknown>> = [];
     if (context) messages.push({ role: 'system', content: context });
-    messages.push({
-      role: 'system',
-      content: 'You have access to tools. To call a tool, respond with the tool_calls API. '
-        + 'If you cannot use the tool_calls API, output a JSON code block with:'
-        + '```json\n{"name":"tool_name","arguments":{"key":"value"}}\n```',
-    });
     messages.push({ role: 'user', content: message });
 
     let toolCallCount = 0;
@@ -165,11 +159,6 @@ export class OllamaProvider implements LLMProvider {
       }
 
       if (signal.aborted) return;
-
-      // Fallback: parse JSON tool calls from text content
-      if (!currentToolCalls || currentToolCalls.length === 0) {
-        currentToolCalls = this.parseTextToolCalls(responseContent);
-      }
 
       const assistantMsg: Record<string, unknown> = { role: 'assistant', content: responseContent };
       if (currentToolCalls && currentToolCalls.length > 0) {
@@ -260,20 +249,4 @@ export class OllamaProvider implements LLMProvider {
     }
   }
 
-  private parseTextToolCalls(text: string): Array<{ function: { name: string; arguments: unknown } }> | null {
-    const jsonBlockRegex = /```json\n([\s\S]*?)```/g;
-    const results: Array<{ function: { name: string; arguments: unknown } }> = [];
-    let match: RegExpExecArray | null;
-
-    while ((match = jsonBlockRegex.exec(text)) !== null) {
-      try {
-        const parsed = JSON.parse(match[1].trim()) as { name?: string; arguments?: unknown };
-        if (parsed.name) {
-          results.push({ function: { name: parsed.name, arguments: parsed.arguments ?? {} } });
-        }
-      } catch { /* skip invalid JSON */ }
-    }
-
-    return results.length > 0 ? results : null;
-  }
 }
