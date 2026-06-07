@@ -23,30 +23,51 @@
       </div>
     </div>
 
-    <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 min-h-0">
+    <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2 min-h-0">
       <div v-for="(msg, i) in messages" :key="i" class="font-mono">
-        <template v-if="msg.role === 'tool'">
-          <div class="text-xs mb-1 text-[#888888]">
-            <span v-if="!msg.isResult" class="text-[#FFA500]">[&#9881;]</span>
-            <span v-else class="text-cyber-green">[result]</span>
-            · {{ msg.timestamp }}
+
+        <!-- Thinking block -->
+        <div v-if="msg.role === 'system' && msg.content === '⟳ thinking...' || msg.content === '⟳ đang nghĩ...'"
+          class="border-l-2 border-cyber-accent/30 pl-3 py-1">
+          <div class="text-xs text-cyber-accent/60 font-mono">⟳ {{ msg.content.replace('⟳ ', '') }}</div>
+        </div>
+
+        <!-- Tool call block -->
+        <div v-else-if="msg.role === 'tool' && !msg.isResult"
+          class="border-l-2 border-[#FFA500]/50 pl-3 py-1.5">
+          <div class="text-[11px] text-[#FFA500] font-mono mb-0.5">[⚙] {{ msg.content }}</div>
+        </div>
+
+        <!-- Tool result block -->
+        <div v-else-if="msg.role === 'tool' && msg.isResult"
+          class="border-l-2 border-cyber-green/50 pl-3 py-1.5">
+          <div class="text-[11px] text-cyber-green font-mono">{{ msg.content }}</div>
+        </div>
+
+        <!-- Agent answer block -->
+        <div v-else-if="msg.role === 'agent'"
+          class="border-l-2 border-cyber-accent/20 pl-3 py-1">
+          <div class="text-xs text-cyber-accent/60 mb-0.5 font-mono">
+            <HiChevronRight class="w-3 h-3 inline" /> {{ rolePrefix(msg.role) }} · {{ msg.timestamp }}
           </div>
-          <div class="text-xs bg-cyber-dark px-2 py-1.5" :class="msg.isResult ? 'text-cyber-green' : 'text-[#FFA500]'">
-            {{ msg.content }}
-          </div>
-        </template>
-        <template v-else>
-          <div class="text-xs mb-1" :class="roleColor(msg.role)">
-            <HiChevronRight v-if="msg.role === 'agent'" class="w-3 h-3 inline" />
-            {{ rolePrefix(msg.role) }} · {{ msg.timestamp }}
-          </div>
-          <div class="text-sm leading-relaxed break-words" :class="{
-            'text-[#888888]': msg.role === 'system',
-            'text-[#EEEEEE]': msg.role === 'user' || msg.role === 'agent',
-          }">
+          <div class="text-sm leading-relaxed break-words text-[#EEEEEE]">
             {{ msg.content }}<span v-if="msg.typing" class="animate-blink text-cyber-accent ml-px">&#9608;</span>
           </div>
-        </template>
+        </div>
+
+        <!-- User message block -->
+        <div v-else-if="msg.role === 'user'"
+          class="border-l-2 border-cyber-accent/20 pl-3 py-1">
+          <div class="text-xs text-cyber-accent/80 mb-0.5 font-mono">{{ rolePrefix(msg.role) }} · {{ msg.timestamp }}</div>
+          <div class="text-sm leading-relaxed break-words text-[#EEEEEE]">{{ msg.content }}</div>
+        </div>
+
+        <!-- System message (other) -->
+        <div v-else-if="msg.role === 'system'"
+          class="pl-3 py-0.5">
+          <div class="text-xs text-[#888888] font-mono">{{ msg.content }}</div>
+        </div>
+
       </div>
     </div>
 
