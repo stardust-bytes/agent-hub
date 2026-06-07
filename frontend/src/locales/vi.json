@@ -36,8 +36,8 @@
   "tasks.add.placeholder": "tiêu đề task_",
   "tasks.menu.delete": "Xóa",
   "tasks.menu.delete.confirm": "Xóa task này?",
-  "tasks.ws.connected": "● ws kết nối",
-  "tasks.ws.disconnected": "○ ws offline",
+  "tasks.ws.connected": "ws kết nối",
+  "tasks.ws.disconnected": "ws offline",
 
   "status.backend": "backend",
   "status.db": "db",

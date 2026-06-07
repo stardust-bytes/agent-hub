@@ -36,8 +36,8 @@
   "tasks.add.placeholder": "task title_",
   "tasks.menu.delete": "Delete",
   "tasks.menu.delete.confirm": "Delete this task?",
-  "tasks.ws.connected": "● ws connected",
-  "tasks.ws.disconnected": "○ ws offline",
+  "tasks.ws.connected": "ws connected",
+  "tasks.ws.disconnected": "ws offline",
 
   "status.backend": "backend",
   "status.db": "db",
