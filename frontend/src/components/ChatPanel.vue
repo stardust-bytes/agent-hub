@@ -24,8 +24,8 @@
 
         <!-- Agent answer block -->
         <div v-else-if="msg.role === 'agent'"
-          class="border-l-2 border-cyber-accent/20 pl-3 py-1">
-          <div class="text-[0.6875rem] text-cyber-accent/60 mb-0.5 font-mono">
+          class="border-l-2 border-cyber-accent/80 pl-3 py-1">
+          <div class="text-[0.6875rem] text-cyber-accent/80 mb-0.5 font-mono">
             <HiChevronRight class="w-3 h-3 inline" /> {{ rolePrefix(msg.role) }} · {{ msg.timestamp }}
           </div>
           <div
@@ -41,7 +41,7 @@
 
         <!-- User message block -->
         <div v-else-if="msg.role === 'user'"
-          class="border-l-2 border-cyber-accent/20 pl-3 py-1">
+          class="border-l-2 border-cyber-accent/80 pl-3 py-1">
           <div class="text-[0.6875rem] text-cyber-accent/80 mb-0.5 font-mono">{{ rolePrefix(msg.role) }} · {{ msg.timestamp }}</div>
           <div class="text-[0.6875rem] leading-relaxed break-words text-cyber-text">{{ msg.content }}</div>
         </div>
@@ -192,6 +192,7 @@ onMounted(async () => {
   } catch {
     ollamaOnline.value = false
     emit('update:ollamaOnline', false)
+    availableModels.value = [selectedModel.value]
   }
 })
 
