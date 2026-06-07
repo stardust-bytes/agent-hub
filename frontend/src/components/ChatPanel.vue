@@ -25,19 +25,28 @@
 
     <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 min-h-0">
       <div v-for="(msg, i) in messages" :key="i" class="font-mono">
-        <div class="text-xs mb-1" :class="roleColor(msg.role)">
-          <HiChevronRight v-if="msg.role === 'agent'" class="w-3 h-3 inline" />
-          {{ rolePrefix(msg.role) }} · {{ msg.timestamp }}
-        </div>
-        <div
-          class="text-sm leading-relaxed break-words"
-          :class="{
+        <template v-if="msg.role === 'tool'">
+          <div class="text-xs mb-1 text-[#888888]">
+            <span v-if="!msg.isResult" class="text-[#FFA500]">[&#9881;]</span>
+            <span v-else class="text-cyber-green">[result]</span>
+            · {{ msg.timestamp }}
+          </div>
+          <div class="text-xs bg-cyber-dark px-2 py-1.5" :class="msg.isResult ? 'text-cyber-green' : 'text-[#FFA500]'">
+            {{ msg.content }}
+          </div>
+        </template>
+        <template v-else>
+          <div class="text-xs mb-1" :class="roleColor(msg.role)">
+            <HiChevronRight v-if="msg.role === 'agent'" class="w-3 h-3 inline" />
+            {{ rolePrefix(msg.role) }} · {{ msg.timestamp }}
+          </div>
+          <div class="text-sm leading-relaxed break-words" :class="{
             'text-[#888888]': msg.role === 'system',
             'text-[#EEEEEE]': msg.role === 'user' || msg.role === 'agent',
-          }"
-        >
-          {{ msg.content }}<span v-if="msg.typing" class="animate-blink text-cyber-accent ml-px">█</span>
-        </div>
+          }">
+            {{ msg.content }}<span v-if="msg.typing" class="animate-blink text-cyber-accent ml-px">&#9608;</span>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -67,10 +76,12 @@ import { HiTerminal, HiChevronRight } from 'vue-icons-plus/hi'
 import ModelSelector from './ModelSelector.vue'
 
 interface Message {
-  role: 'user' | 'agent' | 'system'
+  role: 'user' | 'agent' | 'system' | 'tool'
   content: string
   timestamp: string
   typing?: boolean
+  toolName?: string
+  isResult?: boolean
 }
 
 const { t } = useI18n()
@@ -94,12 +105,14 @@ function now(): string {
 function rolePrefix(role: string): string {
   if (role === 'user') return t('chat.user.prefix')
   if (role === 'agent') return t('chat.agent.prefix')
-  return t('chat.system.prefix')
+  if (role === 'system') return t('chat.system.prefix')
+  return ''
 }
 
 function roleColor(role: string): string {
   if (role === 'user') return 'text-cyber-accent/80'
   if (role === 'agent') return 'text-cyber-accent'
+  if (role === 'system') return 'text-[#888888]'
   return 'text-[#888888]'
 }
 
@@ -176,7 +189,7 @@ async function submit() {
         const payload = line.slice(6)
         if (payload === '[DONE]') { done = true; break }
         try {
-          const parsed = JSON.parse(payload) as { token?: string; error?: string }
+          const parsed = JSON.parse(payload) as { token?: string; error?: string; toolCall?: { name: string; args: Record<string, unknown> }; toolResult?: { name: string; result: string } }
           if (parsed.error) {
             done = true
             messages.value[msgIdx].typing = false
@@ -184,6 +197,26 @@ async function submit() {
               role: 'system',
               content: `${t('chat.error.unreachable')} (${parsed.error})`,
               timestamp: now(),
+            })
+            await scrollToBottom()
+          } else if (parsed.toolCall) {
+            const argsStr = Object.entries(parsed.toolCall.args)
+              .map(([k, v]) => `${k}=${v}`).join(', ')
+            messages.value.push({
+              role: 'tool',
+              content: `${parsed.toolCall.name}(${argsStr})`,
+              timestamp: now(),
+              toolName: parsed.toolCall.name,
+              isResult: false,
+            })
+            await scrollToBottom()
+          } else if (parsed.toolResult) {
+            messages.value.push({
+              role: 'tool',
+              content: parsed.toolResult.result,
+              timestamp: now(),
+              toolName: parsed.toolResult.name,
+              isResult: true,
             })
             await scrollToBottom()
           } else if (parsed.token) {
