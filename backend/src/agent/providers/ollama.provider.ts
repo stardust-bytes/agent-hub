@@ -182,6 +182,11 @@ export class OllamaProvider implements LLMProvider {
         currentToolCalls = this.detectTextToolCalls(responseContent);
       }
 
+      // When tool calls are present, clear content — Ollama rejects messages with both content AND tool_calls
+      if (currentToolCalls && currentToolCalls.length > 0) {
+        responseContent = '';
+      }
+
       const assistantMsg: Record<string, unknown> = { role: 'assistant', content: responseContent };
       if (currentToolCalls && currentToolCalls.length > 0) {
         assistantMsg.tool_calls = currentToolCalls.map(tc => ({
