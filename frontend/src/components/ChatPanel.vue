@@ -10,6 +10,10 @@
           :models="availableModels"
           :disabled="streaming"
         />
+        <button
+          @click="showSessionModal = true"
+          class="text-cyber-accent/70 text-xs font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent"
+        >{{ t('sessions.header') }}</button>
       </div>
       <div class="flex items-center gap-2">
         <button
@@ -50,9 +54,15 @@
           <div class="text-xs text-cyber-accent/60 mb-0.5 font-mono">
             <HiChevronRight class="w-3 h-3 inline" /> {{ rolePrefix(msg.role) }} · {{ msg.timestamp }}
           </div>
-          <div class="text-sm leading-relaxed break-words text-[#EEEEEE]">
-            {{ msg.content }}<span v-if="msg.typing" class="animate-blink text-cyber-accent ml-px">&#9608;</span>
-          </div>
+          <div
+            v-if="msg.typing"
+            class="text-sm leading-relaxed break-words text-[#EEEEEE]"
+          >{{ msg.content }}<span class="animate-blink text-cyber-accent ml-px">&#9608;</span></div>
+          <div
+            v-else
+            class="text-sm leading-relaxed break-words text-[#EEEEEE] markdown-body"
+            v-html="renderMarkdown(msg.content)"
+          />
         </div>
 
         <!-- User message block -->
@@ -71,6 +81,12 @@
       </div>
     </div>
 
+    <SessionModal
+      v-model="showSessionModal"
+      :current-session-id="currentSessionId"
+      @select="loadSession"
+      @created="(id: number) => { currentSessionId = id; loadSession(id) }"
+    />
     <div class="px-3 py-2 bg-cyber-dark shrink-0">
       <form @submit.prevent="submit" class="flex items-center gap-2 bg-cyber-dark px-3 py-2">
         <span class="text-cyber-accent text-sm font-mono">$</span>
@@ -93,7 +109,10 @@
 import { ref, nextTick, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiTerminal, HiChevronRight } from 'vue-icons-plus/hi'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import ModelSelector from './ModelSelector.vue'
+import SessionModal from './SessionModal.vue'
 
 interface Message {
   role: 'user' | 'agent' | 'system' | 'tool'
@@ -117,6 +136,8 @@ const ollamaOnline = ref(true)
 const abortController = ref<AbortController | null>(null)
 const inputEl = ref<HTMLInputElement | null>(null)
 const messagesEl = ref<HTMLElement | null>(null)
+const currentSessionId = ref<number | null>(null)
+const showSessionModal = ref(false)
 
 function now(): string {
   return new Date().toLocaleTimeString('vi-VN', { hour12: false })
@@ -134,6 +155,10 @@ function roleColor(role: string): string {
   if (role === 'agent') return 'text-cyber-accent'
   if (role === 'system') return 'text-[#888888]'
   return 'text-[#888888]'
+}
+
+function renderMarkdown(content: string): string {
+  return DOMPurify.sanitize(marked.parse(content) as string)
 }
 
 async function scrollToBottom() {
@@ -154,6 +179,13 @@ onMounted(async () => {
   } catch {
     ollamaOnline.value = false
   }
+  try {
+    const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+    if (res.ok) {
+      const session = await res.json() as { id: number }
+      currentSessionId.value = session.id
+    }
+  } catch { /* ignore */ }
 })
 
 watch(selectedModel, (val) => {
@@ -162,6 +194,24 @@ watch(selectedModel, (val) => {
 
 function stopStream() {
   abortController.value?.abort()
+}
+
+async function loadSession(id: number) {
+  currentSessionId.value = id
+  messages.value = [{ role: 'system', content: t('chat.system.init'), timestamp: now() }]
+  try {
+    const res = await fetch(`/api/sessions/${id}/messages`)
+    if (res.ok) {
+      const history = await res.json() as Array<{ role: string; content: string; createdAt: string }>
+      for (const msg of history) {
+        messages.value.push({
+          role: msg.role as 'user' | 'agent',
+          content: msg.content,
+          timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+        })
+      }
+    }
+  } catch { /* ignore */ }
 }
 
 async function submit() {
@@ -194,7 +244,7 @@ async function submit() {
     const res = await fetch('/api/agent/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, model: selectedModel.value }),
+      body: JSON.stringify({ message: text, model: selectedModel.value, sessionId: currentSessionId.value }),
       signal: ctrl.signal,
     })
 
