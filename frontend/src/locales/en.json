@@ -47,5 +47,18 @@
   "settings.save": "Save",
   "settings.saved": "✓ Saved",
   "settings.version": "Version",
-  "settings.info": "INFO"
+  "settings.info": "INFO",
+
+  "files.header": "KNOWLEDGE BASE",
+  "files.dropzone": "Drop files or click to upload",
+  "files.filter": "Filter by name...",
+  "files.status.ready": "✓ ready",
+  "files.status.indexing": "⟳ indexing",
+  "files.status.error": "✗ error",
+  "files.delete": "Delete",
+  "files.empty": "No files yet",
+  "files.watch.title": "Codebase Watcher",
+  "files.watch.path": "Directory:",
+  "files.watch.btn": "Watch",
+  "files.watch.status": "● watching"
 }

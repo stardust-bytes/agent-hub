@@ -47,5 +47,18 @@
   "settings.save": "Lưu",
   "settings.saved": "✓ Đã lưu",
   "settings.version": "Phiên bản",
-  "settings.info": "THÔNG TIN"
+  "settings.info": "THÔNG TIN",
+
+  "files.header": "KIẾN THỨC",
+  "files.dropzone": "Thả file hoặc click để upload",
+  "files.filter": "Lọc theo tên...",
+  "files.status.ready": "✓ sẵn sàng",
+  "files.status.indexing": "⟳ đang index",
+  "files.status.error": "✗ lỗi",
+  "files.delete": "Xóa",
+  "files.empty": "Chưa có file nào",
+  "files.watch.title": "Codebase Watcher",
+  "files.watch.path": "Đường dẫn:",
+  "files.watch.btn": "Theo dõi",
+  "files.watch.status": "● đang theo dõi"
 }
