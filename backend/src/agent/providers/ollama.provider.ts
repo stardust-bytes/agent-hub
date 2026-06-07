@@ -6,6 +6,7 @@ import { ContextBuilderService, ToolDefinition } from '../services/context-build
 import { AgentRunState } from '../dto/agent-run-state';
 import { TasksService } from '../../tasks/tasks.service';
 import { KnowledgeService } from '../../knowledge/knowledge.service';
+import { SessionsService } from '../../sessions/sessions.service';
 
 const KB_NO_RESULTS = 'No relevant information found in knowledge base.';
 
@@ -16,6 +17,7 @@ export class OllamaProvider implements LLMProvider {
     private readonly contextBuilder: ContextBuilderService,
     private readonly tasksService: TasksService,
     private readonly knowledgeService: KnowledgeService,
+    private readonly sessionsService: SessionsService,
   ) {}
 
   async streamChat(
@@ -23,6 +25,7 @@ export class OllamaProvider implements LLMProvider {
     model: string,
     res: Response,
     signal: AbortSignal,
+    sessionId?: number,
   ): Promise<{ finalText: string }> {
     if (signal.aborted) return { finalText: '' };
 
@@ -66,6 +69,9 @@ export class OllamaProvider implements LLMProvider {
             case 'thinking':
               if (chunk.thinking) {
                 res.write(`data: ${JSON.stringify({ thinking: chunk.thinking })}\n\n`);
+                if (sessionId) {
+                  await this.sessionsService.saveMessage(sessionId, 'system', chunk.thinking);
+                }
               }
               break;
 
@@ -115,6 +121,11 @@ export class OllamaProvider implements LLMProvider {
           });
 
           res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
+          if (sessionId) {
+            await this.sessionsService.saveMessage(
+              sessionId, 'tool', `${name}(${JSON.stringify(args)})`, name, false,
+            );
+          }
 
           let result = '';
           try {
@@ -131,6 +142,9 @@ export class OllamaProvider implements LLMProvider {
           });
 
           res.write(`data: ${JSON.stringify({ toolResult: { name, result } })}\n\n`);
+          if (sessionId) {
+            await this.sessionsService.saveMessage(sessionId, 'tool', result, name, true);
+          }
         }
 
         const contextMessages = context.messages;
@@ -146,6 +160,9 @@ export class OllamaProvider implements LLMProvider {
           const stepName = tc.name;
           if (stepName === 'search_knowledge') {
             res.write(`data: ${JSON.stringify({ thinking: 'Synthesizing search results...' })}\n\n`);
+            if (sessionId) {
+              await this.sessionsService.saveMessage(sessionId, 'system', 'Synthesizing search results...');
+            }
             const kbResult = String(matchingStep?.result ?? '');
             if (kbResult === KB_NO_RESULTS) {
               let fileList = 'none indexed yet';

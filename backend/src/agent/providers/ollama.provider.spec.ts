@@ -4,6 +4,7 @@ import { LLMCallerService, StreamChunk } from '../services/llm-caller.service';
 import { ContextBuilderService } from '../services/context-builder.service';
 import { TasksService } from '../../tasks/tasks.service';
 import { KnowledgeService } from '../../knowledge/knowledge.service';
+import { SessionsService } from '../../sessions/sessions.service';
 import { OllamaMessage } from './llm-provider.interface';
 
 async function* makeStream(chunks: StreamChunk[]): AsyncGenerator<StreamChunk, void, unknown> {
@@ -42,6 +43,10 @@ describe('OllamaProvider', () => {
     findAll: jest.fn().mockResolvedValue([]),
   };
 
+  const mockSessionsService = {
+    saveMessage: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -50,6 +55,7 @@ describe('OllamaProvider', () => {
         { provide: ContextBuilderService, useValue: mockContextBuilder },
         { provide: TasksService, useValue: mockTasksService },
         { provide: KnowledgeService, useValue: mockKnowledgeService },
+        { provide: SessionsService, useValue: mockSessionsService },
       ],
     }).compile();
     provider = module.get(OllamaProvider);
@@ -228,6 +234,33 @@ describe('OllamaProvider', () => {
     expect(mockRes.write).toHaveBeenCalledWith(
       expect.stringContaining('Deleted 3'),
     );
+  });
+
+  it('saves tool call and result messages during execution', async () => {
+    mockTasksService.findOne.mockResolvedValue({
+      id: 10, title: 'Test', status: 'TODO', priority: 0, description: null, dueDate: null,
+    });
+
+    mockLLMCaller.streamChat.mockReturnValue(makeStream([
+      {
+        type: 'tool_call',
+        toolCall: { name: 'get_task', arguments: { id: 10 } },
+      },
+      { type: 'done' },
+    ]));
+
+    const mockRes = { write: jest.fn() };
+    const signal = new AbortController().signal;
+
+    await provider.streamChat(
+      [{ role: 'user', content: 'show task 10' }],
+      'llama3.2',
+      mockRes as any,
+      signal,
+      1,
+    );
+
+    expect(mockSessionsService.saveMessage).toHaveBeenCalled();
   });
 
   it('handles search_knowledge results', async () => {
