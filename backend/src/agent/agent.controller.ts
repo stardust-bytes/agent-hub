@@ -21,7 +21,12 @@ export class AgentController {
     const ctrl = new AbortController();
     req.on('close', () => ctrl.abort());
 
-    await this.agentService.streamChat(dto.message, dto.model ?? 'llama3.2', res, ctrl.signal);
-    res.end();
+    try {
+      await this.agentService.streamChat(dto.message, dto.model ?? 'llama3.2', res, ctrl.signal);
+    } catch {
+      res.write('data: {"error":"internal_error"}\n\n');
+    } finally {
+      res.end();
+    }
   }
 }
