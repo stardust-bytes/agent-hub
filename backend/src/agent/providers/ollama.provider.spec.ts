@@ -33,6 +33,8 @@ describe('OllamaProvider', () => {
     create: jest.fn(),
     update: jest.fn(),
     findAll: jest.fn(),
+    findOne: jest.fn(),
+    removeMany: jest.fn(),
   };
 
   const mockKnowledgeService = {
@@ -174,6 +176,58 @@ describe('OllamaProvider', () => {
     expect(lastResult).toContain('Task A');
     expect(lastResult).not.toContain('Task B');
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
+  });
+
+  it('get_task returns task details', async () => {
+    mockTasksService.findOne.mockResolvedValue({
+      id: 5, title: 'My Task', status: 'TODO', priority: 1, description: 'A test task', dueDate: null,
+    });
+
+    mockLLMCaller.streamChat.mockReturnValue(makeStream([
+      {
+        type: 'tool_call',
+        toolCall: { name: 'get_task', arguments: { id: 5 } },
+      },
+      { type: 'done' },
+    ]));
+
+    const mockRes = { write: jest.fn() };
+    const signal = new AbortController().signal;
+
+    await provider.streamChat([{ role: 'user', content: 'show task 5' }], 'llama3.2', mockRes as any, signal);
+
+    expect(mockTasksService.findOne).toHaveBeenCalledWith(5);
+    expect(mockRes.write).toHaveBeenCalledWith(
+      expect.stringContaining('"toolResult"'),
+    );
+    expect(mockRes.write).toHaveBeenCalledWith(
+      expect.stringContaining('#5'),
+    );
+    expect(mockRes.write).toHaveBeenCalledWith(
+      expect.stringContaining('My Task'),
+    );
+  });
+
+  it('delete_tasks deletes multiple tasks', async () => {
+    mockTasksService.removeMany.mockResolvedValue(3);
+
+    mockLLMCaller.streamChat.mockReturnValue(makeStream([
+      {
+        type: 'tool_call',
+        toolCall: { name: 'delete_tasks', arguments: { ids: [1, 2, 3] } },
+      },
+      { type: 'done' },
+    ]));
+
+    const mockRes = { write: jest.fn() };
+    const signal = new AbortController().signal;
+
+    await provider.streamChat([{ role: 'user', content: 'delete tasks 1,2,3' }], 'llama3.2', mockRes as any, signal);
+
+    expect(mockTasksService.removeMany).toHaveBeenCalledWith([1, 2, 3]);
+    expect(mockRes.write).toHaveBeenCalledWith(
+      expect.stringContaining('Deleted 3'),
+    );
   });
 
   it('handles search_knowledge results', async () => {

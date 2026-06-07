@@ -198,10 +198,13 @@ export class OllamaProvider implements LLMProvider {
       }
       case 'update_task': {
         const task = await this.tasksService.update(args.id as number, {
+          title: args.title as string | undefined,
+          description: args.description as string | undefined,
           status: args.status as string | undefined,
           priority: args.priority as number | undefined,
+          dueDate: args.dueDate as string | undefined,
         });
-        return `Task #${task.id} updated`;
+        return `Task #${task.id} updated: "${task.title}" [${task.status}]`;
       }
       case 'list_tasks': {
         const tasks = await this.tasksService.findAll();
@@ -212,6 +215,15 @@ export class OllamaProvider implements LLMProvider {
         return filtered.map(t =>
           `#${t.id} ${t.title} [${t.status}] (priority: ${t.priority})`
         ).join('\n');
+      }
+      case 'get_task': {
+        const task = await this.tasksService.findOne(args.id as number);
+        return `Task #${task.id}: "${task.title}" [${task.status}] priority=${task.priority} description="${task.description ?? ''}" due=${task.dueDate ?? ''}`;
+      }
+      case 'delete_tasks': {
+        const ids = args.ids as number[];
+        const count = await this.tasksService.removeMany(ids);
+        return `Deleted ${count} task(s): #${ids.join(', #')}`;
       }
       case 'search_knowledge': {
         const chunks = await this.knowledgeService.search(args.query as string);
