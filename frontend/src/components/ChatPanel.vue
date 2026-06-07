@@ -206,11 +206,14 @@ function stopStream() {
 
 async function loadSession(id: number) {
   currentSessionId.value = id
-  messages.value = [{ role: 'system', content: t('chat.system.init'), timestamp: now() }]
+  messages.value = []
   try {
     const res = await fetch(`/api/sessions/${id}/messages`)
     if (res.ok) {
       const history = await res.json() as Array<{ role: string; content: string; createdAt: string; toolName?: string; isResult?: boolean }>
+      if (history.length === 0) {
+        messages.value.push({ role: 'system', content: t('chat.system.init'), timestamp: now() })
+      }
       for (const msg of history) {
         if (msg.toolName != null) {
           messages.value.push({
