@@ -19,7 +19,7 @@ describe('SettingsController', () => {
   });
 
   it('getAll returns settings from service', async () => {
-    const expected = { ollama: { baseUrl: 'http://localhost:11434', defaultModel: 'llama3.2' } };
+    const expected = {};
     mockService.findAll.mockResolvedValue(expected);
     const result = await controller.getAll();
     expect(result).toEqual(expected);

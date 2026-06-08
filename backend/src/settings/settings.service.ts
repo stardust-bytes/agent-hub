@@ -5,10 +5,8 @@ import { PrismaService } from '../prisma/prisma.service';
 export class SettingsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<{ ollama: { baseUrl: string; defaultModel: string } }> {
-    const baseUrl = await this.get('ollama.baseUrl', 'http://localhost:11434');
-    const defaultModel = await this.get('ollama.defaultModel', 'llama3.2');
-    return { ollama: { baseUrl, defaultModel } };
+  async findAll(): Promise<Record<string, never>> {
+    return {};
   }
 
   async get(key: string, fallback: string): Promise<string> {
