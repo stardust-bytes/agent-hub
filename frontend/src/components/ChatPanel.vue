@@ -85,7 +85,7 @@
         <div class="flex items-center justify-between pt-2">
           <div class="flex items-center gap-2">
             <ModelSelector
-              v-model="selectedModel"
+              v-model="selectedModelId"
               :models="availableModels"
               :disabled="streaming"
             />
@@ -130,6 +130,13 @@ interface Message {
   isResult?: boolean
 }
 
+interface ProviderModelFlat {
+  id: number
+  name: string
+  providerName: string
+  providerId: number
+}
+
 const { t } = useI18n()
 
 const messages = ref<Message[]>([
@@ -137,19 +144,14 @@ const messages = ref<Message[]>([
 ])
 const input = ref('')
 const streaming = ref(false)
-const selectedModel = ref(localStorage.getItem('workspace.model') ?? 'llama3.2')
-const availableModels = ref<string[]>([])
-const ollamaOnline = ref(true)
+const selectedModelId = ref<number | null>(null)
+const availableModels = ref<ProviderModelFlat[]>([])
 const abortController = ref<AbortController | null>(null)
 const inputEl = ref<HTMLInputElement | null>(null)
 const messagesEl = ref<HTMLElement | null>(null)
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
 const agentMode = ref(true)
-
-const emit = defineEmits<{
-  (e: 'update:ollamaOnline', value: boolean): void
-}>()
 
 function now(): string {
   return new Date().toLocaleTimeString('vi-VN', { hour12: false })
@@ -181,23 +183,21 @@ async function scrollToBottom() {
 onMounted(async () => {
   inputEl.value?.focus()
   try {
-    const res = await fetch('/api/ollama/models')
+    const res = await fetch('/api/providers/models')
     if (!res.ok) throw new Error('fetch failed')
-    const models = (await res.json()) as string[]
+    const models = (await res.json()) as ProviderModelFlat[]
     availableModels.value = models
-    emit('update:ollamaOnline', true)
-    if (models.length > 0 && !models.includes(selectedModel.value)) {
-      selectedModel.value = models[0]
+    if (models.length > 0) {
+      const savedId = Number(localStorage.getItem('workspace.modelId'))
+      selectedModelId.value = models.find(m => m.id === savedId)?.id ?? models[0].id
     }
   } catch {
-    ollamaOnline.value = false
-    emit('update:ollamaOnline', false)
-    availableModels.value = [selectedModel.value]
+    availableModels.value = []
   }
 })
 
-watch(selectedModel, (val) => {
-  localStorage.setItem('workspace.model', val)
+watch(selectedModelId, (val) => {
+  if (val !== null) localStorage.setItem('workspace.modelId', String(val))
 })
 
 function stopStream() {
@@ -244,7 +244,7 @@ async function loadSession(id: number) {
 
 async function submit() {
   const text = input.value.trim()
-  if (!text || streaming.value) return
+  if (!text || streaming.value || selectedModelId.value === null) return
   if (currentSessionId.value === null) {
     try {
       const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
@@ -287,7 +287,7 @@ async function submit() {
     const res = await fetch('/api/agent/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, model: selectedModel.value, sessionId: currentSessionId.value, mode: agentMode.value ? 'agent' : 'chat' }),
+      body: JSON.stringify({ message: text, providerModelId: selectedModelId.value, sessionId: currentSessionId.value, mode: agentMode.value ? 'agent' : 'chat' }),
       signal: ctrl.signal,
     })
 
