@@ -2,14 +2,14 @@
 <template>
   <div class="absolute right-0 top-5 z-20 bg-cyber-dark min-w-[128px]">
     <div class="px-2 py-1.5">
-      <div class="text-[0.625rem] text-cyber-muted font-mono mb-1">{{ t('tasks.filter.label') }}</div>
+      <div class="text-sm text-cyber-muted font-mono mb-1">{{ t('tasks.filter.label') }}</div>
       <div class="flex gap-1">
         <button
           v-for="p in PRIORITIES"
           :key="p.value"
           @click="$emit('update-priority', taskId, p.value)"
           :class="[
-            'text-[9px] px-1.5 py-0.5 font-mono transition-colors duration-150',
+            'text-sm px-1.5 py-0.5 font-mono transition-colors duration-150',
             p.value === currentPriority ? p.activeClass : p.inactiveClass,
           ]"
         >{{ t(p.labelKey) }}</button>
@@ -17,7 +17,7 @@
     </div>
     <button
       @click="onDelete"
-      class="w-full text-left px-2 py-1.5 text-xs font-mono text-red-400/70 hover:text-red-400 hover:bg-red-400/5 transition-colors duration-150"
+      class="w-full text-left px-2 py-1.5 text-sm font-mono text-red-400/70 hover:text-red-400 hover:bg-red-400/5 transition-colors duration-150"
     >{{ t('tasks.menu.delete') }}</button>
   </div>
 </template>

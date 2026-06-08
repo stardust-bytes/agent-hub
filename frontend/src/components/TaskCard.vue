@@ -5,22 +5,22 @@
     :class="cardBgClass(task.priority)"
   >
     <div class="flex items-start justify-between gap-1">
-      <span class="text-cyber-text text-xs leading-snug flex-1 font-mono">{{ task.title }}</span>
+      <span class="text-cyber-text text-sm leading-snug flex-1 font-mono">{{ task.title }}</span>
       <button
         @click.stop="menuOpen = !menuOpen"
         class="opacity-0 group-hover:opacity-100 text-cyber-accent/40 text-sm font-mono hover:text-cyber-accent/70 shrink-0 leading-none transition-colors duration-150"
       >···</button>
     </div>
 
-    <p v-if="task.description" class="text-cyber-muted/60 text-[0.5625rem] mt-1 truncate font-mono">
+    <p v-if="task.description" class="text-cyber-muted/60 text-sm mt-1 truncate font-mono">
       {{ task.description }}
     </p>
 
     <div class="flex items-center gap-1.5 mt-1.5">
-      <span :class="['text-[0.5625rem] px-1.5 py-0.5 font-mono', priorityClass(task.priority)]">
+      <span :class="['text-sm px-1.5 py-0.5 font-mono', priorityClass(task.priority)]">
         {{ priorityLabel(task.priority) }}
       </span>
-      <span v-if="task.dueDate" class="text-[0.5625rem] text-cyber-muted/60 font-mono">
+      <span v-if="task.dueDate" class="text-sm text-cyber-muted/60 font-mono">
         {{ formatDate(task.dueDate) }}
       </span>
     </div>

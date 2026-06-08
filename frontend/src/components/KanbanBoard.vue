@@ -7,10 +7,10 @@
       class="flex-1 flex flex-col min-w-0"
     >
       <div :class="['px-2 py-2 flex items-center gap-2 shrink-0', col.headerBgClass]">
-        <span :class="['text-[10px] tracking-widest font-mono uppercase', col.headerClass]">
+        <span :class="['text-sm tracking-widest font-mono uppercase', col.headerClass]">
           {{ t(col.labelKey) }}
         </span>
-        <span class="text-[9px] bg-cyber-accent/10 text-cyber-accent/50 px-1.5 rounded font-mono">
+        <span class="text-sm bg-cyber-accent/10 text-cyber-accent/50 px-1.5 rounded font-mono">
           {{ visibleCount(col.key) }}
         </span>
       </div>
@@ -41,14 +41,14 @@
             :placeholder="t('tasks.add.placeholder')"
             @keydown.escape="addingTask = false; newTaskTitle = ''"
             @blur="onBlurNewTask"
-            class="flex-1 bg-cyber-dark px-2 py-1 text-[0.6875rem] font-mono text-cyber-text placeholder-cyber-muted/40 outline-none"
+            class="flex-1 bg-cyber-dark px-2 py-1 text-sm font-mono text-cyber-text placeholder-cyber-muted/40 outline-none"
             autofocus
           />
         </form>
         <button
           v-else
           @click="addingTask = true"
-           class="w-full text-[0.625rem] font-mono text-cyber-muted bg-cyber-dark px-2 py-1.5 hover:text-cyber-accent transition-colors duration-150 text-left"
+           class="w-full text-sm font-mono text-cyber-muted bg-cyber-dark px-2 py-1.5 hover:text-cyber-accent transition-colors duration-150 text-left"
         >{{ t('tasks.add') }}</button>
       </div>
     </div>
