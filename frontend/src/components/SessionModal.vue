@@ -2,15 +2,15 @@
   <BaseModal v-model="show" closable max-height="480px" @update:model-value="onClose">
     <template #header>
       <div class="flex items-center gap-2">
-        <span class="text-cyber-accent text-xs font-mono tracking-widest">{{ t('sessions.header') }}</span>
+        <span class="text-cyber-accent text-sm font-mono tracking-widest">{{ t('sessions.header') }}</span>
         <button
           @click="createSession"
-          class="text-cyber-accent text-xs font-mono px-2 py-0.5 bg-cyber-accent/15 hover:bg-cyber-accent/25 transition-colors duration-150"
+          class="text-cyber-accent text-sm font-mono px-2 py-0.5 bg-cyber-accent/15 hover:bg-cyber-accent/25 transition-colors duration-150"
         >{{ t('sessions.new') }}</button>
       </div>
     </template>
 
-    <div v-if="sessions.length === 0" class="px-3 py-4 text-xs text-cyber-accent/40 font-mono">
+    <div v-if="sessions.length === 0" class="px-3 py-4 text-sm text-cyber-accent/40 font-mono">
       {{ t('sessions.empty') }}
     </div>
     <div
@@ -23,14 +23,14 @@
       @click="selectSession(s.id)"
     >
       <div class="min-w-0 flex-1">
-        <div class="text-xs font-mono text-slate-100 truncate">{{ s.title }}</div>
-        <div class="text-[10px] font-mono text-cyber-accent/40 mt-0.5">
+        <div class="text-sm font-mono text-slate-100 truncate">{{ s.title }}</div>
+        <div class="text-sm font-mono text-cyber-accent/40 mt-0.5">
           {{ formatDate(s.createdAt) }} · {{ t('sessions.messages', { n: s._count.messages }) }}
         </div>
       </div>
       <button
         @click.stop="deleteSession(s.id)"
-        class="text-cyber-accent/30 text-xs font-mono ml-2 shrink-0 transition-colors duration-150 hover:text-red-400"
+        class="text-cyber-accent/30 text-sm font-mono ml-2 shrink-0 transition-colors duration-150 hover:text-red-400"
       >✕</button>
     </div>
   </BaseModal>

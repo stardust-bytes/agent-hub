@@ -7,34 +7,34 @@
         <!-- Thinking block -->
         <div v-if="msg.role === 'system' && msg.content === '⟳ thinking...' || msg.content === '⟳ đang nghĩ...'"
           class="border-l-2 border-cyber-accent/30 pl-3 py-1">
-          <div class="text-[0.6875rem] text-cyber-accent/60 font-mono">⟳ {{ msg.content.replace('⟳ ', '') }}</div>
+          <div class="text-sm text-cyber-accent/60 font-mono">⟳ {{ msg.content.replace('⟳ ', '') }}</div>
         </div>
 
         <!-- Tool call block -->
         <div v-else-if="msg.role === 'tool' && !msg.isResult"
           class="border-l-2 border-cyber-orange/50 pl-3 py-1.5">
-          <div class="text-[0.6875rem] text-cyber-orange font-mono mb-0.5">[⚙] {{ msg.content }}</div>
+          <div class="text-sm text-cyber-orange font-mono mb-0.5">[⚙] {{ msg.content }}</div>
         </div>
 
         <!-- Tool result block -->
         <div v-else-if="msg.role === 'tool' && msg.isResult"
           class="border-l-2 border-cyber-green/50 pl-3 py-1.5">
-          <div class="text-[0.6875rem] text-cyber-green font-mono">{{ msg.content }}</div>
+          <div class="text-sm text-cyber-green font-mono">{{ msg.content }}</div>
         </div>
 
         <!-- Agent answer block -->
         <div v-else-if="msg.role === 'agent'"
           class="border-l-2 border-cyber-accent/80 pl-3 py-1">
-          <div class="text-[0.6875rem] text-cyber-accent/80 mb-0.5 font-mono">
+          <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">
             <HiChevronRight class="w-3 h-3 inline" /> {{ rolePrefix(msg.role) }} · {{ msg.timestamp }}
           </div>
           <div
             v-if="msg.typing"
-            class="text-[0.6875rem] leading-relaxed break-words text-cyber-text"
+            class="text-sm leading-relaxed break-words text-cyber-text"
           >{{ msg.content }}</div>
           <div
             v-else
-            class="text-[0.6875rem] leading-relaxed break-words text-cyber-text markdown-body"
+            class="text-sm leading-relaxed break-words text-cyber-text markdown-body"
             v-html="renderMarkdown(msg.content)"
           />
         </div>
@@ -42,14 +42,14 @@
         <!-- User message block -->
         <div v-else-if="msg.role === 'user'"
           class="border-l-2 border-cyber-accent/80 pl-3 py-1">
-          <div class="text-[0.6875rem] text-cyber-accent/80 mb-0.5 font-mono">{{ rolePrefix(msg.role) }} · {{ msg.timestamp }}</div>
-          <div class="text-[0.6875rem] leading-relaxed break-words text-cyber-text">{{ msg.content }}</div>
+          <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">{{ rolePrefix(msg.role) }} · {{ msg.timestamp }}</div>
+          <div class="text-sm leading-relaxed break-words text-cyber-text">{{ msg.content }}</div>
         </div>
 
         <!-- System message (other) -->
         <div v-else-if="msg.role === 'system'"
           class="pl-3 py-0.5">
-          <div class="text-[0.6875rem] text-cyber-muted font-mono">{{ msg.content }}</div>
+          <div class="text-sm text-cyber-muted font-mono">{{ msg.content }}</div>
         </div>
 
       </div>
@@ -69,7 +69,7 @@
             <input
               ref="inputEl"
               v-model="input"
-              class="flex-1 bg-transparent text-cyber-text text-xs outline-none font-mono placeholder-cyber-muted/40 caret-white"
+              class="flex-1 bg-transparent text-cyber-text text-sm outline-none font-mono placeholder-cyber-muted/40 caret-white"
               :placeholder="t('chat.placeholder')"
               :disabled="streaming"
               autocomplete="off"
@@ -78,7 +78,7 @@
             <button
               v-if="streaming"
               @click="stopStream"
-              class="text-cyber-accent/80 text-xs font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent shrink-0"
+              class="text-cyber-accent/80 text-sm font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent shrink-0"
             >{{ t('chat.stop') }}</button>
           </form>
         </div>
@@ -93,18 +93,18 @@
               <button
                 @click="agentMode = true"
                 :class="agentMode ? 'bg-cyber-accent/20 text-cyber-accent' : 'text-cyber-muted'"
-                class="px-2 py-0.5 text-[10px] font-mono transition-colors duration-150"
+                class="px-2 py-0.5 text-sm font-mono transition-colors duration-150"
               >{{ t('chat.mode.agent') }}</button>
               <button
                 @click="agentMode = false"
                 :class="!agentMode ? 'bg-cyber-accent/20 text-cyber-accent' : 'text-cyber-muted'"
-                class="px-2 py-0.5 text-[10px] font-mono transition-colors duration-150"
+                class="px-2 py-0.5 text-sm font-mono transition-colors duration-150"
               >{{ t('chat.mode.chat') }}</button>
             </div>
           </div>
           <button
             @click="showSessionModal = true"
-            class="text-cyber-accent/70 text-xs font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent"
+            class="text-cyber-accent/70 text-sm font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent"
           >{{ t('sessions.header') }}</button>
         </div>
       </div>
