@@ -4,7 +4,7 @@ Local-First AI Agent Workspace · Vue 3 SPA.
 
 ## What this is
 
-Single-page application with a 3-panel IDE layout: icon sidebar + chat panel (45%) + artifacts panel (flex-1). Served by Nginx on port 3000 in production, Vite dev server on port 5173 locally. Proxies `/api` requests to the NestJS backend on port 3001.
+Single-page application with a multi-panel IDE layout: icon sidebar + content panel + bottom tab bar (mobile). Served by Nginx on port 3000 in production, Vite dev server on port 5173 locally. Proxies `/api` requests to the NestJS backend on port 3001.
 
 ---
 
@@ -19,6 +19,9 @@ Single-page application with a 3-panel IDE layout: icon sidebar + chat panel (45
 | Type safety | TypeScript strict |
 | Sanitization | DOMPurify — required on every `v-html` binding |
 | Markdown | `marked` + `DOMPurify` via `renderMarkdown()` |
+| Icons | `vue-icons-plus/hi` (Hero Icons) |
+| Drag & drop | `vue-draggable-plus` (Kanban) |
+| WebSocket | `socket.io-client` (task real-time sync) |
 
 ---
 
@@ -29,11 +32,21 @@ Single-page application with a 3-panel IDE layout: icon sidebar + chat panel (45
 | `cyber-bg` | `#000000` | Page background |
 | `cyber-dark` | `#111111` | Panel backgrounds, cards |
 | `cyber-status` | `#161616` | Status bar |
+| `cyber-modal-bg` | `#0a0e1a` | Modal backgrounds |
 | `cyber-accent` | `#3B82F6` | Primary accent (blue), borders, interactive elements |
 | `cyber-green` | `#22C55E` | Success, connected state |
 | `cyber-blue` | `#3B82F6` | Alias for accent |
+| `cyber-muted` | `#888888` | Dimmed/secondary text |
+| `cyber-text` | `#EEEEEE` | Primary text |
+| `cyber-orange` | `#FFA500` | Warning, processing state |
+| `cyber-cyan` | `#00d4ff` | Secondary accent, headings |
+| `cyber-link` | `#58a6ff` | Links |
+| `cyber-code-bg` | `#0d1117` | Code block background |
+| `cyber-code-border` | `#30363d` | Code block borders |
+| `cyber-code-text` | `#e6edf3` | Code text |
+| `cyber-row` | `#161b22` | Table rows |
 
-**Font:** `font-mono` everywhere. Stack: JetBrains Mono → Fira Code → Courier New.
+**Font:** `font-mono` everywhere. Stack: JetBrains Mono → Fira Code → Courier New (via Google Fonts).
 
 **Border radius:** Max `rounded` (4px). Never `rounded-lg` or larger.
 
@@ -46,15 +59,26 @@ Single-page application with a 3-panel IDE layout: icon sidebar + chat panel (45
 ```
 App.vue
 └── AppShell.vue
-    ├── SidebarNav.vue       — 52px icon column, navigation + VI/EN toggle + health dot
-    ├── ChatPanel.vue        — 45% width, message history + SSE streaming + input
-    ├── ArtifactsPanel.vue   — flex-1, displays last agent reply
-    ├── TasksView.vue        — full-width when activeView === 'tasks'
-    ├── SettingsView.vue     — full-width when activeView === 'settings'
-    ├── FilesView.vue        — full-width when activeView === 'files'
-    ├── SessionModal.vue     — session list modal (teleported to body)
-    ├── ModelSelector.vue    — Ollama model dropdown
+    ├── SidebarNav.vue       — 32px/52px icon column (desktop), navigation + VI/EN toggle
+    ├── [Content area]
+    │   ├── ChatPanel.vue        — message history + SSE streaming + input (default view)
+    │   ├── TasksView.vue        — priority filter bar + KanbanBoard
+    │   ├── FilesView.vue        — knowledge base upload + codebase watcher
+    │   ├── SettingsView.vue     — health check + version info
+    │   └── ProvidersView.vue    — LLM provider CRUD + model management
+    ├── BottomTabBar.vue     — mobile navigation (visible < sm)
     └── StatusBar.vue        — bottom bar: model, DB, WS status, clock
+
+KanbanBoard.vue              — drag-and-drop column layout, Socket.io real-time sync
+├── TaskCard.vue             — individual task card with priority indicator
+│   └── TaskCardMenu.vue     — priority picker + delete action
+
+SessionModal.vue             — session list modal (teleported, BaseModal wrapper)
+ModelSelector.vue            — model dropdown (uses BaseSelect)
+ProviderFormModal.vue        — create/edit provider form modal (uses BaseModal)
+
+BaseSelect.vue               — reusable styled select component
+BaseModal.vue                — reusable modal shell (Teleport, slots for header/body/footer)
 ```
 
 ---
@@ -74,13 +98,20 @@ src/
 └── components/
     ├── AppShell.vue
     ├── SidebarNav.vue
+    ├── BottomTabBar.vue
     ├── ChatPanel.vue
-    ├── ArtifactsPanel.vue
     ├── TasksView.vue
-    ├── SettingsView.vue
+    ├── KanbanBoard.vue
+    ├── TaskCard.vue
+    ├── TaskCardMenu.vue
     ├── FilesView.vue
+    ├── SettingsView.vue
+    ├── ProvidersView.vue
+    ├── ProviderFormModal.vue
     ├── SessionModal.vue
     ├── ModelSelector.vue
+    ├── BaseSelect.vue
+    ├── BaseModal.vue
     └── StatusBar.vue
 ```
 
@@ -88,7 +119,7 @@ src/
 
 ## ChatPanel.vue — SSE Event Handling
 
-The chat panel reads an SSE stream from `POST /api/agent/chat` and handles these event types:
+The chat panel reads an SSE stream from `POST /api/agent/chat` using the Fetch API `ReadableStream` reader and handles these event types:
 
 | Event | Frontend Handling |
 |---|---|
@@ -100,6 +131,10 @@ The chat panel reads an SSE stream from `POST /api/agent/chat` and handles these
 | `error` | Push error system message |
 
 **Message ordering:** Agent message is NOT created upfront — created lazily on first `token` event. This ensures tool call/result/thinking messages always appear BEFORE the agent response text.
+
+**Model selection:** Fetches available models from `GET /api/providers/models` (flat list with provider name). Selected model ID persists to `localStorage('workspace.modelId')`.
+
+**Mode toggle:** Agent mode (ReAct loop with tools) vs Chat mode (plain conversation).
 
 ---
 
@@ -137,3 +172,4 @@ npm run preview          # Preview production build
 4. **No shadows, no gradients.**
 5. **No `any` types** — TypeScript strict throughout.
 6. **i18n required** — all user-facing strings via `t('key')`.
+7. **Icons** — `vue-icons-plus/hi` (Hero Icons). No inline SVG.

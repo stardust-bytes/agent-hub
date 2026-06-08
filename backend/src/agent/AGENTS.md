@@ -4,8 +4,8 @@ AI agent integration module. Implements full ReAct loop with Ollama SSE streamin
 
 ## Responsibility
 
-- `AgentController` — exposes `POST /api/agent/chat` (SSE streaming endpoint).
-- `AgentService` — orchestrator: builds context via `ContextBuilderService`, calls `OllamaProvider`, persists messages via `SessionsService`.
+- `AgentController` — exposes `POST /api/agent/chat` (SSE streaming endpoint). Uses `@Res({ passthrough: false })` to directly write SSE events.
+- `AgentService` — orchestrator: resolves provider model via `ProvidersService`, builds context via `ContextBuilderService`, calls `OllamaProvider`, persists messages via `SessionsService`.
 - `OllamaProvider` — ReAct loop host: streams LLM via `LLMCallerService`, executes tools, emits SSE events (token/toolCall/toolResult/thinking/[DONE]).
 - `ContextBuilderService` — builds system prompt with tool definitions, loads chat history from Prisma.
 - `LLMCallerService` — LLM streaming abstraction: calls Ollama API, yields StreamChunk objects (token/tool_call/done/error).
@@ -21,11 +21,12 @@ agent/
 ├── agent.service.ts
 ├── agent.service.spec.ts
 ├── dto/
-│   ├── chat.dto.ts
+│   ├── chat.dto.ts           — message, providerModelId (Int), sessionId (Int), mode? ('agent'|'chat')
 │   ├── agent-run-state.ts     — execution tracking (steps, duration, iterations)
 │   └── agent-action.dto.ts    — text-based action parser (activate_skill, search_kb, respond)
 ├── services/
 │   ├── context-builder.service.ts  — builds LLM context with tool definitions + history
+│   ├── context-builder.service.spec.ts
 │   └── llm-caller.service.ts       — Ollama streaming + native tool calling
 └── providers/
     ├── llm-provider.interface.ts
@@ -39,7 +40,7 @@ agent/
 
 Request body:
 ```json
-{ "message": "string", "model": "string (optional)", "sessionId": "number" }
+{ "message": "string", "providerModelId": 1, "sessionId": 1, "mode": "agent" }
 ```
 
 Response: SSE stream (text/event-stream)
@@ -64,11 +65,12 @@ data: [DONE]
 
 ## ReAct Loop
 
-1. Build context (system prompt + tool definitions + chat history)
-2. Stream LLM response (native tool calling via Ollama API)
-3. If tool_calls present: execute each tool (create_task, update_task, list_tasks, search_knowledge)
-4. For search_knowledge: inject synthesis prompt and loop back to LLM
-5. No tool_calls: emit response tokens and end
+1. Resolve provider model from `ProvidersService` (get baseUrl + key + model name)
+2. Build context (system prompt + tool definitions + chat history)
+3. Stream LLM response (native tool calling via Ollama API)
+4. If tool_calls present: execute each tool (create_task, update_task, list_tasks, search_knowledge)
+5. For search_knowledge: inject synthesis prompt and loop back to LLM
+6. No tool_calls: emit response tokens and end
 
 Tools available: create_task, update_task, list_tasks, search_knowledge
 
@@ -77,6 +79,7 @@ Tools available: create_task, update_task, list_tasks, search_knowledge
 - **AgentRunState**: tracks step count, duration, step history for observability
 - **Lazy agent message**: frontend creates agent message on first `token` event to ensure correct ordering
 - **Tool execution via TasksService/KnowledgeService**: direct service injection (no adapter layer)
+- **Provider resolution**: `AgentService` resolves `providerModelId` → `ProviderModel` → provider config (baseUrl, key) at request start
 
 ## Dependencies
 
@@ -84,6 +87,7 @@ Tools available: create_task, update_task, list_tasks, search_knowledge
 - KnowledgeModule (RAG search)
 - SessionsModule (chat history CRUD)
 - SettingsService (Ollama base URL from global SettingsModule)
+- ProvidersModule (provider model resolution)
 
 ## Testing
 

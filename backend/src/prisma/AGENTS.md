@@ -64,6 +64,8 @@ model ChatMessage {
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   role      String
   content   String
+  toolName  String?
+  isResult  Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 
@@ -76,6 +78,25 @@ model Task {
   dueDate     DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+model Provider {
+  id        Int             @id @default(autoincrement())
+  name      String
+  type      String          @default("ollama")
+  baseUrl   String?
+  key       String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  models    ProviderModel[]
+}
+
+model ProviderModel {
+  id         Int      @id @default(autoincrement())
+  providerId Int
+  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name       String
+  createdAt  DateTime @default(now())
 }
 ```
 

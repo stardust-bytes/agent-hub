@@ -73,11 +73,21 @@ These rules apply to ALL tasks in this project. Claude must follow them strictly
 **Color Tokens — never use raw hex values in components, always use Tailwind custom classes:**
 | Token | Value | Usage |
 |---|---|---|
-| `cyber-bg` | `#0a0e1a` | Main background |
-| `cyber-dark` | `#060911` | Panel headers, sidebar, input bars |
-| `cyber-accent` | `#00d4ff` | Primary accent, active icons, borders |
-| `cyber-border` | `rgba(0,212,255,0.13)` | Subtle panel dividers |
-| `cyber-dim` | `rgba(0,212,255,0.33)` | Hover states, active borders |
+| `cyber-bg` | `#000000` | Main background |
+| `cyber-dark` | `#111111` | Panel headers, sidebar, input bars |
+| `cyber-status` | `#161616` | Status bar |
+| `cyber-modal-bg` | `#0a0e1a` | Modal backgrounds |
+| `cyber-accent` | `#3B82F6` | Primary accent (blue), active icons, borders |
+| `cyber-green` | `#22C55E` | Success, connected state |
+| `cyber-blue` | `#3B82F6` | Alias for accent |
+| `cyber-muted` | `#888888` | Dimmed/secondary text |
+| `cyber-orange` | `#FFA500` | Warning, processing state |
+| `cyber-cyan` | `#00d4ff` | Secondary accent, headings |
+| `cyber-link` | `#58a6ff` | Links |
+| `cyber-code-bg` | `#0d1117` | Code block background |
+| `cyber-code-border` | `#30363d` | Subtle panel dividers, code borders |
+| `cyber-code-text` | `#e6edf3` | Code text |
+| `cyber-row` | `#161b22` | Table rows |
 
 **Typography:**
 - ALL text in the UI uses `font-mono` (JetBrains Mono → Fira Code → Courier New fallback).
@@ -96,7 +106,7 @@ These rules apply to ALL tasks in this project. Claude must follow them strictly
 - No drop shadows (`shadow-*` classes are forbidden).
 - No gradients. Flat, dark surfaces only.
 - Allowed animations: `animate-blink` (cursor), typewriter via `setInterval`. No `transition` animations except `transition-colors duration-150` on interactive elements.
-- Icons in the sidebar: plain emoji or Unicode symbols only. No SVG icon libraries.
+- Icons: `vue-icons-plus/hi` (Hero Icons) throughout the UI. No inline SVG.
 
 **New components must:**
 1. Live in `frontend/src/components/`.
@@ -159,12 +169,21 @@ nav.chat          → "Chat" / "Trò chuyện"
 nav.tasks         → "Tasks" / "Nhiệm vụ"
 nav.files         → "Files" / "Tệp tin"
 nav.settings      → "Settings" / "Cài đặt"
+nav.providers     → "Providers" / "Providers"
 chat.placeholder  → "type a command or question_" / "nhập lệnh hoặc câu hỏi_"
-chat.system.init  → "Agent initialized..." / "Agent đã khởi động..."
+chat.system.init  → "Agent initialized. SQLite connected. Stub mode active." / "Agent đã khởi động. SQLite đã kết nối. Đang ở chế độ stub."
 chat.error        → "[error] ..." / "[lỗi] ..."
-artifacts.empty   → "◈ No artifacts yet" / "◈ Chưa có kết quả"
+chat.no_provider  → "No provider configured..." / "Chưa có provider..."
+chat.mode.agent   → "Agent" / "Agent"
+chat.mode.chat    → "Chat" / "Chat"
+chat.thinking     → "⟳ thinking..." / "⟳ đang nghĩ..."
 health.ok         → "Backend: ok · DB: connected" / "Backend: hoạt động · DB: đã kết nối"
 health.error      → "Backend unreachable" / "Không kết nối được backend"
+providers.*       → Full provider management i18n keys
+sessions.*        → Full session management i18n keys
+tasks.*           → Full kanban/task i18n keys
+files.*           → Full knowledge base i18n keys
+settings.*        → Full settings i18n keys
 ```
 
 **Date and number formats (Vietnamese locale):**

@@ -1,53 +1,80 @@
 # components/ — Agent Context
 
-All UI components for the AI Workspace. The layout is a 3-panel IDE: fixed icon sidebar + chat column (45%) + artifacts column (flex-1). Additional full-width views for tasks, settings, and files.
+All UI components for the AI Workspace. The layout is a multi-panel IDE: icon sidebar (desktop) + content column + bottom tab bar (mobile). Additional full-width views for tasks, settings, files, and providers.
 
 ## Component Map
 
 ```
 AppShell.vue              — layout coordinator, owns activeView state
-├── SidebarNav.vue        — 52px icon column, emits navigate events, health dot, VI/EN toggle
-├── ChatPanel.vue         — SSE streaming agent chat + message history + tool call display
-├── ArtifactsPanel.vue    — renders last agent reply (code blocks + prose markdown)
-├── TasksView.vue         — full-width kanban board (activeView === 'tasks')
-├── SettingsView.vue      — full-width settings panel (activeView === 'settings')
-├── FilesView.vue         — full-width knowledge base file manager (activeView === 'files')
-├── SessionModal.vue      — session list modal (teleported to body, session CRUD)
-├── ModelSelector.vue     — Ollama model dropdown
-└── StatusBar.vue         — bottom bar: model name, DB status, WS status, live clock
+├── SidebarNav.vue        — 32px icon column (desktop), emits navigate events
+├── [Content area]
+│   ├── ChatPanel.vue         — SSE streaming agent chat + message history + tool call display
+│   ├── TasksView.vue         — priority filter bar + KanbanBoard
+│   ├── KanbanBoard.vue       — drag-and-drop columns (TODO/PROCESSING/DONE/FAILED)
+│   │   ├── TaskCard.vue      — individual task card with priority highlight
+│   │   │   └── TaskCardMenu.vue — priority picker + delete action
+│   ├── FilesView.vue         — knowledge base upload + codebase watcher
+│   ├── SettingsView.vue      — health check + version info
+│   └── ProvidersView.vue     — LLM provider CRUD + model management
+├── BottomTabBar.vue     — mobile navigation (visible < sm)
+├── StatusBar.vue         — bottom bar: model name, DB status, WS status, live clock
+
+SessionModal.vue             — session list modal (teleported to body, session CRUD)
+├── BaseModal.vue            — reusable modal shell
+ModelSelector.vue            — model dropdown
+├── BaseSelect.vue           — reusable styled select
+ProviderFormModal.vue        — create/edit provider form
+├── BaseModal.vue
 ```
 
 ---
 
 ## AppShell.vue
 
-**Owns:** `activeView` (`'chat' | 'tasks' | 'files' | 'settings'`), `modelName`, `dbConnected`, `wsConnected`.
+**Owns:** `activeView` (`'chat' | 'tasks' | 'files' | 'settings' | 'providers'`), `dbConnected`, `wsConnected`.
+
+**Layout:** flex-col h-screen → flex flex-1 (SidebarNav + content) + BottomTabBar + StatusBar.
 
 **Conditional rendering:**
 - `activeView === 'chat'` → ChatPanel (default)
 - `activeView === 'tasks'` → TasksView
 - `activeView === 'settings'` → SettingsView
 - `activeView === 'files'` → FilesView
+- `activeView === 'providers'` → ProvidersView
 
 ---
 
 ## SidebarNav.vue
 
-**Props:** `activeView: 'chat' | 'tasks' | 'files'`
+**Props:** `activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers'`
 
-**Emits:** `navigate: [view: 'chat' | 'tasks' | 'files']`
+**Emits:** `navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers']`
 
-**Navigation:** Chat, Tasks, Files (icons from `vue-icons-plus/hi`), Settings (inactive).
+**Navigation:** Chat (HiChatAlt2), Tasks (HiClipboardList), Files (HiFolder), Providers (HiCog), Settings (HiCog — separate button below spacer).
 
-**Language toggle:** VI/EN at bottom — `toggleLang()`, persists to `localStorage('workspace.lang')`.
+**Language toggle:** VI/EN (via `useI18n` locale), persists to `localStorage('workspace.lang')`.
 
-**Health dot:** Polls `GET /api/health` on mount. Green when `status === 'ok'`, red otherwise.
+Visible on desktop only (`hidden sm:flex`, `w-32`).
+
+---
+
+## BottomTabBar.vue
+
+**Props:** `activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers'`
+
+**Emits:** `navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers']`
+
+Visible on mobile only (`flex sm:hidden`, `h-[3rem]`). Same navigation items as SidebarNav.
 
 ---
 
 ## ChatPanel.vue
 
-**Emits:** none (ArtifactsPanel reads from API directly)
+**Emits:** none
+
+**SSE streaming:** Uses Fetch API `ReadableStream` reader on `POST /api/agent/chat`. Body includes `{ message, providerModelId, sessionId, mode }`. AbortController for stopping streams.
+
+**Model loading:** Fetches from `GET /api/providers/models` on mount. Selects from `localStorage('workspace.modelId')`.
 
 **Message types:**
 | role | Display | Prefix |
@@ -58,37 +85,89 @@ AppShell.vue              — layout coordinator, owns activeView state
 | `tool` (result) | Raw result text, green | — |
 | `system` | Thinking indicator / errors, muted | `[hệ thống]` / `[system]` |
 
-**SSE streaming:** Reads `POST /api/agent/chat` SSE stream. Lazy agent message creation (created on first `token` event) ensures correct ordering: toolCall → toolResult → thinking → response tokens.
-
-**Stop stream:** `AbortController.abort()` on button click or client disconnect.
-
 **renderMarkdown:** `DOMPurify.sanitize(marked.parse(content))`. Styled via `.markdown-body` CSS.
+
+**Mode toggle:** Agent mode (ReAct loop with tools) vs Chat mode (plain conversation).
 
 ---
 
-## SessionModal.vue
+## KanbanBoard.vue
 
-**Props:** `modelValue: boolean`, `currentSessionId: number | null`.
+**Props:** `activeFilters: Set<number>`
 
-**Emits:** `update:modelValue`, `select(sessionId)`, `created(sessionId)`.
+**Emits:** `ws-status: [connected: boolean]`
 
-**Features:** Lists sessions (title, date, message count), create new, delete with confirm, select to switch. Teleported to `<body>`. Fetches session list on open.
+**Columns:** TODO, PROCESSING, DONE, FAILED. Drag-and-drop via `vue-draggable-plus`. WebSocket via `socket.io-client` (`/tasks` namespace) for real-time task:created/updated/deleted events.
+
+**Optimistic updates:** On drag, updates status optimistically; rolls back on PATCH failure.
+
+---
+
+## TaskCard.vue
+
+**Props:** `task: Task`
+
+**Emits:** `delete: [id]`, `update-priority: [id, priority]`
+
+Renders title, description (truncated), priority label, due date. Priority determines left border color (red=high, orange=medium, transparent=low).
+
+---
+
+## TaskCardMenu.vue (absolute-positioned dropdown)
+
+**Props:** `taskId: number`, `currentPriority: number`
+
+**Emits:** `delete`, `update-priority: [id, priority]`
+
+Three priority buttons (HIGH/MED/LOW) + delete action with confirmation.
+
+---
+
+## SessionModal.vue (teleported modal)
+
+**Props:** `modelValue: boolean`, `currentSessionId: number | null`
+
+**Emits:** `update:modelValue`, `select(sessionId)`, `created(sessionId)`
+
+Lists sessions (title, date, message count via `_count.messages`), create new, delete with confirm, select to switch. Fetches session list on open.
+
+---
+
+## ProvidersView.vue
+
+Fetches providers from `GET /api/providers`. Each provider is expandable to show models. Add/edit via ProviderFormModal. Add/delete models inline.
+
+---
+
+## ProviderFormModal.vue
+
+**Props:** `modelValue: boolean`, `editing: Provider | null`
+
+**Emits:** `update:modelValue`, `saved`
+
+Form fields: name, baseUrl (optional), key (optional, password field). POST to create or PATCH to update.
 
 ---
 
 ## ModelSelector.vue
 
-**Props:** `modelValue: string`, `models: string[]`, `disabled: boolean`.
+**Props:** `models: ProviderModelFlat[]`, `modelValue: number | null`, `disabled: boolean`
 
-**Emits:** `update:modelValue`.
+**Emits:** `update:modelValue: [value: number | null]`
 
-Fetches model list from `GET /api/ollama/models`. Shows "ollama offline" when unavailable.
+Renders BaseSelect with options formatted as `"{providerName} / {modelName}"`.
 
 ---
 
-## StatusBar.vue
+## FilesView.vue
 
-Bottom bar showing model name, DB connection status, WebSocket connection status, and live 24h clock.
+File upload zone (drag-and-drop + click), filter input, file list with status polling. Codebase watcher section.
+
+---
+
+## SettingsView.vue
+
+Shows version and health check status (pings `GET /api/health` on mount).
 
 ---
 
@@ -107,3 +186,14 @@ Bottom bar showing model name, DB connection status, WebSocket connection status
 ## i18n in Components
 
 All components use `useI18n()`. Never hardcode user-facing strings. Always `t('key')`.
+
+## i18n Keys Added Beyond Template
+
+| Key | Purpose |
+|---|---|
+| `nav.providers` | Provider nav label |
+| `providers.*` | Provider management UI |
+| `chat.no_provider` | Warning when no model configured |
+| `chat.mode.agent` | Agent mode toggle |
+| `chat.mode.chat` | Chat mode toggle |
+| `chat.thinking` | Thinking indicator text |
