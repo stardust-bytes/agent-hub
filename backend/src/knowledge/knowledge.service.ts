@@ -11,6 +11,7 @@ interface ChunkRecord {
   fileId: number;
   filename: string;
   chunkIndex: number;
+  section: string;
   text: string;
   vector: number[];
 }
@@ -37,9 +38,18 @@ export class KnowledgeService {
     const tables = await db.tableNames();
     if (tables.includes('chunks')) {
       this.table = await db.openTable('chunks');
+      try {
+        await this.table.add([{ id: '_schema_test', fileId: -1, filename: '', chunkIndex: 0, section: '', text: '', vector: new Array(768).fill(0) }]);
+        await this.table.delete('fileId = -1');
+      } catch {
+        await db.dropTable('chunks');
+        this.table = await db.createTable('chunks', [
+          { id: 'init', fileId: 0, filename: '', chunkIndex: 0, section: '', text: '', vector: new Array(768).fill(0) },
+        ], { mode: 'overwrite' });
+      }
     } else {
       this.table = await db.createTable('chunks', [
-        { id: 'init', fileId: 0, filename: '', chunkIndex: 0, text: '', vector: new Array(768).fill(0) },
+        { id: 'init', fileId: 0, filename: '', chunkIndex: 0, section: '', text: '', vector: new Array(768).fill(0) },
       ], { mode: 'overwrite' });
     }
   }
@@ -101,17 +111,18 @@ export class KnowledgeService {
         return;
       }
 
-      const chunks = this.chunkText(content, 512, 50);
+      const rawChunks = this.chunkText(content, 512, 50);
       const records: ChunkRecord[] = [];
 
-      for (let i = 0; i < chunks.length; i++) {
-        const vector = await this.embed(chunks[i]);
+      for (let i = 0; i < rawChunks.length; i++) {
+        const vector = await this.embed(rawChunks[i].text);
         records.push({
           id: `${file.id}-${i}`,
           fileId: file.id,
           filename: file.filename,
           chunkIndex: i,
-          text: chunks[i],
+          section: rawChunks[i].section,
+          text: rawChunks[i].text,
           vector,
         });
       }
@@ -121,7 +132,7 @@ export class KnowledgeService {
 
       await this.prisma.knowledgeFile.update({
         where: { id },
-        data: { status: 'ready', chunkCount: chunks.length },
+        data: { status: 'ready', chunkCount: rawChunks.length },
       });
     } catch {
       await this.updateStatus(id, 'error');
@@ -133,6 +144,13 @@ export class KnowledgeService {
       where: { id },
       data: { status, ...(chunkCount !== undefined ? { chunkCount } : {}) },
     });
+  }
+
+  async reindexAll() {
+    const files = await this.prisma.knowledgeFile.findMany({ where: { status: 'ready' } });
+    for (const file of files) {
+      await this.processFile(file.id);
+    }
   }
 
   async remove(id: number) {
@@ -148,13 +166,14 @@ export class KnowledgeService {
     return this.prisma.knowledgeFile.delete({ where: { id } });
   }
 
-  async search(query: string): Promise<Array<{ filename: string; chunkIndex: number; text: string }>> {
+  async search(query: string): Promise<Array<{ filename: string; section: string; chunkIndex: number; text: string }>> {
     try {
       const vector = await this.embed(query);
       await this.ensureTable();
       const results = await this.table.search(vector).limit(5).toArray() as ChunkRecord[];
       return results.filter(r => r.fileId > 0).map(r => ({
         filename: r.filename,
+        section: r.section,
         chunkIndex: r.chunkIndex,
         text: r.text,
       }));
@@ -166,8 +185,19 @@ export class KnowledgeService {
   private async extractText(filepath: string, mimeType: string): Promise<string | null> {
     const ext = path.extname(filepath).toLowerCase();
     if (ext === '.docx') {
-      const result = await mammoth.extractRawText({ path: filepath });
-      return result.value || null;
+      const result = await mammoth.convertToHtml({ path: filepath });
+      const html = result.value || '';
+      return html
+        .replace(/<h1[^>]*>/gi, '# ')
+        .replace(/<h2[^>]*>/gi, '## ')
+        .replace(/<h3[^>]*>/gi, '### ')
+        .replace(/<\/h[1-3]>/gi, '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#x27;/g, "'");
     }
     if (ext === '.pdf') {
       try {
@@ -180,7 +210,78 @@ export class KnowledgeService {
     try { return fs.readFileSync(filepath, 'utf-8'); } catch { return null; }
   }
 
-  private chunkText(text: string, chunkSize: number, overlap: number): string[] {
+  private parseHeadings(text: string, _mimeType: string): Array<{ number: string; title: string; startPos: number }> {
+    const headings: Array<{ number: string; title: string; startPos: number }> = []
+    const lines = text.split('\n')
+    let headingCount = 0
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim()
+      if (!line) continue
+
+      let sectionNum = ''
+
+      const mdMatch = line.match(/^(#{1,6})\s+(.+)/)
+      if (mdMatch) {
+        sectionNum = mdMatch[2].match(/^(\d+(?:\.\d+)*)[.\s)]/)?.[1]
+          || mdMatch[2].match(/^([IVXLCDM]+)[.\s)]/)?.[1]
+          || `${headingCount + 1}`
+        headings.push({ number: sectionNum, title: mdMatch[2], startPos: lines.slice(0, i).join('\n').length })
+        headingCount++
+        continue
+      }
+
+      const patternMatch = line.match(/^(I{1,3}|IV|V|VI{0,3}|IX|X|[1-9]\d*)(?:\.([1-9]\d*))*[.\s)]+(.+)/)
+      if (patternMatch) {
+        sectionNum = patternMatch[1]
+        if (patternMatch[2]) sectionNum += '.' + patternMatch[2]
+        headings.push({ number: sectionNum, title: patternMatch[3], startPos: lines.slice(0, i).join('\n').length })
+        headingCount++
+        continue
+      }
+
+      const chapterMatch = line.match(/^(Chapter|Section|Bài|Chương)\s+([\dIVXLCDM]+)[.:\s]+(.+)/i)
+      if (chapterMatch) {
+        sectionNum = chapterMatch[2]
+        headings.push({ number: sectionNum, title: chapterMatch[3], startPos: lines.slice(0, i).join('\n').length })
+        headingCount++
+        continue
+      }
+    }
+
+    return headings
+  }
+
+  private chunkText(text: string, chunkSize: number, overlap: number): Array<{ text: string; section: string }> {
+    try {
+      const sections = this.parseHeadings(text, '');
+      if (sections.length === 0) {
+        return this.legacyChunkText(text, chunkSize, overlap).map(t => ({ text: t, section: '' }));
+      }
+
+      const result: Array<{ text: string; section: string }> = [];
+      for (let i = 0; i < sections.length; i++) {
+        const start = sections[i].startPos;
+        const end = i + 1 < sections.length ? sections[i + 1].startPos : text.length;
+        let sectionText = text.slice(start, end).trim();
+        if (!sectionText) continue;
+
+        if (sectionText.length > chunkSize) {
+          const subChunks = this.legacyChunkText(sectionText, chunkSize, overlap);
+          for (const sc of subChunks) {
+            result.push({ text: sc, section: sections[i].number });
+          }
+        } else {
+          result.push({ text: sectionText, section: sections[i].number });
+        }
+      }
+      return result;
+    } catch {
+      return this.legacyChunkText(text, chunkSize, overlap).map(t => ({ text: t, section: '' }));
+    }
+  }
+
+  private legacyChunkText(text: string, chunkSize: number, overlap: number): string[] {
     if (text.length <= chunkSize) return [text];
     const chunks: string[] = [];
     let start = 0;

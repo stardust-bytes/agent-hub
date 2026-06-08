@@ -8,7 +8,7 @@ export default {
         'cyber-bg':          '#000000',
         'cyber-dark':        '#111111',
         'cyber-status':      '#161616',
-        'cyber-modal-bg':    '#0a0e1a',
+        'cyber-modal-bg':    '#282828',
         'cyber-accent':      '#3B82F6',
         'cyber-green':       '#22C55E',
         'cyber-blue':        '#3B82F6',
@@ -35,6 +35,9 @@ export default {
       },
       animation: {
         blink: 'blink 1s step-end infinite',
+      },
+      width: {
+        '100': '25rem',
       },
     },
   },

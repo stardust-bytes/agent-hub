@@ -10,7 +10,7 @@
       </div>
     </template>
 
-    <div v-if="sessions.length === 0" class="px-3 py-4 text-sm text-cyber-accent/40 font-mono">
+    <div v-if="sessions.length === 0" class="px-3 py-4 text-sm text-cyber-accent font-mono">
       {{ t('sessions.empty') }}
     </div>
     <div
@@ -24,7 +24,7 @@
     >
       <div class="min-w-0 flex-1">
         <div class="text-sm font-mono text-slate-100 truncate">{{ s.title }}</div>
-        <div class="text-sm font-mono text-cyber-accent/40 mt-0.5">
+        <div class="text-sm font-mono text-cyber-accent mt-0.5">
           {{ formatDate(s.createdAt) }} · {{ t('sessions.messages', { n: s._count.messages }) }}
         </div>
       </div>

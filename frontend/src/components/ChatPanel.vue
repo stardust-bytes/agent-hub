@@ -28,15 +28,15 @@
           <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">
             <HiChevronRight class="w-3 h-3 inline" /> {{ rolePrefix(msg.role) }} · {{ msg.timestamp }}
           </div>
-          <div
-            v-if="msg.typing"
-            class="text-sm leading-relaxed break-words text-cyber-text"
-          >{{ msg.content }}</div>
-          <div
-            v-else
-            class="text-sm leading-relaxed break-words text-cyber-text markdown-body"
-            v-html="renderMarkdown(msg.content)"
-          />
+          <div v-if="msg.typing" class="text-sm leading-relaxed break-words text-cyber-text">
+            {{ msg.content }}
+          </div>
+          <template v-else>
+            <template v-for="(seg, si) in parseSegments(msg.content)" :key="si">
+              <div v-if="seg.type === 'markdown'" class="text-sm leading-relaxed break-words text-cyber-text markdown-body" v-html="seg.content" />
+              <FormBlock v-else :html="seg.content" :index="si" @submit="(data) => onFormSubmit(data)" />
+            </template>
+          </template>
         </div>
 
         <!-- User message block -->
@@ -120,6 +120,7 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import ModelSelector from './ModelSelector.vue'
 import SessionModal from './SessionModal.vue'
+import FormBlock from './FormBlock.vue'
 
 interface Message {
   role: 'user' | 'agent' | 'system' | 'tool'
@@ -172,7 +173,67 @@ function roleColor(role: string): string {
 }
 
 function renderMarkdown(content: string): string {
-  return DOMPurify.sanitize(marked.parse(content) as string)
+  let html = marked.parse(content) as string
+  html = html.replace(
+    /\[Source:\s*([^\]]+)\]/g,
+    (_m, content) => {
+      const sources: string[] = []
+      const re = /&quot;([^&]+)&quot;[^§]*§(\d+)/g
+      let m
+      while ((m = re.exec(content)) !== null) {
+        sources.push(`<span class="citation">[📄 ${m[1]} · §${m[2]}]</span>`)
+      }
+      return sources.join(' ')
+    }
+  )
+  return DOMPurify.sanitize(html)
+}
+
+interface MessageSegment {
+  type: 'markdown' | 'form'
+  content: string
+}
+
+function parseSegments(content: string): MessageSegment[] {
+  const segments: MessageSegment[] = []
+  const formRegex = /```form\s*\n([\s\S]*?)```/g
+  let lastIndex = 0
+  let m
+
+  while ((m = formRegex.exec(content)) !== null) {
+    if (m.index > lastIndex) {
+      const markdownPart = content.slice(lastIndex, m.index).trim()
+      if (markdownPart) {
+        segments.push({ type: 'markdown', content: renderMarkdown(markdownPart) })
+      }
+    }
+    segments.push({ type: 'form', content: m[1].trim() })
+    lastIndex = m.index + m[0].length
+  }
+
+  if (lastIndex < content.length) {
+    const remaining = content.slice(lastIndex).trim()
+    if (remaining) {
+      segments.push({ type: 'markdown', content: renderMarkdown(remaining) })
+    }
+  }
+
+  return segments
+}
+
+function onFormSubmit(data: Record<string, string>) {
+  const json = JSON.stringify(data, null, 2)
+  messages.value.push({
+    role: 'user',
+    content: `Form submission:\n\`\`\`json\n${json}\n\`\`\``,
+    timestamp: now(),
+  })
+  scrollToBottom()
+  if (currentSessionId.value !== null && selectedModelId.value !== null) {
+    const text = JSON.stringify(data)
+    input.value = text
+    submit()
+  }
 }
 
 async function scrollToBottom() {

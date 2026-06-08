@@ -72,3 +72,14 @@ model ProviderModel {
   name       String
   createdAt  DateTime @default(now())
 }
+
+model Tool {
+  name          String   @id
+  description   String
+  parameters    String
+  configSchema  String?
+  config        String?
+  enabled       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

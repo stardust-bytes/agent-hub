@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { ContextBuilderService } from './context-builder.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ToolsService } from '../../tools/tools.service';
 import { AgentRunState } from '../dto/agent-run-state';
 
 describe('ContextBuilderService', () => {
@@ -8,6 +9,13 @@ describe('ContextBuilderService', () => {
 
   const mockPrisma = {
     chatMessage: { findMany: jest.fn().mockResolvedValue([]) },
+    tool: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+  };
+
+  const mockToolsService = {
+    findEnabled: jest.fn().mockResolvedValue([]),
   };
 
   beforeEach(async () => {
@@ -15,6 +23,7 @@ describe('ContextBuilderService', () => {
       providers: [
         ContextBuilderService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: ToolsService, useValue: mockToolsService },
       ],
     }).compile();
     service = module.get(ContextBuilderService);

@@ -8,6 +8,7 @@ import { SettingsModule } from './settings/settings.module';
 import { KnowledgeModule } from './knowledge/knowledge.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { ProvidersModule } from './providers/providers.module';
+import { ToolsModule } from './tools/tools.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ProvidersModule } from './providers/providers.module';
     KnowledgeModule,
     SessionsModule,
     ProvidersModule,
+    ToolsModule,
   ],
   controllers: [AppController],
 })

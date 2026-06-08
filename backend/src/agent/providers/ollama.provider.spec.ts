@@ -2,10 +2,18 @@ import { Test } from '@nestjs/testing';
 import { OllamaProvider } from './ollama.provider';
 import { LLMCallerService, StreamChunk } from '../services/llm-caller.service';
 import { ContextBuilderService } from '../services/context-builder.service';
-import { TasksService } from '../../tasks/tasks.service';
-import { KnowledgeService } from '../../knowledge/knowledge.service';
 import { SessionsService } from '../../sessions/sessions.service';
 import { OllamaMessage } from './llm-provider.interface';
+import { KnowledgeService } from '../../knowledge/knowledge.service';
+import { CreateTaskExecutor } from '../../tools/executors/create-task.executor';
+import { UpdateTaskExecutor } from '../../tools/executors/update-task.executor';
+import { ListTasksExecutor } from '../../tools/executors/list-tasks.executor';
+import { GetTaskExecutor } from '../../tools/executors/get-task.executor';
+import { DeleteTasksExecutor } from '../../tools/executors/delete-tasks.executor';
+import { SearchKnowledgeExecutor } from '../../tools/executors/search-knowledge.executor';
+import { WebFetchExecutor } from '../../tools/executors/web-fetch.executor';
+import { WebSearchExecutor } from '../../tools/executors/web-search.executor';
+import { ToolExecutor } from '../../tools/executors/tool-executor.interface';
 
 async function* makeStream(chunks: StreamChunk[]): AsyncGenerator<StreamChunk, void, unknown> {
   for (const c of chunks) {
@@ -30,12 +38,8 @@ describe('OllamaProvider', () => {
     }),
   };
 
-  const mockTasksService = {
-    create: jest.fn(),
-    update: jest.fn(),
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    removeMany: jest.fn(),
+  const mockSessionsService = {
+    saveMessage: jest.fn().mockResolvedValue(undefined),
   };
 
   const mockKnowledgeService = {
@@ -43,9 +47,20 @@ describe('OllamaProvider', () => {
     findAll: jest.fn().mockResolvedValue([]),
   };
 
-  const mockSessionsService = {
-    saveMessage: jest.fn().mockResolvedValue(undefined),
+  const mockExecutors = {
+    create_task: { name: 'create_task', execute: jest.fn().mockResolvedValue('') },
+    update_task: { name: 'update_task', execute: jest.fn().mockResolvedValue('') },
+    list_tasks: { name: 'list_tasks', execute: jest.fn().mockResolvedValue('') },
+    get_task: { name: 'get_task', execute: jest.fn().mockResolvedValue('') },
+    delete_tasks: { name: 'delete_tasks', execute: jest.fn().mockResolvedValue('') },
+    search_knowledge: { name: 'search_knowledge', execute: jest.fn().mockResolvedValue('') },
+    web_fetch: { name: 'web_fetch', execute: jest.fn().mockResolvedValue('') },
+    web_search: { name: 'web_search', execute: jest.fn().mockResolvedValue('') },
   };
+
+  function mockExecutor(name: string) {
+    return mockExecutors[name];
+  }
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -53,9 +68,16 @@ describe('OllamaProvider', () => {
         OllamaProvider,
         { provide: LLMCallerService, useValue: mockLLMCaller },
         { provide: ContextBuilderService, useValue: mockContextBuilder },
-        { provide: TasksService, useValue: mockTasksService },
-        { provide: KnowledgeService, useValue: mockKnowledgeService },
         { provide: SessionsService, useValue: mockSessionsService },
+        { provide: KnowledgeService, useValue: mockKnowledgeService },
+        { provide: CreateTaskExecutor, useValue: mockExecutor('create_task') },
+        { provide: UpdateTaskExecutor, useValue: mockExecutor('update_task') },
+        { provide: ListTasksExecutor, useValue: mockExecutor('list_tasks') },
+        { provide: GetTaskExecutor, useValue: mockExecutor('get_task') },
+        { provide: DeleteTasksExecutor, useValue: mockExecutor('delete_tasks') },
+        { provide: SearchKnowledgeExecutor, useValue: mockExecutor('search_knowledge') },
+        { provide: WebFetchExecutor, useValue: mockExecutor('web_fetch') },
+        { provide: WebSearchExecutor, useValue: mockExecutor('web_search') },
       ],
     }).compile();
     provider = module.get(OllamaProvider);
@@ -123,8 +145,7 @@ describe('OllamaProvider', () => {
   });
 
   it('executes tool calls and loops back to LLM', async () => {
-    const task = { id: 42, title: 'Test task', status: 'TODO', priority: 1 };
-    mockTasksService.create.mockResolvedValue(task);
+    mockExecutors['create_task'].execute.mockResolvedValue('Task #42 created: "Test task"');
 
     mockLLMCaller.streamChat.mockReturnValue(makeStream([
       {
@@ -152,11 +173,9 @@ describe('OllamaProvider', () => {
   });
 
   it('handles list_tasks with filtered results', async () => {
-    const tasks = [
-      { id: 1, title: 'Task A', status: 'TODO', priority: 0 },
-      { id: 2, title: 'Task B', status: 'DONE', priority: 1 },
-    ];
-    mockTasksService.findAll.mockResolvedValue(tasks);
+    mockExecutors['list_tasks'].execute.mockResolvedValue(
+      '#1 Task A [TODO] (priority: 0)'
+    );
 
     mockLLMCaller.streamChat.mockReturnValue(makeStream([
       {
@@ -185,9 +204,9 @@ describe('OllamaProvider', () => {
   });
 
   it('get_task returns task details', async () => {
-    mockTasksService.findOne.mockResolvedValue({
-      id: 5, title: 'My Task', status: 'TODO', priority: 1, description: 'A test task', dueDate: null,
-    });
+    mockExecutors['get_task'].execute.mockResolvedValue(
+      'Task #5: "My Task" [TODO] priority=1 description="A test task" due='
+    );
 
     mockLLMCaller.streamChat.mockReturnValue(makeStream([
       {
@@ -202,7 +221,6 @@ describe('OllamaProvider', () => {
 
     await provider.streamChat([{ role: 'user', content: 'show task 5' }], 'llama3.2', mockRes as any, signal);
 
-    expect(mockTasksService.findOne).toHaveBeenCalledWith(5);
     expect(mockRes.write).toHaveBeenCalledWith(
       expect.stringContaining('"toolResult"'),
     );
@@ -215,7 +233,7 @@ describe('OllamaProvider', () => {
   });
 
   it('delete_tasks deletes multiple tasks', async () => {
-    mockTasksService.removeMany.mockResolvedValue(3);
+    mockExecutors['delete_tasks'].execute.mockResolvedValue('Deleted 3 task(s): #1, #2, #3');
 
     mockLLMCaller.streamChat.mockReturnValue(makeStream([
       {
@@ -230,16 +248,15 @@ describe('OllamaProvider', () => {
 
     await provider.streamChat([{ role: 'user', content: 'delete tasks 1,2,3' }], 'llama3.2', mockRes as any, signal);
 
-    expect(mockTasksService.removeMany).toHaveBeenCalledWith([1, 2, 3]);
     expect(mockRes.write).toHaveBeenCalledWith(
       expect.stringContaining('Deleted 3'),
     );
   });
 
   it('saves tool call and result messages during execution', async () => {
-    mockTasksService.findOne.mockResolvedValue({
-      id: 10, title: 'Test', status: 'TODO', priority: 0, description: null, dueDate: null,
-    });
+    mockExecutors['get_task'].execute.mockResolvedValue(
+      'Task #10: "Test" [TODO] priority=0 description="" due='
+    );
 
     mockLLMCaller.streamChat.mockReturnValue(makeStream([
       {
@@ -264,8 +281,9 @@ describe('OllamaProvider', () => {
   });
 
   it('handles search_knowledge results', async () => {
-    const chunks = [{ filename: 'doc.md', chunkIndex: 0, text: 'relevant content' }];
-    mockKnowledgeService.search.mockResolvedValue(chunks);
+    mockExecutors['search_knowledge'].execute.mockResolvedValue(
+      '[1] Source: "doc.md", §0\nrelevant content'
+    );
 
     mockLLMCaller.streamChat.mockReturnValue(makeStream([
       {
@@ -332,7 +350,7 @@ describe('OllamaProvider', () => {
   });
 
   it('injects no-results prompt with file list when KB search is empty and files exist', async () => {
-    mockKnowledgeService.search.mockResolvedValue([]);
+    mockExecutors['search_knowledge'].execute.mockResolvedValue('No relevant information found in knowledge base.');
     mockKnowledgeService.findAll.mockResolvedValue([
       { id: 1, filename: 'report.pdf' },
       { id: 2, filename: 'handbook.docx' },
@@ -366,7 +384,7 @@ describe('OllamaProvider', () => {
   });
 
   it('injects "none indexed yet" when KB is empty and no files are indexed', async () => {
-    mockKnowledgeService.search.mockResolvedValue([]);
+    mockExecutors['search_knowledge'].execute.mockResolvedValue('No relevant information found in knowledge base.');
     mockKnowledgeService.findAll.mockResolvedValue([]);
 
     const stream1 = makeStream([
@@ -395,9 +413,9 @@ describe('OllamaProvider', () => {
   });
 
   it('uses synthesis prompt when KB search returns results (no regression)', async () => {
-    mockKnowledgeService.search.mockResolvedValue([
-      { filename: 'guide.pdf', chunkIndex: 1, text: 'some content' },
-    ]);
+    mockExecutors['search_knowledge'].execute.mockResolvedValue(
+      '[1] Source: "guide.pdf", §1\nsome content'
+    );
 
     const stream1 = makeStream([
       { type: 'tool_call', toolCall: { name: 'search_knowledge', arguments: { query: 'guide' } } },
@@ -425,7 +443,7 @@ describe('OllamaProvider', () => {
   });
 
   it('falls back gracefully when findAll throws during KB empty handling', async () => {
-    mockKnowledgeService.search.mockResolvedValue([]);
+    mockExecutors['search_knowledge'].execute.mockResolvedValue('No relevant information found in knowledge base.');
     mockKnowledgeService.findAll.mockRejectedValue(new Error('DB error'));
 
     const stream1 = makeStream([

@@ -144,6 +144,14 @@ html, body, #app {
   color: var(--cyber-code-text);
 }
 
+.markdown-body ul {
+  list-style: disc;
+}
+
+.markdown-body ol {
+  list-style: decimal;
+}
+
 .markdown-body li {
   margin: 0.1875rem 0;
 }
@@ -157,4 +165,11 @@ html, body, #app {
 .markdown-body img {
   max-width: 100%;
   border-radius: 0.25rem;
+}
+
+.markdown-body .citation {
+  color: var(--cyber-orange, #FFA500);
+  font-size: 0.75rem;
+  opacity: 0.8;
+  white-space: nowrap;
 }

@@ -32,6 +32,12 @@ export class KnowledgeController {
     return this.knowledgeService.search(dto.query);
   }
 
+  @Post('reindex')
+  async reindexAll() {
+    await this.knowledgeService.reindexAll();
+    return { ok: true };
+  }
+
   @Delete(':id')
   async deleteFile(@Param('id') id: string) {
     await this.knowledgeService.remove(parseInt(id, 10));

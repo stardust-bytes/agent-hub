@@ -8,9 +8,10 @@ import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { SessionsModule } from '../sessions/sessions.module';
 import { ProvidersModule } from '../providers/providers.module';
+import { ToolsModule } from '../tools/tools.module';
 
 @Module({
-  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule],
+  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule],
   controllers: [AgentController],
   providers: [
     AgentService,

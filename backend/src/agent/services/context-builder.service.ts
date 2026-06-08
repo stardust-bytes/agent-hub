@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OllamaMessage } from '../providers/llm-provider.interface';
 import { AgentRunState } from '../dto/agent-run-state';
+import { ToolsService } from '../../tools/tools.service';
 
 export interface ToolDefinition {
   type: 'function';
@@ -20,14 +21,17 @@ export interface AgentContext {
 
 @Injectable()
 export class ContextBuilderService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly toolsService: ToolsService,
+  ) {}
 
   async build(
     runState: AgentRunState,
     sessionId: number,
     systemPromptOverride?: string,
   ): Promise<AgentContext> {
-    const tools = this.getDefaultTools();
+    const tools = await this.getEnabledTools();
 
     const systemPrompt = systemPromptOverride || this.buildSystemPrompt(tools);
 
@@ -67,9 +71,18 @@ export class ContextBuilderService {
 
     lines.push('',
       'When handling knowledge base searches (search_knowledge tool):',
-      '- If results are found: synthesize into a coherent answer. Cite each fact inline with [Source: "filename", §N]. Cite all sources that agree.',
+      '- If results are found: synthesize into a coherent answer. Cite each fact inline with [Source: "filename", §N]. §N is the document section number (e.g., §I, §2.1, §A). Use the section number from the chunk metadata. Cite all sources that agree.',
       '- If no results AND the question is about internal documents (reports, contracts, procedures, company-specific data): DO NOT use general knowledge. Acknowledge the gap, then either ask 1-2 clarifying questions (if the query is vague) or suggest uploading relevant documents.',
       '- If no results AND the question is general knowledge (concepts, how-to, definitions): answer from your own knowledge with a clear disclaimer such as "Based on general knowledge (not from your documents):..."',
+      '',
+      'To ask the user for structured input, output a form using:',
+      '```form',
+      '<label>Field name: <input name="field_name" placeholder="Enter..."></label>',
+      '<label>Choice: <select name="choice"><option>A</option><option>B</option></select></label>',
+      '<button type="submit">Submit</button>',
+      '```',
+      'Supported: <input>, <select><option>, <textarea>, <label>, <button type="submit">.',
+      'When the user submits, you will receive the data as a JSON object.',
       '',
       'Respond in the same language the user writes in.',
       'Use the provided tools when appropriate to fulfill user requests.',
@@ -81,102 +94,15 @@ export class ContextBuilderService {
     return lines.join('\n');
   }
 
-  private getDefaultTools(): ToolDefinition[] {
-    return [
-      {
-        type: 'function',
-        function: {
-          name: 'create_task',
-          description: 'Create a new task in the task board',
-          parameters: {
-            type: 'object',
-            properties: {
-              title: { type: 'string', description: 'Task title' },
-              priority: { type: 'number', enum: [0, 1, 2], description: '0=low, 1=medium, 2=high' },
-              description: { type: 'string', description: 'Optional description' },
-            },
-            required: ['title'],
-          },
-        },
+  private async getEnabledTools(): Promise<ToolDefinition[]> {
+    const dbTools = await this.toolsService.findEnabled();
+    return dbTools.map(t => ({
+      type: 'function' as const,
+      function: {
+        name: t.name,
+        description: t.description,
+        parameters: JSON.parse(t.parameters),
       },
-      {
-        type: 'function',
-        function: {
-          name: 'update_task',
-          description: 'Update a task (title, description, status, priority, dueDate)',
-          parameters: {
-            type: 'object',
-            properties: {
-              id: { type: 'number', description: 'Task ID' },
-              title: { type: 'string', description: 'New title' },
-              description: { type: 'string', description: 'New description' },
-              status: { type: 'string', enum: ['TODO', 'PROCESSING', 'DONE', 'FAILED'] },
-              priority: { type: 'number', enum: [0, 1, 2] },
-              dueDate: { type: 'string', description: 'ISO 8601 due date' },
-            },
-            required: ['id'],
-          },
-        },
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'list_tasks',
-          description: 'List all tasks, optionally filter by status',
-          parameters: {
-            type: 'object',
-            properties: {
-              status: { type: 'string', enum: ['TODO', 'PROCESSING', 'DONE', 'FAILED'] },
-            },
-          },
-        },
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'get_task',
-          description: 'Get details of a specific task by ID',
-          parameters: {
-            type: 'object',
-            properties: {
-              id: { type: 'number', description: 'Task ID' },
-            },
-            required: ['id'],
-          },
-        },
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'delete_tasks',
-          description: 'Delete one or more tasks by their IDs',
-          parameters: {
-            type: 'object',
-            properties: {
-              ids: {
-                type: 'array',
-                items: { type: 'number' },
-                description: 'Task IDs to delete',
-              },
-            },
-            required: ['ids'],
-          },
-        },
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'search_knowledge',
-          description: 'Search the knowledge base for relevant information',
-          parameters: {
-            type: 'object',
-            properties: {
-              query: { type: 'string', description: 'Search query' },
-            },
-            required: ['query'],
-          },
-        },
-      },
-    ];
+    }));
   }
 }

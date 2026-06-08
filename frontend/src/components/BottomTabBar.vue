@@ -1,5 +1,5 @@
 <template>
-  <nav class="flex sm:hidden items-center bg-cyber-dark border-t border-cyber-code-border h-[3rem] shrink-0">
+  <nav class="flex md:hidden items-center bg-cyber-dark border-t border-cyber-code-border h-[3rem] shrink-0">
     <button
       v-for="item in navItems"
       :key="item.view"
@@ -21,15 +21,15 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { HiChatAlt2, HiClipboardList, HiFolder, HiCog } from 'vue-icons-plus/hi'
+import { HiChatAlt2, HiClipboardList, HiFolder, HiCog, HiLightningBolt } from 'vue-icons-plus/hi'
 
-defineProps<{ activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' }>()
-defineEmits<{ navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers'] }>()
+defineProps<{ activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' }>()
+defineEmits<{ navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools'] }>()
 
 const { t } = useI18n()
 
 interface NavItem {
-  view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers'
+  view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools'
   labelKey: string
   icon: Component
 }
@@ -38,6 +38,7 @@ const navItems: NavItem[] = [
   { view: 'chat',      labelKey: 'nav.chat',      icon: HiChatAlt2 },
   { view: 'tasks',     labelKey: 'nav.tasks',     icon: HiClipboardList },
   { view: 'files',     labelKey: 'nav.files',     icon: HiFolder },
+  { view: 'tools',     labelKey: 'nav.tools',     icon: HiLightningBolt },
   { view: 'providers', labelKey: 'nav.providers', icon: HiCog },
   { view: 'settings',  labelKey: 'nav.settings',  icon: HiCog },
 ]

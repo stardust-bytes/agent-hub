@@ -1,10 +1,24 @@
 <!-- frontend/src/components/KanbanBoard.vue -->
 <template>
-  <div class="flex flex-1 overflow-hidden">
+  <div v-if="mobileStatus" class="flex-1 overflow-y-auto p-2 space-y-1.5">
+    <div
+      v-for="task in columnTasks[mobileStatus]"
+      :key="task.id"
+      v-show="shouldShow(task)"
+    >
+      <TaskCard
+        :task="task"
+        @edit="(task) => emit('edit', task)"
+        @delete="(id) => emit('delete', id)"
+      />
+    </div>
+  </div>
+
+  <div v-else class="flex flex-1 overflow-hidden">
     <div
       v-for="col in COLUMNS"
       :key="col.key"
-      class="flex-1 flex flex-col min-w-0"
+      class="flex-1 flex flex-col min-w-0 border border-cyber-dark"
     >
       <div :class="['px-2 py-2 flex items-center gap-2 shrink-0', col.headerBgClass]">
         <span :class="['text-sm tracking-widest font-mono uppercase', col.headerClass]">
@@ -28,35 +42,20 @@
         >
           <TaskCard
             :task="task"
-            @delete="deleteTask"
-            @update-priority="updatePriority"
+            @edit="(task) => emit('edit', task)"
+            @delete="(id) => emit('delete', id)"
           />
         </div>
       </VueDraggable>
 
       <div v-if="col.key === 'TODO'" class="px-2 pb-2 shrink-0">
-        <form v-if="addingTask" @submit.prevent="createTask" class="flex gap-1">
-          <input
-            v-model="newTaskTitle"
-            :placeholder="t('tasks.add.placeholder')"
-            @keydown.escape="addingTask = false; newTaskTitle = ''"
-            @blur="onBlurNewTask"
-            class="flex-1 bg-cyber-dark px-2 py-1 text-sm font-mono text-cyber-text placeholder-cyber-muted/40 outline-none"
-            autofocus
-          />
-        </form>
-        <button
-          v-else
-          @click="addingTask = true"
-           class="w-full text-sm font-mono text-cyber-muted bg-cyber-dark px-2 py-1.5 hover:text-cyber-accent transition-colors duration-150 text-left"
-        >{{ t('tasks.add') }}</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted, onUnmounted } from 'vue'
+import { reactive, onMounted, onUnmounted, watch } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { io, Socket } from 'socket.io-client'
 import { useI18n } from 'vue-i18n'
@@ -75,10 +74,14 @@ interface Task {
 
 const props = defineProps<{
   activeFilters: Set<number>
+  mobileStatus?: string | null
+  refreshKey?: number
 }>()
 
 const emit = defineEmits<{
   'ws-status': [connected: boolean]
+  edit: [task: Task]
+  delete: [id: number]
 }>()
 
 const { t } = useI18n()
@@ -96,14 +99,11 @@ const columnTasks = reactive<Record<string, Task[]>>({
   TODO: [], PROCESSING: [], DONE: [], FAILED: [],
 })
 
-const addingTask = ref(false)
-const newTaskTitle = ref('')
-
 let socket: Socket | null = null
 
-function onBlurNewTask() {
-  if (!newTaskTitle.value.trim()) addingTask.value = false
-}
+watch(() => props.refreshKey, () => {
+  fetchTasks()
+})
 
 function shouldShow(task: Task): boolean {
   return props.activeFilters.size === 0 || props.activeFilters.has(task.priority)
@@ -142,46 +142,18 @@ async function onAdd(evt: { newIndex?: number }, newStatus: string) {
   }
 }
 
-async function deleteTask(id: number) {
-  for (const key of STATUS_KEYS) {
-    const idx = columnTasks[key].findIndex(t => t.id === id)
-    if (idx !== -1) { columnTasks[key].splice(idx, 1); break }
-  }
-  await fetch(`/api/tasks/${id}`, { method: 'DELETE' })
-}
-
-async function updatePriority(id: number, priority: number) {
-  for (const key of STATUS_KEYS) {
-    const task = columnTasks[key].find(t => t.id === id)
-    if (task) { task.priority = priority; break }
-  }
-  await fetch(`/api/tasks/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ priority }),
-  })
-}
-
-async function createTask() {
-  const title = newTaskTitle.value.trim()
-  if (!title) return
-  newTaskTitle.value = ''
-  addingTask.value = false
-  await fetch('/api/tasks', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, status: 'TODO', priority: 0 }),
-  })
-}
-
-onMounted(async () => {
+async function fetchTasks() {
   try {
     const res = await fetch('/api/tasks')
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     populateColumns(await res.json() as Task[])
   } catch {
-    // board starts empty
+    // board stays empty
   }
+}
+
+onMounted(async () => {
+  await fetchTasks()
 
   socket = io('/tasks')
   socket.on('connect', () => emit('ws-status', true))

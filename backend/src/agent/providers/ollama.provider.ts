@@ -4,21 +4,49 @@ import { LLMProvider, OllamaMessage } from './llm-provider.interface';
 import { LLMCallerService } from '../services/llm-caller.service';
 import { ContextBuilderService, ToolDefinition } from '../services/context-builder.service';
 import { AgentRunState } from '../dto/agent-run-state';
-import { TasksService } from '../../tasks/tasks.service';
-import { KnowledgeService } from '../../knowledge/knowledge.service';
 import { SessionsService } from '../../sessions/sessions.service';
+import { KnowledgeService } from '../../knowledge/knowledge.service';
+import { ToolExecutor } from '../../tools/executors/tool-executor.interface';
+import { CreateTaskExecutor } from '../../tools/executors/create-task.executor';
+import { UpdateTaskExecutor } from '../../tools/executors/update-task.executor';
+import { ListTasksExecutor } from '../../tools/executors/list-tasks.executor';
+import { GetTaskExecutor } from '../../tools/executors/get-task.executor';
+import { DeleteTasksExecutor } from '../../tools/executors/delete-tasks.executor';
+import { SearchKnowledgeExecutor } from '../../tools/executors/search-knowledge.executor';
+import { WebFetchExecutor } from '../../tools/executors/web-fetch.executor';
+import { WebSearchExecutor } from '../../tools/executors/web-search.executor';
 
 const KB_NO_RESULTS = 'No relevant information found in knowledge base.';
 
 @Injectable()
 export class OllamaProvider implements LLMProvider {
+  private readonly executorMap: Map<string, ToolExecutor>;
+
   constructor(
     private readonly llmCaller: LLMCallerService,
     private readonly contextBuilder: ContextBuilderService,
-    private readonly tasksService: TasksService,
-    private readonly knowledgeService: KnowledgeService,
     private readonly sessionsService: SessionsService,
-  ) {}
+    private readonly knowledgeService: KnowledgeService,
+    createTask: CreateTaskExecutor,
+    updateTask: UpdateTaskExecutor,
+    listTasks: ListTasksExecutor,
+    getTask: GetTaskExecutor,
+    deleteTasks: DeleteTasksExecutor,
+    searchKnowledge: SearchKnowledgeExecutor,
+    webFetch: WebFetchExecutor,
+    webSearch: WebSearchExecutor,
+  ) {
+    this.executorMap = new Map<string, ToolExecutor>([
+      [createTask.name, createTask],
+      [updateTask.name, updateTask],
+      [listTasks.name, listTasks],
+      [getTask.name, getTask],
+      [deleteTasks.name, deleteTasks],
+      [searchKnowledge.name, searchKnowledge],
+      [webFetch.name, webFetch],
+      [webSearch.name, webSearch],
+    ]);
+  }
 
   async streamChat(
     messages: OllamaMessage[],
@@ -219,53 +247,8 @@ export class OllamaProvider implements LLMProvider {
   }
 
   private async executeTool(name: string, args: Record<string, unknown>): Promise<string> {
-    switch (name) {
-      case 'create_task': {
-        const task = await this.tasksService.create({
-          title: args.title as string,
-          priority: args.priority as number | undefined,
-          description: args.description as string | undefined,
-        });
-        return `Task #${task.id} created: "${task.title}"`;
-      }
-      case 'update_task': {
-        const task = await this.tasksService.update(args.id as number, {
-          title: args.title as string | undefined,
-          description: args.description as string | undefined,
-          status: args.status as string | undefined,
-          priority: args.priority as number | undefined,
-          dueDate: args.dueDate as string | undefined,
-        });
-        return `Task #${task.id} updated: "${task.title}" [${task.status}]`;
-      }
-      case 'list_tasks': {
-        const tasks = await this.tasksService.findAll();
-        const filtered = args.status
-          ? tasks.filter(t => t.status === args.status)
-          : tasks;
-        if (filtered.length === 0) return 'No tasks found.';
-        return filtered.map(t =>
-          `#${t.id} ${t.title} [${t.status}] (priority: ${t.priority})`
-        ).join('\n');
-      }
-      case 'get_task': {
-        const task = await this.tasksService.findOne(args.id as number);
-        return `Task #${task.id}: "${task.title}" [${task.status}] priority=${task.priority} description="${task.description ?? ''}" due=${task.dueDate ?? ''}`;
-      }
-      case 'delete_tasks': {
-        const ids = args.ids as number[];
-        const count = await this.tasksService.removeMany(ids);
-        return `Deleted ${count} task(s): #${ids.join(', #')}`;
-      }
-      case 'search_knowledge': {
-        const chunks = await this.knowledgeService.search(args.query as string);
-        if (chunks.length === 0) return KB_NO_RESULTS;
-        return chunks.map((c, i) =>
-          `[${i + 1}] Source: "${c.filename}", §${c.chunkIndex}\n${c.text}`
-        ).join('\n\n---\n\n');
-      }
-      default:
-        return `Unknown tool: ${name}`;
-    }
+    const executor = this.executorMap.get(name);
+    if (!executor) return `Unknown tool: ${name}`;
+    return executor.execute(args);
   }
 }

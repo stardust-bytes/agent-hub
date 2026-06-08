@@ -3,6 +3,7 @@
     <div class="flex flex-1 overflow-hidden">
       <SidebarNav :active-view="activeView" @navigate="activeView = $event" />
       <FilesView      v-if="activeView === 'files'"     class="flex-1 overflow-hidden" />
+      <ToolsView     v-else-if="activeView === 'tools'"    class="flex-1 overflow-hidden" />
       <SettingsView   v-else-if="activeView === 'settings'"  class="flex-1 overflow-hidden" />
       <TasksView      v-else-if="activeView === 'tasks'"     class="flex-1 overflow-hidden" @ws-status="wsConnected = $event" />
       <ProvidersView  v-else-if="activeView === 'providers'" class="flex-1 overflow-hidden" />
@@ -25,9 +26,10 @@ import TasksView from './TasksView.vue'
 import SettingsView from './SettingsView.vue'
 import FilesView from './FilesView.vue'
 import ProvidersView from './ProvidersView.vue'
+import ToolsView from './ToolsView.vue'
 import StatusBar from './StatusBar.vue'
 
-const activeView = ref<'chat' | 'tasks' | 'files' | 'settings' | 'providers'>('chat')
+const activeView = ref<'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools'>('chat')
 const dbConnected = ref(true)
 const wsConnected = ref(false)
 </script>
