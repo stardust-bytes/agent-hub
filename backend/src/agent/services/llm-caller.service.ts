@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { SettingsService } from '../../settings/settings.service';
 import { OllamaMessage } from '../providers/llm-provider.interface';
 import { ToolDefinition } from './context-builder.service';
 
@@ -16,17 +15,15 @@ export interface StreamChunk {
 export class LLMCallerService {
   private readonly logger = new Logger(LLMCallerService.name);
 
-  constructor(private readonly settings: SettingsService) {}
-
   async *streamChat(
     model: string,
     messages: OllamaMessage[],
     tools: ToolDefinition[],
     signal: AbortSignal,
+    baseUrl: string,
+    key?: string,
   ): AsyncGenerator<StreamChunk, void, unknown> {
     if (signal.aborted) return;
-
-    const ollamaUrl = await this.settings.get('ollama.baseUrl', 'http://localhost:11434');
 
     const msgs: Array<Record<string, unknown>> = [
       ...messages.map(m => ({
@@ -45,11 +42,16 @@ export class LLMCallerService {
       body.tools = tools;
     }
 
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (key) {
+      headers['Authorization'] = `Bearer ${key}`;
+    }
+
     let ollamaRes: globalThis.Response;
     try {
-      ollamaRes = await fetch(`${ollamaUrl}/api/chat`, {
+      ollamaRes = await fetch(`${baseUrl}/api/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(body),
         signal,
       });

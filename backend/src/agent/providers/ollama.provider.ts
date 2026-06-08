@@ -27,6 +27,7 @@ export class OllamaProvider implements LLMProvider {
     signal: AbortSignal,
     sessionId?: number,
     mode: string = 'agent',
+    providerConfig: { baseUrl: string; key?: string } = { baseUrl: 'http://localhost:11434' },
   ): Promise<{ finalText: string }> {
     if (signal.aborted) return { finalText: '' };
 
@@ -48,7 +49,7 @@ export class OllamaProvider implements LLMProvider {
       let streamError: string | null = null;
 
       try {
-        const stream = this.llmCaller.streamChat(model, context.messages, tools, signal);
+        const stream = this.llmCaller.streamChat(model, context.messages, tools, signal, providerConfig.baseUrl, providerConfig.key);
 
         for await (const chunk of stream) {
           if (signal.aborted) return { finalText: '' };
