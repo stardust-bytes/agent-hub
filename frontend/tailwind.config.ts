@@ -25,7 +25,7 @@ export default {
         'cyber-blockquote':  '#8b949e',
       },
       fontFamily: {
-        mono: ['monospace'],
+        mono: ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace'],
       },
       keyframes: {
         blink: {
