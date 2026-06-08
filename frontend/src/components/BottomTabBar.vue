@@ -23,21 +23,22 @@ import type { Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiChatAlt2, HiClipboardList, HiFolder, HiCog } from 'vue-icons-plus/hi'
 
-defineProps<{ activeView: 'chat' | 'tasks' | 'files' | 'settings' }>()
-defineEmits<{ navigate: [view: 'chat' | 'tasks' | 'files' | 'settings'] }>()
+defineProps<{ activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' }>()
+defineEmits<{ navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers'] }>()
 
 const { t } = useI18n()
 
 interface NavItem {
-  view: 'chat' | 'tasks' | 'files' | 'settings'
+  view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers'
   labelKey: string
   icon: Component
 }
 
 const navItems: NavItem[] = [
-  { view: 'chat',     labelKey: 'nav.chat',     icon: HiChatAlt2 },
-  { view: 'tasks',    labelKey: 'nav.tasks',     icon: HiClipboardList },
-  { view: 'files',    labelKey: 'nav.files',     icon: HiFolder },
-  { view: 'settings', labelKey: 'nav.settings',  icon: HiCog },
+  { view: 'chat',      labelKey: 'nav.chat',      icon: HiChatAlt2 },
+  { view: 'tasks',     labelKey: 'nav.tasks',     icon: HiClipboardList },
+  { view: 'files',     labelKey: 'nav.files',     icon: HiFolder },
+  { view: 'providers', labelKey: 'nav.providers', icon: HiCog },
+  { view: 'settings',  labelKey: 'nav.settings',  icon: HiCog },
 ]
 </script>
