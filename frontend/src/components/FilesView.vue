@@ -1,7 +1,7 @@
 <template>
   <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
     <div class="px-3 py-2 bg-cyber-dark flex items-center shrink-0">
-      <span class="text-cyber-accent text-xs tracking-widest font-mono">
+      <span class="text-cyber-accent text-sm tracking-widest font-mono">
         <HiFolder class="w-3 h-3 inline" /> {{ t('files.header') }}
       </span>
     </div>
@@ -18,7 +18,7 @@
         >
           <input ref="fileInput" type="file" class="hidden" multiple @change="onFileChange" />
           <p class="text-cyber-muted text-sm font-mono">{{ t('files.dropzone') }}</p>
-          <p class="text-cyber-muted/60 text-[0.625rem] font-mono mt-1">.pdf .docx .txt .md .ts .js .py</p>
+          <p class="text-cyber-muted/60 text-sm font-mono mt-1">.pdf .docx .txt .md .ts .js .py</p>
         </div>
 
         <!-- Filter -->
@@ -29,11 +29,11 @@
         />
 
         <!-- File list -->
-        <div v-if="files.length === 0" class="text-center text-cyber-muted text-xs font-mono py-8">
+        <div v-if="files.length === 0" class="text-center text-cyber-muted text-sm font-mono py-8">
           {{ t('files.empty') }}
         </div>
         <div v-for="f in filteredFiles" :key="f.id"
-          class="flex items-center gap-3 bg-cyber-dark px-3 py-2 text-xs font-mono"
+          class="flex items-center gap-3 bg-cyber-dark px-3 py-2 text-sm font-mono"
         >
           <span class="flex-1 text-cyber-text truncate">{{ f.filename }}</span>
           <span class="text-cyber-muted shrink-0 w-16 text-right">{{ formatSize(f.size) }}</span>
@@ -43,13 +43,13 @@
 
         <!-- Codebase watcher -->
         <div class="border-t border-cyber-accent/10 pt-4">
-          <div class="text-cyber-muted text-[0.625rem] font-mono mb-2">{{ t('files.watch.title') }}</div>
+          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('files.watch.title') }}</div>
           <div class="flex gap-2 items-center">
-            <span class="text-cyber-muted text-xs font-mono">{{ t('files.watch.path') }}</span>
+            <span class="text-cyber-muted text-sm font-mono">{{ t('files.watch.path') }}</span>
             <input v-model="watchDir" placeholder="/workspace" class="flex-1 bg-cyber-dark text-cyber-text text-sm px-2 py-1.5 font-mono outline-none" />
-            <button @click="toggleWatch" class="px-3 py-1.5 text-xs font-mono text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20 transition-colors duration-150">{{ t('files.watch.btn') }}</button>
+            <button @click="toggleWatch" class="px-3 py-1.5 text-sm font-mono text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20 transition-colors duration-150">{{ t('files.watch.btn') }}</button>
           </div>
-          <div v-if="watching" class="text-cyber-green text-[10px] font-mono mt-1">{{ t('files.watch.status') }} ({{ indexedCount }} files)</div>
+          <div v-if="watching" class="text-cyber-green text-sm font-mono mt-1">{{ t('files.watch.status') }} ({{ indexedCount }} files)</div>
         </div>
 
       </div>
