@@ -7,9 +7,10 @@ import { ContextBuilderService } from './services/context-builder.service';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { SessionsModule } from '../sessions/sessions.module';
+import { ProvidersModule } from '../providers/providers.module';
 
 @Module({
-  imports: [TasksModule, KnowledgeModule, SessionsModule],
+  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule],
   controllers: [AgentController],
   providers: [
     AgentService,

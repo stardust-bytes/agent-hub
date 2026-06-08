@@ -4,9 +4,8 @@ export class ChatDto {
   @IsString()
   message: string;
 
-  @IsString()
-  @IsOptional()
-  model?: string;
+  @IsInt()
+  providerModelId: number;
 
   @IsInt()
   sessionId: number;

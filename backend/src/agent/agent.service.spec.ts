@@ -3,6 +3,7 @@ import { AgentService } from './agent.service';
 import { OllamaProvider } from './providers/ollama.provider';
 import { SessionsService } from '../sessions/sessions.service';
 import { ContextBuilderService } from './services/context-builder.service';
+import { ProvidersService } from '../providers/providers.service';
 
 describe('AgentService', () => {
   let service: AgentService;
@@ -19,6 +20,14 @@ describe('AgentService', () => {
       tools: [],
     }),
   };
+  const mockProvidersService = {
+    findModelWithProvider: jest.fn().mockResolvedValue({
+      id: 5,
+      name: 'llama3.2',
+      providerId: 1,
+      provider: { id: 1, name: 'Local', type: 'ollama', baseUrl: 'http://localhost:11434', key: null },
+    }),
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -27,13 +36,14 @@ describe('AgentService', () => {
         { provide: OllamaProvider, useValue: mockProvider },
         { provide: SessionsService, useValue: mockSessionsService },
         { provide: ContextBuilderService, useValue: mockContextBuilder },
+        { provide: ProvidersService, useValue: mockProvidersService },
       ],
     }).compile();
     service = module.get(AgentService);
     jest.clearAllMocks();
   });
 
-  it('loads history, builds context, calls provider', async () => {
+  it('resolves provider model and calls OllamaProvider with providerConfig', async () => {
     mockProvider.streamChat.mockResolvedValue({ finalText: 'Hello!' });
     mockSessionsService.getHistory.mockResolvedValue([{ role: 'user', content: 'Hi' }]);
     mockContextBuilder.build.mockResolvedValue({
@@ -41,30 +51,39 @@ describe('AgentService', () => {
       messages: [],
       tools: [],
     });
+    mockProvidersService.findModelWithProvider.mockResolvedValue({
+      id: 5, name: 'llama3.2', providerId: 1,
+      provider: { id: 1, baseUrl: 'http://localhost:11434', key: null },
+    });
     const mockRes = {} as any;
     const signal = new AbortController().signal;
 
-    await service.streamChat('World', 'llama3.2', mockRes, signal, 1);
+    await service.streamChat('World', 5, mockRes, signal, 1);
 
-    expect(mockContextBuilder.build).toHaveBeenCalled();
-    expect(mockSessionsService.getHistory).toHaveBeenCalledWith(1);
+    expect(mockProvidersService.findModelWithProvider).toHaveBeenCalledWith(5);
     expect(mockProvider.streamChat).toHaveBeenCalled();
     const callArgs = mockProvider.streamChat.mock.calls[0];
-    expect(callArgs[0]).toEqual(
-      expect.arrayContaining([
-        { role: 'system', content: 'Custom system prompt.' },
-        { role: 'user', content: 'Hi' },
-        { role: 'user', content: 'World' },
-      ]),
-    );
+    expect(callArgs[1]).toBe('llama3.2');
+    expect(callArgs[6]).toEqual({ baseUrl: 'http://localhost:11434', key: undefined });
+  });
+
+  it('writes provider_not_found error when providerModelId does not exist', async () => {
+    mockProvidersService.findModelWithProvider.mockResolvedValueOnce(null);
+    const mockRes = { write: jest.fn() } as any;
+    const signal = new AbortController().signal;
+
+    await service.streamChat('World', 999, mockRes, signal, 1);
+
+    expect(mockRes.write).toHaveBeenCalledWith('data: {"error":"provider_not_found"}\n\n');
+    expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
+    expect(mockProvider.streamChat).not.toHaveBeenCalled();
   });
 
   it('persists user message and assistant response after stream', async () => {
     mockProvider.streamChat.mockResolvedValue({ finalText: 'Hello!' });
-    mockSessionsService.getHistory.mockResolvedValue([]);
     const signal = new AbortController().signal;
 
-    await service.streamChat('World', 'llama3.2', {} as any, signal, 1);
+    await service.streamChat('World', 5, { write: jest.fn() } as any, signal, 1);
 
     expect(mockSessionsService.saveMessage).toHaveBeenCalledWith(1, 'user', 'World');
     expect(mockSessionsService.saveMessage).toHaveBeenCalledWith(1, 'assistant', 'Hello!');
@@ -75,9 +94,8 @@ describe('AgentService', () => {
     const ctrl = new AbortController();
     ctrl.abort();
     mockProvider.streamChat.mockResolvedValue({ finalText: '' });
-    mockSessionsService.getHistory.mockResolvedValue([]);
 
-    await service.streamChat('msg', 'llama3.2', {} as any, ctrl.signal, 1);
+    await service.streamChat('msg', 5, { write: jest.fn() } as any, ctrl.signal, 1);
 
     expect(mockSessionsService.saveMessage).not.toHaveBeenCalled();
     expect(mockSessionsService.autoTitle).not.toHaveBeenCalled();
