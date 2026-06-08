@@ -19,13 +19,14 @@ export class WebSearchExecutor implements ToolExecutor {
     if (!config.apiKey) return 'Error: API key not configured. Go to Tools page to set up.';
 
     try {
-      const params = new URLSearchParams({
-        q: query,
-        key: config.apiKey,
-        cx: config.cx || '',
-      });
-      const url = `https://www.googleapis.com/customsearch/v1?${params.toString()}`;
+      const params = new URLSearchParams({ q: query, key: config.apiKey });
+      if (config.cx) params.set('cx', config.cx);
+      const url = `https://www.googleapis.com/customsearch/v1?${params.toString()}`; console.log('Web search URL:', url);
       const res = await fetch(url);
+      if (!res.ok) {
+        const text = await res.text();
+        return `Search API error (HTTP ${res.status}): ${text.slice(0, 300)}`;
+      }
       const data = await res.json() as { items?: Array<{ title: string; link: string; snippet: string }>; error?: { message: string } };
       if (data.error) return `Search API error: ${data.error.message}`;
       if (!data.items?.length) return 'No search results found.';
