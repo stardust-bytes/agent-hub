@@ -67,5 +67,22 @@
   "sessions.new": "+ New",
   "sessions.empty": "No sessions yet",
   "sessions.messages": "{n} messages",
-  "sessions.delete.confirm": "Delete this session?"
+  "sessions.delete.confirm": "Delete this session?",
+
+  "providers.header": "PROVIDERS",
+  "providers.add": "+ add provider",
+  "providers.empty": "No providers yet",
+  "providers.edit": "Edit provider",
+  "providers.delete.confirm": "Delete this provider?",
+  "providers.form.name": "Name",
+  "providers.form.type": "Type",
+  "providers.form.baseUrl": "Base URL (optional)",
+  "providers.form.key": "API Key (optional)",
+  "providers.form.save": "Save",
+  "providers.form.cancel": "Cancel",
+  "providers.models.add": "+ add model",
+  "providers.models.placeholder": "model name_",
+  "providers.models.delete.confirm": "Delete this model?",
+  "chat.no_provider": "No provider configured. Add one in ⚡ Providers.",
+  "nav.providers": "Providers"
 }

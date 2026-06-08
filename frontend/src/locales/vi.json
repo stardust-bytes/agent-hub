@@ -67,5 +67,22 @@
   "sessions.new": "+ Mới",
   "sessions.empty": "Chưa có session nào",
   "sessions.messages": "{n} tin nhắn",
-  "sessions.delete.confirm": "Xóa session này?"
+  "sessions.delete.confirm": "Xóa session này?",
+
+  "providers.header": "PROVIDERS",
+  "providers.add": "+ thêm provider",
+  "providers.empty": "Chưa có provider nào",
+  "providers.edit": "Sửa provider",
+  "providers.delete.confirm": "Xóa provider này?",
+  "providers.form.name": "Tên",
+  "providers.form.type": "Loại",
+  "providers.form.baseUrl": "Base URL (tùy chọn)",
+  "providers.form.key": "API Key (tùy chọn)",
+  "providers.form.save": "Lưu",
+  "providers.form.cancel": "Hủy",
+  "providers.models.add": "+ thêm model",
+  "providers.models.placeholder": "tên model_",
+  "providers.models.delete.confirm": "Xóa model này?",
+  "chat.no_provider": "Chưa có provider. Thêm trong ⚡ Providers.",
+  "nav.providers": "Providers"
 }
