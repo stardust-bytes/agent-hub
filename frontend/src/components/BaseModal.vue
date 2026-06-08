@@ -11,7 +11,7 @@
           <button
             v-if="closable"
             @click="$emit('update:modelValue', false)"
-            class="text-cyber-accent/50 text-xs font-mono transition-colors duration-150 hover:text-cyber-accent"
+            class="text-cyber-accent/50 text-sm font-mono transition-colors duration-150 hover:text-cyber-accent"
           >✕</button>
         </div>
         <div class="overflow-y-auto flex-1">

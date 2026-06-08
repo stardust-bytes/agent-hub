@@ -1,7 +1,7 @@
 <template>
   <nav class="w-32 bg-cyber-dark hidden sm:flex flex-col items-stretch py-3 gap-1 shrink-0">
     <div class="flex items-center justify-center gap-2 px-3 py-1 mb-1">
-      <span class="text-xs text-cyber-accent font-bold truncate">960513-wp</span>
+      <span class="text-sm text-cyber-accent font-bold font-mono truncate">960513-wp</span>
     </div>
 
     <button
@@ -16,7 +16,7 @@
       ]"
     >
       <component :is="item.icon" class="w-4 h-4 shrink-0" />
-      <span class="text-xs truncate">{{ t(item.labelKey) }}</span>
+      <span class="text-sm font-mono truncate">{{ t(item.labelKey) }}</span>
     </button>
 
     <div class="flex-1" />
@@ -31,7 +31,7 @@
       ]"
     >
       <HiCog class="w-4 h-4 shrink-0" />
-      <span class="text-xs truncate">{{ t('nav.settings') }}</span>
+      <span class="text-sm font-mono truncate">{{ t('nav.settings') }}</span>
     </button>
   </nav>
 </template>

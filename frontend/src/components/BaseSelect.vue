@@ -4,7 +4,7 @@
       :value="modelValue"
       :disabled="disabled"
       @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
-      class="bg-cyber-dark text-xs font-mono text-slate-100 outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150 appearance-none pr-5 px-2 py-1"
+      class="bg-cyber-dark text-sm font-mono text-slate-100 outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150 appearance-none pr-5 px-2 py-1"
     >
       <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
       <option v-for="opt in options" :key="isOption(opt) ? opt.value : opt" :value="isOption(opt) ? opt.value : opt">

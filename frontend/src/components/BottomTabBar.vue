@@ -6,7 +6,7 @@
       :title="t(item.labelKey)"
       @click="$emit('navigate', item.view)"
       :class="[
-        'flex flex-col items-center justify-center gap-0.5 flex-1 h-full font-mono text-[0.5rem] transition-colors duration-150',
+        'flex flex-col items-center justify-center gap-0.5 flex-1 h-full font-mono text-sm transition-colors duration-150',
         activeView === item.view
           ? 'text-cyber-accent bg-cyber-accent/10'
           : 'text-cyber-muted hover:text-cyber-accent'

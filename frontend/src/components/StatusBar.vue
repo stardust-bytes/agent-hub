@@ -1,22 +1,22 @@
 <template>
   <div class="h-[1.75rem] bg-cyber-status flex items-center justify-between px-3 shrink-0">
     <div class="flex items-center gap-3">
-      <span class="text-[0.625rem] font-mono" :class="backendOnline ? 'text-cyber-green' : 'text-cyber-muted'">
+      <span class="text-sm font-mono" :class="backendOnline ? 'text-cyber-green' : 'text-cyber-muted'">
         {{ backendOnline ? '●' : '○' }} {{ t('status.backend') }}
       </span>
-      <span class="text-[0.625rem] font-mono" :class="dbConnected ? 'text-cyber-green' : 'text-cyber-muted'">
+      <span class="text-sm font-mono" :class="dbConnected ? 'text-cyber-green' : 'text-cyber-muted'">
         [{{ dbConnected ? '✓' : '✗' }}] {{ t('status.db') }}
       </span>
     </div>
     <div class="flex items-center gap-3">
-      <span class="text-[0.625rem] font-mono" :class="wsConnected ? 'text-cyber-green' : 'text-cyber-muted'">
+      <span class="text-sm font-mono" :class="wsConnected ? 'text-cyber-green' : 'text-cyber-muted'">
         {{ wsConnected ? '●' : '○' }} {{ wsConnected ? t('tasks.ws.connected') : t('tasks.ws.disconnected') }}
       </span>
       <button
         @click="toggleLang"
-        class="text-[0.625rem] font-mono text-cyber-muted hover:text-cyber-accent transition-colors duration-150"
+        class="text-sm font-mono text-cyber-muted hover:text-cyber-accent transition-colors duration-150"
       >{{ t('nav.lang') }}</button>
-      <span class="text-[0.625rem] font-mono text-cyber-muted">{{ time }}</span>
+      <span class="text-sm font-mono text-cyber-muted">{{ time }}</span>
     </div>
   </div>
 </template>
