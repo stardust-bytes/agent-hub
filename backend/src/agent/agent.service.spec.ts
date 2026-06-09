@@ -4,6 +4,7 @@ import { AgentLoopService } from './services/agent-loop.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { ContextBuilderService } from './services/context-builder.service';
 import { ProvidersService } from '../providers/providers.service';
+import { PermissionsService } from './services/permissions.service';
 
 describe('AgentService', () => {
   let service: AgentService;
@@ -30,6 +31,10 @@ describe('AgentService', () => {
       provider: { id: 1, name: 'Local', type: 'ollama', baseUrl: 'http://localhost:11434', key: null },
     }),
   };
+  const mockPermissionsService = {
+    getConfig: jest.fn(),
+    updateConfig: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -39,6 +44,7 @@ describe('AgentService', () => {
         { provide: SessionsService, useValue: mockSessionsService },
         { provide: ContextBuilderService, useValue: mockContextBuilder },
         { provide: ProvidersService, useValue: mockProvidersService },
+        { provide: PermissionsService, useValue: mockPermissionsService },
       ],
     }).compile();
     service = module.get(AgentService);

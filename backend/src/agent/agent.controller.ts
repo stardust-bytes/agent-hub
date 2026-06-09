@@ -1,7 +1,9 @@
-import { Controller, Post, Body, Req, Res } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AgentService } from './agent.service';
 import { ChatDto } from './dto/chat.dto';
+import { UpdatePermissionsDto } from './dto/update-permissions.dto';
+import { PermissionsConfig } from './dto/permissions-config';
 
 @Controller('agent')
 export class AgentController {
@@ -28,5 +30,15 @@ export class AgentController {
     } finally {
       res.end();
     }
+  }
+
+  @Get('permissions')
+  async getPermissions(): Promise<PermissionsConfig> {
+    return this.agentService.getPermissions();
+  }
+
+  @Patch('permissions')
+  async updatePermissions(@Body() dto: UpdatePermissionsDto): Promise<PermissionsConfig> {
+    return this.agentService.updatePermissions(dto);
   }
 }

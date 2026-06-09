@@ -4,6 +4,8 @@ import { AgentLoopService } from './services/agent-loop.service';
 import { ContextBuilderService } from './services/context-builder.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { ProvidersService } from '../providers/providers.service';
+import { PermissionsService } from './services/permissions.service';
+import { PermissionsConfig } from './dto/permissions-config';
 
 @Injectable()
 export class AgentService {
@@ -12,6 +14,7 @@ export class AgentService {
     private readonly sessionsService: SessionsService,
     private readonly contextBuilder: ContextBuilderService,
     private readonly providersService: ProvidersService,
+    private readonly permissionsService: PermissionsService,
   ) {}
 
   async streamChat(
@@ -65,5 +68,13 @@ export class AgentService {
       await this.sessionsService.saveMessage(sessionId, 'assistant', finalText);
       await this.sessionsService.autoTitle(sessionId, message);
     }
+  }
+
+  async getPermissions(): Promise<PermissionsConfig> {
+    return this.permissionsService.getConfig();
+  }
+
+  async updatePermissions(updates: Partial<PermissionsConfig>): Promise<PermissionsConfig> {
+    return this.permissionsService.updateConfig(updates);
   }
 }
