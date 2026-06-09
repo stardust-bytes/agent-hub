@@ -67,7 +67,7 @@
           <div v-else-if="msg.role === 'user'"
             class="border-l-2 border-cyber-accent/80 pl-3 py-1">
             <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">{{ rolePrefix(msg.role) }} · {{ msg.timestamp }}</div>
-            <div class="text-sm leading-relaxed break-words text-cyber-text">{{ msg.content }}</div>
+            <div class="text-sm leading-relaxed break-words text-cyber-text" v-html="highlightUserMessage(msg.content)"></div>
           </div>
 
           <!-- System message (other) -->
@@ -97,15 +97,24 @@
       <div class="max-w-60rem mx-auto w-full px-3 pb-3">
         <div class="bg-cyber-dark px-3 py-2">
           <form @submit.prevent="submit" class="flex items-center gap-2">
-            <input
-              ref="inputEl"
-              v-model="input"
-              class="flex-1 bg-transparent text-cyber-text text-sm outline-none font-mono placeholder-cyber-muted/40 caret-white"
-              :placeholder="t('chat.placeholder')"
-              :disabled="streaming"
-              autocomplete="off"
-              spellcheck="false"
-            />
+            <div class="relative flex-1">
+              <SlashMenu
+                :visible="showSlashMenu"
+                :filter="slashFilter"
+                :selected-index="slashSelectedIndex"
+                @select="onSlashSelect"
+                @highlight="(i: number) => { slashSelectedIndex = i }"
+              />
+              <div
+                ref="inputEl"
+                contenteditable
+                role="textbox"
+                class="flex-1 bg-transparent text-sm outline-none font-mono caret-white min-h-[1.2em] whitespace-pre-wrap break-words"
+                :class="streaming ? 'pointer-events-none opacity-50' : ''"
+                @input="onInput"
+                @keydown="onKeyDown"
+              ></div>
+            </div>
             <button
               v-if="streaming"
               @click="stopStream"
@@ -160,6 +169,7 @@ import ModelSelector from './ModelSelector.vue'
 import SessionModal from './SessionModal.vue'
 import FormBlock from './FormBlock.vue'
 import PlanBubble from './PlanBubble.vue'
+import SlashMenu from './SlashMenu.vue'
 
 interface PlanStep {
   id: number
@@ -197,16 +207,18 @@ const { t } = useI18n()
 const messages = ref<Message[]>([
   { role: 'system', content: t('chat.system.init'), timestamp: now() },
 ])
-const input = ref('')
 const streaming = ref(false)
 const selectedModelId = ref<number | null>(null)
 const availableModels = ref<ProviderModelFlat[]>([])
 const abortController = ref<AbortController | null>(null)
-const inputEl = ref<HTMLInputElement | null>(null)
+const inputEl = ref<HTMLDivElement | null>(null)
 const messagesEl = ref<HTMLElement | null>(null)
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
 const agentMode = ref(true)
+const showSlashMenu = ref(false)
+const slashFilter = ref('')
+const slashSelectedIndex = ref(0)
 
 const hasChatMessages = computed(() =>
   messages.value.some(m => m.role === 'user' || m.role === 'agent' || m.role === 'plan')
@@ -289,7 +301,7 @@ function onFormSubmit(data: Record<string, string>) {
   scrollToBottom()
   if (currentSessionId.value !== null && selectedModelId.value !== null) {
     const text = JSON.stringify(data)
-    input.value = text
+    if (inputEl.value) inputEl.value.innerText = text
     submit()
   }
 }
@@ -345,6 +357,86 @@ watch(selectedModelId, (val) => {
 
 function stopStream() {
   abortController.value?.abort()
+}
+
+function onInput(e: Event) {
+  const el = e.target as HTMLElement
+  const text = el.innerText || ''
+
+  if (text.startsWith('/')) {
+    const spaceIdx = text.indexOf(' ')
+    if (spaceIdx === -1) {
+      showSlashMenu.value = true
+      slashFilter.value = text
+      slashSelectedIndex.value = 0
+    } else {
+      showSlashMenu.value = false
+    }
+  } else {
+    showSlashMenu.value = false
+  }
+
+  renderHighlightedInput(el, text)
+}
+
+function onKeyDown(e: KeyboardEvent) {
+  if (!showSlashMenu.value) return
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    slashSelectedIndex.value = Math.min(slashSelectedIndex.value + 1, 2)
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    slashSelectedIndex.value = Math.max(slashSelectedIndex.value - 1, 0)
+  } else if (e.key === 'Enter' || e.key === 'Tab') {
+    if (showSlashMenu.value) {
+      e.preventDefault()
+      const filtered = getSlashCommands().filter(c => c.command.startsWith(slashFilter.value))
+      if (filtered[slashSelectedIndex.value]) {
+        insertSlash(filtered[slashSelectedIndex.value].command)
+      }
+    }
+  } else if (e.key === 'Escape') {
+    showSlashMenu.value = false
+  }
+}
+
+function onSlashSelect(command: string) {
+  insertSlash(command)
+}
+
+function insertSlash(command: string) {
+  const el = inputEl.value
+  if (!el) return
+  el.innerText = command + ' '
+  showSlashMenu.value = false
+  renderHighlightedInput(el, command + ' ')
+  placeCaretAtEnd(el)
+  el.focus()
+}
+
+function getSlashCommands() {
+  return [
+    { command: '/plan', description: '' },
+    { command: '/help', description: '' },
+    { command: '/clear', description: '' },
+  ]
+}
+
+function renderHighlightedInput(el: HTMLElement, text: string) {
+  const html = highlightSlash(text)
+  if (el.innerHTML !== html) {
+    el.innerHTML = html
+  }
+}
+
+function placeCaretAtEnd(el: HTMLElement) {
+  const range = document.createRange()
+  const sel = window.getSelection()
+  range.selectNodeContents(el)
+  range.collapse(false)
+  sel?.removeAllRanges()
+  sel?.addRange(range)
 }
 
 async function loadSession(id: number) {
@@ -479,8 +571,30 @@ async function handleReject(planId: number) {
   if (idx !== -1) messages.value.splice(idx, 1)
 }
 
+function highlightUserMessage(content: string): string {
+  return DOMPurify.sanitize(highlightSlash(content))
+}
+
+function highlightSlash(text: string): string {
+  if (text.startsWith('/')) {
+    const spaceIdx = text.indexOf(' ')
+    if (spaceIdx !== -1) {
+      const cmd = text.slice(0, spaceIdx)
+      const rest = text.slice(spaceIdx)
+      return `<span class="text-cyber-cyan">${escapeHtml(cmd)}</span><span class="text-cyber-text">${escapeHtml(rest)}</span>`
+    }
+    return `<span class="text-cyber-cyan">${escapeHtml(text)}</span>`
+  }
+  return `<span class="text-cyber-text">${escapeHtml(text)}</span>`
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
 async function submit() {
-  const text = input.value.trim()
+  const el = inputEl.value
+  const text = el?.innerText?.trim() ?? ''
   if (!text || streaming.value || selectedModelId.value === null) return
   if (currentSessionId.value === null) {
     try {
@@ -491,7 +605,7 @@ async function submit() {
       }
     } catch { /* ignore */ }
   }
-  input.value = ''
+  if (el) el.innerText = ''
   streaming.value = true
 
   messages.value.push({ role: 'user', content: text, timestamp: now() })
