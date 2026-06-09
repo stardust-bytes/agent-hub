@@ -60,6 +60,9 @@
   "settings.saved": "✓ Đã lưu",
   "settings.version": "Phiên bản",
   "settings.info": "THÔNG TIN",
+  "settings.embedModel": "Model Embedding",
+  "settings.summaryModel": "Model Tóm tắt",
+  "settings.defaultOption": "Mặc định (env)",
 
   "files.header": "KIẾN THỨC",
   "files.dropzone": "Thả file hoặc click để upload",

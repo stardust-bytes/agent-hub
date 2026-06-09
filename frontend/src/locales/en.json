@@ -60,6 +60,9 @@
   "settings.saved": "✓ Saved",
   "settings.version": "Version",
   "settings.info": "INFO",
+  "settings.embedModel": "Embedding Model",
+  "settings.summaryModel": "Summary Model",
+  "settings.defaultOption": "Default (env)",
 
   "files.header": "KNOWLEDGE BASE",
   "files.dropzone": "Drop files or click to upload",
