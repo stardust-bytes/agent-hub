@@ -7,14 +7,11 @@
         v-model="field.value"
         class="w-full bg-cyber-bg px-2 py-1 text-sm font-mono text-cyber-text outline-none"
         :placeholder="field.placeholder"
-        :disabled="disabled"
-        :readonly="disabled"
       />
       <select
         v-else-if="field.type === 'select'"
         v-model="field.value"
         class="w-full bg-cyber-bg px-2 py-1 text-sm font-mono text-cyber-text outline-none"
-        :disabled="disabled"
       >
         <option v-for="opt in field.options" :key="opt" :value="opt" class="bg-cyber-dark">{{ opt }}</option>
       </select>
@@ -24,14 +21,11 @@
         class="w-full bg-cyber-bg px-2 py-1 text-sm font-mono text-cyber-text outline-none resize-none"
         :placeholder="field.placeholder"
         rows="3"
-        :disabled="disabled"
-        :readonly="disabled"
       />
     </div>
     <button
       type="submit"
-      :disabled="disabled"
-      class="text-sm font-mono font-bold text-black bg-cyber-accent px-3 py-1 hover:bg-cyber-accent/80 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+      class="text-sm font-mono font-bold text-black bg-cyber-accent px-3 py-1 hover:bg-cyber-accent/80 transition-colors duration-150"
     >{{ submitText }}</button>
   </form>
 </template>
@@ -49,7 +43,6 @@ interface Field {
 const props = defineProps<{
   html: string
   index: number
-  disabled?: boolean
 }>()
 
 const emit = defineEmits<{
