@@ -58,6 +58,14 @@ data: {"thinking":"Synthesizing..."}
 data: [DONE]
 ```
 
+**`GET /api/agent/permissions`**
+
+Get current tool permissions config.
+
+**`PATCH /api/agent/permissions`**
+
+Update tool permissions config.
+
 ## SSE Events
 
 | Event | Shape | When |
@@ -81,6 +89,8 @@ data: [DONE]
 8. **DONE**: emit `[DONE]` SSE event
 
 Tools available: create_task, update_task, list_tasks, get_task, delete_tasks, search_knowledge, web_fetch, web_search, create_note, update_note, list_notes, delete_note, convert_note_to_task
+
+Permission check: before each tool execution, `PermissionsService.isAllowed(name)` is called. Denied tools emit a `toolResult` denial SSE and `continue` (skip CORRECTING).
 
 Self-correction fallback map: `web_fetch` → `web_search`, `search_knowledge` → `web_search`
 

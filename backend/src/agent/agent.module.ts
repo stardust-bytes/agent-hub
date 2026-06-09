@@ -5,6 +5,7 @@ import { AgentLoopService } from './services/agent-loop.service';
 import { LLMControllerService } from './services/llm-controller.service';
 import { OllamaProvider } from './providers/ollama.provider';
 import { ContextBuilderService } from './services/context-builder.service';
+import { PermissionsService } from './services/permissions.service';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { SessionsModule } from '../sessions/sessions.module';
@@ -34,6 +35,7 @@ import { NotesModule } from '../notes/notes.module';
     LLMControllerService,
     OllamaProvider,
     ContextBuilderService,
+    PermissionsService,
     CreateTaskExecutor,
     UpdateTaskExecutor,
     ListTasksExecutor,
