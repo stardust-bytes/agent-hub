@@ -1624,7 +1624,7 @@ Replace entire `frontend/src/components/SidebarNav.vue`:
 <template>
   <nav class="w-32 bg-cyber-dark hidden sm:flex flex-col items-stretch py-3 gap-1 shrink-0">
     <div class="flex items-center justify-center gap-2 px-3 py-1 mb-1">
-      <span class="text-xs text-cyber-accent font-bold truncate">960513-wp</span>
+      <span class="text-xs text-cyber-accent font-bold truncate">171305-wp</span>
     </div>
 
     <button

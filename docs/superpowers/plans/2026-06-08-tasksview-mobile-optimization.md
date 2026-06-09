@@ -684,4 +684,4 @@ async function onDeleteConfirmed() {
 
 <｜｜DSML｜｜tool_calls>
 <｜｜DSML｜｜invoke name="edit">
-<｜｜DSML｜｜parameter name="filePath" string="true">C:\Users\doanp\Documents\GitHub\960513\docs\superpowers\plans\2026-06-08-tasksview-mobile-optimization.md
+<｜｜DSML｜｜parameter name="filePath" string="true">C:\Users\doanp\Documents\GitHub\171305\docs\superpowers\plans\2026-06-08-tasksview-mobile-optimization.md

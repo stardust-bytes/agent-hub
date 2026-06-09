@@ -13,7 +13,7 @@
 ## File Map
 
 ```
-960513/
+171305/
 ├── .gitignore
 ├── docker-compose.yml
 ├── workspace_data/.gitkeep
@@ -84,7 +84,7 @@
 - [ ] **Step 1: Initialize git and create root structure**
 
 ```bash
-cd C:/Users/doanp/Documents/GitHub/960513
+cd C:/Users/doanp/Documents/GitHub/171305
 git init
 mkdir -p workspace_data
 echo "" > workspace_data/.gitkeep
