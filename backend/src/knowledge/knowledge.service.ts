@@ -221,20 +221,8 @@ export class KnowledgeService {
       const vector = await this.embed(query);
       await this.ensureTable();
 
-      const summaryResults = await this.table.search(vector)
-        .where("type = 'summary'")
-        .limit(20)
-        .toArray() as ChunkRecord[];
-
-      const relevantFiles = summaryResults
-        .filter(r => r.fileId > 0)
-        .map(r => r.filename);
-
-      if (relevantFiles.length === 0) return [];
-
-      const fileFilter = relevantFiles.map(f => `'${f.replace(/'/g, "''")}'`).join(',');
       const chunkResults = await this.table.search(vector)
-        .where(`type = 'chunk' AND filename IN (${fileFilter})`)
+        .where("type = 'chunk'")
         .limit(10)
         .toArray() as ChunkRecord[];
 
