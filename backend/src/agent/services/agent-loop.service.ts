@@ -272,6 +272,9 @@ export class AgentLoopService {
       res.write(
         `data: ${JSON.stringify({ planStepUpdate: { planId, stepId: step.id, status: 'DOING' } })}\n\n`,
       );
+      if (sessionId) {
+        await this.sessionsService.saveMessage(sessionId, 'system', `Executing step: ${step.text}`);
+      }
 
       try {
         const stepSystemPrompt = `${systemPrompt}\n\nYou are executing plan step ${step.order + 1}: "${step.text}". Complete only this step.`;
@@ -282,11 +285,17 @@ export class AgentLoopService {
         res.write(
           `data: ${JSON.stringify({ planStepUpdate: { planId, stepId: step.id, status: 'DONE' } })}\n\n`,
         );
+        if (sessionId) {
+          await this.sessionsService.saveMessage(sessionId, 'system', `Step completed: ${step.text}`);
+        }
       } catch {
         await this.plansService.updateStepStatus(step.id, 'FAILED');
         res.write(
           `data: ${JSON.stringify({ planStepUpdate: { planId, stepId: step.id, status: 'FAILED' } })}\n\n`,
         );
+        if (sessionId) {
+          await this.sessionsService.saveMessage(sessionId, 'system', `Step failed: ${step.text}`);
+        }
       }
     }
 
@@ -338,6 +347,10 @@ export class AgentLoopService {
     }
 
     const plan = await this.plansService.create(sessionId, planData.title, planData.steps);
+
+    if (sessionId) {
+      await this.sessionsService.saveMessage(sessionId, 'system', `[Plan] ${plan.title} — ${plan.steps.length} steps created`);
+    }
 
     res.write(
       `data: ${JSON.stringify({
@@ -502,11 +515,17 @@ export class AgentLoopService {
         const name = tc.name;
         const args = this.normalizeArgs(tc.arguments);
         res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
+        if (sessionId) {
+          await this.sessionsService.saveMessage(sessionId, 'tool', `${name}(${JSON.stringify(args)})`, name, false);
+        }
 
         const allowed = await this.permissionsService.isAllowed(name);
         if (!allowed) {
           const denyMsg = `Tool "${name}" is not permitted by workspace policy.`;
           res.write(`data: ${JSON.stringify({ toolResult: { name, result: denyMsg } })}\n\n`);
+          if (sessionId) {
+            await this.sessionsService.saveMessage(sessionId, 'tool', denyMsg, name, true);
+          }
           currentMessages.push({ role: 'tool', content: denyMsg });
           continue;
         }
@@ -518,6 +537,9 @@ export class AgentLoopService {
           result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
         }
         res.write(`data: ${JSON.stringify({ toolResult: { name, result } })}\n\n`);
+        if (sessionId) {
+          await this.sessionsService.saveMessage(sessionId, 'tool', result, name, true);
+        }
         currentMessages.push({ role: 'tool', content: result });
       }
     }
