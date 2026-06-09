@@ -17,6 +17,29 @@
             </div>
           </div>
         </div>
+
+        <div class="border-t border-cyber-accent/10 pt-4 mt-4">
+          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.info') }}</div>
+          <div class="space-y-3">
+            <div>
+              <label class="text-cyber-muted text-xs font-mono block mb-1">{{ t('settings.embedModel') }}</label>
+              <select v-model="embedModelId" @change="saveSetting('embed_model_id', embedModelId)"
+                class="w-full bg-cyber-dark text-cyber-text text-sm font-mono rounded border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent">
+                <option value="">{{ t('settings.defaultOption') }}</option>
+                <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-cyber-muted text-xs font-mono block mb-1">{{ t('settings.summaryModel') }}</label>
+              <select v-model="summaryModelId" @change="saveSetting('summary_model_id', summaryModelId)"
+                class="w-full bg-cyber-dark text-cyber-text text-sm font-mono rounded border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent">
+                <option value="">{{ t('settings.defaultOption') }}</option>
+                <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
+              </select>
+            </div>
+            <div v-if="saved" class="text-cyber-green text-xs font-mono">{{ t('settings.saved') }}</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -30,6 +53,16 @@ import { HiCog } from 'vue-icons-plus/hi'
 const { t } = useI18n()
 const healthy = ref(false)
 
+interface ProviderModelOption {
+  id: number
+  label: string
+}
+
+const providers = ref<ProviderModelOption[]>([])
+const embedModelId = ref<string>('')
+const summaryModelId = ref<string>('')
+const saved = ref(false)
+
 onMounted(async () => {
   try {
     const healthRes = await fetch('/api/health')
@@ -38,5 +71,34 @@ onMounted(async () => {
       healthy.value = h.status === 'ok'
     }
   } catch { /* ignore */ }
+
+  try {
+    const [provRes, settingsRes] = await Promise.all([
+      fetch('/api/providers/models'),
+      fetch('/api/settings'),
+    ])
+    if (provRes.ok) {
+      const models = await provRes.json() as Array<{ id: number; name: string; providerName: string }>
+      providers.value = models.map(m => ({ id: m.id, label: `${m.providerName} / ${m.name}` }))
+    }
+    if (settingsRes.ok) {
+      const settingsData = await settingsRes.json() as Record<string, string>
+      embedModelId.value = settingsData['embed_model_id'] ?? ''
+      summaryModelId.value = settingsData['summary_model_id'] ?? ''
+    }
+  } catch { /* ignore */ }
 })
+
+async function saveSetting(key: string, value: string) {
+  saved.value = false
+  try {
+    await fetch(`/api/settings/${key}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value }),
+    })
+    saved.value = true
+    setTimeout(() => { saved.value = false }, 2000)
+  } catch { /* ignore */ }
+}
 </script>
