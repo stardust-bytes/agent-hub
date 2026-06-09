@@ -46,6 +46,7 @@
   "tasks.form.title": "Tên task",
   "tasks.form.priority": "Ưu tiên",
   "tasks.form.status": "Trạng thái",
+  "tasks.form.description": "Mô tả",
   "tasks.form.save": "Lưu",
   "tasks.form.cancel": "Huỷ",
   "tasks.delete.confirm": "Xoá task này?",

@@ -46,6 +46,7 @@
   "tasks.form.title": "Title",
   "tasks.form.priority": "Priority",
   "tasks.form.status": "Status",
+  "tasks.form.description": "Description",
   "tasks.form.save": "Save",
   "tasks.form.cancel": "Cancel",
   "tasks.delete.confirm": "Delete this task?",
