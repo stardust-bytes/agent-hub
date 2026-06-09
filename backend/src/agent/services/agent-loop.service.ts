@@ -103,9 +103,15 @@ export class AgentLoopService {
       }
 
       if (this.state === AgentState.EXECUTING) {
-        const { text, toolCalls } = await this.executeStep(
-          model, messages, activeTools, signal, providerConfig, res, sessionId,
-        );
+        let text: string;
+        let toolCalls: Array<{ name: string; arguments: unknown }>;
+        try {
+          ({ text, toolCalls } = await this.executeStep(
+            model, messages, activeTools, signal, providerConfig, res, sessionId,
+          ));
+        } catch {
+          break;
+        }
         finalText += text;
 
         if (toolCalls.length > 0) {
@@ -224,9 +230,14 @@ export class AgentLoopService {
         { role: 'user', content: closePrompt },
       ];
 
-      const { text: closeText } = await this.executeStep(
-        model, closeMessages, [], signal, providerConfig, res, sessionId,
-      );
+      let closeText = '';
+      try {
+        ({ text: closeText } = await this.executeStep(
+          model, closeMessages, [], signal, providerConfig, res, sessionId,
+        ));
+      } catch {
+        // error SSE already written by executeStep
+      }
 
       if (closeText && sessionId) {
         await this.sessionsService.saveMessage(sessionId, 'assistant', closeText);
