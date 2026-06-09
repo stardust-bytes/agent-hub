@@ -1,67 +1,75 @@
 <template>
   <div class="flex flex-col bg-cyber-bg min-w-0">
-    <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 min-h-0">
-      <div class="max-w-60rem mx-auto space-y-4 px-3">
-        <div v-for="(msg, i) in messages" :key="i" class="font-mono">
+    <template v-if="hasChatMessages">
+      <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 min-h-0">
+        <div class="max-w-60rem mx-auto space-y-4 px-3">
+          <div v-for="(msg, i) in messages" :key="i" class="font-mono">
 
-        <!-- Thinking block -->
-        <div v-if="msg.role === 'system' && msg.content === '⟳ thinking...' || msg.content === '⟳ đang nghĩ...'"
-          class="border-l-2 border-cyber-accent/30 pl-3 py-1">
-          <div class="text-sm text-cyber-accent/60 font-mono">⟳ {{ msg.content.replace('⟳ ', '') }}</div>
-        </div>
-
-        <!-- Tool call block -->
-        <div v-else-if="msg.role === 'tool' && !msg.isResult"
-          class="border-l-2 border-cyber-orange/50 pl-3 py-1.5">
-          <div class="text-sm text-cyber-orange font-mono mb-0.5">[⚙] {{ msg.content }}</div>
-        </div>
-
-        <!-- Tool result block -->
-        <div v-else-if="msg.role === 'tool' && msg.isResult"
-          class="border-l-2 border-cyber-green/50 pl-3 py-1.5">
-          <template v-if="isToolLong(msg.content)">
-            <div v-if="!isToolExpanded(msg)" class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ toolPreview(msg.content) }}</div>
-            <div v-if="!isToolExpanded(msg)" class="text-sm text-cyber-muted font-mono mt-0.5">...</div>
-            <div v-if="isToolExpanded(msg)" class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ msg.content }}</div>
-            <button
-              @click="toggleToolExpand(msg)"
-              class="text-sm font-mono mt-0.5 transition-colors duration-150 text-cyber-accent/60 hover:text-cyber-accent"
-            >{{ isToolExpanded(msg) ? t('chat.tool.collapse') : t('chat.tool.expand') }}</button>
-          </template>
-          <div v-else class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ msg.content }}</div>
-        </div>
-
-        <!-- Agent answer block -->
-        <div v-else-if="msg.role === 'agent'"
-          class="border-l-2 border-cyber-accent/80 pl-3 py-1">
-          <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">
-            <HiChevronRight class="w-3 h-3 inline" /> {{ rolePrefix(msg.role) }} · {{ msg.timestamp }}
+          <!-- Thinking block -->
+          <div v-if="msg.role === 'system' && msg.content === '⟳ thinking...' || msg.content === '⟳ đang nghĩ...'"
+            class="border-l-2 border-cyber-accent/30 pl-3 py-1">
+            <div class="text-sm text-cyber-accent/60 font-mono">⟳ {{ msg.content.replace('⟳ ', '') }}</div>
           </div>
-          <div v-if="msg.typing" class="text-sm leading-relaxed break-words text-cyber-text">
-            {{ msg.content }}
+
+          <!-- Tool call block -->
+          <div v-else-if="msg.role === 'tool' && !msg.isResult"
+            class="border-l-2 border-cyber-orange/50 pl-3 py-1.5">
+            <div class="text-sm text-cyber-orange font-mono mb-0.5">[⚙] {{ msg.content }}</div>
           </div>
-          <template v-else>
-            <template v-for="(seg, si) in parseSegments(msg.content)" :key="si">
-              <div v-if="seg.type === 'markdown'" class="text-sm leading-relaxed break-words text-cyber-text markdown-body" v-html="seg.content" />
-              <FormBlock v-else :html="seg.content" :index="si" @submit="(data) => onFormSubmit(data)" />
+
+          <!-- Tool result block -->
+          <div v-else-if="msg.role === 'tool' && msg.isResult"
+            class="border-l-2 border-cyber-green/50 pl-3 py-1.5">
+            <template v-if="isToolLong(msg.content)">
+              <div v-if="!isToolExpanded(msg)" class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ toolPreview(msg.content) }}</div>
+              <div v-if="!isToolExpanded(msg)" class="text-sm text-cyber-muted font-mono mt-0.5">...</div>
+              <div v-if="isToolExpanded(msg)" class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ msg.content }}</div>
+              <button
+                @click="toggleToolExpand(msg)"
+                class="text-sm font-mono mt-0.5 transition-colors duration-150 text-cyber-accent/60 hover:text-cyber-accent"
+              >{{ isToolExpanded(msg) ? t('chat.tool.collapse') : t('chat.tool.expand') }}</button>
             </template>
-          </template>
-        </div>
+            <div v-else class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ msg.content }}</div>
+          </div>
 
-        <!-- User message block -->
-        <div v-else-if="msg.role === 'user'"
-          class="border-l-2 border-cyber-accent/80 pl-3 py-1">
-          <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">{{ rolePrefix(msg.role) }} · {{ msg.timestamp }}</div>
-          <div class="text-sm leading-relaxed break-words text-cyber-text">{{ msg.content }}</div>
-        </div>
+          <!-- Agent answer block -->
+          <div v-else-if="msg.role === 'agent'"
+            class="border-l-2 border-cyber-accent/80 pl-3 py-1">
+            <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">
+              <HiChevronRight class="w-3 h-3 inline" /> {{ rolePrefix(msg.role) }} · {{ msg.timestamp }}
+            </div>
+            <div v-if="msg.typing" class="text-sm leading-relaxed break-words text-cyber-text">
+              {{ msg.content }}
+            </div>
+            <template v-else>
+              <template v-for="(seg, si) in parseSegments(msg.content)" :key="si">
+                <div v-if="seg.type === 'markdown'" class="text-sm leading-relaxed break-words text-cyber-text markdown-body" v-html="seg.content" />
+                <FormBlock v-else :html="seg.content" :index="si" @submit="(data) => onFormSubmit(data)" />
+              </template>
+            </template>
+          </div>
 
-        <!-- System message (other) -->
-        <div v-else-if="msg.role === 'system'"
-          class="pl-3 py-0.5">
-          <div class="text-sm text-cyber-muted font-mono">{{ msg.content }}</div>
-        </div>
+          <!-- User message block -->
+          <div v-else-if="msg.role === 'user'"
+            class="border-l-2 border-cyber-accent/80 pl-3 py-1">
+            <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">{{ rolePrefix(msg.role) }} · {{ msg.timestamp }}</div>
+            <div class="text-sm leading-relaxed break-words text-cyber-text">{{ msg.content }}</div>
+          </div>
 
+          <!-- System message (other) -->
+          <div v-else-if="msg.role === 'system'"
+            class="pl-3 py-0.5">
+            <div class="text-sm text-cyber-muted font-mono">{{ msg.content }}</div>
+          </div>
+
+        </div>
+        </div>
       </div>
+    </template>
+    <div v-else class="flex-1 flex items-center justify-center min-h-0">
+      <div class="text-center">
+        <div class="font-['Press_Start_2P'] text-3xl text-cyber-accent mb-4">171305</div>
+        <div class="text-sm font-mono text-cyber-muted">// {{ t('chat.empty.subtitle') }}</div>
       </div>
     </div>
 
@@ -129,7 +137,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted, watch } from 'vue'
+import { ref, nextTick, onMounted, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiChevronRight } from 'vue-icons-plus/hi'
 import { marked } from 'marked'
@@ -169,6 +177,10 @@ const messagesEl = ref<HTMLElement | null>(null)
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
 const agentMode = ref(true)
+
+const hasChatMessages = computed(() =>
+  messages.value.some(m => m.role === 'user' || m.role === 'agent')
+)
 
 function now(): string {
   return new Date().toLocaleTimeString('vi-VN', { hour12: false })
