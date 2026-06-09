@@ -2,20 +2,23 @@ import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets'
 import { Server } from 'socket.io'
 import { Note } from '@prisma/client'
 
-@WebSocketGateway({ namespace: '/notes' })
+@WebSocketGateway({
+  namespace: '/notes',
+  cors: { origin: ['http://localhost:5173', 'http://localhost:3000'] },
+})
 export class NotesGateway {
   @WebSocketServer()
   server: Server
 
-  emitCreated(note: Note) {
-    this.server?.emit('note:created', note)
+  emitCreated(note: Note): void {
+    this.server.emit('note:created', note)
   }
 
-  emitUpdated(note: Note) {
-    this.server?.emit('note:updated', note)
+  emitUpdated(note: Note): void {
+    this.server.emit('note:updated', note)
   }
 
-  emitDeleted(id: number) {
-    this.server?.emit('note:deleted', { id })
+  emitDeleted(id: number): void {
+    this.server.emit('note:deleted', { id })
   }
 }
