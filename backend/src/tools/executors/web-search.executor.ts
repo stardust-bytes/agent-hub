@@ -42,7 +42,7 @@ export class WebSearchExecutor implements ToolExecutor {
 
       return data.results.map((item, i) => {
         const date = item.publishedDate
-          ? `\n   Published: ${new Date(item.publishedDate).toLocaleDateString('vi-VN')}`
+          ? (() => { const d = new Date(item.publishedDate); return isNaN(d.getTime()) ? '' : `\n   Published: ${d.toLocaleDateString('vi-VN')}`; })()
           : '';
         const highlights = item.highlights?.length
           ? `\n   ${item.highlights[0]}`
