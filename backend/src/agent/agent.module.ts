@@ -25,9 +25,10 @@ import { ListNotesExecutor } from '../tools/executors/list-notes.executor';
 import { DeleteNoteExecutor } from '../tools/executors/delete-note.executor';
 import { ConvertNoteToTaskExecutor } from '../tools/executors/convert-note-to-task.executor';
 import { NotesModule } from '../notes/notes.module';
+import { PlansModule } from '../plans/plans.module';
 
 @Module({
-  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule],
+  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule],
   controllers: [AgentController],
   providers: [
     AgentService,

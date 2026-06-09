@@ -6,7 +6,7 @@ AI agent integration module. Implements State Machine orchestrator with Planning
 
 - `AgentController` — exposes `POST /api/agent/chat` (SSE streaming endpoint). Uses `@Res({ passthrough: false })` to directly write SSE events.
 - `AgentService` — thin orchestrator: resolves provider model, builds context, delegates to `AgentLoopService`, persists messages.
-- `AgentLoopService` — State Machine orchestrator: drives PLANNING → EXECUTING → EVALUATING → CORRECTING → RESPONDING → DONE loop, executes tools, emits SSE events.
+- `AgentLoopService` — State Machine orchestrator: drives PLANNING → EXECUTING → EVALUATING → CORRECTING → RESPONDING → DONE loop, executes tools, emits SSE events. Also implements `runPlanMode()` and `executePlan()` for Plan Mode.
 - `LLMControllerService` — provider-agnostic LLM routing: selects registered provider, manages message history, builds message arrays.
 - `OllamaProvider` — raw LLM streaming only: calls Ollama `/api/chat`, yields `StreamChunk` objects (token/tool_call/done/error). No tool execution or loop logic.
 - `ContextBuilderService` — builds system prompt with tool definitions, loads chat history from Prisma.
@@ -25,7 +25,8 @@ agent/
 │   ├── chat.dto.ts           — message, providerModelId (Int), sessionId (Int), mode? ('agent'|'chat')
 │   ├── agent-run-state.ts     — execution tracking (steps, duration, iterations, currentState)
 │   ├── agent-state.enum.ts    — AgentState enum (PLANNING/EXECUTING/EVALUATING/CORRECTING/RESPONDING/DONE)
-│   └── agent-action.dto.ts    — text-based action parser (activate_skill, search_kb, respond)
+│   ├── agent-action.dto.ts    — text-based action parser (activate_skill, search_kb, respond)
+│   └── execute-plan.dto.ts    — DTO for POST /api/agent/plans/:id/execute body
 ├── services/
 │   ├── agent-loop.service.ts       — State Machine orchestrator (main loop)
 │   ├── agent-loop.service.spec.ts
@@ -66,6 +67,11 @@ Get current tool permissions config.
 
 Update tool permissions config.
 
+**`POST /api/agent/plans/:id/execute`**
+
+Request body: `{ "providerModelId": 1, "sessionId": 1 }`
+Response: SSE stream executing plan steps. Emits `planStepUpdate` events plus standard token/toolCall/toolResult events.
+
 ## SSE Events
 
 | Event | Shape | When |
@@ -76,6 +82,8 @@ Update tool permissions config.
 | `thinking` | `{thinking: string}` | Synthesis/processing indicator |
 | `[DONE]` | plain text | Stream complete |
 | `error` | `{error: string}` | Error occurred |
+| `plan` | `{id, title, status, steps:[{id,order,text,status}]}` | LLM proposes a plan (runPlanMode) |
+| `planStepUpdate` | `{planId, stepId, status}` | Step changes state during plan execution |
 
 ## State Machine Loop
 
@@ -109,6 +117,7 @@ Self-correction fallback map: `web_fetch` → `web_search`, `search_knowledge` �
 - ProvidersModule (provider model resolution)
 - ToolsModule (all ToolExecutor implementations)
 - NotesModule (note tool executors — create/update/list/delete/convert)
+- PlansModule (plan persistence — `create`, `findOne`, `updateStepStatus`, `updateStatus`)
 
 ## Testing
 

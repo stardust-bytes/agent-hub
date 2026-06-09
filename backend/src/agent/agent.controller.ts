@@ -1,9 +1,10 @@
-import { Controller, Post, Get, Patch, Body, Req, Res } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, Req, Res, Param, ParseIntPipe } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AgentService } from './agent.service';
 import { ChatDto } from './dto/chat.dto';
 import { UpdatePermissionsDto } from './dto/update-permissions.dto';
 import { PermissionsConfig } from './dto/permissions-config';
+import { ExecutePlanDto } from './dto/execute-plan.dto';
 
 @Controller('agent')
 export class AgentController {
@@ -25,6 +26,30 @@ export class AgentController {
 
     try {
       await this.agentService.streamChat(dto.message, dto.providerModelId, res, ctrl.signal, dto.sessionId, dto.mode ?? 'agent');
+    } catch {
+      res.write('data: {"error":"internal_error"}\n\n');
+    } finally {
+      res.end();
+    }
+  }
+
+  @Post('plans/:id/execute')
+  async executePlanStream(
+    @Param('id', ParseIntPipe) planId: number,
+    @Body() dto: ExecutePlanDto,
+    @Req() req: Request,
+    @Res({ passthrough: false }) res: Response,
+  ): Promise<void> {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const ctrl = new AbortController();
+    req.on('close', () => ctrl.abort());
+
+    try {
+      await this.agentService.executePlan(planId, dto.providerModelId, dto.sessionId, res);
     } catch {
       res.write('data: {"error":"internal_error"}\n\n');
     } finally {

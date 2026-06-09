@@ -10,6 +10,8 @@ describe('AgentService', () => {
   let service: AgentService;
   const mockAgentLoop = {
     run: jest.fn().mockResolvedValue('Great response'),
+    runPlanMode: jest.fn().mockResolvedValue(undefined),
+    executePlan: jest.fn().mockResolvedValue(undefined),
   };
   const mockSessionsService = {
     getHistory: jest.fn().mockResolvedValue([]),
@@ -107,5 +109,57 @@ describe('AgentService', () => {
 
     expect(mockSessionsService.saveMessage).not.toHaveBeenCalled();
     expect(mockSessionsService.autoTitle).not.toHaveBeenCalled();
+  });
+
+  describe('streamChat with /plan prefix', () => {
+    it('routes /plan message to agentLoop.runPlanMode instead of run', async () => {
+      const signal = new AbortController().signal;
+      const res = { write: jest.fn() } as any;
+
+      await service.streamChat('/plan do something cool', 5, res, signal, 1);
+
+      expect(mockAgentLoop.runPlanMode).toHaveBeenCalled();
+      expect(mockAgentLoop.run).not.toHaveBeenCalled();
+    });
+
+    it('passes stripped task text (without /plan prefix) to runPlanMode', async () => {
+      const signal = new AbortController().signal;
+      const res = { write: jest.fn() } as any;
+
+      await service.streamChat('/plan refactor the auth module', 5, res, signal, 1);
+
+      const firstArg = mockAgentLoop.runPlanMode.mock.calls[0][0];
+      expect(firstArg).toBe('refactor the auth module');
+    });
+  });
+
+  describe('executePlan', () => {
+    it('calls agentLoop.executePlan with resolved provider config', async () => {
+      const res = { write: jest.fn() } as any;
+
+      await service.executePlan(42, 5, 1, res);
+
+      expect(mockProvidersService.findModelWithProvider).toHaveBeenCalledWith(5);
+      expect(mockAgentLoop.executePlan).toHaveBeenCalledWith(
+        42,
+        expect.any(String),
+        'llama3.2',
+        expect.any(String),
+        expect.any(Array),
+        expect.objectContaining({ baseUrl: 'http://localhost:11434' }),
+        res,
+        1,
+      );
+    });
+
+    it('writes provider_not_found error when provider is missing', async () => {
+      mockProvidersService.findModelWithProvider.mockResolvedValueOnce(null);
+      const res = { write: jest.fn() } as any;
+
+      await service.executePlan(42, 999, 1, res);
+
+      expect(res.write).toHaveBeenCalledWith('data: {"error":"provider_not_found"}\n\n');
+      expect(mockAgentLoop.executePlan).not.toHaveBeenCalled();
+    });
   });
 });
