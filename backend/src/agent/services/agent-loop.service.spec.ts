@@ -231,12 +231,15 @@ describe('AgentLoopService', () => {
   });
 
   describe('Max iterations', () => {
-    it('terminates when loop reaches MAX_ITERATIONS (10)', async () => {
+    it('generates a closing message via final LLM call when max iterations hit', async () => {
       const toolCall: StreamChunk = {
         type: 'tool_call',
         toolCall: { name: 'web_search', arguments: { q: 'test' } },
       };
-      llmController.stream = jest.fn().mockImplementation(() => asyncGen([toolCall, DONE]));
+      llmController.stream = buildStreamMock(
+        ...Array(10).fill([toolCall, DONE]),
+        [{ type: 'token', token: 'closing message from AI' }, DONE],
+      );
       (webSearch.execute as jest.Mock).mockResolvedValue('Succeed');
 
       const res = mockRes();
@@ -246,11 +249,14 @@ describe('AgentLoopService', () => {
         defaultTools, res, signal, undefined, 'agent', defaultConfig,
       );
 
-      expect(llmController.stream).toHaveBeenCalledTimes(10);
+      // 10 loop iterations + 1 closing LLM call = 11 total
+      expect(llmController.stream).toHaveBeenCalledTimes(11);
+      // Closing message should be appended to the result
+      expect(result).toContain('closing message');
+      // Verify the thinking event changed
       expect(res.write).toHaveBeenCalledWith(
-        'data: ' + JSON.stringify({ thinking: 'Reached maximum iterations. Ending loop.' }) + '\n\n',
+        'data: ' + JSON.stringify({ thinking: 'Reached max iterations. Generating closing message...' }) + '\n\n',
       );
-      expect(result).toBe('');
     });
   });
 });

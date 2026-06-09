@@ -182,10 +182,26 @@ export class AgentLoopService {
     }
 
     if (iterationCount >= MAX_ITERATIONS) {
-      res.write(`data: ${JSON.stringify({ thinking: 'Reached maximum iterations. Ending loop.' })}\n\n`);
+      res.write(`data: ${JSON.stringify({ thinking: 'Reached max iterations. Generating closing message...' })}\n\n`);
       if (sessionId) {
-        await this.sessionsService.saveMessage(sessionId, 'system', 'Reached maximum iterations. Ending loop.');
+        await this.sessionsService.saveMessage(sessionId, 'system', 'Reached max iterations. Generating closing message...');
       }
+
+      const closePrompt = `I have reached the maximum number of iterations. Based on the conversation and tool results above, write a closing message to the user explaining what happened and suggesting alternative approaches.`;
+
+      const closeMessages: OllamaMessage[] = [
+        ...messages,
+        { role: 'user', content: closePrompt },
+      ];
+
+      const { text: closeText } = await this.executeStep(
+        model, closeMessages, [], signal, providerConfig, res, sessionId,
+      );
+
+      if (closeText && sessionId) {
+        await this.sessionsService.saveMessage(sessionId, 'assistant', closeText);
+      }
+      finalText += closeText;
     }
 
     if (!signal.aborted) {
