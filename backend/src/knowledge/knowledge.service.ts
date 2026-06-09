@@ -14,6 +14,7 @@ interface ChunkRecord {
   section: string;
   text: string;
   vector: number[];
+  type: 'summary' | 'chunk';
 }
 
 @Injectable()
@@ -39,18 +40,21 @@ export class KnowledgeService {
     if (tables.includes('chunks')) {
       this.table = await db.openTable('chunks');
       try {
-        await this.table.add([{ id: '_schema_test', fileId: -1, filename: '', chunkIndex: 0, section: '', text: '', vector: new Array(768).fill(0) }]);
-        await this.table.delete('fileId = -1');
+        await this.table.add([{
+          id: '_schema_ok', fileId: -1, filename: '', chunkIndex: 0, section: '', text: '',
+          vector: new Array(768).fill(0), type: 'chunk',
+        }]);
+        await this.table.delete("id = '_schema_ok'");
       } catch {
         await db.dropTable('chunks');
         this.table = await db.createTable('chunks', [
-          { id: 'init', fileId: 0, filename: '', chunkIndex: 0, section: '', text: '', vector: new Array(768).fill(0) },
-        ], { mode: 'overwrite' });
+          { id: 'init', fileId: 0, filename: '', chunkIndex: 0, section: '', text: '', vector: new Array(768).fill(0), type: 'chunk' },
+        ]);
       }
     } else {
       this.table = await db.createTable('chunks', [
-        { id: 'init', fileId: 0, filename: '', chunkIndex: 0, section: '', text: '', vector: new Array(768).fill(0) },
-      ], { mode: 'overwrite' });
+        { id: 'init', fileId: 0, filename: '', chunkIndex: 0, section: '', text: '', vector: new Array(768).fill(0), type: 'chunk' },
+      ]);
     }
   }
 
@@ -100,6 +104,28 @@ export class KnowledgeService {
     });
   }
 
+  private async generateSummary(text: string): Promise<string | null> {
+    const ollamaUrl = this.config.get<string>('OLLAMA_URL', 'http://localhost:11434');
+    const model = this.config.get<string>('SUMMARY_MODEL', 'llama3.2');
+    try {
+      const res = await fetch(`${ollamaUrl}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          prompt: `Write a 2-3 sentence summary of the main topics and key information in this document:\n\n${text.substring(0, 6000)}`,
+          stream: false,
+          options: { num_predict: 200 },
+        }),
+      });
+      if (!res.ok) return null;
+      const data = await res.json() as { response: string };
+      return data.response.trim();
+    } catch {
+      return null;
+    }
+  }
+
   async processFile(id: number) {
     const file = await this.prisma.knowledgeFile.findUnique({ where: { id } });
     if (!file) throw new NotFoundException(`KnowledgeFile ${id} not found`);
@@ -111,9 +137,24 @@ export class KnowledgeService {
         return;
       }
 
-      const rawChunks = this.chunkText(content, 512, 50);
       const records: ChunkRecord[] = [];
 
+      const summary = await this.generateSummary(content);
+      if (summary) {
+        const summaryVector = await this.embed(summary);
+        records.push({
+          id: `summary-${file.id}`,
+          fileId: file.id,
+          filename: file.filename,
+          chunkIndex: -1,
+          section: '',
+          text: summary,
+          vector: summaryVector,
+          type: 'summary',
+        });
+      }
+
+      const rawChunks = this.chunkText(content, 512, 50);
       for (let i = 0; i < rawChunks.length; i++) {
         const vector = await this.embed(rawChunks[i].text);
         records.push({
@@ -124,6 +165,7 @@ export class KnowledgeService {
           section: rawChunks[i].section,
           text: rawChunks[i].text,
           vector,
+          type: 'chunk',
         });
       }
 
@@ -148,6 +190,10 @@ export class KnowledgeService {
 
   async reindexAll() {
     const files = await this.prisma.knowledgeFile.findMany({ where: { status: 'ready' } });
+    const db = await lancedb.connect(this.lancedbDir);
+    await db.dropTable('chunks');
+    this.table = null;
+    await this.ensureTable();
     for (const file of files) {
       await this.processFile(file.id);
     }
@@ -170,13 +216,32 @@ export class KnowledgeService {
     try {
       const vector = await this.embed(query);
       await this.ensureTable();
-      const results = await this.table.search(vector).limit(5).toArray() as ChunkRecord[];
-      return results.filter(r => r.fileId > 0).map(r => ({
-        filename: r.filename,
-        section: r.section,
-        chunkIndex: r.chunkIndex,
-        text: r.text,
-      }));
+
+      const summaryResults = await this.table.search(vector)
+        .where("type = 'summary'")
+        .limit(20)
+        .toArray() as ChunkRecord[];
+
+      const relevantFiles = summaryResults
+        .filter(r => r.fileId > 0)
+        .map(r => r.filename);
+
+      if (relevantFiles.length === 0) return [];
+
+      const fileFilter = relevantFiles.map(f => `'${f.replace(/'/g, "''")}'`).join(',');
+      const chunkResults = await this.table.search(vector)
+        .where(`type = 'chunk' AND filename IN (${fileFilter})`)
+        .limit(10)
+        .toArray() as ChunkRecord[];
+
+      return chunkResults
+        .filter(r => r.fileId > 0)
+        .map(r => ({
+          filename: r.filename,
+          section: r.section,
+          chunkIndex: r.chunkIndex,
+          text: r.text,
+        }));
     } catch {
       return [];
     }
