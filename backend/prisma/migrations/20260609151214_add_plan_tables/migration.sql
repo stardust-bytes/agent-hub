@@ -1,0 +1,21 @@
+-- CreateTable
+CREATE TABLE "Plan" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "sessionId" INTEGER NOT NULL,
+    "title" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Plan_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "PlanStep" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "planId" INTEGER NOT NULL,
+    "order" INTEGER NOT NULL,
+    "text" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'TODO',
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "PlanStep_planId_fkey" FOREIGN KEY ("planId") REFERENCES "Plan" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
