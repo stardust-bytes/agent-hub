@@ -27,8 +27,9 @@ REST API server for the AI Workspace. Handles task CRUD, agent chat (Ollama ReAc
 ```
 src/
 ├── main.ts                  — bootstrap, global prefix /api, CORS, ValidationPipe, HttpExceptionFilter
-├── app.module.ts            — root module (ConfigModule, PrismaModule, TasksModule, AgentModule,
-│                              SettingsModule, KnowledgeModule, SessionsModule, ProvidersModule)
+├── app.module.ts            — root module (ConfigModule, PrismaModule, TasksModule, NotesModule,
+│                              AgentModule, SettingsModule, KnowledgeModule, SessionsModule,
+│                              ProvidersModule, ToolsModule, PlansModule)
 ├── app.controller.ts        — GET /api/health → { status, db, timestamp }
 ├── http-exception.filter.ts — global filter: returns { statusCode, message, timestamp }
 │
@@ -58,6 +59,12 @@ src/
 │   ├── dto/ (chat.dto.ts, agent-run-state.ts, agent-action.dto.ts, agent-state.enum.ts)
 │   ├── services/ (agent-loop.service.ts, llm-controller.service.ts, context-builder.service.ts)
 │   ├── providers/ (llm-provider.interface.ts, ollama.provider.ts)
+│   └── *.spec.ts
+│
+├── plans/
+│   ├── plans.module.ts
+│   ├── plans.controller.ts     — REST endpoints under /api/plans
+│   ├── plans.service.ts        — CRUD for Plan + PlanStep tables
 │   └── *.spec.ts
 │
 ├── sessions/
