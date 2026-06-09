@@ -32,9 +32,14 @@ export default {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0' },
         },
+        'dot-pulse': {
+          '0%, 100%': { opacity: '0.2' },
+          '50%': { opacity: '1' },
+        },
       },
       animation: {
         blink: 'blink 1s step-end infinite',
+        'dot-pulse': 'dot-pulse 1.2s ease-in-out infinite',
       },
       width: {
         '100': '25rem',
