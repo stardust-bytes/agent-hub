@@ -54,9 +54,9 @@ src/
 ├── agent/
 │   ├── agent.module.ts
 │   ├── agent.controller.ts    — POST /api/agent/chat (SSE streaming)
-│   ├── agent.service.ts       — orchestrator: context builder + provider + persistence
-│   ├── dto/ (chat.dto.ts, agent-run-state.ts, agent-action.dto.ts)
-│   ├── services/ (context-builder.service.ts, llm-caller.service.ts)
+│   ├── agent.service.ts       — thin orchestrator: context builder + AgentLoopService + persistence
+│   ├── dto/ (chat.dto.ts, agent-run-state.ts, agent-action.dto.ts, agent-state.enum.ts)
+│   ├── services/ (agent-loop.service.ts, llm-controller.service.ts, context-builder.service.ts)
 │   ├── providers/ (llm-provider.interface.ts, ollama.provider.ts)
 │   └── *.spec.ts
 │

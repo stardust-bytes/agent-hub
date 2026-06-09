@@ -15,7 +15,7 @@
 **Files:**
 - Create: `backend/src/agent/dto/agent-state.enum.ts`
 
-- [ ] **Step 1: Write the enum**
+- [x] **Step 1: Write the enum**
 
 ```typescript
 export enum AgentState {
@@ -28,7 +28,7 @@ export enum AgentState {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add backend/src/agent/dto/agent-state.enum.ts
@@ -42,7 +42,7 @@ git commit -m "feat: add AgentState enum for state machine"
 **Files:**
 - Modify: `backend/src/agent/providers/llm-provider.interface.ts`
 
-- [ ] **Step 1: Rewrite the interface**
+- [x] **Step 1: Rewrite the interface**
 
 ```typescript
 import { ToolDefinition } from '../services/context-builder.service';
@@ -78,7 +78,7 @@ export interface LLMProvider {
 
 **Quan trọng:** Định nghĩa `StreamChunk` được DI CHUYỂN từ `llm-caller.service.ts` sang đây vì file đó sẽ bị xóa.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add backend/src/agent/providers/llm-provider.interface.ts
@@ -94,7 +94,7 @@ git commit -m "refactor: simplify LLMProvider interface to raw stream only"
 - Remove: `backend/src/agent/services/llm-caller.service.ts`
 - Remove: `backend/src/agent/services/llm-caller.service.spec.ts` (nếu có)
 
-- [ ] **Step 1: Write the simplified provider**
+- [x] **Step 1: Write the simplified provider**
 
 ```typescript
 import { Injectable, Logger } from '@nestjs/common';
@@ -180,18 +180,18 @@ export class OllamaProvider implements LLMProvider {
 }
 ```
 
-- [ ] **Step 2: Delete LLMCallerService**
+- [x] **Step 2: Delete LLMCallerService**
 
 Xóa file `backend/src/agent/services/llm-caller.service.ts` và `backend/src/agent/services/llm-caller.service.spec.ts` (nếu có).
 
-- [ ] **Step 3: Run tests to verify no broken imports**
+- [x] **Step 3: Run tests to verify no broken imports**
 
 ```bash
 cd backend && npx jest --passWithNoTests 2>&1 | head -30
 ```
 Expected: Có thể có lỗi import từ các file còn phụ thuộc vào LLMCallerService. Sẽ fix ở task sau.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add backend/src/agent/providers/ollama.provider.ts
@@ -206,7 +206,7 @@ git commit -m "refactor: merge LLMCallerService into simplified OllamaProvider"
 **Files:**
 - Create: `backend/src/agent/services/llm-controller.service.ts`
 
-- [ ] **Step 1: Write the service**
+- [x] **Step 1: Write the service**
 
 ```typescript
 import { Injectable } from '@nestjs/common';
@@ -269,7 +269,7 @@ export class LLMControllerService {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add backend/src/agent/services/llm-controller.service.ts
@@ -283,7 +283,7 @@ git commit -m "feat: add LLMControllerService for provider-agnostic LLM control"
 **Files:**
 - Create: `backend/src/agent/services/agent-loop.service.ts`
 
-- [ ] **Step 1: Write the service**
+- [x] **Step 1: Write the service**
 
 ```typescript
 import { Injectable } from '@nestjs/common';
@@ -585,7 +585,7 @@ export class AgentLoopService {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add backend/src/agent/services/agent-loop.service.ts
@@ -599,7 +599,7 @@ git commit -m "feat: add AgentLoopService with state machine (planning, evaluati
 **Files:**
 - Modify: `backend/src/agent/dto/agent-run-state.ts`
 
-- [ ] **Step 1: Update the class**
+- [x] **Step 1: Update the class**
 
 ```typescript
 import { AgentState } from './agent-state.enum';
@@ -635,7 +635,7 @@ export class AgentRunState {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add backend/src/agent/dto/agent-run-state.ts
@@ -649,7 +649,7 @@ git commit -m "feat: add currentState tracking to AgentRunState"
 **Files:**
 - Modify: `backend/src/agent/agent.service.ts`
 
-- [ ] **Step 1: Rewrite AgentService**
+- [x] **Step 1: Rewrite AgentService**
 
 ```typescript
 import { Injectable } from '@nestjs/common';
@@ -723,7 +723,7 @@ export class AgentService {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add backend/src/agent/agent.service.ts
@@ -737,7 +737,7 @@ git commit -m "refactor: use AgentLoopService in AgentService"
 **Files:**
 - Modify: `backend/src/agent/agent.module.ts`
 
-- [ ] **Step 1: Rewrite AgentModule**
+- [x] **Step 1: Rewrite AgentModule**
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -783,7 +783,7 @@ import { WebSearchExecutor } from '../tools/executors/web-search.executor';
 export class AgentModule {}
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add backend/src/agent/agent.module.ts
@@ -797,23 +797,23 @@ git commit -m "refactor: update AgentModule with new services and executors"
 **Files:**
 - Verify: all modified files
 
-- [ ] **Step 1: Run TypeScript compilation check**
+- [x] **Step 1: Run TypeScript compilation check**
 
 ```bash
 cd backend && npx tsc --noEmit 2>&1
 ```
 Expected: No errors. Fix any type errors found.
 
-- [ ] **Step 2: Run existing tests**
+- [x] **Step 2: Run existing tests**
 
 ```bash
 cd backend && npx jest --passWithNoTests 2>&1 | tail -20
 ```
 Expected: Tests pass (may need to update mocks for refactored services).
 
-- [ ] **Step 3: Fix failing tests** — nếu có test spec nào fail vì thay đổi architecture, update mocks accordingly.
+- [x] **Step 3: Fix failing tests** — nếu có test spec nào fail vì thay đổi architecture, update mocks accordingly.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A
@@ -827,7 +827,7 @@ git commit -m "chore: fix type errors and update tests after Agent Loop refactor
 **Files:**
 - Create: `backend/src/agent/services/agent-loop.service.spec.ts`
 
-- [ ] **Step 1: Write tests for state transitions**
+- [x] **Step 1: Write tests for state transitions**
 
 ```typescript
 import { Test, TestingModule } from '@nestjs/testing';
@@ -864,14 +864,14 @@ describe('AgentLoopService', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 ```bash
 cd backend && npx jest src/agent/services/agent-loop.service.spec.ts --verbose 2>&1
 ```
 Expected: All tests pass.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add backend/src/agent/services/agent-loop.service.spec.ts

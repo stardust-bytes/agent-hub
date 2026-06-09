@@ -1,15 +1,15 @@
 # agent/ — Agent Context
 
-AI agent integration module. Implements full ReAct loop with Ollama SSE streaming, native tool calling (create_task, update_task, list_tasks, search_knowledge), context building, and session management.
+AI agent integration module. Implements State Machine orchestrator with Planning, Evaluating, and Self-correction phases. Ollama SSE streaming, native tool calling, context building, and session management.
 
 ## Responsibility
 
 - `AgentController` — exposes `POST /api/agent/chat` (SSE streaming endpoint). Uses `@Res({ passthrough: false })` to directly write SSE events.
-- `AgentService` — orchestrator: resolves provider model via `ProvidersService`, builds context via `ContextBuilderService`, calls `OllamaProvider`, persists messages via `SessionsService`.
-- `OllamaProvider` — ReAct loop host: streams LLM via `LLMCallerService`, executes tools, emits SSE events (token/toolCall/toolResult/thinking/[DONE]).
+- `AgentService` — thin orchestrator: resolves provider model, builds context, delegates to `AgentLoopService`, persists messages.
+- `AgentLoopService` — State Machine orchestrator: drives PLANNING → EXECUTING → EVALUATING → CORRECTING → RESPONDING → DONE loop, executes tools, emits SSE events.
+- `LLMControllerService` — provider-agnostic LLM routing: selects registered provider, manages message history, builds message arrays.
+- `OllamaProvider` — raw LLM streaming only: calls Ollama `/api/chat`, yields `StreamChunk` objects (token/tool_call/done/error). No tool execution or loop logic.
 - `ContextBuilderService` — builds system prompt with tool definitions, loads chat history from Prisma.
-- `LLMCallerService` — LLM streaming abstraction: calls Ollama API, yields StreamChunk objects (token/tool_call/done/error).
-- `SessionsService` — CRUD for chat sessions.
 
 ## Files
 
@@ -22,15 +22,18 @@ agent/
 ├── agent.service.spec.ts
 ├── dto/
 │   ├── chat.dto.ts           — message, providerModelId (Int), sessionId (Int), mode? ('agent'|'chat')
-│   ├── agent-run-state.ts     — execution tracking (steps, duration, iterations)
+│   ├── agent-run-state.ts     — execution tracking (steps, duration, iterations, currentState)
+│   ├── agent-state.enum.ts    — AgentState enum (PLANNING/EXECUTING/EVALUATING/CORRECTING/RESPONDING/DONE)
 │   └── agent-action.dto.ts    — text-based action parser (activate_skill, search_kb, respond)
 ├── services/
+│   ├── agent-loop.service.ts       — State Machine orchestrator (main loop)
+│   ├── agent-loop.service.spec.ts
+│   ├── llm-controller.service.ts   — provider-agnostic LLM routing + message building
 │   ├── context-builder.service.ts  — builds LLM context with tool definitions + history
-│   ├── context-builder.service.spec.ts
-│   └── llm-caller.service.ts       — Ollama streaming + native tool calling
+│   └── context-builder.service.spec.ts
 └── providers/
-    ├── llm-provider.interface.ts
-    ├── ollama.provider.ts          — ReAct loop: stream → tool_calls → execute → loop → respond
+    ├── llm-provider.interface.ts   — LLMProvider interface + StreamChunk/OllamaMessage/StreamOptions types
+    ├── ollama.provider.ts          — raw Ollama stream only (no loop/tool/SSE logic)
     └── ollama.provider.spec.ts
 ```
 
@@ -63,37 +66,42 @@ data: [DONE]
 | `[DONE]` | plain text | Stream complete |
 | `error` | `{error: string}` | Error occurred |
 
-## ReAct Loop
+## State Machine Loop
 
 1. Resolve provider model from `ProvidersService` (get baseUrl + key + model name)
 2. Build context (system prompt + tool definitions + chat history)
-3. Stream LLM response (native tool calling via Ollama API)
-4. If tool_calls present: execute each tool (create_task, update_task, list_tasks, search_knowledge)
-5. For search_knowledge: inject synthesis prompt and loop back to LLM
-6. No tool_calls: emit response tokens and end
+3. **PLANNING** → **EXECUTING**: stream LLM response, collect tokens + tool_calls
+4. If tool_calls present → **EVALUATING**: execute each tool, check result quality
+5. If result OK → back to **EXECUTING** (continue loop, max 10 iterations)
+6. If result fails → **CORRECTING**: retry up to 2× with different args, then try fallback tool, then ask user
+7. No tool_calls or correction exhausted → **RESPONDING**: emit final text tokens
+8. **DONE**: emit `[DONE]` SSE event
 
-Tools available: create_task, update_task, list_tasks, search_knowledge
+Tools available: create_task, update_task, list_tasks, get_task, delete_tasks, search_knowledge, web_fetch, web_search, create_note, update_note, list_notes, delete_note, convert_note_to_task
+
+Self-correction fallback map: `web_fetch` → `web_search`, `search_knowledge` → `web_search`
 
 ## Key Patterns
 
-- **AgentRunState**: tracks step count, duration, step history for observability
+- **AgentRunState.currentState**: tracks active AgentState for observability
 - **Lazy agent message**: frontend creates agent message on first `token` event to ensure correct ordering
-- **Tool execution via TasksService/KnowledgeService**: direct service injection (no adapter layer)
+- **Tool execution via ToolExecutor interface**: `AgentLoopService` injects all executor instances directly
 - **Provider resolution**: `AgentService` resolves `providerModelId` → `ProviderModel` → provider config (baseUrl, key) at request start
 
 ## Dependencies
 
-- TasksModule (tool execution)
-- KnowledgeModule (RAG search)
+- TasksModule (task tool executors)
+- KnowledgeModule (search_knowledge executor)
 - SessionsModule (chat history CRUD)
-- SettingsService (Ollama base URL from global SettingsModule)
 - ProvidersModule (provider model resolution)
+- ToolsModule (all ToolExecutor implementations)
+- NotesModule (note tool executors — create/update/list/delete/convert)
 
 ## Testing
 
 ```bash
-npx jest src/agent          # 3 suites, 16 tests
+npx jest src/agent          # 5 suites, ~30 tests
 npx jest --watch            # watch mode
 ```
 
-Tests mock `LLMCallerService`, `ContextBuilderService` as async generators/functions.
+Tests mock `LLMControllerService`, `ContextBuilderService`, tool executors.
