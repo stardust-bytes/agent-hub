@@ -131,5 +131,13 @@
   "notes.form.cancel": "Huỷ",
   "notes.delete": "Xoá",
   "notes.delete.confirm": "Xóa ghi chú này?",
-  "notes.edit": "Sửa"
+  "notes.edit": "Sửa",
+
+  "plans.approve": "Phê duyệt",
+  "plans.reject": "Từ chối",
+  "plans.status.pending": "Chờ phê duyệt",
+  "plans.status.approved": "Đã duyệt",
+  "plans.status.executing": "Đang thực hiện",
+  "plans.status.done": "Hoàn thành",
+  "plans.status.failed": "Thất bại"
 }

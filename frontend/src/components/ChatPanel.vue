@@ -49,6 +49,20 @@
             </template>
           </div>
 
+          <!-- Plan bubble -->
+          <div v-else-if="msg.role === 'plan' && msg.plan"
+            class="border-l-2 border-cyber-accent/80 pl-3 py-1">
+            <div class="text-sm text-cyber-accent/80 mb-1 font-mono">
+              <HiChevronRight class="w-3 h-3 inline" /> plan · {{ msg.timestamp }}
+            </div>
+            <PlanBubble
+              :plan="msg.plan"
+              :streaming="streaming"
+              @approve="handleApprove"
+              @reject="handleReject"
+            />
+          </div>
+
           <!-- User message block -->
           <div v-else-if="msg.role === 'user'"
             class="border-l-2 border-cyber-accent/80 pl-3 py-1">
@@ -145,14 +159,30 @@ import DOMPurify from 'dompurify'
 import ModelSelector from './ModelSelector.vue'
 import SessionModal from './SessionModal.vue'
 import FormBlock from './FormBlock.vue'
+import PlanBubble from './PlanBubble.vue'
+
+interface PlanStep {
+  id: number
+  order: number
+  text: string
+  status: string
+}
+
+interface PlanData {
+  id: number
+  title: string
+  status: string
+  steps: PlanStep[]
+}
 
 interface Message {
-  role: 'user' | 'agent' | 'system' | 'tool'
+  role: 'user' | 'agent' | 'system' | 'tool' | 'plan'
   content: string
   timestamp: string
   typing?: boolean
   toolName?: string
   isResult?: boolean
+  plan?: PlanData
 }
 
 interface ProviderModelFlat {
@@ -179,7 +209,7 @@ const showSessionModal = ref(false)
 const agentMode = ref(true)
 
 const hasChatMessages = computed(() =>
-  messages.value.some(m => m.role === 'user' || m.role === 'agent')
+  messages.value.some(m => m.role === 'user' || m.role === 'agent' || m.role === 'plan')
 )
 
 function now(): string {
@@ -355,6 +385,100 @@ async function loadSession(id: number) {
   } catch { /* ignore */ }
 }
 
+async function handleApprove(planId: number) {
+  const planMsg = messages.value.find(m => m.role === 'plan' && m.plan?.id === planId)
+  if (!planMsg?.plan || selectedModelId.value === null || currentSessionId.value === null) return
+
+  try {
+    const approveRes = await fetch(`/api/plans/${planId}/approve`, { method: 'POST' })
+    if (!approveRes.ok) throw new Error(`HTTP ${approveRes.status}`)
+    planMsg.plan.status = 'EXECUTING'
+  } catch {
+    messages.value.push({ role: 'system', content: t('chat.error.unreachable'), timestamp: now() })
+    return
+  }
+
+  streaming.value = true
+  let currentAgentIdx = -1
+
+  try {
+    const execRes = await fetch(`/api/agent/plans/${planId}/execute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ providerModelId: selectedModelId.value, sessionId: currentSessionId.value }),
+    })
+    if (!execRes.ok || !execRes.body) throw new Error(`HTTP ${execRes.status}`)
+
+    const reader = execRes.body.getReader()
+    const decoder = new TextDecoder()
+    let buf = ''
+    let done = false
+
+    while (!done) {
+      const { done: streamDone, value } = await reader.read()
+      if (streamDone) break
+      buf += decoder.decode(value, { stream: true })
+      const lines = buf.split('\n')
+      buf = lines.pop() ?? ''
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        const payload = line.slice(6)
+        if (payload === '[DONE]') { done = true; break }
+        try {
+          const parsed = JSON.parse(payload) as Record<string, unknown>
+          if (parsed.planStepUpdate) {
+            const upd = parsed.planStepUpdate as { planId: number; stepId: number; status: string }
+            const msg = messages.value.find(m => m.role === 'plan' && m.plan?.id === upd.planId)
+            if (msg?.plan) {
+              const step = msg.plan.steps.find(s => s.id === upd.stepId)
+              if (step) step.status = upd.status
+            }
+            await scrollToBottom()
+          } else if (parsed.token) {
+            if (currentAgentIdx < 0) {
+              currentAgentIdx = messages.value.length
+              messages.value.push({ role: 'agent', content: '', timestamp: now(), typing: true })
+            }
+            messages.value[currentAgentIdx].content += String(parsed.token)
+            await scrollToBottom()
+          } else if (parsed.toolCall) {
+            currentAgentIdx = -1
+            const tc = parsed.toolCall as { name: string; args: Record<string, unknown> }
+            const argsStr = Object.entries(tc.args).map(([k, v]) => `${k}=${v}`).join(', ')
+            messages.value.push({ role: 'tool', content: `${tc.name}(${argsStr})`, timestamp: now(), toolName: tc.name, isResult: false })
+            await scrollToBottom()
+          } else if (parsed.toolResult) {
+            currentAgentIdx = -1
+            const tr = parsed.toolResult as { name: string; result: string }
+            messages.value.push({ role: 'tool', content: tr.result, timestamp: now(), toolName: tr.name, isResult: true })
+            await scrollToBottom()
+          }
+        } catch { /* skip malformed */ }
+      }
+    }
+
+    const msg2 = messages.value.find(m => m.role === 'plan' && m.plan?.id === planId)
+    if (msg2?.plan && msg2.plan.status === 'EXECUTING') msg2.plan.status = 'DONE'
+    if (currentAgentIdx >= 0) messages.value[currentAgentIdx].typing = false
+    await scrollToBottom()
+  } catch (e) {
+    if (e instanceof Error && e.name !== 'AbortError') {
+      messages.value.push({ role: 'system', content: t('chat.error.unreachable'), timestamp: now() })
+    }
+  } finally {
+    streaming.value = false
+  }
+}
+
+async function handleReject(planId: number) {
+  try {
+    await fetch(`/api/plans/${planId}/reject`, { method: 'POST' })
+  } catch { /* ignore */ }
+  const idx = messages.value.findIndex(m => m.role === 'plan' && m.plan?.id === planId)
+  if (idx !== -1) messages.value.splice(idx, 1)
+}
+
 async function submit() {
   const text = input.value.trim()
   if (!text || streaming.value || selectedModelId.value === null) return
@@ -465,6 +589,17 @@ async function submit() {
             currentAgentIdx = -1
             const thinkingMsg: Message = { role: 'system', content: `⟳ ${String(parsed.thinking)}`, timestamp: now() }
             messages.value.push(thinkingMsg)
+            await scrollToBottom()
+          } else if (parsed.plan) {
+            clearThinking()
+            currentAgentIdx = -1
+            const planData = parsed.plan as PlanData
+            messages.value.push({
+              role: 'plan',
+              content: '',
+              timestamp: now(),
+              plan: { ...planData, steps: planData.steps.map(s => ({ ...s })) },
+            })
             await scrollToBottom()
           } else if (parsed.token) {
             clearThinking()
