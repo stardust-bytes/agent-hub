@@ -201,7 +201,7 @@ export class AgentLoopService {
       if (closeText && sessionId) {
         await this.sessionsService.saveMessage(sessionId, 'assistant', closeText);
       }
-      finalText += closeText;
+      finalText += closeText ?? '';
     }
 
     if (!signal.aborted) {

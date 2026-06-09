@@ -41,6 +41,7 @@ const DONE: StreamChunk = { type: 'done' };
 describe('AgentLoopService', () => {
   let service: AgentLoopService;
   let llmController: LLMControllerService;
+  let sessionsService: SessionsService;
   let webFetch: WebFetchExecutor;
   let webSearch: WebSearchExecutor;
   let createTask: CreateTaskExecutor;
@@ -84,6 +85,7 @@ describe('AgentLoopService', () => {
 
     service = module.get(AgentLoopService);
     llmController = module.get(LLMControllerService);
+    sessionsService = module.get(SessionsService);
     webFetch = module.get(WebFetchExecutor);
     webSearch = module.get(WebSearchExecutor);
     createTask = module.get(CreateTaskExecutor);
@@ -236,9 +238,22 @@ describe('AgentLoopService', () => {
         type: 'tool_call',
         toolCall: { name: 'web_search', arguments: { q: 'test' } },
       };
+      const closeToken: StreamChunk = {
+        type: 'token',
+        token: 'I tried searching but could not find the results you wanted. Would you like to try a different approach?',
+      };
       llmController.stream = buildStreamMock(
-        ...Array(10).fill([toolCall, DONE]),
-        [{ type: 'token', token: 'closing message from AI' }, DONE],
+        [toolCall, DONE],
+        [toolCall, DONE],
+        [toolCall, DONE],
+        [toolCall, DONE],
+        [toolCall, DONE],
+        [toolCall, DONE],
+        [toolCall, DONE],
+        [toolCall, DONE],
+        [toolCall, DONE],
+        [toolCall, DONE],
+        [closeToken, DONE],
       );
       (webSearch.execute as jest.Mock).mockResolvedValue('Succeed');
 
@@ -246,16 +261,19 @@ describe('AgentLoopService', () => {
       const signal = new AbortController().signal;
       const result = await service.run(
         'ollama', 'llama3', 'You are helpful', [], 'loop',
-        defaultTools, res, signal, undefined, 'agent', defaultConfig,
+        defaultTools, res, signal, 1, 'agent', defaultConfig,
       );
 
       // 10 loop iterations + 1 closing LLM call = 11 total
       expect(llmController.stream).toHaveBeenCalledTimes(11);
       // Closing message should be appended to the result
-      expect(result).toContain('closing message');
+      expect(result).toContain('Would you like to try a different approach');
       // Verify the thinking event changed
       expect(res.write).toHaveBeenCalledWith(
         'data: ' + JSON.stringify({ thinking: 'Reached max iterations. Generating closing message...' }) + '\n\n',
+      );
+      expect(sessionsService.saveMessage).toHaveBeenCalledWith(
+        1, 'assistant', 'I tried searching but could not find the results you wanted. Would you like to try a different approach?',
       );
     });
   });
