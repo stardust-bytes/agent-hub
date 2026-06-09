@@ -8,10 +8,10 @@
     <template #header>
       <span class="text-sm font-mono text-cyber-accent">{{ editingId ? t('notes.edit') : t('notes.add') }}</span>
     </template>
-    <div class="p-3 flex flex-col gap-3 bg-cyber-modal-bg" style="min-height:50vh;width:70rem;max-width:90vw">
+    <div class="p-3 flex flex-col gap-3 bg-cyber-modal-bg">
       <input
         v-model="title"
-        class="w-full bg-cyber-dark text-cyber-text text-lg font-mono font-semibold outline-none px-3 py-2 placeholder-cyber-muted/40"
+        class="w-full bg-cyber-dark text-cyber-text text-sm font-mono font-semibold outline-none px-3 py-2 placeholder-cyber-muted/40"
         :placeholder="t('notes.form.title')"
       />
       <textarea
@@ -22,15 +22,15 @@
       />
     </div>
     <template #footer>
-      <div class="flex items-center gap-2 px-3 py-2">
-        <button
-          @click="save"
-          class="text-sm font-mono text-cyber-accent px-3 py-1 rounded border border-cyber-accent/30 hover:bg-cyber-accent/10 transition-colors duration-150"
-        >{{ t('notes.form.save') }}</button>
+      <div class="flex justify-end gap-2">
         <button
           @click="cancel"
           class="text-sm font-mono text-cyber-muted px-3 py-1 rounded hover:text-cyber-text transition-colors duration-150"
         >{{ t('notes.form.cancel') }}</button>
+        <button
+          @click="save"
+          class="text-sm font-mono text-cyber-accent px-3 py-1 rounded border border-cyber-accent/30 hover:bg-cyber-accent/10 transition-colors duration-150"
+        >{{ t('notes.form.save') }}</button>
       </div>
     </template>
   </BaseModal>
