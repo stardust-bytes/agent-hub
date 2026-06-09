@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Response } from 'express';
-import { OllamaProvider } from './providers/ollama.provider';
-import { OllamaMessage } from './providers/llm-provider.interface';
-import { SessionsService } from '../sessions/sessions.service';
+import { AgentLoopService } from './services/agent-loop.service';
 import { ContextBuilderService } from './services/context-builder.service';
-import { AgentRunState } from './dto/agent-run-state';
+import { SessionsService } from '../sessions/sessions.service';
 import { ProvidersService } from '../providers/providers.service';
 
 @Injectable()
 export class AgentService {
   constructor(
-    private readonly provider: OllamaProvider,
+    private readonly agentLoop: AgentLoopService,
     private readonly sessionsService: SessionsService,
     private readonly contextBuilder: ContextBuilderService,
     private readonly providersService: ProvidersService,
@@ -36,22 +34,31 @@ export class AgentService {
       key: providerModel.provider.key ?? undefined,
     };
 
-    const runState = new AgentRunState(10, String(sessionId));
-    const context = await this.contextBuilder.build(runState, sessionId);
+    const context = await this.contextBuilder.build(
+      { step: 0, maxIterations: 10, roomId: String(sessionId), steps: [], startTime: Date.now(), currentState: 'PLANNING' } as any,
+      sessionId,
+    );
 
     const history = await this.sessionsService.getHistory(sessionId);
-    const messages: OllamaMessage[] = [
-      { role: 'system', content: context.systemPrompt },
-      ...history,
-      { role: 'user', content: message },
-    ];
 
     if (!signal.aborted) {
       await this.sessionsService.saveMessage(sessionId, 'user', message);
     }
 
-    const { finalText } = await this.provider.streamChat(
-      messages, providerModel.name, res, signal, sessionId, mode, providerConfig,
+    const providerType = providerModel.provider.type ?? 'ollama';
+
+    const finalText = await this.agentLoop.run(
+      providerType,
+      providerModel.name,
+      context.systemPrompt,
+      history,
+      message,
+      context.tools,
+      res,
+      signal,
+      sessionId,
+      mode,
+      providerConfig,
     );
 
     if (!signal.aborted && finalText) {
