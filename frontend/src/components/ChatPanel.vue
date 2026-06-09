@@ -3,7 +3,21 @@
     <template v-if="hasChatMessages">
       <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 min-h-0">
         <div class="max-w-60rem mx-auto space-y-4 px-3">
-          <div v-for="(msg, i) in messages" :key="i" class="font-mono">
+
+          <div v-if="executingPlanMsg"
+            class="border-l-2 border-cyber-accent/80 pl-3 py-1 mb-2">
+            <div class="text-sm text-cyber-accent/80 mb-1 font-mono">
+              <HiChevronRight class="w-3 h-3 inline" /> plan · {{ executingPlanMsg.timestamp }}
+            </div>
+            <PlanBubble
+              :plan="executingPlanMsg.plan!"
+              :streaming="streaming"
+              @approve="handleApprove"
+              @reject="handleReject"
+            />
+          </div>
+
+          <div v-for="(msg, i) in displayedMessages" :key="i" class="font-mono">
 
           <!-- Thinking block -->
           <div v-if="msg.role === 'system' && msg.content === '⟳ thinking...' || msg.content === '⟳ đang nghĩ...'"
@@ -226,6 +240,15 @@ const slashSelectedIndex = ref(0)
 const hasChatMessages = computed(() =>
   messages.value.some(m => m.role === 'user' || m.role === 'agent' || m.role === 'plan')
 )
+
+const executingPlanMsg = computed(() =>
+  messages.value.find(m => m.role === 'plan' && m.plan?.status === 'EXECUTING')
+)
+
+const displayedMessages = computed(() => {
+  if (!executingPlanMsg.value) return messages.value
+  return messages.value.filter(m => m !== executingPlanMsg.value)
+})
 
 function now(): string {
   return new Date().toLocaleTimeString('vi-VN', { hour12: false })
