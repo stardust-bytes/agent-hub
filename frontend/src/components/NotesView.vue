@@ -119,6 +119,7 @@ async function saveNote() {
 }
 
 async function deleteNote(id: number) {
+  if (!confirm(t('notes.delete.confirm'))) return
   try {
     await fetch(`/api/notes/${id}`, { method: 'DELETE' })
     if (selectedId.value === id) cancelEdit()
