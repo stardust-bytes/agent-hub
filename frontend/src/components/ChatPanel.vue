@@ -44,7 +44,7 @@
             <template v-else>
               <template v-for="(seg, si) in parseSegments(msg.content)" :key="si">
                 <div v-if="seg.type === 'markdown'" class="text-sm leading-relaxed break-words text-cyber-text markdown-body" v-html="seg.content" />
-                <FormBlock v-else :html="seg.content" :index="si" @submit="(data) => onFormSubmit(data)" />
+                <FormBlock v-else :html="seg.content" :index="si" disabled @submit="(data) => onFormSubmit(data)" />
               </template>
             </template>
           </div>
