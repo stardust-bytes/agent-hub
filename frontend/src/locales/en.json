@@ -63,6 +63,8 @@
   "settings.embedModel": "Embedding Model",
   "settings.summaryModel": "Summary Model",
   "settings.defaultOption": "Default (env)",
+  "settings.models": "MODEL CONFIG",
+  "settings.fetchError": "Could not load model config",
 
   "files.header": "KNOWLEDGE BASE",
   "files.dropzone": "Drop files or click to upload",

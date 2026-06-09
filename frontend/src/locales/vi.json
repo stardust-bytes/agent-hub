@@ -63,6 +63,8 @@
   "settings.embedModel": "Model Embedding",
   "settings.summaryModel": "Model Tóm tắt",
   "settings.defaultOption": "Mặc định (env)",
+  "settings.models": "CẤU HÌNH MODEL",
+  "settings.fetchError": "Không thể tải cấu hình model",
 
   "files.header": "KIẾN THỨC",
   "files.dropzone": "Thả file hoặc click để upload",

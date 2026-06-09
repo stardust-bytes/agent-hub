@@ -19,7 +19,7 @@
         </div>
 
         <div class="border-t border-cyber-accent/10 pt-4 mt-4">
-          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.info') }}</div>
+          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.models') }}</div>
           <div class="space-y-3">
             <div>
               <label class="text-cyber-muted text-xs font-mono block mb-1">{{ t('settings.embedModel') }}</label>
@@ -38,6 +38,7 @@
               </select>
             </div>
             <div v-if="saved" class="text-cyber-green text-xs font-mono">{{ t('settings.saved') }}</div>
+            <div v-if="fetchError" class="text-red-400 text-xs font-mono mt-2">{{ t('settings.fetchError') }}</div>
           </div>
         </div>
       </div>
@@ -62,6 +63,7 @@ const providers = ref<ProviderModelOption[]>([])
 const embedModelId = ref<string>('')
 const summaryModelId = ref<string>('')
 const saved = ref(false)
+const fetchError = ref(false)
 
 onMounted(async () => {
   try {
@@ -86,7 +88,7 @@ onMounted(async () => {
       embedModelId.value = settingsData['embed_model_id'] ?? ''
       summaryModelId.value = settingsData['summary_model_id'] ?? ''
     }
-  } catch { /* ignore */ }
+  } catch { fetchError.value = true }
 })
 
 async function saveSetting(key: string, value: string) {
