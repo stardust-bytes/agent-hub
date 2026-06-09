@@ -133,6 +133,10 @@
   "notes.delete.confirm": "Delete this note?",
   "notes.edit": "Edit",
 
+  "slash.plan": "Create a plan from your request",
+  "slash.help": "Show available commands",
+  "slash.clear": "Clear the conversation",
+
   "plans.approve": "Approve",
   "plans.reject": "Reject",
   "plans.status.pending": "Awaiting approval",

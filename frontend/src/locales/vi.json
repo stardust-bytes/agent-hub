@@ -133,6 +133,10 @@
   "notes.delete.confirm": "Xóa ghi chú này?",
   "notes.edit": "Sửa",
 
+  "slash.plan": "Tạo kế hoạch từ yêu cầu",
+  "slash.help": "Hiển thị các lệnh",
+  "slash.clear": "Xóa cuộc trò chuyện",
+
   "plans.approve": "Phê duyệt",
   "plans.reject": "Từ chối",
   "plans.status.pending": "Chờ phê duyệt",
