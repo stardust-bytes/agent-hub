@@ -11,7 +11,7 @@ const DEFAULT_TOOLS = [
   { name: 'search_knowledge', description: 'Search the knowledge base for relevant information', parameters: '{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}' },
   { name: 'web_fetch', description: 'Fetch content from a URL', parameters: '{"type":"object","properties":{"url":{"type":"string"}},"required":["url"]}', enabled: false },
   { name: 'web_search', description: 'Search the web for information', parameters: '{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}', enabled: false,
-    configSchema: '{"type":"object","properties":{"apiKey":{"type":"string","title":"API Key","format":"password"},"provider":{"type":"string","title":"Provider","enum":["google","bing"],"default":"google"},"cx":{"type":"string","title":"Google CSE ID"}},"required":["apiKey"]}' },
+    configSchema: '{"type":"object","properties":{"apiKey":{"type":"string","title":"Exa AI API Key","format":"password"}},"required":["apiKey"]}' },
 ];
 
 async function main() {
