@@ -20,6 +20,7 @@
   "chat.thinking": "⟳ đang nghĩ...",
   "chat.tool.expand": "[+ mở rộng]",
   "chat.tool.collapse": "[- thu gọn]",
+  "chat.empty.subtitle": "đang chờ lệnh...",
 
   "health.checking": "Đang kiểm tra...",
   "health.ok": "Backend: hoạt động · DB: đã kết nối",

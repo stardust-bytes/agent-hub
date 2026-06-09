@@ -20,6 +20,7 @@
   "chat.thinking": "⟳ thinking...",
   "chat.tool.expand": "[+ expand]",
   "chat.tool.collapse": "[- collapse]",
+  "chat.empty.subtitle": "awaiting command...",
 
   "health.checking": "Checking backend...",
   "health.ok": "Backend: ok · DB: connected",
