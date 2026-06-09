@@ -299,6 +299,7 @@ export class AgentLoopService {
       }
     }
 
+    await this.plansService.updateStatus(planId, 'DONE');
     res.write('data: [DONE]\n\n');
   }
 

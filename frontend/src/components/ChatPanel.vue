@@ -460,6 +460,9 @@ async function loadSession(id: number) {
                 }
               }
             } catch { /* use saved data */ }
+            if (planForDisplay.status === 'EXECUTING' && planForDisplay.steps.every(s => s.status === 'DONE' || s.status === 'FAILED')) {
+              planForDisplay.status = 'DONE'
+            }
             messages.value.push({
               role: 'plan',
               content: '',
