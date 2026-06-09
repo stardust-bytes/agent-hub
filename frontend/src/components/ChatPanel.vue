@@ -19,7 +19,16 @@
         <!-- Tool result block -->
         <div v-else-if="msg.role === 'tool' && msg.isResult"
           class="border-l-2 border-cyber-green/50 pl-3 py-1.5">
-          <div class="text-sm text-cyber-green font-mono">{{ msg.content }}</div>
+          <template v-if="isToolLong(msg.content)">
+            <div v-if="!isToolExpanded(msg)" class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ toolPreview(msg.content) }}</div>
+            <div v-if="!isToolExpanded(msg)" class="text-sm text-cyber-muted font-mono mt-0.5">...</div>
+            <div v-if="isToolExpanded(msg)" class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ msg.content }}</div>
+            <button
+              @click="toggleToolExpand(msg)"
+              class="text-sm font-mono mt-0.5 transition-colors duration-150 text-cyber-accent/60 hover:text-cyber-accent"
+            >{{ isToolExpanded(msg) ? t('chat.tool.collapse') : t('chat.tool.expand') }}</button>
+          </template>
+          <div v-else class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ msg.content }}</div>
         </div>
 
         <!-- Agent answer block -->
@@ -239,6 +248,30 @@ function onFormSubmit(data: Record<string, string>) {
 async function scrollToBottom() {
   await nextTick()
   if (messagesEl.value) messagesEl.value.scrollTop = messagesEl.value.scrollHeight
+}
+
+const toolExpanded = ref<Set<Message>>(new Set())
+
+function isToolLong(content: string): boolean {
+  return content.split('\n').length > 5
+}
+
+function toolPreview(content: string): string {
+  return content.split('\n').slice(0, 5).join('\n')
+}
+
+function isToolExpanded(msg: Message): boolean {
+  return toolExpanded.value.has(msg)
+}
+
+function toggleToolExpand(msg: Message): void {
+  const s = toolExpanded.value
+  if (s.has(msg)) {
+    s.delete(msg)
+  } else {
+    s.add(msg)
+  }
+  toolExpanded.value = new Set(s)
 }
 
 onMounted(async () => {
