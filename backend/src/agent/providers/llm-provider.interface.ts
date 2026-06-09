@@ -1,5 +1,13 @@
-import { Response } from 'express';
 import { ToolDefinition } from '../services/context-builder.service';
+
+export interface StreamChunk {
+  type: 'token' | 'tool_call' | 'thinking' | 'done' | 'error';
+  token?: string;
+  toolCall?: { name: string; arguments: unknown };
+  thinking?: string;
+  error?: string;
+  usage?: { promptTokens: number; completionTokens: number; totalTokens: number };
+}
 
 export interface OllamaMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
@@ -7,11 +15,15 @@ export interface OllamaMessage {
   toolCalls?: Array<{ function: { name: string; arguments: unknown } }>;
 }
 
+export interface StreamOptions {
+  model: string;
+  messages: OllamaMessage[];
+  tools: ToolDefinition[];
+  signal: AbortSignal;
+  baseUrl: string;
+  key?: string;
+}
+
 export interface LLMProvider {
-  streamChat(
-    messages: OllamaMessage[],
-    model: string,
-    res: Response,
-    signal: AbortSignal,
-  ): Promise<{ finalText: string }>;
+  stream(options: StreamOptions): AsyncGenerator<StreamChunk>;
 }
