@@ -15,6 +15,13 @@ const mockPrisma = {
   },
 };
 
+const mockConfig = {
+  get: jest.fn((key: string, fallback?: string) => {
+    const env: Record<string, string> = { UPLOAD_DIR: './workspace_data' };
+    return env[key] ?? fallback;
+  }),
+};
+
 const mockSettings = {
   get: jest.fn().mockResolvedValue(''),
 };
@@ -31,7 +38,7 @@ describe('KnowledgeService', () => {
       providers: [
         KnowledgeService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue('./workspace_data') } },
+        { provide: ConfigService, useValue: mockConfig },
         { provide: SettingsService, useValue: mockSettings },
         { provide: ProvidersService, useValue: mockProviders },
       ],
@@ -58,5 +65,42 @@ describe('KnowledgeService', () => {
   it('remove throws when file not found', async () => {
     mockPrisma.knowledgeFile.findUnique.mockResolvedValue(null);
     await expect(service.remove(999)).rejects.toThrow('not found');
+  });
+
+  describe('resolveModelConfig', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('falls back to env vars when settings returns empty', async () => {
+      mockSettings.get.mockResolvedValue('');
+      const result = await (service as any).resolveModelConfig('embed_model_id', 'EMBED_MODEL');
+      expect(mockProviders.findModelWithProvider).not.toHaveBeenCalled();
+      expect(result.model).toBe('nomic-embed-text');
+      expect(result.baseUrl).toBe('http://localhost:11434');
+    });
+
+    it('uses provider model when settings has a valid ID', async () => {
+      mockSettings.get.mockResolvedValue('1');
+      mockProviders.findModelWithProvider.mockResolvedValue({
+        id: 1,
+        name: 'custom-embed-model',
+        provider: { baseUrl: 'http://custom:11434', key: 'sk-test' },
+      });
+      const result = await (service as any).resolveModelConfig('embed_model_id', 'EMBED_MODEL');
+      expect(mockProviders.findModelWithProvider).toHaveBeenCalledWith(1);
+      expect(result.model).toBe('custom-embed-model');
+      expect(result.baseUrl).toBe('http://custom:11434');
+      expect(result.key).toBe('sk-test');
+    });
+
+    it('falls back to env vars when provider model not found', async () => {
+      mockSettings.get.mockResolvedValue('999');
+      mockProviders.findModelWithProvider.mockResolvedValue(null);
+      const result = await (service as any).resolveModelConfig('embed_model_id', 'EMBED_MODEL');
+      expect(mockProviders.findModelWithProvider).toHaveBeenCalledWith(999);
+      expect(result.model).toBe('nomic-embed-text');
+      expect(result.baseUrl).toBe('http://localhost:11434');
+    });
   });
 });
