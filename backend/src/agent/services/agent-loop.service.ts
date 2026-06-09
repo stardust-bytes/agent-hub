@@ -272,6 +272,9 @@ export class AgentLoopService {
       res.write(
         `data: ${JSON.stringify({ planStepUpdate: { planId, stepId: step.id, status: 'DOING' } })}\n\n`,
       );
+      if (sessionId) {
+        await this.sessionsService.saveMessage(sessionId, 'system', `Executing step: ${step.text}`);
+      }
 
       try {
         const stepSystemPrompt = `${systemPrompt}\n\nYou are executing plan step ${step.order + 1}: "${step.text}". Complete only this step.`;
