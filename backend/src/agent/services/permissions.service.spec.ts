@@ -84,7 +84,7 @@ describe('PermissionsService', () => {
       );
     });
 
-    it('merges deniedTools with existing config', async () => {
+    it('replaces deniedTools in existing config', async () => {
       const existing = { defaultPolicy: 'allow', allowedTools: [], deniedTools: [] };
       settingsService.get.mockResolvedValue(JSON.stringify(existing));
       settingsService.upsert.mockResolvedValue(undefined);
