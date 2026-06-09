@@ -350,6 +350,9 @@ export class AgentLoopService {
 
     if (sessionId) {
       await this.sessionsService.saveMessage(sessionId, 'system', `[Plan] ${plan.title} — ${plan.steps.length} steps created`);
+      await this.sessionsService.saveMessage(sessionId, 'plan', JSON.stringify({
+        id: plan.id, title: plan.title, status: plan.status, steps: plan.steps.map(s => ({ id: s.id, order: s.order, text: s.text, status: s.status })),
+      }));
     }
 
     res.write(
@@ -507,7 +510,12 @@ export class AgentLoopService {
         model, currentMessages, tools, signal, providerConfig, res, sessionId,
       );
 
-      if (toolCalls.length === 0) break;
+      if (toolCalls.length === 0) {
+        if (text && sessionId) {
+          await this.sessionsService.saveMessage(sessionId, 'assistant', text);
+        }
+        break;
+      }
 
       currentMessages = this.addToolCallsToMessages(currentMessages, text, toolCalls);
 

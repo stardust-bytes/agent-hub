@@ -466,6 +466,22 @@ async function loadSession(id: number) {
             content: msg.content,
             timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
           })
+        } else if (msg.role === 'plan') {
+          try {
+            const planData = JSON.parse(msg.content) as PlanData
+            messages.value.push({
+              role: 'plan',
+              content: '',
+              timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+              plan: planData,
+            })
+          } catch {
+            messages.value.push({
+              role: 'system',
+              content: msg.content,
+              timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+            })
+          }
         } else {
           const mappedRole = msg.role === 'assistant' ? 'agent' : msg.role
           messages.value.push({
