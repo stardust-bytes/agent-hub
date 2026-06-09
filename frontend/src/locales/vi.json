@@ -119,5 +119,14 @@
   "tools.config.title": "Cấu hình",
   "tools.config.save": "Lưu",
   "tools.config.noConfig": "Không có cấu hình",
-  "tools.form.cancel": "Huỷ"
+  "tools.form.cancel": "Huỷ",
+  "nav.notes": "Ghi chú",
+  "notes.header": "GHI CHÚ",
+  "notes.empty": "Chưa có ghi chú nào",
+  "notes.add": "+ thêm ghi chú",
+  "notes.form.title": "Tiêu đề",
+  "notes.form.content": "Nội dung",
+  "notes.form.save": "Lưu",
+  "notes.form.cancel": "Huỷ",
+  "notes.delete.confirm": "Xóa ghi chú này?"
 }

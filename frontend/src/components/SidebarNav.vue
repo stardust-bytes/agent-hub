@@ -1,8 +1,8 @@
 <template>
   <nav class="w-60 bg-cyber-dark hidden md:flex flex-col items-stretch py-3 gap-1 shrink-0">
     <div class="flex items-center justify-center gap-2 px-3 py-1 mb-1">
-      <img src="/logo.png" class="w-6 h-6 shrink-0" alt="960513-wp" />
-      <span class="text-sm text-cyber-accent font-bold font-mono truncate">960513-wp</span>
+      <img src="/logo.png" class="w-6 h-6 shrink-0" alt="171305" />
+      <span class="text-sm text-cyber-accent font-bold font-mono truncate">171305</span>
     </div>
 
     <button
@@ -40,15 +40,15 @@
 <script setup lang="ts">
 import { type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { HiChatAlt2, HiClipboardList, HiFolder, HiCog, HiLightningBolt } from 'vue-icons-plus/hi'
+import { HiChatAlt2, HiClipboardList, HiFolder, HiCog, HiLightningBolt, HiDocumentText } from 'vue-icons-plus/hi'
 
-defineProps<{ activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' }>()
-defineEmits<{ navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools'] }>()
+defineProps<{ activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' }>()
+defineEmits<{ navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes'] }>()
 
 const { t } = useI18n()
 
 interface NavItem {
-  view: 'chat' | 'tasks' | 'files' | 'providers' | 'tools'
+  view: 'chat' | 'tasks' | 'files' | 'providers' | 'tools' | 'notes'
   labelKey: string
   icon: Component
 }
@@ -59,5 +59,6 @@ const navItems: NavItem[] = [
   { view: 'files',     labelKey: 'nav.files',     icon: HiFolder },
   { view: 'tools',     labelKey: 'nav.tools',     icon: HiLightningBolt },
   { view: 'providers', labelKey: 'nav.providers', icon: HiCog },
+  { view: 'notes', labelKey: 'nav.notes', icon: HiDocumentText },
 ]
 </script>

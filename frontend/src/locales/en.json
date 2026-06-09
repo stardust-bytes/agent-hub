@@ -119,5 +119,14 @@
   "tools.config.title": "Configure",
   "tools.config.save": "Save",
   "tools.config.noConfig": "No configuration needed",
-  "tools.form.cancel": "Cancel"
+  "tools.form.cancel": "Cancel",
+  "nav.notes": "Notes",
+  "notes.header": "NOTES",
+  "notes.empty": "No notes yet",
+  "notes.add": "+ add note",
+  "notes.form.title": "Title",
+  "notes.form.content": "Content",
+  "notes.form.save": "Save",
+  "notes.form.cancel": "Cancel",
+  "notes.delete.confirm": "Delete this note?"
 }

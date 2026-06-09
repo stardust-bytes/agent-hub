@@ -21,15 +21,15 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { HiChatAlt2, HiClipboardList, HiFolder, HiCog, HiLightningBolt } from 'vue-icons-plus/hi'
+import { HiChatAlt2, HiClipboardList, HiFolder, HiCog, HiLightningBolt, HiDocumentText } from 'vue-icons-plus/hi'
 
-defineProps<{ activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' }>()
-defineEmits<{ navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools'] }>()
+defineProps<{ activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' }>()
+defineEmits<{ navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes'] }>()
 
 const { t } = useI18n()
 
 interface NavItem {
-  view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools'
+  view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes'
   labelKey: string
   icon: Component
 }
@@ -40,6 +40,7 @@ const navItems: NavItem[] = [
   { view: 'files',     labelKey: 'nav.files',     icon: HiFolder },
   { view: 'tools',     labelKey: 'nav.tools',     icon: HiLightningBolt },
   { view: 'providers', labelKey: 'nav.providers', icon: HiCog },
+  { view: 'notes',     labelKey: 'nav.notes',     icon: HiDocumentText },
   { view: 'settings',  labelKey: 'nav.settings',  icon: HiCog },
 ]
 </script>

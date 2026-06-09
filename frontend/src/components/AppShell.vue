@@ -7,6 +7,7 @@
       <SettingsView   v-else-if="activeView === 'settings'"  class="flex-1 overflow-hidden" />
       <TasksView      v-else-if="activeView === 'tasks'"     class="flex-1 overflow-hidden" @ws-status="wsConnected = $event" />
       <ProvidersView  v-else-if="activeView === 'providers'" class="flex-1 overflow-hidden" />
+      <NotesView      v-else-if="activeView === 'notes'"     class="flex-1 overflow-hidden" />
       <ChatPanel      v-else                                  class="flex-1 overflow-hidden" />
     </div>
     <BottomTabBar :active-view="activeView" @navigate="activeView = $event" />
@@ -27,9 +28,10 @@ import SettingsView from './SettingsView.vue'
 import FilesView from './FilesView.vue'
 import ProvidersView from './ProvidersView.vue'
 import ToolsView from './ToolsView.vue'
+import NotesView from './NotesView.vue'
 import StatusBar from './StatusBar.vue'
 
-const activeView = ref<'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools'>('chat')
+const activeView = ref<'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes'>('chat')
 const dbConnected = ref(true)
 const wsConnected = ref(false)
 </script>
