@@ -17,6 +17,7 @@ import { ListNotesExecutor } from '../../tools/executors/list-notes.executor';
 import { DeleteNoteExecutor } from '../../tools/executors/delete-note.executor';
 import { ConvertNoteToTaskExecutor } from '../../tools/executors/convert-note-to-task.executor';
 import { PermissionsService } from './permissions.service';
+import { PlansService } from '../../plans/plans.service';
 import { StreamChunk } from '../providers/llm-provider.interface';
 import { Response } from 'express';
 
@@ -52,6 +53,7 @@ describe('AgentLoopService', () => {
   let webSearch: WebSearchExecutor;
   let createTask: CreateTaskExecutor;
   let permissionsService: { isAllowed: jest.Mock };
+  let plansService: typeof mockPlansService;
 
   const defaultTools = [
     { type: 'function' as const, function: { name: 'web_search', description: 'Search the web', parameters: {} } },
@@ -59,6 +61,13 @@ describe('AgentLoopService', () => {
     { type: 'function' as const, function: { name: 'create_task', description: 'Create a task', parameters: {} } },
   ];
   const defaultConfig = { baseUrl: 'http://localhost:11434' };
+
+  const mockPlansService = {
+    create: jest.fn(),
+    findOne: jest.fn(),
+    updateStepStatus: jest.fn(),
+    updateStatus: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -93,6 +102,7 @@ describe('AgentLoopService', () => {
         { provide: DeleteNoteExecutor, useValue: { name: 'delete_note', execute: jest.fn() } },
         { provide: ConvertNoteToTaskExecutor, useValue: { name: 'convert_note_to_task', execute: jest.fn() } },
         { provide: PermissionsService, useValue: { isAllowed: jest.fn().mockResolvedValue(true) } },
+        { provide: PlansService, useValue: mockPlansService },
       ],
     }).compile();
 
@@ -103,6 +113,8 @@ describe('AgentLoopService', () => {
     webSearch = module.get(WebSearchExecutor);
     createTask = module.get(CreateTaskExecutor);
     permissionsService = module.get(PermissionsService);
+    plansService = module.get(PlansService);
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -316,6 +328,56 @@ describe('AgentLoopService', () => {
         'data: ' + JSON.stringify({ toolResult: { name: 'web_fetch', result: 'Tool "web_fetch" is not permitted by workspace policy.' } }) + '\n\n',
       );
       expect(result).toBe('I cannot fetch that URL');
+    });
+  });
+
+  describe('runPlanMode', () => {
+    const planConfig = { baseUrl: 'http://localhost:11434' };
+
+    it('emits thinking event, then plan event, then DONE', async () => {
+      const res = mockRes();
+      const planJson = JSON.stringify({ title: 'Test Plan', steps: ['Do A', 'Do B'] });
+      (llmController.stream as jest.Mock) = buildStreamMock([
+        { type: 'token', token: planJson },
+        DONE,
+      ]);
+      const createdPlan = {
+        id: 42,
+        title: 'Test Plan',
+        status: 'PENDING',
+        steps: [
+          { id: 1, planId: 42, order: 0, text: 'Do A', status: 'TODO' },
+          { id: 2, planId: 42, order: 1, text: 'Do B', status: 'TODO' },
+        ],
+      };
+      mockPlansService.create.mockResolvedValue(createdPlan);
+
+      await service.runPlanMode('Do A and B', 'ollama', 'llama3.2', planConfig, 1, res);
+
+      expect(res.write).toHaveBeenCalledWith(
+        expect.stringContaining('"thinking"')
+      );
+      expect(mockPlansService.create).toHaveBeenCalledWith(1, 'Test Plan', ['Do A', 'Do B']);
+      expect(res.write).toHaveBeenCalledWith(
+        expect.stringContaining('"plan"')
+      );
+      expect(res.write).toHaveBeenCalledWith('data: [DONE]\n\n');
+    });
+
+    it('emits error event when LLM returns non-JSON', async () => {
+      const res = mockRes();
+      (llmController.stream as jest.Mock) = buildStreamMock([
+        { type: 'token', token: 'not valid json here' },
+        DONE,
+      ]);
+
+      await service.runPlanMode('task', 'ollama', 'llama3.2', planConfig, 1, res);
+
+      expect(res.write).toHaveBeenCalledWith(
+        expect.stringContaining('"error"')
+      );
+      expect(mockPlansService.create).not.toHaveBeenCalled();
+      expect(res.write).toHaveBeenCalledWith('data: [DONE]\n\n');
     });
   });
 });

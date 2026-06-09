@@ -21,6 +21,7 @@ import { ListNotesExecutor } from '../../tools/executors/list-notes.executor';
 import { DeleteNoteExecutor } from '../../tools/executors/delete-note.executor';
 import { ConvertNoteToTaskExecutor } from '../../tools/executors/convert-note-to-task.executor';
 import { PermissionsService } from './permissions.service';
+import { PlansService } from '../../plans/plans.service';
 
 const MAX_RETRIES = 2;
 const MAX_ITERATIONS = 10;
@@ -39,6 +40,7 @@ export class AgentLoopService {
     private readonly sessionsService: SessionsService,
     private readonly knowledgeService: KnowledgeService,
     private readonly permissionsService: PermissionsService,
+    private readonly plansService: PlansService,
     createTask: CreateTaskExecutor,
     updateTask: UpdateTaskExecutor,
     listTasks: ListTasksExecutor,
@@ -237,6 +239,65 @@ export class AgentLoopService {
     }
 
     return finalText;
+  }
+
+  async runPlanMode(
+    taskText: string,
+    providerType: string,
+    model: string,
+    providerConfig: { baseUrl: string; key?: string },
+    sessionId: number,
+    res: Response,
+  ): Promise<void> {
+    const planningPrompt =
+      'You are in Plan Mode. Output ONLY a JSON object — no prose, no markdown, no code fences.\n' +
+      'Format: { "title": "short plan title", "steps": ["step 1", "step 2", ...] }\n' +
+      'Maximum 10 steps. Be specific and actionable.';
+
+    res.write(`data: ${JSON.stringify({ thinking: '\u27f3 Generating plan...' })}\n\n`);
+
+    const messages: OllamaMessage[] = [
+      { role: 'system', content: planningPrompt },
+      { role: 'user', content: taskText },
+    ];
+
+    let fullText = '';
+    const stream = this.llmController.stream(
+      'ollama', model, messages, [], new AbortController().signal,
+      providerConfig.baseUrl, providerConfig.key,
+    );
+
+    for await (const chunk of stream) {
+      if (chunk.type === 'token' && chunk.token) fullText += chunk.token;
+      if (chunk.type === 'error') break;
+      if (chunk.type === 'done') break;
+    }
+
+    let planData: { title: string; steps: string[] };
+    try {
+      planData = JSON.parse(fullText) as { title: string; steps: string[] };
+      if (!planData.title || !Array.isArray(planData.steps)) throw new Error('invalid shape');
+    } catch {
+      res.write(
+        `data: ${JSON.stringify({ error: 'Agent failed to produce a valid plan. Try again.' })}\n\n`,
+      );
+      res.write('data: [DONE]\n\n');
+      return;
+    }
+
+    const plan = await this.plansService.create(sessionId, planData.title, planData.steps);
+
+    res.write(
+      `data: ${JSON.stringify({
+        plan: {
+          id: plan.id,
+          title: plan.title,
+          status: plan.status,
+          steps: plan.steps.map(s => ({ id: s.id, order: s.order, text: s.text, status: s.status })),
+        },
+      })}\n\n`,
+    );
+    res.write('data: [DONE]\n\n');
   }
 
   private async executeStep(
