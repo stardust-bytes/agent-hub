@@ -16,6 +16,7 @@ import { UpdateNoteExecutor } from '../../tools/executors/update-note.executor';
 import { ListNotesExecutor } from '../../tools/executors/list-notes.executor';
 import { DeleteNoteExecutor } from '../../tools/executors/delete-note.executor';
 import { ConvertNoteToTaskExecutor } from '../../tools/executors/convert-note-to-task.executor';
+import { PermissionsService } from './permissions.service';
 import { StreamChunk } from '../providers/llm-provider.interface';
 import { Response } from 'express';
 
@@ -50,6 +51,7 @@ describe('AgentLoopService', () => {
   let webFetch: WebFetchExecutor;
   let webSearch: WebSearchExecutor;
   let createTask: CreateTaskExecutor;
+  let permissionsService: { isAllowed: jest.Mock };
 
   const defaultTools = [
     { type: 'function' as const, function: { name: 'web_search', description: 'Search the web', parameters: {} } },
@@ -90,6 +92,7 @@ describe('AgentLoopService', () => {
         { provide: ListNotesExecutor, useValue: { name: 'list_notes', execute: jest.fn() } },
         { provide: DeleteNoteExecutor, useValue: { name: 'delete_note', execute: jest.fn() } },
         { provide: ConvertNoteToTaskExecutor, useValue: { name: 'convert_note_to_task', execute: jest.fn() } },
+        { provide: PermissionsService, useValue: { isAllowed: jest.fn().mockResolvedValue(true) } },
       ],
     }).compile();
 
@@ -99,6 +102,7 @@ describe('AgentLoopService', () => {
     webFetch = module.get(WebFetchExecutor);
     webSearch = module.get(WebSearchExecutor);
     createTask = module.get(CreateTaskExecutor);
+    permissionsService = module.get(PermissionsService);
   });
 
   it('should be defined', () => {
@@ -285,6 +289,33 @@ describe('AgentLoopService', () => {
       expect(sessionsService.saveMessage).toHaveBeenCalledWith(
         1, 'assistant', 'I tried searching but could not find the results you wanted. Would you like to try a different approach?',
       );
+    });
+  });
+
+  describe('Permissions', () => {
+    it('skips denied tool and emits denial toolResult', async () => {
+      const toolCall: StreamChunk = {
+        type: 'tool_call',
+        toolCall: { name: 'web_fetch', arguments: { url: 'http://example.com' } },
+      };
+      llmController.stream = buildStreamMock(
+        [toolCall, DONE],
+        [{ type: 'token', token: 'I cannot fetch that URL' }, DONE],
+      );
+      permissionsService.isAllowed.mockImplementation(async (name: string) => name !== 'web_fetch');
+
+      const res = mockRes();
+      const signal = new AbortController().signal;
+      const result = await service.run(
+        'ollama', 'llama3', 'You are helpful', [], 'fetch URL',
+        defaultTools, res, signal, undefined, 'agent', defaultConfig,
+      );
+
+      expect(webFetch.execute).not.toHaveBeenCalled();
+      expect(res.write).toHaveBeenCalledWith(
+        'data: ' + JSON.stringify({ toolResult: { name: 'web_fetch', result: 'Tool "web_fetch" is not permitted by workspace policy.' } }) + '\n\n',
+      );
+      expect(result).toBe('I cannot fetch that URL');
     });
   });
 });

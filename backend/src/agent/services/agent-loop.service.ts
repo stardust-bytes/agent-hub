@@ -20,6 +20,7 @@ import { UpdateNoteExecutor } from '../../tools/executors/update-note.executor';
 import { ListNotesExecutor } from '../../tools/executors/list-notes.executor';
 import { DeleteNoteExecutor } from '../../tools/executors/delete-note.executor';
 import { ConvertNoteToTaskExecutor } from '../../tools/executors/convert-note-to-task.executor';
+import { PermissionsService } from './permissions.service';
 
 const MAX_RETRIES = 2;
 const MAX_ITERATIONS = 10;
@@ -37,6 +38,7 @@ export class AgentLoopService {
     private readonly llmController: LLMControllerService,
     private readonly sessionsService: SessionsService,
     private readonly knowledgeService: KnowledgeService,
+    private readonly permissionsService: PermissionsService,
     createTask: CreateTaskExecutor,
     updateTask: UpdateTaskExecutor,
     listTasks: ListTasksExecutor,
@@ -120,6 +122,17 @@ export class AgentLoopService {
             res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
             if (sessionId) {
               await this.sessionsService.saveMessage(sessionId, 'tool', `${name}(${JSON.stringify(args)})`, name, false);
+            }
+
+            const allowed = await this.permissionsService.isAllowed(name);
+            if (!allowed) {
+              const denyMsg = `Tool "${name}" is not permitted by workspace policy.`;
+              res.write(`data: ${JSON.stringify({ toolResult: { name, result: denyMsg } })}\n\n`);
+              if (sessionId) {
+                await this.sessionsService.saveMessage(sessionId, 'tool', denyMsg, name, true);
+              }
+              messages.push({ role: 'tool', content: denyMsg });
+              continue;
             }
 
             let result: string;
