@@ -446,11 +446,25 @@ async function loadSession(id: number) {
         } else if (msg.role === 'plan') {
           try {
             const planData = JSON.parse(msg.content) as PlanData
+            const planForDisplay = { ...planData, steps: planData.steps.map(s => ({ ...s })) }
+            try {
+              const fres = await fetch(`/api/plans/${planData.id}`)
+              if (fres.ok) {
+                const fresh = await fres.json() as PlanData
+                planForDisplay.status = fresh.status
+                if (fresh.steps) {
+                  for (const fs of fresh.steps) {
+                    const step = planForDisplay.steps.find(s => s.id === fs.id)
+                    if (step) step.status = fs.status
+                  }
+                }
+              }
+            } catch { /* use saved data */ }
             messages.value.push({
               role: 'plan',
               content: '',
               timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-              plan: planData,
+              plan: planForDisplay,
             })
           } catch {
             messages.value.push({
