@@ -35,7 +35,10 @@
         <div v-for="f in filteredFiles" :key="f.id"
           class="flex items-center gap-3 bg-cyber-dark px-3 py-2 text-sm font-mono"
         >
-          <span class="flex-1 text-cyber-text truncate">{{ f.filename }}</span>
+          <div class="flex-1 min-w-0">
+            <div class="text-cyber-text truncate">{{ f.filename }}</div>
+            <div v-if="f.status === 'error' && f.errorMessage" class="text-red-400 text-xs truncate mt-0.5">{{ f.errorMessage }}</div>
+          </div>
           <span class="text-cyber-muted shrink-0 w-16 text-right">{{ formatSize(f.size) }}</span>
           <span :class="statusClass(f.status)" class="shrink-0 w-20 text-center">{{ statusLabel(f.status) }}</span>
           <button @click="deleteFile(f.id)" class="text-cyber-muted hover:text-red-400 shrink-0 transition-colors duration-150">{{ t('files.delete') }}</button>
@@ -70,6 +73,7 @@ interface KnowledgeFile {
   status: string
   chunkCount: number
   createdAt: string
+  errorMessage?: string
 }
 
 const { t } = useI18n()

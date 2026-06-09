@@ -176,8 +176,12 @@ export class KnowledgeService {
         where: { id },
         data: { status: 'ready', chunkCount: rawChunks.length },
       });
-    } catch {
-      await this.updateStatus(id, 'error');
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+      await this.prisma.knowledgeFile.update({
+        where: { id },
+        data: { status: 'error', errorMessage },
+      });
     }
   }
 
