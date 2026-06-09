@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 const mockPrisma = {
   setting: {
     findUnique: jest.fn(),
+    findMany: jest.fn(),
     upsert: jest.fn(),
   },
 };
@@ -23,10 +24,12 @@ describe('SettingsService', () => {
     jest.clearAllMocks();
   });
 
-  it('findAll returns empty object', async () => {
+  it('findAll returns all settings', async () => {
+    mockPrisma.setting.findMany.mockResolvedValue([
+      { key: 'embed_model_id', value: '1' },
+    ]);
     const result = await service.findAll();
-    expect(result).toEqual({});
-    expect(mockPrisma.setting.findUnique).not.toHaveBeenCalled();
+    expect(result).toEqual({ embed_model_id: '1' });
   });
 
   it('upsert creates or updates a setting', async () => {
