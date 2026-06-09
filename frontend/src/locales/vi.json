@@ -18,6 +18,8 @@
   "chat.mode.agent": "Agent",
   "chat.mode.chat": "Chat",
   "chat.thinking": "⟳ đang nghĩ...",
+  "chat.tool.expand": "[+ mở rộng]",
+  "chat.tool.collapse": "[- thu gọn]",
 
   "health.checking": "Đang kiểm tra...",
   "health.ok": "Backend: hoạt động · DB: đã kết nối",

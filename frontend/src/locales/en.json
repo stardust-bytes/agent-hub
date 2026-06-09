@@ -18,6 +18,8 @@
   "chat.mode.agent": "Agent",
   "chat.mode.chat": "Chat",
   "chat.thinking": "⟳ thinking...",
+  "chat.tool.expand": "[+ expand]",
+  "chat.tool.collapse": "[- collapse]",
 
   "health.checking": "Checking backend...",
   "health.ok": "Backend: ok · DB: connected",
