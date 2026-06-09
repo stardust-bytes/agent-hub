@@ -11,6 +11,11 @@ import { DeleteTasksExecutor } from '../../tools/executors/delete-tasks.executor
 import { SearchKnowledgeExecutor } from '../../tools/executors/search-knowledge.executor';
 import { WebFetchExecutor } from '../../tools/executors/web-fetch.executor';
 import { WebSearchExecutor } from '../../tools/executors/web-search.executor';
+import { CreateNoteExecutor } from '../../tools/executors/create-note.executor';
+import { UpdateNoteExecutor } from '../../tools/executors/update-note.executor';
+import { ListNotesExecutor } from '../../tools/executors/list-notes.executor';
+import { DeleteNoteExecutor } from '../../tools/executors/delete-note.executor';
+import { ConvertNoteToTaskExecutor } from '../../tools/executors/convert-note-to-task.executor';
 import { StreamChunk } from '../providers/llm-provider.interface';
 import { Response } from 'express';
 
@@ -80,6 +85,11 @@ describe('AgentLoopService', () => {
         { provide: SearchKnowledgeExecutor, useValue: { name: 'search_knowledge', execute: jest.fn() } },
         { provide: WebFetchExecutor, useValue: { name: 'web_fetch', execute: jest.fn() } },
         { provide: WebSearchExecutor, useValue: { name: 'web_search', execute: jest.fn() } },
+        { provide: CreateNoteExecutor, useValue: { name: 'create_note', execute: jest.fn() } },
+        { provide: UpdateNoteExecutor, useValue: { name: 'update_note', execute: jest.fn() } },
+        { provide: ListNotesExecutor, useValue: { name: 'list_notes', execute: jest.fn() } },
+        { provide: DeleteNoteExecutor, useValue: { name: 'delete_note', execute: jest.fn() } },
+        { provide: ConvertNoteToTaskExecutor, useValue: { name: 'convert_note_to_task', execute: jest.fn() } },
       ],
     }).compile();
 

@@ -15,6 +15,11 @@ import { DeleteTasksExecutor } from '../../tools/executors/delete-tasks.executor
 import { SearchKnowledgeExecutor } from '../../tools/executors/search-knowledge.executor';
 import { WebFetchExecutor } from '../../tools/executors/web-fetch.executor';
 import { WebSearchExecutor } from '../../tools/executors/web-search.executor';
+import { CreateNoteExecutor } from '../../tools/executors/create-note.executor';
+import { UpdateNoteExecutor } from '../../tools/executors/update-note.executor';
+import { ListNotesExecutor } from '../../tools/executors/list-notes.executor';
+import { DeleteNoteExecutor } from '../../tools/executors/delete-note.executor';
+import { ConvertNoteToTaskExecutor } from '../../tools/executors/convert-note-to-task.executor';
 
 const MAX_RETRIES = 2;
 const MAX_ITERATIONS = 10;
@@ -40,6 +45,11 @@ export class AgentLoopService {
     searchKnowledge: SearchKnowledgeExecutor,
     webFetch: WebFetchExecutor,
     webSearch: WebSearchExecutor,
+    createNote: CreateNoteExecutor,
+    updateNote: UpdateNoteExecutor,
+    listNotes: ListNotesExecutor,
+    deleteNote: DeleteNoteExecutor,
+    convertNoteToTask: ConvertNoteToTaskExecutor,
   ) {
     this.executorMap = new Map<string, ToolExecutor>([
       [createTask.name, createTask],
@@ -50,6 +60,11 @@ export class AgentLoopService {
       [searchKnowledge.name, searchKnowledge],
       [webFetch.name, webFetch],
       [webSearch.name, webSearch],
+      [createNote.name, createNote],
+      [updateNote.name, updateNote],
+      [listNotes.name, listNotes],
+      [deleteNote.name, deleteNote],
+      [convertNoteToTask.name, convertNoteToTask],
     ]);
   }
 

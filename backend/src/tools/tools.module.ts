@@ -9,8 +9,14 @@ import { DeleteTasksExecutor } from './executors/delete-tasks.executor';
 import { SearchKnowledgeExecutor } from './executors/search-knowledge.executor';
 import { WebFetchExecutor } from './executors/web-fetch.executor';
 import { WebSearchExecutor } from './executors/web-search.executor';
+import { CreateNoteExecutor } from './executors/create-note.executor';
+import { UpdateNoteExecutor } from './executors/update-note.executor';
+import { ListNotesExecutor } from './executors/list-notes.executor';
+import { DeleteNoteExecutor } from './executors/delete-note.executor';
+import { ConvertNoteToTaskExecutor } from './executors/convert-note-to-task.executor';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
+import { NotesModule } from '../notes/notes.module';
 
 const EXECUTORS = [
   CreateTaskExecutor,
@@ -21,10 +27,15 @@ const EXECUTORS = [
   SearchKnowledgeExecutor,
   WebFetchExecutor,
   WebSearchExecutor,
+  CreateNoteExecutor,
+  UpdateNoteExecutor,
+  ListNotesExecutor,
+  DeleteNoteExecutor,
+  ConvertNoteToTaskExecutor,
 ];
 
 @Module({
-  imports: [TasksModule, KnowledgeModule],
+  imports: [TasksModule, KnowledgeModule, NotesModule],
   controllers: [ToolsController],
   providers: [ToolsService, ...EXECUTORS],
   exports: [ToolsService, ...EXECUTORS],

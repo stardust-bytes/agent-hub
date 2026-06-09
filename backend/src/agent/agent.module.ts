@@ -18,9 +18,15 @@ import { DeleteTasksExecutor } from '../tools/executors/delete-tasks.executor';
 import { SearchKnowledgeExecutor } from '../tools/executors/search-knowledge.executor';
 import { WebFetchExecutor } from '../tools/executors/web-fetch.executor';
 import { WebSearchExecutor } from '../tools/executors/web-search.executor';
+import { CreateNoteExecutor } from '../tools/executors/create-note.executor';
+import { UpdateNoteExecutor } from '../tools/executors/update-note.executor';
+import { ListNotesExecutor } from '../tools/executors/list-notes.executor';
+import { DeleteNoteExecutor } from '../tools/executors/delete-note.executor';
+import { ConvertNoteToTaskExecutor } from '../tools/executors/convert-note-to-task.executor';
+import { NotesModule } from '../notes/notes.module';
 
 @Module({
-  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule],
+  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule],
   controllers: [AgentController],
   providers: [
     AgentService,
@@ -36,6 +42,11 @@ import { WebSearchExecutor } from '../tools/executors/web-search.executor';
     SearchKnowledgeExecutor,
     WebFetchExecutor,
     WebSearchExecutor,
+    CreateNoteExecutor,
+    UpdateNoteExecutor,
+    ListNotesExecutor,
+    DeleteNoteExecutor,
+    ConvertNoteToTaskExecutor,
   ],
 })
 export class AgentModule {}
