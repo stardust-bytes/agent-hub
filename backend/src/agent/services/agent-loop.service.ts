@@ -41,7 +41,7 @@ export class AgentLoopService {
     webFetch: WebFetchExecutor,
     webSearch: WebSearchExecutor,
   ) {
-    this.executorMap = new Map([
+    this.executorMap = new Map<string, ToolExecutor>([
       [createTask.name, createTask],
       [updateTask.name, updateTask],
       [listTasks.name, listTasks],
@@ -76,7 +76,7 @@ export class AgentLoopService {
     let messages = this.llmController.buildMessages(systemPrompt, history, userMessage);
     let iterationCount = 0;
 
-    while (this.state !== AgentState.DONE && !signal.aborted && iterationCount < MAX_ITERATIONS) {
+    while (!signal.aborted && iterationCount < MAX_ITERATIONS) {
       iterationCount++;
 
       if (this.state === AgentState.PLANNING) {

@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col bg-cyber-bg min-w-0">
     <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 min-h-0">
-      <div class="max-w-2xl mx-auto space-y-4 px-3">
+      <div class="max-w-60rem mx-auto space-y-4 px-3">
         <div v-for="(msg, i) in messages" :key="i" class="font-mono">
 
         <!-- Thinking block -->
@@ -63,7 +63,7 @@
       @created="(id: number) => { currentSessionId = id; loadSession(id) }"
     />
     <div class="shrink-0">
-      <div class="max-w-2xl mx-auto w-full px-3 pb-3">
+      <div class="max-w-60rem mx-auto w-full px-3 pb-3">
         <div class="bg-cyber-dark px-3 py-2">
           <form @submit.prevent="submit" class="flex items-center gap-2">
             <input

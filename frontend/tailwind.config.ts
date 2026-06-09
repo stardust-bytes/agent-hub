@@ -39,6 +39,9 @@ export default {
       width: {
         '100': '25rem',
       },
+      maxWidth: {
+        '60rem': '60rem',
+      },
     },
   },
   plugins: [],

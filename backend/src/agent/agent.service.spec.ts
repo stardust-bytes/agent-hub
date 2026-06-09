@@ -1,13 +1,15 @@
 import { Test } from '@nestjs/testing';
 import { AgentService } from './agent.service';
-import { OllamaProvider } from './providers/ollama.provider';
+import { AgentLoopService } from './services/agent-loop.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { ContextBuilderService } from './services/context-builder.service';
 import { ProvidersService } from '../providers/providers.service';
 
 describe('AgentService', () => {
   let service: AgentService;
-  const mockProvider = { streamChat: jest.fn().mockResolvedValue({ finalText: 'Great response' }) };
+  const mockAgentLoop = {
+    run: jest.fn().mockResolvedValue('Great response'),
+  };
   const mockSessionsService = {
     getHistory: jest.fn().mockResolvedValue([]),
     saveMessage: jest.fn().mockResolvedValue(undefined),
@@ -33,7 +35,7 @@ describe('AgentService', () => {
     const module = await Test.createTestingModule({
       providers: [
         AgentService,
-        { provide: OllamaProvider, useValue: mockProvider },
+        { provide: AgentLoopService, useValue: mockAgentLoop },
         { provide: SessionsService, useValue: mockSessionsService },
         { provide: ContextBuilderService, useValue: mockContextBuilder },
         { provide: ProvidersService, useValue: mockProvidersService },
@@ -43,8 +45,8 @@ describe('AgentService', () => {
     jest.clearAllMocks();
   });
 
-  it('resolves provider model and calls OllamaProvider with providerConfig', async () => {
-    mockProvider.streamChat.mockResolvedValue({ finalText: 'Hello!' });
+  it('resolves provider model and calls AgentLoopService with correct config', async () => {
+    mockAgentLoop.run.mockResolvedValue('Hello!');
     mockSessionsService.getHistory.mockResolvedValue([{ role: 'user', content: 'Hi' }]);
     mockContextBuilder.build.mockResolvedValue({
       systemPrompt: 'Custom system prompt.',
@@ -61,10 +63,10 @@ describe('AgentService', () => {
     await service.streamChat('World', 5, mockRes, signal, 1);
 
     expect(mockProvidersService.findModelWithProvider).toHaveBeenCalledWith(5);
-    expect(mockProvider.streamChat).toHaveBeenCalled();
-    const callArgs = mockProvider.streamChat.mock.calls[0];
+    expect(mockAgentLoop.run).toHaveBeenCalled();
+    const callArgs = mockAgentLoop.run.mock.calls[0];
     expect(callArgs[1]).toBe('llama3.2');
-    expect(callArgs[6]).toEqual({ baseUrl: 'http://localhost:11434', key: undefined });
+    expect(callArgs[10]).toEqual({ baseUrl: 'http://localhost:11434', key: undefined });
   });
 
   it('writes provider_not_found error when providerModelId does not exist', async () => {
@@ -76,11 +78,11 @@ describe('AgentService', () => {
 
     expect(mockRes.write).toHaveBeenCalledWith('data: {"error":"provider_not_found"}\n\n');
     expect(mockRes.write).toHaveBeenCalledWith('data: [DONE]\n\n');
-    expect(mockProvider.streamChat).not.toHaveBeenCalled();
+    expect(mockAgentLoop.run).not.toHaveBeenCalled();
   });
 
   it('persists user message and assistant response after stream', async () => {
-    mockProvider.streamChat.mockResolvedValue({ finalText: 'Hello!' });
+    mockAgentLoop.run.mockResolvedValue('Hello!');
     const signal = new AbortController().signal;
 
     await service.streamChat('World', 5, { write: jest.fn() } as any, signal, 1);
@@ -93,7 +95,7 @@ describe('AgentService', () => {
   it('does not persist when signal is aborted', async () => {
     const ctrl = new AbortController();
     ctrl.abort();
-    mockProvider.streamChat.mockResolvedValue({ finalText: '' });
+    mockAgentLoop.run.mockResolvedValue('');
 
     await service.streamChat('msg', 5, { write: jest.fn() } as any, ctrl.signal, 1);
 
