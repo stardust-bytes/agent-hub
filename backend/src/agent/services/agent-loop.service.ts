@@ -315,7 +315,7 @@ export class AgentLoopService {
       'Format: { "title": "short plan title", "steps": ["step 1", "step 2", ...] }\n' +
       'Maximum 10 steps. Be specific and actionable.';
 
-    res.write(`data: ${JSON.stringify({ thinking: '\u27f3 Generating plan...' })}\n\n`);
+    res.write(`data: ${JSON.stringify({ thinking: 'Generating plan...' })}\n\n`);
 
     const messages: OllamaMessage[] = [
       { role: 'system', content: planningPrompt },

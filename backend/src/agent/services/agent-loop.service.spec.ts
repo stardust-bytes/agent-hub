@@ -420,6 +420,27 @@ describe('AgentLoopService', () => {
       expect(writeCalls[writeCalls.length - 1]).toBe('data: [DONE]\n\n');
     });
 
+    it('saves LLM response as assistant message for each step', async () => {
+      const res = mockRes();
+      const plan = {
+        id: 7, title: 'My Plan', status: 'APPROVED',
+        steps: [
+          { id: 10, planId: 7, order: 0, text: 'Step one', status: 'TODO' },
+        ],
+      };
+      mockPlansService.findOne.mockResolvedValue(plan);
+      mockPlansService.updateStatus.mockResolvedValue({ ...plan, status: 'EXECUTING' });
+      mockPlansService.updateStepStatus.mockResolvedValue({});
+
+      (llmController.stream as jest.Mock) = buildStreamMock(
+        [{ type: 'token', token: 'Response text from LLM' }, DONE],
+      );
+
+      await service.executePlan(7, 'ollama', 'llama3.2', 'System prompt', tools, planConfig, res, 1);
+
+      expect(sessionsService.saveMessage).toHaveBeenCalledWith(1, 'assistant', 'Response text from LLM');
+    });
+
     it('marks step FAILED and continues when LLM stream emits error', async () => {
       const res = mockRes();
       const plan = {
