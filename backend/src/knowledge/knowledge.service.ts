@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { SettingsService } from '../settings/settings.service';
+import { ProvidersService } from '../providers/providers.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as lancedb from '@lancedb/lancedb';
@@ -26,6 +28,8 @@ export class KnowledgeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly settings: SettingsService,
+    private readonly providers: ProvidersService,
   ) {
     this.uploadDir = path.resolve(this.config.get<string>('UPLOAD_DIR', './workspace_data/uploads'));
     this.lancedbDir = path.resolve('./workspace_data/lancedb');
@@ -62,26 +66,46 @@ export class KnowledgeService {
     if (!this.table) await this.initLanceDB();
   }
 
+  private async resolveModelConfig(
+    settingKey: string,
+    envKey: string,
+  ): Promise<{ model: string; baseUrl: string; key?: string }> {
+    const modelName = this.config.get<string>(envKey, 'nomic-embed-text');
+    const baseUrl = this.config.get<string>('OLLAMA_URL', 'http://localhost:11434');
+
+    const settingsId = await this.settings.get(settingKey, '');
+    if (settingsId) {
+      const pm = await this.providers.findModelWithProvider(Number(settingsId));
+      if (pm) {
+        return {
+          model: pm.name,
+          baseUrl: pm.provider.baseUrl ?? baseUrl,
+          key: pm.provider.key ?? undefined,
+        };
+      }
+    }
+    return { model: modelName, baseUrl };
+  }
+
   private async embed(text: string): Promise<number[]> {
-    const ollamaUrl = this.config.get<string>('OLLAMA_URL', 'http://localhost:11434');
-    const model = this.config.get<string>('EMBED_MODEL', 'nomic-embed-text');
-    const res = await fetch(`${ollamaUrl}/api/embeddings`, {
+    const cfg = await this.resolveModelConfig('embed_model_id', 'EMBED_MODEL');
+    const res = await fetch(`${cfg.baseUrl}/api/embeddings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, prompt: text }),
+      body: JSON.stringify({ model: cfg.model, prompt: text }),
     });
     if (!res.ok) {
       // If embed model not found, try pulling it
       if (res.status === 404) {
-        await fetch(`${ollamaUrl}/api/pull`, {
+        await fetch(`${cfg.baseUrl}/api/pull`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model, stream: false }),
+          body: JSON.stringify({ model: cfg.model, stream: false }),
         });
-        const retry = await fetch(`${ollamaUrl}/api/embeddings`, {
+        const retry = await fetch(`${cfg.baseUrl}/api/embeddings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model, prompt: text }),
+          body: JSON.stringify({ model: cfg.model, prompt: text }),
         });
         if (!retry.ok) throw new Error(`embedding failed after pull: ${retry.status}`);
         const data = await retry.json() as { embedding: number[] };
@@ -105,14 +129,13 @@ export class KnowledgeService {
   }
 
   private async generateSummary(text: string): Promise<string | null> {
-    const ollamaUrl = this.config.get<string>('OLLAMA_URL', 'http://localhost:11434');
-    const model = this.config.get<string>('SUMMARY_MODEL', 'llama3.2');
+    const cfg = await this.resolveModelConfig('summary_model_id', 'SUMMARY_MODEL');
     try {
-      const res = await fetch(`${ollamaUrl}/api/generate`, {
+      const res = await fetch(`${cfg.baseUrl}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model,
+          model: cfg.model,
           prompt: `Write a 2-3 sentence summary of the main topics and key information in this document:\n\n${text.substring(0, 6000)}`,
           stream: false,
           options: { num_predict: 200 },

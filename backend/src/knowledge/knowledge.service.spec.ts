@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { KnowledgeService } from './knowledge.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SettingsService } from '../settings/settings.service';
+import { ProvidersService } from '../providers/providers.service';
 
 const mockPrisma = {
   knowledgeFile: {
@@ -13,6 +15,14 @@ const mockPrisma = {
   },
 };
 
+const mockSettings = {
+  get: jest.fn().mockResolvedValue(''),
+};
+
+const mockProviders = {
+  findModelWithProvider: jest.fn().mockResolvedValue(null),
+};
+
 describe('KnowledgeService', () => {
   let service: KnowledgeService;
 
@@ -22,6 +32,8 @@ describe('KnowledgeService', () => {
         KnowledgeService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue('./workspace_data') } },
+        { provide: SettingsService, useValue: mockSettings },
+        { provide: ProvidersService, useValue: mockProviders },
       ],
     }).compile();
     service = module.get<KnowledgeService>(KnowledgeService);
