@@ -1,6 +1,7 @@
 <template>
   <nav class="w-60 bg-cyber-dark hidden md:flex flex-col items-stretch py-3 gap-1 shrink-0">
     <div class="flex items-center justify-center gap-2 px-3 py-1 mb-1">
+      <img src="/logo.png" class="w-6 h-6 shrink-0" alt="logo" />
       <span class="text-sm text-cyber-accent font-bold font-mono truncate">960513-wp</span>
     </div>
 
