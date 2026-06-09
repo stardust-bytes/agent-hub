@@ -105,15 +105,17 @@
                 @select="onSlashSelect"
                 @highlight="(i: number) => { slashSelectedIndex = i }"
               />
-              <div
+              <input
                 ref="inputEl"
-                contenteditable
-                role="textbox"
-                class="flex-1 bg-transparent text-sm outline-none font-mono caret-white min-h-[1.2em] whitespace-pre-wrap break-words"
-                :class="streaming ? 'pointer-events-none opacity-50' : ''"
+                v-model="input"
+                class="flex-1 bg-transparent text-cyber-text text-sm outline-none font-mono placeholder-cyber-muted/40 caret-white w-full"
+                :placeholder="t('chat.placeholder')"
+                :disabled="streaming"
+                autocomplete="off"
+                spellcheck="false"
                 @input="onInput"
                 @keydown="onKeyDown"
-              ></div>
+              />
             </div>
             <button
               v-if="streaming"
@@ -211,7 +213,8 @@ const streaming = ref(false)
 const selectedModelId = ref<number | null>(null)
 const availableModels = ref<ProviderModelFlat[]>([])
 const abortController = ref<AbortController | null>(null)
-const inputEl = ref<HTMLDivElement | null>(null)
+const inputEl = ref<HTMLInputElement | null>(null)
+const input = ref('')
 const messagesEl = ref<HTMLElement | null>(null)
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
@@ -301,7 +304,7 @@ function onFormSubmit(data: Record<string, string>) {
   scrollToBottom()
   if (currentSessionId.value !== null && selectedModelId.value !== null) {
     const text = JSON.stringify(data)
-    if (inputEl.value) inputEl.value.innerText = text
+    input.value = text
     submit()
   }
 }
@@ -360,8 +363,8 @@ function stopStream() {
 }
 
 function onInput(e: Event) {
-  const el = e.target as HTMLElement
-  const text = el.innerText || ''
+  const el = e.target as HTMLInputElement
+  const text = el.value || ''
 
   if (text.startsWith('/')) {
     const spaceIdx = text.indexOf(' ')
@@ -375,8 +378,6 @@ function onInput(e: Event) {
   } else {
     showSlashMenu.value = false
   }
-
-  renderHighlightedInput(el, text)
 }
 
 function onKeyDown(e: KeyboardEvent) {
@@ -389,12 +390,10 @@ function onKeyDown(e: KeyboardEvent) {
     e.preventDefault()
     slashSelectedIndex.value = Math.max(slashSelectedIndex.value - 1, 0)
   } else if (e.key === 'Enter' || e.key === 'Tab') {
-    if (showSlashMenu.value) {
-      e.preventDefault()
-      const filtered = getSlashCommands().filter(c => c.command.startsWith(slashFilter.value))
-      if (filtered[slashSelectedIndex.value]) {
-        insertSlash(filtered[slashSelectedIndex.value].command)
-      }
+    e.preventDefault()
+    const filtered = getSlashCommands().filter(c => c.command.startsWith(slashFilter.value))
+    if (filtered[slashSelectedIndex.value]) {
+      insertSlash(filtered[slashSelectedIndex.value].command)
     }
   } else if (e.key === 'Escape') {
     showSlashMenu.value = false
@@ -406,13 +405,9 @@ function onSlashSelect(command: string) {
 }
 
 function insertSlash(command: string) {
-  const el = inputEl.value
-  if (!el) return
-  el.innerText = command + ' '
+  input.value = command + ' '
   showSlashMenu.value = false
-  renderHighlightedInput(el, command + ' ')
-  placeCaretAtEnd(el)
-  el.focus()
+  inputEl.value?.focus()
 }
 
 function getSlashCommands() {
@@ -421,22 +416,6 @@ function getSlashCommands() {
     { command: '/help', description: '' },
     { command: '/clear', description: '' },
   ]
-}
-
-function renderHighlightedInput(el: HTMLElement, text: string) {
-  const html = highlightSlash(text)
-  if (el.innerHTML !== html) {
-    el.innerHTML = html
-  }
-}
-
-function placeCaretAtEnd(el: HTMLElement) {
-  const range = document.createRange()
-  const sel = window.getSelection()
-  range.selectNodeContents(el)
-  range.collapse(false)
-  sel?.removeAllRanges()
-  sel?.addRange(range)
 }
 
 async function loadSession(id: number) {
@@ -576,25 +555,21 @@ function highlightUserMessage(content: string): string {
 }
 
 function highlightSlash(text: string): string {
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   if (text.startsWith('/')) {
     const spaceIdx = text.indexOf(' ')
     if (spaceIdx !== -1) {
       const cmd = text.slice(0, spaceIdx)
       const rest = text.slice(spaceIdx)
-      return `<span class="text-cyber-cyan">${escapeHtml(cmd)}</span><span class="text-cyber-text">${escapeHtml(rest)}</span>`
+      return `<span class="text-cyber-cyan">${esc(cmd)}</span><span class="text-cyber-text">${esc(rest)}</span>`
     }
-    return `<span class="text-cyber-cyan">${escapeHtml(text)}</span>`
+    return `<span class="text-cyber-cyan">${esc(text)}</span>`
   }
-  return `<span class="text-cyber-text">${escapeHtml(text)}</span>`
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return `<span class="text-cyber-text">${esc(text)}</span>`
 }
 
 async function submit() {
-  const el = inputEl.value
-  const text = el?.innerText?.trim() ?? ''
+  const text = input.value.trim()
   if (!text || streaming.value || selectedModelId.value === null) return
   if (currentSessionId.value === null) {
     try {
@@ -605,7 +580,7 @@ async function submit() {
       }
     } catch { /* ignore */ }
   }
-  if (el) el.innerText = ''
+  input.value = ''
   streaming.value = true
 
   messages.value.push({ role: 'user', content: text, timestamp: now() })
