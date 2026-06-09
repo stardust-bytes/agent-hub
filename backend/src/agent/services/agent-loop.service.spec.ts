@@ -380,4 +380,72 @@ describe('AgentLoopService', () => {
       expect(res.write).toHaveBeenCalledWith('data: [DONE]\n\n');
     });
   });
+
+  describe('executePlan', () => {
+    const planConfig = { baseUrl: 'http://localhost:11434' };
+    const tools = [
+      { type: 'function' as const, function: { name: 'list_tasks', description: 'List', parameters: {} } },
+    ];
+
+    it('executes each step and emits planStepUpdate DOING then DONE', async () => {
+      const res = mockRes();
+      const plan = {
+        id: 7,
+        title: 'My Plan',
+        status: 'APPROVED',
+        steps: [
+          { id: 10, planId: 7, order: 0, text: 'Step one', status: 'TODO' },
+          { id: 11, planId: 7, order: 1, text: 'Step two', status: 'TODO' },
+        ],
+      };
+      mockPlansService.findOne.mockResolvedValue(plan);
+      mockPlansService.updateStatus.mockResolvedValue({ ...plan, status: 'EXECUTING' });
+      mockPlansService.updateStepStatus.mockResolvedValue({ id: 10, status: 'DOING' });
+
+      (llmController.stream as jest.Mock) = buildStreamMock(
+        [{ type: 'token', token: 'Done step 1' }, DONE],
+        [{ type: 'token', token: 'Done step 2' }, DONE],
+      );
+
+      await service.executePlan(7, 'ollama', 'llama3.2', 'System prompt', tools, planConfig, res);
+
+      expect(mockPlansService.updateStatus).toHaveBeenCalledWith(7, 'EXECUTING');
+
+      const writeCalls = (res.write as jest.Mock).mock.calls.map(c => c[0] as string);
+      const doingCalls = writeCalls.filter(s => s.includes('"DOING"'));
+      const doneCalls = writeCalls.filter(s => s.includes('"DONE"'));
+      expect(doingCalls.length).toBe(2);
+      expect(doneCalls.length).toBe(2);
+
+      expect(writeCalls[writeCalls.length - 1]).toBe('data: [DONE]\n\n');
+    });
+
+    it('marks step FAILED and continues when LLM stream emits error', async () => {
+      const res = mockRes();
+      const plan = {
+        id: 7,
+        title: 'Plan',
+        status: 'APPROVED',
+        steps: [
+          { id: 10, planId: 7, order: 0, text: 'Failing step', status: 'TODO' },
+          { id: 11, planId: 7, order: 1, text: 'Good step', status: 'TODO' },
+        ],
+      };
+      mockPlansService.findOne.mockResolvedValue(plan);
+      mockPlansService.updateStatus.mockResolvedValue({});
+      mockPlansService.updateStepStatus.mockResolvedValue({});
+
+      (llmController.stream as jest.Mock) = buildStreamMock(
+        [{ type: 'error', error: 'LLM error' }, DONE],
+        [{ type: 'token', token: 'Step 2 OK' }, DONE],
+      );
+
+      await service.executePlan(7, 'ollama', 'llama3.2', 'System', tools, planConfig, res);
+
+      const writeCalls = (res.write as jest.Mock).mock.calls.map(c => c[0] as string);
+      const failedCalls = writeCalls.filter(s => s.includes('"FAILED"'));
+      expect(failedCalls.length).toBeGreaterThanOrEqual(1);
+      expect(writeCalls[writeCalls.length - 1]).toBe('data: [DONE]\n\n');
+    });
+  });
 });

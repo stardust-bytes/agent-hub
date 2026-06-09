@@ -241,6 +241,47 @@ export class AgentLoopService {
     return finalText;
   }
 
+  async executePlan(
+    planId: number,
+    providerType: string,
+    model: string,
+    systemPrompt: string,
+    tools: ToolDefinition[],
+    providerConfig: { baseUrl: string; key?: string },
+    res: Response,
+    sessionId?: number,
+  ): Promise<void> {
+    const plan = await this.plansService.findOne(planId);
+    await this.plansService.updateStatus(planId, 'EXECUTING');
+
+    const sortedSteps = [...plan.steps].sort((a, b) => a.order - b.order);
+
+    for (const step of sortedSteps) {
+      await this.plansService.updateStepStatus(step.id, 'DOING');
+      res.write(
+        `data: ${JSON.stringify({ planStepUpdate: { planId, stepId: step.id, status: 'DOING' } })}\n\n`,
+      );
+
+      try {
+        const stepSystemPrompt = `${systemPrompt}\n\nYou are executing plan step ${step.order + 1}: "${step.text}". Complete only this step.`;
+        const messages = this.llmController.buildMessages(stepSystemPrompt, [], step.text);
+        await this.runForStep(model, messages, tools, providerConfig, res, sessionId);
+
+        await this.plansService.updateStepStatus(step.id, 'DONE');
+        res.write(
+          `data: ${JSON.stringify({ planStepUpdate: { planId, stepId: step.id, status: 'DONE' } })}\n\n`,
+        );
+      } catch {
+        await this.plansService.updateStepStatus(step.id, 'FAILED');
+        res.write(
+          `data: ${JSON.stringify({ planStepUpdate: { planId, stepId: step.id, status: 'FAILED' } })}\n\n`,
+        );
+      }
+    }
+
+    res.write('data: [DONE]\n\n');
+  }
+
   async runPlanMode(
     taskText: string,
     providerType: string,
@@ -332,7 +373,7 @@ export class AgentLoopService {
           break;
         case 'error':
           res.write(`data: ${JSON.stringify({ error: chunk.error })}\n\n`);
-          return { text, toolCalls };
+          throw new Error(chunk.error);
         case 'done':
           break;
       }
@@ -422,5 +463,52 @@ export class AgentLoopService {
     const executor = this.executorMap.get(name);
     if (!executor) return `Error: Unknown tool: ${name}`;
     return executor.execute(args);
+  }
+
+  private async runForStep(
+    model: string,
+    messages: OllamaMessage[],
+    tools: ToolDefinition[],
+    providerConfig: { baseUrl: string; key?: string },
+    res: Response,
+    sessionId?: number,
+  ): Promise<void> {
+    const signal = new AbortController().signal;
+    let currentMessages = [...messages];
+    let iterations = 0;
+
+    while (iterations < MAX_ITERATIONS) {
+      iterations++;
+      const { text, toolCalls } = await this.executeStep(
+        model, currentMessages, tools, signal, providerConfig, res, sessionId,
+      );
+
+      if (toolCalls.length === 0) break;
+
+      currentMessages = this.addToolCallsToMessages(currentMessages, text, toolCalls);
+
+      for (const tc of toolCalls) {
+        const name = tc.name;
+        const args = this.normalizeArgs(tc.arguments);
+        res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
+
+        const allowed = await this.permissionsService.isAllowed(name);
+        if (!allowed) {
+          const denyMsg = `Tool "${name}" is not permitted by workspace policy.`;
+          res.write(`data: ${JSON.stringify({ toolResult: { name, result: denyMsg } })}\n\n`);
+          currentMessages.push({ role: 'tool', content: denyMsg });
+          continue;
+        }
+
+        let result: string;
+        try {
+          result = await this.executeTool(name, args);
+        } catch (e) {
+          result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
+        }
+        res.write(`data: ${JSON.stringify({ toolResult: { name, result } })}\n\n`);
+        currentMessages.push({ role: 'tool', content: result });
+      }
+    }
   }
 }
