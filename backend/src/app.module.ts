@@ -10,6 +10,7 @@ import { KnowledgeModule } from './knowledge/knowledge.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { ProvidersModule } from './providers/providers.module';
 import { ToolsModule } from './tools/tools.module';
+import { PlansModule } from './plans/plans.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ToolsModule } from './tools/tools.module';
     SessionsModule,
     ProvidersModule,
     ToolsModule,
+    PlansModule,
   ],
   controllers: [AppController],
 })
