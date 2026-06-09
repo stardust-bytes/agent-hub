@@ -6,16 +6,21 @@
         <button @click="startNew" class="text-sm font-mono text-cyber-accent/70 hover:text-cyber-accent transition-colors duration-150">{{ t('notes.add') }}</button>
       </div>
       <div v-if="notes.length === 0" class="text-sm font-mono text-cyber-muted text-center py-8">{{ t('notes.empty') }}</div>
-      <button
+      <div
         v-for="note in notes"
         :key="note.id"
-        @click="selectNote(note)"
-        :class="['w-full text-left px-3 py-2 rounded transition-colors duration-150', selectedId === note.id ? 'bg-cyber-accent/10 border border-cyber-accent/30' : 'bg-cyber-dark hover:bg-cyber-dark/80 border border-transparent']"
+        class="flex items-start gap-1"
       >
-        <div class="text-sm font-mono text-cyber-text font-semibold truncate">{{ note.title }}</div>
-        <div class="text-xs font-mono text-cyber-muted mt-0.5 truncate">{{ note.content }}</div>
-        <div class="text-xs font-mono text-cyber-muted/50 mt-0.5">{{ new Date(note.updatedAt).toLocaleTimeString('vi-VN', { hour12: false }) }}</div>
-      </button>
+        <button
+          @click="selectNote(note)"
+          :class="['flex-1 text-left px-3 py-2 rounded transition-colors duration-150', selectedId === note.id ? 'bg-cyber-accent/10 border border-cyber-accent/30' : 'bg-cyber-dark hover:bg-cyber-dark/80 border border-transparent']"
+        >
+          <div class="text-sm font-mono text-cyber-text font-semibold truncate">{{ note.title }}</div>
+          <div class="text-xs font-mono text-cyber-muted mt-0.5 truncate">{{ note.content }}</div>
+          <div class="text-xs font-mono text-cyber-muted/50 mt-0.5">{{ new Date(note.updatedAt).toLocaleTimeString('vi-VN', { hour12: false }) }}</div>
+        </button>
+        <button @click="deleteNote(note.id)" class="text-xs font-mono text-cyber-muted/50 hover:text-red-400 px-1 py-2 shrink-0 transition-colors duration-150">{{ t('notes.delete') }}</button>
+      </div>
     </div>
 
     <div class="flex-1 flex flex-col p-3 min-w-0">
@@ -34,7 +39,7 @@
         <div class="flex items-center gap-2 mt-3">
           <button @click="saveNote" class="text-sm font-mono text-cyber-accent px-3 py-1 rounded border border-cyber-accent/30 hover:bg-cyber-accent/10 transition-colors duration-150">{{ t('notes.form.save') }}</button>
           <button @click="cancelEdit" class="text-sm font-mono text-cyber-muted px-3 py-1 rounded hover:text-cyber-text transition-colors duration-150">{{ t('notes.form.cancel') }}</button>
-          <button v-if="selectedId" @click="deleteNote" class="text-sm font-mono text-red-400 px-3 py-1 rounded hover:bg-red-400/10 transition-colors duration-150 ml-auto">{{ t('tasks.menu.delete') }}</button>
+          <button v-if="selectedId" @click="deleteCurrentNote" class="text-sm font-mono text-red-400 px-3 py-1 rounded hover:bg-red-400/10 transition-colors duration-150 ml-auto">{{ t('notes.delete') }}</button>
         </div>
       </template>
     </div>
@@ -113,13 +118,17 @@ async function saveNote() {
   } catch { /* ignore */ }
 }
 
-async function deleteNote() {
-  if (!selectedId.value) return
+async function deleteNote(id: number) {
   try {
-    await fetch(`/api/notes/${selectedId.value}`, { method: 'DELETE' })
+    await fetch(`/api/notes/${id}`, { method: 'DELETE' })
+    if (selectedId.value === id) cancelEdit()
     await fetchNotes()
-    cancelEdit()
   } catch { /* ignore */ }
+}
+
+async function deleteCurrentNote() {
+  if (!selectedId.value) return
+  await deleteNote(selectedId.value)
 }
 
 onMounted(() => {

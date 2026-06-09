@@ -128,5 +128,6 @@
   "notes.form.content": "Nội dung",
   "notes.form.save": "Lưu",
   "notes.form.cancel": "Huỷ",
+  "notes.delete": "Xoá",
   "notes.delete.confirm": "Xóa ghi chú này?"
 }
