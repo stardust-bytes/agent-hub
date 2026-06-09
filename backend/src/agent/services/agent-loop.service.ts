@@ -76,7 +76,7 @@ export class AgentLoopService {
     let messages = this.llmController.buildMessages(systemPrompt, history, userMessage);
     let iterationCount = 0;
 
-    while (!signal.aborted && iterationCount < MAX_ITERATIONS) {
+    while (!signal.aborted && iterationCount < MAX_ITERATIONS && this.state !== AgentState.RESPONDING) {
       iterationCount++;
 
       if (this.state === AgentState.PLANNING) {
@@ -183,6 +183,9 @@ export class AgentLoopService {
 
     if (iterationCount >= MAX_ITERATIONS) {
       res.write(`data: ${JSON.stringify({ thinking: 'Reached maximum iterations. Ending loop.' })}\n\n`);
+      if (sessionId) {
+        await this.sessionsService.saveMessage(sessionId, 'system', 'Reached maximum iterations. Ending loop.');
+      }
     }
 
     if (!signal.aborted) {

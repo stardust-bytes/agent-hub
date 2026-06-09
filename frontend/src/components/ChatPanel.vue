@@ -424,9 +424,8 @@ async function submit() {
       }
     }
 
-    if (currentAgentIdx >= 0) {
-      messages.value[currentAgentIdx].typing = false
-    }
+    const lastAgent = [...messages.value].reverse().find(m => m.role === 'agent')
+    if (lastAgent) lastAgent.typing = false
     await scrollToBottom()
   } catch (e) {
     if (currentAgentIdx >= 0) {
