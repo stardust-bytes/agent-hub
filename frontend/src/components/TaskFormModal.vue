@@ -15,6 +15,15 @@
         />
       </div>
       <div>
+        <label class="text-sm text-cyber-muted font-mono block mb-1">{{ t('tasks.form.description') }}</label>
+        <textarea
+          v-model="form.description"
+          class="w-full bg-cyber-dark px-2 py-1.5 text-sm font-mono text-cyber-text placeholder-cyber-muted/40 outline-none resize-none"
+          rows="3"
+          placeholder="..."
+        />
+      </div>
+      <div>
         <label class="text-sm text-cyber-muted font-mono block mb-1">{{ t('tasks.form.priority') }}</label>
         <div class="flex gap-2">
           <button
@@ -100,16 +109,18 @@ const STATUS_OPTIONS = [
   { value: 'FAILED', labelKey: 'tasks.col.failed', activeClass: 'text-red-400 bg-red-400/15', inactiveClass: 'text-red-400/50 hover:text-red-400' },
 ]
 
-const form = reactive({ title: '', priority: 0, status: 'TODO' })
+const form = reactive({ title: '', description: '', priority: 0, status: 'TODO' })
 
 watch(() => props.modelValue, (open) => {
   if (open) {
     if (props.editing) {
       form.title = props.editing.title
+      form.description = props.editing.description ?? ''
       form.priority = props.editing.priority
       form.status = props.editing.status
     } else {
       form.title = ''
+      form.description = ''
       form.priority = 0
       form.status = 'TODO'
     }
@@ -119,7 +130,8 @@ watch(() => props.modelValue, (open) => {
 async function onSave() {
   const title = form.title.trim()
   if (!title) return
-  const payload = { title, priority: form.priority, status: form.status }
+  const payload: Record<string, unknown> = { title, priority: form.priority, status: form.status }
+  if (form.description) payload.description = form.description
   try {
     if (props.editing) {
       await fetch(`/api/tasks/${props.editing.id}`, {
