@@ -129,5 +129,6 @@
   "notes.form.save": "Save",
   "notes.form.cancel": "Cancel",
   "notes.delete": "Delete",
-  "notes.delete.confirm": "Delete this note?"
+  "notes.delete.confirm": "Delete this note?",
+  "notes.edit": "Edit"
 }

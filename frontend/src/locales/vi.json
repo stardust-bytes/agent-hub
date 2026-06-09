@@ -129,5 +129,6 @@
   "notes.form.save": "Lưu",
   "notes.form.cancel": "Huỷ",
   "notes.delete": "Xoá",
-  "notes.delete.confirm": "Xóa ghi chú này?"
+  "notes.delete.confirm": "Xóa ghi chú này?",
+  "notes.edit": "Sửa"
 }
