@@ -4,6 +4,7 @@
     :class="cardBgClass(task.priority)"
   >
     <div class="text-cyber-text text-sm leading-snug font-mono">{{ task.title }}</div>
+    <div v-if="task.description" class="text-xs font-mono text-cyber-muted line-clamp-2">{{ task.description }}</div>
 
     <div class="flex items-center justify-between mt-1.5 gap-2">
       <div class="flex items-center gap-1.5">
