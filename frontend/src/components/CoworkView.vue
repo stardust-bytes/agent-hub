@@ -480,11 +480,20 @@ async function submit() {
   streaming.value = true
 
   messages.value.push({ role: 'user', content: text, timestamp: now() })
+  await scrollToBottom()
 
   const ctrl = new AbortController()
   abortController.value = ctrl
 
   let currentAgentIdx = -1
+  const thinkingMsg: ChatMessage = { role: 'system', content: t('chat.thinking'), timestamp: now() }
+  messages.value.push(thinkingMsg)
+  await scrollToBottom()
+
+  function clearThinking() {
+    const idx = messages.value.indexOf(thinkingMsg)
+    if (idx !== -1) messages.value[idx].content = ''
+  }
 
   function getOrCreateAgentMsg(): number {
     if (currentAgentIdx >= 0 && currentAgentIdx < messages.value.length) {
@@ -530,23 +539,56 @@ async function submit() {
           const parsed = JSON.parse(payload) as Record<string, unknown>
 
           if (parsed.error) {
-            messages.value.push({ role: 'system', content: `[error] ${String(parsed.error)}`, timestamp: now() })
+            done = true
+            if (currentAgentIdx >= 0) {
+              messages.value[currentAgentIdx].typing = false
+            }
+            messages.value.push({
+              role: 'system',
+              content: `${t('chat.error.unreachable')} (${String(parsed.error)})`,
+              timestamp: now(),
+            })
+            await scrollToBottom()
           } else if (parsed.toolCall) {
+            clearThinking()
             currentAgentIdx = -1
             const tc = parsed.toolCall as { name: string; args: Record<string, unknown> }
-            messages.value.push({ role: 'tool', content: `${tc.name}(${JSON.stringify(tc.args)})`, timestamp: now(), toolName: tc.name, isResult: false })
+            const argsStr = Object.entries(tc.args).map(([k, v]) => `${k}=${v}`).join(', ')
+            messages.value.push({
+              role: 'tool',
+              content: `${tc.name}(${argsStr})`,
+              timestamp: now(),
+              toolName: tc.name,
+              isResult: false,
+            })
+            await scrollToBottom()
           } else if (parsed.toolResult) {
             const tr = parsed.toolResult as { name: string; result: string }
-            messages.value.push({ role: 'tool', content: tr.result, timestamp: now(), toolName: tr.name, isResult: true })
-            recentToolResults.value.push({ toolName: tr.name, content: tr.result })
+            messages.value.push({
+              role: 'tool',
+              content: tr.result,
+              timestamp: now(),
+              toolName: tr.name,
+              isResult: true,
+            })
+            await scrollToBottom()
           } else if (parsed.thinking) {
+            clearThinking()
             currentAgentIdx = -1
-            messages.value.push({ role: 'system', content: `⟳ ${String(parsed.thinking)}`, timestamp: now() })
+            const msg: ChatMessage = { role: 'system', content: `⟳ ${String(parsed.thinking)}`, timestamp: now() }
+            messages.value.push(msg)
+            await scrollToBottom()
           } else if (parsed.plan) {
+            clearThinking()
             currentAgentIdx = -1
             const planData = parsed.plan as PlanData
-            messages.value.push({ role: 'plan', content: '', timestamp: now(), plan: { ...planData, steps: planData.steps.map(s => ({ ...s })) } })
-            activePlans.value.push(planData)
+            messages.value.push({
+              role: 'plan',
+              content: '',
+              timestamp: now(),
+              plan: { ...planData, steps: planData.steps.map(s => ({ ...s })) },
+            })
+            await scrollToBottom()
           } else if (parsed.planStepUpdate) {
             const upd = parsed.planStepUpdate as { planId: number; stepId: number; status: string }
             for (const msg of messages.value) {
@@ -563,19 +605,39 @@ async function submit() {
               }
             }
           } else if (parsed.planInterrupted) {
-            messages.value.push({ role: 'system', content: '[⏹ Plan execution interrupted. Send "tiếp tục" to resume.]', timestamp: now() })
+            messages.value.push({
+              role: 'system',
+              content: '[⏹ Plan execution interrupted. Send "tiếp tục" to resume.]',
+              timestamp: now(),
+            })
+            await scrollToBottom()
           } else if (parsed.token) {
+            clearThinking()
             const idx = getOrCreateAgentMsg()
             messages.value[idx].content += String(parsed.token)
+            if (!done) scrollToBottom()
           }
         } catch { /* skip malformed */ }
       }
     }
+
+    const lastAgent = [...messages.value].reverse().find(m => m.role === 'agent')
+    if (lastAgent) lastAgent.typing = false
+    await scrollToBottom()
   } catch (e) {
+    if (currentAgentIdx >= 0) {
+      messages.value[currentAgentIdx].typing = false
+    }
     if (e instanceof Error && e.name !== 'AbortError') {
-      messages.value.push({ role: 'system', content: `[error] ${e.message}`, timestamp: now() })
+      messages.value.push({
+        role: 'system',
+        content: `${t('chat.error.unreachable')} (${e.message})`,
+        timestamp: now(),
+      })
+      await scrollToBottom()
     }
   } finally {
+    clearThinking()
     streaming.value = false
     abortController.value = null
   }
