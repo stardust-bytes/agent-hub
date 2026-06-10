@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProviderDto } from './dto/create-provider.dto';
 import { UpdateProviderDto } from './dto/update-provider.dto';
@@ -49,5 +49,42 @@ export class ProvidersService {
       where: { id },
       include: { provider: true },
     });
+  }
+
+  async syncModels(id: number): Promise<number> {
+    const provider = await this.prisma.provider.findUnique({ where: { id } });
+    if (!provider) throw new NotFoundException(`Provider ${id} not found`);
+
+    const baseUrl = (provider.baseUrl ?? 'http://localhost:11434').replace(/\/+$/, '');
+    let modelNames: string[] = [];
+
+    if (provider.type === 'ollama') {
+      const res = await fetch(`${baseUrl}/api/tags`);
+      if (!res.ok) throw new Error(`ollama_tags_error_${res.status}`);
+      const data = await res.json() as { models?: Array<{ name: string }> };
+      modelNames = (data.models ?? []).map(m => m.name);
+    } else {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (provider.key) headers['Authorization'] = `Bearer ${provider.key}`;
+      const res = await fetch(`${baseUrl}/models`, { headers });
+      if (!res.ok) throw new Error(`models_error_${res.status}`);
+      const data = await res.json() as { data?: Array<{ id: string }> };
+      modelNames = (data.data ?? []).map(m => m.id);
+    }
+
+    const existing = await this.prisma.providerModel.findMany({
+      where: { providerId: id },
+      select: { name: true },
+    });
+    const existingNames = new Set(existing.map(m => m.name));
+
+    let added = 0;
+    for (const name of modelNames) {
+      if (!existingNames.has(name)) {
+        await this.prisma.providerModel.create({ data: { providerId: id, name } });
+        added++;
+      }
+    }
+    return added;
   }
 }

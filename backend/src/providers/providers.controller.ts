@@ -45,4 +45,10 @@ export class ProvidersController {
   ) {
     await this.providersService.removeModel(id, modelId);
   }
+
+  @Post(':id/sync-models')
+  async syncModels(@Param('id', ParseIntPipe) id: number) {
+    const added = await this.providersService.syncModels(id);
+    return { ok: true, added };
+  }
 }

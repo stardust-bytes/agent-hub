@@ -29,6 +29,7 @@
             <span v-if="provider.baseUrl" class="text-sm text-cyber-muted font-mono truncate hidden sm:block">{{ provider.baseUrl }}</span>
           </div>
           <div class="flex items-center gap-3 shrink-0 ml-2">
+            <button @click.stop="syncModels(provider.id)" :disabled="syncing === provider.id" class="text-cyber-accent/40 text-sm font-mono hover:text-cyber-accent transition-colors duration-150 disabled:opacity-30">{{ syncing === provider.id ? '⟳' : '⟳' }}</button>
             <button @click.stop="openEditModal(provider)" class="text-cyber-accent/40 text-sm font-mono hover:text-cyber-accent transition-colors duration-150">✎</button>
             <button @click.stop="confirmDeleteProvider(provider)" class="text-red-400/40 text-sm font-mono hover:text-red-400 transition-colors duration-150">✕</button>
           </div>
@@ -108,6 +109,16 @@ const editingProvider = ref<Provider | null>(null)
 const addingModelFor = ref<number | null>(null)
 const newModelName = ref('')
 const modelInputEl = ref<HTMLInputElement | null>(null)
+const syncing = ref<number | null>(null)
+
+async function syncModels(providerId: number) {
+  syncing.value = providerId
+  try {
+    await fetch(`/api/providers/${providerId}/sync-models`, { method: 'POST' })
+    await loadProviders()
+  } catch { /* ignore */ }
+  syncing.value = null
+}
 
 async function loadProviders() {
   try {
