@@ -73,10 +73,14 @@ src/
 │   ├── sessions.service.ts    — chat history + auto-title
 │   └── *.spec.ts
 │
+├── cowork/
+│   ├── cowork.service.ts      — project directory management via SettingsService
+│   └── cowork.service.spec.ts — 5 tests (setProject, getProject, clearProject, getStatus)
+│
 ├── settings/
 │   ├── settings.module.ts     — @Global()
 │   ├── settings.controller.ts — GET /api/settings, PATCH /api/settings/:key
-│   ├── settings.service.ts    — key-value store in Setting table
+│   ├── settings.service.ts    — key-value store in Setting table (get, set, delete, upsert, findAll)
 │   └── *.spec.ts
 │
 └── knowledge/
