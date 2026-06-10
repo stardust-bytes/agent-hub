@@ -22,6 +22,7 @@ import { ListDirectoryExecutor } from '../../tools/executors/list-directory.exec
 import { RunCommandExecutor } from '../../tools/executors/run-command.executor';
 import { PermissionsService } from './permissions.service';
 import { PlansService } from '../../plans/plans.service';
+import { McpService } from '../mcp/mcp.service';
 import { StreamChunk } from '../providers/llm-provider.interface';
 import { Response } from 'express';
 
@@ -111,6 +112,7 @@ describe('AgentLoopService', () => {
         { provide: RunCommandExecutor, useValue: { name: 'run_command', execute: jest.fn() } },
         { provide: PermissionsService, useValue: { isAllowed: jest.fn().mockResolvedValue(true) } },
         { provide: PlansService, useValue: mockPlansService },
+        { provide: McpService, useValue: { tryExecute: jest.fn().mockResolvedValue(null) } },
       ],
     }).compile();
 

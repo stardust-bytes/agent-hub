@@ -26,6 +26,7 @@ import { ListDirectoryExecutor } from '../../tools/executors/list-directory.exec
 import { RunCommandExecutor } from '../../tools/executors/run-command.executor';
 import { PermissionsService } from './permissions.service';
 import { PlansService } from '../../plans/plans.service';
+import { McpService } from '../mcp/mcp.service';
 
 const MAX_RETRIES = 2;
 const MAX_ITERATIONS = 10;
@@ -45,6 +46,7 @@ export class AgentLoopService {
     private readonly knowledgeService: KnowledgeService,
     private readonly permissionsService: PermissionsService,
     private readonly plansService: PlansService,
+    private readonly mcpService: McpService,
     createTask: CreateTaskExecutor,
     updateTask: UpdateTaskExecutor,
     listTasks: ListTasksExecutor,
@@ -501,8 +503,10 @@ export class AgentLoopService {
 
   private async executeTool(name: string, args: Record<string, unknown>): Promise<string> {
     const executor = this.executorMap.get(name);
-    if (!executor) return `Error: Unknown tool: ${name}`;
-    return executor.execute(args);
+    if (executor) return executor.execute(args);
+    const mcpResult = await this.mcpService.tryExecute(name, args);
+    if (mcpResult !== null) return mcpResult;
+    return `Error: Unknown tool: ${name}`;
   }
 
   private async runForStep(

@@ -26,9 +26,10 @@ import { DeleteNoteExecutor } from '../tools/executors/delete-note.executor';
 import { ConvertNoteToTaskExecutor } from '../tools/executors/convert-note-to-task.executor';
 import { NotesModule } from '../notes/notes.module';
 import { PlansModule } from '../plans/plans.module';
+import { McpModule } from './mcp/mcp.module';
 
 @Module({
-  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule],
+  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule],
   controllers: [AgentController],
   providers: [
     AgentService,
