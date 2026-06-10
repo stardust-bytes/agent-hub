@@ -95,6 +95,12 @@
   "cowork.connect": "Kết nối",
   "cowork.disconnect": "Ngắt kết nối",
   "cowork.scanning": "Đang quét thư mục...",
+  "cowork.browse.title": "Chọn thư mục",
+  "cowork.browse.loading": "đang tải...",
+  "cowork.browse.error": "Không thể tải thư mục",
+  "cowork.browse.empty": "Thư mục trống",
+  "cowork.browse.parent": "(thư mục cha)",
+  "cowork.browse.select": "Chọn thư mục này",
   "cowork.connected": "● Đang làm việc với:",
 
   "sessions.header": "SESSIONS",

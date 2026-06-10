@@ -21,6 +21,7 @@ export default {
         'cyber-code-bg':     '#0d1117',
         'cyber-code-border': '#30363d',
         'cyber-code-text':   '#e6edf3',
+        'cyber-border':      '#30363d',
         'cyber-row':         '#161b22',
         'cyber-blockquote':  '#8b949e',
       },
@@ -43,6 +44,7 @@ export default {
       },
       width: {
         '100': '25rem',
+        '120': '30rem',
       },
       maxWidth: {
         '60rem': '60rem',
