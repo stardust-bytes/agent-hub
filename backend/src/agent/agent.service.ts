@@ -76,6 +76,7 @@ export class AgentService {
     planId: number,
     providerModelId: number,
     sessionId: number,
+    signal: AbortSignal,
     res: Response,
   ): Promise<void> {
     const providerModel = await this.providersService.findModelWithProvider(providerModelId);
@@ -99,7 +100,7 @@ export class AgentService {
 
     await this.agentLoop.executePlan(
       planId, providerType, providerModel.name,
-      context.systemPrompt, context.tools, providerConfig, res, sessionId,
+      context.systemPrompt, context.tools, providerConfig, signal, res, sessionId,
     );
   }
 

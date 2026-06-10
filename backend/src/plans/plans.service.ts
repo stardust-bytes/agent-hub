@@ -55,4 +55,8 @@ export class PlansService {
   async updateStatus(id: number, status: string) {
     return this.prisma.plan.update({ where: { id }, data: { status } });
   }
+
+  async setInterrupted(id: number) {
+    return this.prisma.plan.update({ where: { id }, data: { status: 'INTERRUPTED' } });
+  }
 }

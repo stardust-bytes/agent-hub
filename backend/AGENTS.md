@@ -73,10 +73,18 @@ src/
 │   ├── sessions.service.ts    — chat history + auto-title
 │   └── *.spec.ts
 │
+├── cowork/
+│   ├── cowork.controller.ts      — REST endpoints under /api/cowork
+│   ├── cowork.controller.spec.ts — 3 tests (setProject, getProject, clearProject)
+│   ├── cowork.service.ts         — project directory management via SettingsService
+│   ├── cowork.service.spec.ts    — 5 tests (setProject, getProject, clearProject, getStatus)
+│   └── dto/
+│       └── set-project.dto.ts    — validated path input
+│
 ├── settings/
 │   ├── settings.module.ts     — @Global()
 │   ├── settings.controller.ts — GET /api/settings, PATCH /api/settings/:key
-│   ├── settings.service.ts    — key-value store in Setting table
+│   ├── settings.service.ts    — key-value store in Setting table (get, set, delete, upsert, findAll)
 │   └── *.spec.ts
 │
 └── knowledge/
@@ -113,6 +121,9 @@ All routes are prefixed with `/api`.
 | `DELETE` | `/api/providers/:id/models/:modelId` | Remove model from provider |
 | `GET` | `/api/settings` | Get all settings |
 | `PATCH` | `/api/settings/:key` | Update setting |
+| `POST` | `/api/cowork/project` | Set project path |
+| `GET` | `/api/cowork/project` | Get current project status |
+| `DELETE` | `/api/cowork/project` | Clear current project |
 | `GET` | `/api/knowledge` | List knowledge files |
 | `POST` | `/api/knowledge/upload` | Upload file for indexing |
 | `POST` | `/api/knowledge/search` | Search indexed files |
@@ -214,6 +225,8 @@ Run: `npx prisma migrate dev --name <name>` then `npx prisma generate`.
 **`CreateProviderDto`**: `name` (required), `type?` (default 'ollama'), `baseUrl?`, `key?`.
 
 **`UpdateProviderDto`**: `PartialType(CreateProviderDto)`.
+
+**`SetProjectDto`**: `path` (required, string).
 
 ---
 

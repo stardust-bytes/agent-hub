@@ -36,5 +36,5 @@ Thumbs.db
 
 temp/
 
-# Playwright / MCP
+# MCP
 .playwright-mcp/

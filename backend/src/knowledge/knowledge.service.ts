@@ -128,6 +128,16 @@ export class KnowledgeService {
     });
   }
 
+  async findByFilepath(filepath: string) {
+    return this.prisma.knowledgeFile.findFirst({ where: { filepath } });
+  }
+
+  async createWithPath(filename: string, filepath: string, size: number, mimeType: string) {
+    return this.prisma.knowledgeFile.create({
+      data: { filename, filepath, size, mimeType, status: 'indexing' },
+    });
+  }
+
   private async generateSummary(text: string): Promise<string | null> {
     const cfg = await this.resolveModelConfig('summary_model_id', 'SUMMARY_MODEL');
     try {

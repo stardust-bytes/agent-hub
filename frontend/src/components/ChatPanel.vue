@@ -158,6 +158,32 @@
         </div>
       </div>
     </div>
+    <!-- Resume Plan Modal -->
+    <Teleport to="body">
+    <div v-if="showResumeModal" class="fixed inset-0 bg-cyber-dark/80 z-50 flex items-center justify-center" @click.self="showResumeModal = false">
+      <div class="w-100 bg-cyber-modal-bg border-t border-cyber-orange flex flex-col" style="max-height: 80vh; max-width: 90vw">
+        <div class="px-3 py-2 bg-cyber-modal-bg flex items-center justify-between shrink-0">
+          <span class="text-cyber-text text-sm font-mono">Resume Plan</span>
+          <button @click="showResumeModal = false" class="text-cyber-muted text-sm font-mono hover:text-cyber-accent">✕</button>
+        </div>
+        <div class="overflow-y-auto flex-1 px-3 py-3">
+          <div v-if="loadingResumePlans" class="text-cyber-muted text-sm font-mono text-center py-4">⟳ {{ t('chat.loading') }}</div>
+          <div v-else-if="resumePlans.length === 0" class="text-cyber-muted text-sm font-mono text-center py-4">{{ t('plans.empty') }}</div>
+          <div v-else class="space-y-2">
+            <div v-for="plan in resumePlans" :key="plan.id"
+              class="bg-cyber-dark border border-cyber-border rounded p-3 cursor-pointer hover:border-cyber-accent/40 transition-colors duration-150"
+              @click="resumePlan(plan.id)">
+              <div class="flex items-center justify-between">
+                <span class="text-cyber-text text-sm font-mono">{{ plan.title }}</span>
+                <span class="text-cyber-muted text-[10px] font-mono">{{ plan.status }}</span>
+              </div>
+              <div class="text-cyber-muted text-xs font-mono mt-1">{{ plan.steps.filter(s => s.status === 'DONE').length }}/{{ plan.steps.length }} steps</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Teleport>
   </div>
 </template>
 
@@ -222,6 +248,9 @@ const agentMode = ref(true)
 const showSlashMenu = ref(false)
 const slashFilter = ref('')
 const slashSelectedIndex = ref(0)
+const showResumeModal = ref(false)
+const resumePlans = ref<Array<{ id: number; title: string; status: string; steps: Array<{ id: number; order: number; text: string; status: string }> }>>([])
+const loadingResumePlans = ref(false)
 
 const hasChatMessages = computed(() =>
   messages.value.some(m => m.role === 'user' || m.role === 'agent' || m.role === 'plan')
@@ -413,6 +442,7 @@ function insertSlash(command: string) {
 function getSlashCommands() {
   return [
     { command: '/plan', description: '' },
+    { command: '/resume-plan', description: '' },
     { command: '/help', description: '' },
     { command: '/clear', description: '' },
   ]
@@ -575,6 +605,41 @@ async function handleApprove(planId: number) {
   }
 }
 
+async function openResumeModal() {
+  const sid = currentSessionId.value
+  if (!sid) return
+  loadingResumePlans.value = true
+  showResumeModal.value = true
+  try {
+    const res = await fetch(`/api/plans/session/${sid}`)
+    if (res.ok) {
+      const allPlans = await res.json()
+      resumePlans.value = allPlans.filter((p: { status: string }) =>
+        p.status === 'APPROVED' || p.status === 'INTERRUPTED' || p.status === 'EXECUTING'
+      )
+    }
+  } catch { /* ignore */ }
+  loadingResumePlans.value = false
+}
+
+async function resumePlan(planId: number) {
+  showResumeModal.value = false
+  const sid = currentSessionId.value
+  const mid = selectedModelId.value
+  if (!sid || mid === null) return
+  try {
+    const res = await fetch(`/api/agent/plans/${planId}/execute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ providerModelId: mid, sessionId: sid }),
+    })
+    if (res.ok) {
+      messages.value.push({ role: 'system', content: `Resuming plan ${planId}...`, timestamp: now() })
+      await scrollToBottom()
+    }
+  } catch { /* ignore */ }
+}
+
 async function handleReject(planId: number) {
   try {
     await fetch(`/api/plans/${planId}/reject`, { method: 'POST' })
@@ -613,6 +678,12 @@ async function submit() {
       }
     } catch { /* ignore */ }
   }
+  if (text === '/resume-plan') {
+    await openResumeModal()
+    streaming.value = false
+    return
+  }
+
   input.value = ''
   streaming.value = true
 

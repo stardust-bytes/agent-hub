@@ -31,26 +31,29 @@ ProviderFormModal.vue        — create/edit provider form
 
 ## AppShell.vue
 
-**Owns:** `activeView` (`'chat' | 'tasks' | 'files' | 'settings' | 'providers'`), `dbConnected`, `wsConnected`.
+**Owns:** `activeView` (`'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans'`), `dbConnected`, `wsConnected`.
 
 **Layout:** flex-col h-screen → flex flex-1 (SidebarNav + content) + BottomTabBar + StatusBar.
 
 **Conditional rendering:**
 - `activeView === 'chat'` → ChatPanel (default)
 - `activeView === 'tasks'` → TasksView
-- `activeView === 'settings'` → SettingsView
 - `activeView === 'files'` → FilesView
+- `activeView === 'tools'` → ToolsView
+- `activeView === 'settings'` → SettingsView
 - `activeView === 'providers'` → ProvidersView
+- `activeView === 'notes'` → NotesView
+- `activeView === 'plans'` → PlansView
 
 ---
 
 ## SidebarNav.vue
 
-**Props:** `activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers'`
+**Props:** `activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans'`
 
-**Emits:** `navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers']`
+**Emits:** `navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans']`
 
-**Navigation:** Chat (HiChatAlt2), Tasks (HiClipboardList), Files (HiFolder), Providers (HiCog), Settings (HiCog — separate button below spacer).
+**Navigation:** Chat (HiChatAlt2), Tasks (HiClipboardList), Notes (HiDocumentText), Plans (📋), Files (HiFolder), Tools (HiLightningBolt), Providers (HiCog), Settings (HiCog — separate button below spacer).
 
 **Language toggle:** VI/EN (via `useI18n` locale), persists to `localStorage('workspace.lang')`.
 
@@ -60,9 +63,9 @@ Visible on desktop only (`hidden sm:flex`, `w-32`).
 
 ## BottomTabBar.vue
 
-**Props:** `activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers'`
+**Props:** `activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans'`
 
-**Emits:** `navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers']`
+**Emits:** `navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans']`
 
 Visible on mobile only (`flex sm:hidden`, `h-[3rem]`). Same navigation items as SidebarNav.
 

@@ -71,7 +71,7 @@ describe('AgentController', () => {
     it('calls agentService.executePlan with planId, providerModelId, sessionId', async () => {
       const { req, res } = makeReqRes();
       await controller.executePlanStream(42, { providerModelId: 5, sessionId: 1 }, req, res);
-      expect(mockAgentService.executePlan).toHaveBeenCalledWith(42, 5, 1, res);
+      expect(mockAgentService.executePlan).toHaveBeenCalledWith(42, 5, 1, expect.any(AbortSignal), res);
     });
   });
 });

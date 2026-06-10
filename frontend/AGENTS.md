@@ -63,7 +63,10 @@ App.vue
     ├── [Content area]
     │   ├── ChatPanel.vue        — message history + SSE streaming + input (default view)
     │   ├── TasksView.vue        — priority filter bar + KanbanBoard
+    │   ├── NotesView.vue        — markdown notes CRUD
+    │   ├── PlansView.vue        — execution plan management
     │   ├── FilesView.vue        — knowledge base upload + codebase watcher
+    │   ├── ToolsView.vue        — tool registry
     │   ├── SettingsView.vue     — health check + version info
     │   └── ProvidersView.vue    — LLM provider CRUD + model management
     ├── BottomTabBar.vue     — mobile navigation (visible < sm)
@@ -106,6 +109,7 @@ src/
     ├── TaskCardMenu.vue
     ├── FilesView.vue
     ├── SettingsView.vue
+    ├── PlansView.vue
     ├── ProvidersView.vue
     ├── ProviderFormModal.vue
     ├── SessionModal.vue

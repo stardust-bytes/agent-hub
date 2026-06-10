@@ -20,6 +20,8 @@ import { WriteFileExecutor } from '../../tools/executors/write-file.executor';
 import { ReadFileExecutor } from '../../tools/executors/read-file.executor';
 import { ListDirectoryExecutor } from '../../tools/executors/list-directory.executor';
 import { RunCommandExecutor } from '../../tools/executors/run-command.executor';
+import { GrepExecutor } from '../../tools/executors/grep.executor';
+import { GlobExecutor } from '../../tools/executors/glob.executor';
 import { PermissionsService } from './permissions.service';
 import { PlansService } from '../../plans/plans.service';
 import { McpService } from '../mcp/mcp.service';
@@ -110,6 +112,8 @@ describe('AgentLoopService', () => {
         { provide: ReadFileExecutor, useValue: { name: 'read_file', execute: jest.fn() } },
         { provide: ListDirectoryExecutor, useValue: { name: 'list_directory', execute: jest.fn() } },
         { provide: RunCommandExecutor, useValue: { name: 'run_command', execute: jest.fn() } },
+        { provide: GrepExecutor, useValue: { name: 'grep', execute: jest.fn() } },
+        { provide: GlobExecutor, useValue: { name: 'glob', execute: jest.fn() } },
         { provide: PermissionsService, useValue: { isAllowed: jest.fn().mockResolvedValue(true) } },
         { provide: PlansService, useValue: mockPlansService },
         { provide: McpService, useValue: { tryExecute: jest.fn().mockResolvedValue(null) } },
@@ -417,7 +421,7 @@ describe('AgentLoopService', () => {
         [{ type: 'token', token: 'Done step 2' }, DONE],
       );
 
-      await service.executePlan(7, 'ollama', 'llama3.2', 'System prompt', tools, planConfig, res);
+      await service.executePlan(7, 'ollama', 'llama3.2', 'System prompt', tools, planConfig, new AbortController().signal, res);
 
       expect(mockPlansService.updateStatus).toHaveBeenCalledWith(7, 'EXECUTING');
 
@@ -446,7 +450,7 @@ describe('AgentLoopService', () => {
         [{ type: 'token', token: 'Response text from LLM' }, DONE],
       );
 
-      await service.executePlan(7, 'ollama', 'llama3.2', 'System prompt', tools, planConfig, res, 1);
+      await service.executePlan(7, 'ollama', 'llama3.2', 'System prompt', tools, planConfig, new AbortController().signal, res, 1);
 
       expect(sessionsService.saveMessage).toHaveBeenCalledWith(1, 'assistant', 'Response text from LLM');
     });
@@ -471,7 +475,7 @@ describe('AgentLoopService', () => {
         [{ type: 'token', token: 'Step 2 OK' }, DONE],
       );
 
-      await service.executePlan(7, 'ollama', 'llama3.2', 'System', tools, planConfig, res);
+      await service.executePlan(7, 'ollama', 'llama3.2', 'System', tools, planConfig, new AbortController().signal, res);
 
       const writeCalls = (res.write as jest.Mock).mock.calls.map(c => c[0] as string);
       const failedCalls = writeCalls.filter(s => s.includes('"FAILED"'));

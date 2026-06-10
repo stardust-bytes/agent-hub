@@ -11,6 +11,8 @@ import { SessionsModule } from './sessions/sessions.module';
 import { ProvidersModule } from './providers/providers.module';
 import { ToolsModule } from './tools/tools.module';
 import { PlansModule } from './plans/plans.module';
+import { WorkspaceModule } from './workspace/workspace.module';
+import { CoworkModule } from './cowork/cowork.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { PlansModule } from './plans/plans.module';
     ProvidersModule,
     ToolsModule,
     PlansModule,
+    WorkspaceModule,
+    CoworkModule,
   ],
   controllers: [AppController],
 })
