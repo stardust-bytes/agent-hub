@@ -9,7 +9,7 @@ AI agent integration module. Implements State Machine orchestrator with Planning
 - `AgentLoopService` — State Machine orchestrator: drives PLANNING → EXECUTING → EVALUATING → CORRECTING → RESPONDING → DONE loop, executes tools, emits SSE events. Also implements `runPlanMode()` and `executePlan()` for Plan Mode.
 - `LLMControllerService` — provider-agnostic LLM routing: selects registered provider, manages message history, builds message arrays.
 - `OllamaProvider` — raw LLM streaming only: calls Ollama `/api/chat`, yields `StreamChunk` objects (token/tool_call/done/error). No tool execution or loop logic.
-- `ContextBuilderService` — builds system prompt with tool definitions, loads chat history from Prisma.
+- `ContextBuilderService` — builds system prompt with tool definitions + OS environment info (platform, cwd, user home), loads chat history from Prisma.
 - `PermissionsService` — manages tool permission config stored in `Setting` table under key `agent.permissions`. Exposes `getConfig`, `updateConfig`, and `isAllowed(toolName)`.
 
 ## Files

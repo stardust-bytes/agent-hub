@@ -29,7 +29,13 @@ tools/
 │   ├── update-note.executor.ts
 │   ├── list-notes.executor.ts
 │   ├── delete-note.executor.ts
-│   └── convert-note-to-task.executor.ts
+│   ├── convert-note-to-task.executor.ts
+│   ├── read-file.executor.ts
+│   ├── read-file.executor.spec.ts
+│   ├── write-file.executor.ts
+│   ├── write-file.executor.spec.ts
+│   ├── list-directory.executor.ts
+│   └── list-directory.executor.spec.ts
 ```
 
 ## API Endpoints
@@ -59,6 +65,15 @@ Base path: `/api/tools`
 | `ListNotesExecutor` | `list_notes` | List all notes |
 | `DeleteNoteExecutor` | `delete_note` | Delete a note |
 | `ConvertNoteToTaskExecutor` | `convert_note_to_task` | Convert note to task |
+| `ReadFileExecutor` | `read_file` | Read file content |
+| `WriteFileExecutor` | `write_file` | Write content to file |
+| `ListDirectoryExecutor` | `list_directory` | List directory entries |
+| `RunCommandExecutor` | `run_command` | Execute shell command (disabled by default) |
+
+## Security
+
+- **Allowed paths:** write_file, read_file, list_directory check `isPathAllowed()` against `ALLOWED_PATHS` env var. Defaults: `./workspace_data`, `os.tmpdir()`, `USERPROFILE`/`HOME`, `process.cwd()`.
+- **run_command** disabled by default; enabled via Tools UI with permission check.
 
 ## Dependency Injection
 
