@@ -4,8 +4,8 @@ Plan Mode persistence module. Stores AI-proposed plan checklists in SQLite. Plan
 
 ## Responsibility
 
-- `PlansService` — CRUD for `Plan` + `PlanStep` tables. Exposes `create`, `findOne`, `findBySession`, `approve`, `reject`, `updateStepStatus`, `updateStatus`.
-- `PlansController` — REST endpoints for reading plans and approving/rejecting them.
+- `PlansService` — CRUD for `Plan` + `PlanStep` tables. Exposes `create`, `findOne`, `findBySession`, `findNextActionable`, `approve`, `reject`, `updateStepStatus`, `updateStatus`.
+- `PlansController` — REST endpoints for reading plans, finding next actionable plan, and approving/rejecting them.
 
 ## Files
 
@@ -28,6 +28,7 @@ Base path: `/api/plans`
 | `GET` | `/api/plans/:id` | Get plan with steps |
 | `POST` | `/api/plans/:id/approve` | Set plan status PENDING → APPROVED |
 | `POST` | `/api/plans/:id/reject` | Delete plan (cascade to steps) |
+| `GET` | `/api/plans/session/:sessionId/next` | Find next actionable plan for session |
 
 ## Plan Status Flow
 

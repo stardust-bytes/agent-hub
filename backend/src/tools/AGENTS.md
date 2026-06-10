@@ -37,7 +37,9 @@ tools/
 │   ├── list-directory.executor.ts
 │   ├── list-directory.executor.spec.ts
 │   ├── grep.executor.ts
-│   └── grep.executor.spec.ts
+│   ├── grep.executor.spec.ts
+│   ├── resume-plan.executor.ts
+│   └── resume-plan.executor.spec.ts
 ```
 
 ## API Endpoints
@@ -72,6 +74,7 @@ Base path: `/api/tools`
 | `ListDirectoryExecutor` | `list_directory` | List directory entries |
 | `RunCommandExecutor` | `run_command` | Execute shell command (disabled by default) |
 | `GrepExecutor` | `grep` | Search file contents recursively using a pattern |
+| `ResumePlanExecutor` | `resume_plan` | Validate and describe plan status for resumption |
 
 ## Security
 
@@ -84,6 +87,7 @@ Executors import domain services directly:
 - `TasksModule` → `TasksService` for task CRUD executors
 - `KnowledgeModule` → `KnowledgeService` for search knowledge
 - `NotesModule` → `NotesService` for note CRUD executors
+- `PlansModule` → `PlansService` for resume_plan executor
 
 ## Testing
 

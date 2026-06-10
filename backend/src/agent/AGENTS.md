@@ -96,7 +96,7 @@ Response: SSE stream executing plan steps. Emits `planStepUpdate` events plus st
 7. No tool_calls or correction exhausted → **RESPONDING**: emit final text tokens
 8. **DONE**: emit `[DONE]` SSE event
 
-Tools available: create_task, update_task, list_tasks, get_task, delete_tasks, search_knowledge, web_fetch, web_search, create_note, update_note, list_notes, delete_note, convert_note_to_task
+Tools available: create_task, update_task, list_tasks, get_task, delete_tasks, search_knowledge, web_fetch, web_search, create_note, update_note, list_notes, delete_note, convert_note_to_task, resume_plan
 
 Permission check: before each tool execution, `PermissionsService.isAllowed(name)` is called. Denied tools emit a `toolResult` denial SSE and `continue` (skip CORRECTING).
 
