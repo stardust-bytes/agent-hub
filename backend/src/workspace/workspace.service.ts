@@ -32,6 +32,13 @@ export class WorkspaceService {
     return this.allowedPaths.some(dir => resolved === dir || resolved.startsWith(dir + path.sep));
   }
 
+  addAllowedPath(_path: string): void {
+    const resolved = path.resolve(_path);
+    if (!this.allowedPaths.includes(resolved)) {
+      this.allowedPaths.push(resolved);
+    }
+  }
+
   async writeFile(filePath: string, content: string): Promise<{ bytesWritten: number; resolved: string }> {
     if (!this.isPathAllowed(filePath)) throw new Error(`Path "${filePath}" is not allowed.`);
     const resolved = path.resolve(filePath);

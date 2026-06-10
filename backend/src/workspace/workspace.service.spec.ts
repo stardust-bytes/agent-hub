@@ -57,4 +57,10 @@ describe('WorkspaceService', () => {
     expect(svc.isPathAllowed('/custom/allowed')).toBe(true);
     expect(svc.isPathAllowed('/custom/allowed/sub/file.ts')).toBe(true);
   });
+
+  it('addAllowedPath adds a new allowed path at runtime', () => {
+    const newPath = path.resolve('/new/allowed/path');
+    service.addAllowedPath(newPath);
+    expect(service.isPathAllowed(newPath)).toBe(true);
+  });
 });
