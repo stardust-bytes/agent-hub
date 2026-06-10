@@ -70,6 +70,7 @@ export class WorkspaceWatcherService {
         const known = existingFiles.find((f: { filepath: string }) => f.filepath === filePath);
         if (known) {
           await this.knowledge.processFile(known.id);
+          this.indexedCount++;
         } else {
           const stats = await fs.stat(filePath);
           const mimeType = this.inferMimeType(ext);
@@ -77,18 +78,20 @@ export class WorkspaceWatcherService {
             path.basename(filePath), filePath, stats.size, mimeType,
           );
           await this.knowledge.processFile(record.id);
+          this.indexedCount++;
         }
-        this.indexedCount++;
       } catch { /* file may have been deleted between timer and execution */ }
     }, DEBOUNCE_MS));
   }
 
   private async handleFileDelete(filePath: string): Promise<void> {
-    const existingFiles = await this.knowledge.findAll();
-    const known = existingFiles.find((f: { filepath: string }) => f.filepath === filePath);
-    if (known) {
-      await this.knowledge.remove(known.id);
-    }
+    try {
+      const existingFiles = await this.knowledge.findAll();
+      const known = existingFiles.find((f: { filepath: string }) => f.filepath === filePath);
+      if (known) {
+        await this.knowledge.remove(known.id);
+      }
+    } catch { /* file may have been removed from DB between calls */ }
   }
 
   private inferMimeType(ext: string): string {
