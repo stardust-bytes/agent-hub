@@ -5,8 +5,8 @@
         <span class="text-cyber-green">●</span>
         <span class="text-cyber-text truncate max-w-80">{{ projectPath }}</span>
       </div>
-      <button @click="browseProject" class="text-xs text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/40 transition-colors duration-150 hover:bg-cyber-accent/10">{{ t('cowork.browse') }}</button>
-      <button @click="disconnect" class="text-xs text-red-400 font-mono px-2 py-0.5 border border-red-400/40 transition-colors duration-150 hover:bg-red-400/10">{{ t('cowork.disconnect') }}</button>
+      <button @click="browseProject" class="text-sm text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/40 transition-colors duration-150 hover:bg-cyber-accent/10">{{ t('cowork.browse') }}</button>
+      <button @click="disconnect" class="text-sm text-red-400 font-mono px-2 py-0.5 border border-red-400/40 transition-colors duration-150 hover:bg-red-400/10">{{ t('cowork.disconnect') }}</button>
     </div>
 
     <div v-else class="flex-1 flex items-center justify-center">
@@ -28,11 +28,11 @@
           <div class="max-w-60rem mx-auto space-y-4 px-3">
             <div v-for="(msg, i) in messages" :key="i">
               <div v-if="msg.role === 'user'" class="border-l-2 border-cyber-accent/80 pl-3 py-1">
-                <div class="text-xs text-cyber-accent/80 mb-0.5 font-mono">▶ {{ t('chat.user.prefix') }} · {{ msg.timestamp }}</div>
+                <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">▶ {{ t('chat.user.prefix') }} · {{ msg.timestamp }}</div>
                 <div class="text-sm leading-relaxed break-words text-cyber-text">{{ msg.content }}</div>
               </div>
               <div v-else-if="msg.role === 'agent'" class="border-l-2 border-cyber-accent/80 pl-3 py-1">
-                <div class="text-xs text-cyber-accent/80 mb-0.5 font-mono">▶ {{ t('chat.agent.prefix') }} · {{ msg.timestamp }}</div>
+                <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">▶ {{ t('chat.agent.prefix') }} · {{ msg.timestamp }}</div>
                 <div class="text-sm leading-relaxed break-words text-cyber-text">{{ msg.content }}</div>
               </div>
               <div v-else-if="msg.role === 'tool' && !msg.isResult" class="border-l-2 border-cyber-orange/50 pl-3 py-1">
@@ -51,7 +51,7 @@
           </div>
         </div>
 
-        <div class="shrink-0 pt-1">
+        <div class="shrink-0 pt-2">
           <div class="max-w-60rem mx-auto w-full px-3 pb-3">
             <div class="bg-cyber-dark px-3 py-2">
               <form @submit.prevent="submit" class="flex items-center gap-2">
