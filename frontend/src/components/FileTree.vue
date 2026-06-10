@@ -58,12 +58,34 @@ watch(() => props.projectPath, async (val) => {
   if (val) await loadRoot(val)
 }, { immediate: true })
 
-watch(() => props.refreshKey, () => {
+watch(() => props.refreshKey, async () => {
   if (props.projectPath) {
-    expanded.value = {}
-    loadRoot(props.projectPath)
+    const expandedDirs = Object.keys(expanded.value).filter(k => expanded.value[k])
+    await loadRoot(props.projectPath)
+    const visited = new Set<string>()
+    for (const dirPath of [...expandedDirs].sort((a, b) => a.length - b.length)) {
+      if (!visited.has(dirPath)) {
+        await expandDirectory(dirPath, visited)
+      }
+    }
   }
 })
+
+async function expandDirectory(dirPath: string, visited: Set<string>) {
+  visited.add(dirPath)
+  const entry = tree.value.find(e => e.path === dirPath && e.isDirectory)
+  if (!entry) return
+  try {
+    const children = await fetchChildren(dirPath, entry.depth + 1)
+    const idx = tree.value.indexOf(entry)
+    if (idx !== -1) tree.value.splice(idx + 1, 0, ...children)
+    for (const child of children) {
+      if (child.isDirectory && expanded.value[child.path] && !visited.has(child.path)) {
+        await expandDirectory(child.path, visited)
+      }
+    }
+  } catch { /* skip */ }
+}
 
 async function loadRoot(projectPath: string) {
   loading.value = true
