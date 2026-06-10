@@ -8,6 +8,8 @@ describe('CoworkController', () => {
     setProject: jest.fn().mockResolvedValue(undefined),
     getStatus: jest.fn().mockResolvedValue({ projectPath: '/test', isActive: true }),
     clearProject: jest.fn().mockResolvedValue(undefined),
+    getDrives: jest.fn().mockResolvedValue(['C:\\', 'D:\\']),
+    browseDirectory: jest.fn().mockResolvedValue({ path: '/test', entries: [{ name: 'subdir', isDirectory: true }] }),
   };
 
   beforeEach(async () => {
@@ -36,4 +38,20 @@ describe('CoworkController', () => {
     expect(mockService.clearProject).toHaveBeenCalled();
     expect(result).toEqual({ ok: true });
   });
+
+  it('getDrives returns drives from service', async () => {
+    const result = await controller.getDrives();
+    expect(mockService.getDrives).toHaveBeenCalled();
+    expect(result).toEqual(['C:\\', 'D:\\']);
+  });
+
+it('browse delegates to service.browseDirectory', async () => {
+  const result = await controller.browse('/test');
+  expect(mockService.browseDirectory).toHaveBeenCalledWith('/test');
+  expect(result.entries[0].name).toBe('subdir');
+});
+
+it('browse throws when path is missing', async () => {
+  await expect(controller.browse('')).rejects.toThrow('path query parameter is required');
+});
 });
