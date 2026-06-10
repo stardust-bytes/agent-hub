@@ -30,9 +30,10 @@ import { PlansModule } from '../plans/plans.module';
 import { McpModule } from './mcp/mcp.module';
 import { CoworkModule } from '../cowork/cowork.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
+import { ModePolicyModule } from '../mode-policy/mode-policy.module';
 
 @Module({
-  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule],
+  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule],
   controllers: [AgentController],
   providers: [
     AgentService,

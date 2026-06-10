@@ -77,6 +77,20 @@ describe('ContextBuilderService', () => {
     expect(context.systemPrompt).not.toContain('Current working project:');
   });
 
+  it('injects agent output path into system prompt in agent mode', async () => {
+    const runState = new AgentRunState(10);
+    const context = await service.build(runState, 0, 'agent');
+    expect(context.systemPrompt).toContain('When writing files, use relative paths');
+    expect(context.systemPrompt).toContain('agent-output');
+    expect(context.systemPrompt).toContain('downloadable via links');
+  });
+
+  it('does not inject agent output path in chat mode', async () => {
+    const runState = new AgentRunState(10);
+    const context = await service.build(runState, 0, 'chat');
+    expect(context.systemPrompt).not.toContain('agent-output');
+  });
+
   it('system prompt contains platform and environment info in agent mode', async () => {
     const runState = new AgentRunState(10);
     const context = await service.build(runState, 0);
