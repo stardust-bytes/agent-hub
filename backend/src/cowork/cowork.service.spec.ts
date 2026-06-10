@@ -104,10 +104,13 @@ describe('CoworkService', () => {
       await expect(service.browseDirectory('Z:\\__nonexistent__')).rejects.toThrow();
     });
 
-    it('only returns directories', async () => {
+    it('returns directories and files, sorted with directories first', async () => {
       const result = await service.browseDirectory(process.cwd());
-      for (const entry of result.entries) {
-        expect(entry.isDirectory).toBe(true);
+      expect(result.entries.length).toBeGreaterThan(0);
+      for (let i = 0; i < result.entries.length - 1; i++) {
+        if (result.entries[i + 1].isDirectory) {
+          expect(result.entries[i].isDirectory).toBe(true);
+        }
       }
     });
   });

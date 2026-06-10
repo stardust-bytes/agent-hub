@@ -5,6 +5,7 @@
       <button @click="emit('close')" class="text-cyber-muted text-sm font-mono hover:text-cyber-accent">✕</button>
     </div>
     <div class="flex-1 overflow-y-auto px-3 py-2 space-y-3">
+      <div v-if="fileContent === null && plans.length === 0 && toolResults.length === 0" class="text-sm text-cyber-muted font-mono text-center pt-8">{{ t('cowork.no_artifacts') }}</div>
       <div v-if="fileContent !== null" class="border border-cyber-code-border">
         <div class="bg-cyber-dark px-2 py-1 text-sm text-cyber-muted font-mono border-b border-cyber-code-border">
           📄 {{ fileName }}

@@ -105,6 +105,7 @@
   "cowork.browse.select": "Select this directory",
   "cowork.files": "Files",
   "cowork.artifacts": "Artifacts",
+  "cowork.no_artifacts": "No artifacts — click a file to preview or send a message to the agent",
   "cowork.connected": "● Working with:",
   "cowork.connect.title": "Connect Workspace",
   "cowork.connect.description": "Open a project directory to start working with the AI Agent.",

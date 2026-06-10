@@ -79,9 +79,11 @@ export class CoworkService implements OnModuleInit {
     const resolved = path.resolve(dirPath);
     const dirents = await fs.readdir(resolved, { withFileTypes: true });
     const entries = dirents
-      .filter(d => d.isDirectory())
-      .map(d => ({ name: d.name, isDirectory: true }))
-      .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+      .map(d => ({ name: d.name, isDirectory: d.isDirectory() }))
+      .sort((a, b) => {
+        if (a.isDirectory !== b.isDirectory) return a.isDirectory ? -1 : 1;
+        return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+      });
     return { path: resolved, entries };
   }
 }

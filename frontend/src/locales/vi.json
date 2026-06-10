@@ -105,6 +105,7 @@
   "cowork.browse.select": "Chọn thư mục này",
   "cowork.files": "Tệp tin",
   "cowork.artifacts": "Artifacts",
+  "cowork.no_artifacts": "Chưa có dữ liệu — click file để xem trước hoặc gửi tin nhắn cho agent",
   "cowork.connected": "● Đang làm việc với:",
   "cowork.connect.title": "Kết nối Workspace",
   "cowork.connect.description": "Mở một thư mục dự án để bắt đầu làm việc với AI Agent.",
