@@ -68,19 +68,7 @@
                 </template>
               </div>
 
-              <div v-else-if="msg.role === 'plan' && msg.plan"
-                class="border-l-2 border-cyber-accent/80 pl-3 py-1">
-                <div class="text-sm text-cyber-accent/80 mb-1 font-mono">
-                  <HiChevronRight class="w-3 h-3 inline" /> plan · {{ msg.timestamp }}
-                </div>
-                <PlanBubble
-                  :plan="msg.plan"
-                  :streaming="streaming"
-                  @approve="handleApprove"
-                  @reject="handleReject"
-                  @resume="handleResumeFromBubble"
-                />
-              </div>
+
 
               <div v-else-if="msg.role === 'user'"
                 class="border-l-2 border-cyber-accent/80 pl-3 py-1">
@@ -162,7 +150,6 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import FileTree from './FileTree.vue'
 import ArtifactsPanel from './ArtifactsPanel.vue'
-import PlanBubble from './PlanBubble.vue'
 import DirectoryBrowser from './DirectoryBrowser.vue'
 import ModelSelector from './ModelSelector.vue'
 import SessionModal from './SessionModal.vue'
@@ -442,23 +429,8 @@ async function scrollToBottom() {
   if (messagesEl.value) messagesEl.value.scrollTop = messagesEl.value.scrollHeight
 }
 
-function handleResumeFromBubble(planId: number) {
-  input.value = `/plan resume ${planId}`
-  submit()
-}
-
 function stopStream() {
   abortController.value?.abort()
-}
-
-async function handleApprove(planId: number) {
-  input.value = `/plan approve ${planId}`
-  await submit()
-}
-
-async function handleReject(planId: number) {
-  input.value = `/plan reject ${planId}`
-  await submit()
 }
 
 async function submit() {
@@ -582,27 +554,21 @@ async function submit() {
             clearThinking()
             currentAgentIdx = -1
             const planData = parsed.plan as PlanData
-            messages.value.push({
-              role: 'plan',
-              content: '',
-              timestamp: now(),
-              plan: { ...planData, steps: planData.steps.map(s => ({ ...s })) },
-            })
-            await scrollToBottom()
+            activePlans.value.push(planData)
           } else if (parsed.planStepUpdate) {
             const upd = parsed.planStepUpdate as { planId: number; stepId: number; status: string }
-            for (const msg of messages.value) {
-              if (msg.role === 'plan' && msg.plan && msg.plan.id === upd.planId) {
-                const step = msg.plan.steps.find(s => s.id === upd.stepId)
-                if (step) { step.status = upd.status; msg.plan = { ...msg.plan, steps: [...msg.plan.steps] } }
-                break
-              }
-            }
+            let stepText = ''
             for (const plan of activePlans.value) {
               if (plan.id === upd.planId) {
                 const step = plan.steps.find(s => s.id === upd.stepId)
-                if (step) step.status = upd.status
+                if (step) { step.status = upd.status; stepText = step.text }
+                break
               }
+            }
+            if (stepText) {
+              const icon = upd.status === 'DONE' ? '✅' : upd.status === 'DOING' ? '⟳' : upd.status === 'FAILED' ? '✗' : '[ ]'
+              messages.value.push({ role: 'system', content: `${icon} ${stepText}`, timestamp: now() })
+              await scrollToBottom()
             }
           } else if (parsed.planInterrupted) {
             messages.value.push({
