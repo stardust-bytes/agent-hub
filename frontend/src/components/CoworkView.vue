@@ -24,29 +24,75 @@
         @file-select="onFileSelect"
       />
       <div class="flex-1 flex flex-col overflow-hidden">
-        <div class="flex-1 overflow-y-auto px-3 py-3">
+        <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 cowork-messages">
           <div class="max-w-60rem mx-auto space-y-4 px-3">
-            <div v-for="(msg, i) in messages" :key="i">
-              <div v-if="msg.role === 'user'" class="border-l-2 border-cyber-accent/80 pl-3 py-1">
-                <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">▶ {{ t('chat.user.prefix') }} · {{ msg.timestamp }}</div>
-                <div class="text-sm leading-relaxed break-words text-cyber-text">{{ msg.content }}</div>
+            <div v-for="(msg, i) in messages" :key="i" class="font-mono">
+
+              <div v-if="msg.role === 'system' && msg.content === '⟳ thinking...' || msg.content === '⟳ đang nghĩ...'"
+                class="border-l-2 border-cyber-accent/30 pl-3 py-1">
+                <div class="text-sm text-cyber-accent/60 font-mono">⟳ {{ msg.content.replace('⟳ ', '') }}</div>
               </div>
-              <div v-else-if="msg.role === 'agent'" class="border-l-2 border-cyber-accent/80 pl-3 py-1">
-                <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">▶ {{ t('chat.agent.prefix') }} · {{ msg.timestamp }}</div>
-                <div class="text-sm leading-relaxed break-words text-cyber-text">{{ msg.content }}</div>
+
+              <div v-else-if="msg.role === 'tool' && !msg.isResult"
+                class="border-l-2 border-cyber-orange/50 pl-3 py-1.5">
+                <div class="text-sm text-cyber-orange font-mono mb-0.5">[⚙] {{ msg.content }}</div>
               </div>
-              <div v-else-if="msg.role === 'tool' && !msg.isResult" class="border-l-2 border-cyber-orange/50 pl-3 py-1">
-                <div class="text-sm text-cyber-orange font-mono">[⚙] {{ msg.content }}</div>
+
+              <div v-else-if="msg.role === 'tool' && msg.isResult"
+                class="border-l-2 border-cyber-green/50 pl-3 py-1.5">
+                <template v-if="isToolLong(msg.content)">
+                  <div v-if="!isToolExpanded(msg)" class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ toolPreview(msg.content) }}</div>
+                  <div v-if="!isToolExpanded(msg)" class="text-sm text-cyber-muted font-mono mt-0.5">...</div>
+                  <div v-if="isToolExpanded(msg)" class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ msg.content }}</div>
+                  <button
+                    @click="toggleToolExpand(msg)"
+                    class="text-sm font-mono mt-0.5 transition-colors duration-150 text-cyber-accent/60 hover:text-cyber-accent"
+                  >{{ isToolExpanded(msg) ? t('chat.tool.collapse') : t('chat.tool.expand') }}</button>
+                </template>
+                <div v-else class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ msg.content }}</div>
               </div>
-              <div v-else-if="msg.role === 'tool' && msg.isResult" class="border-l-2 border-cyber-green/50 pl-3 py-1">
-                <div class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ msg.content }}</div>
+
+              <div v-else-if="msg.role === 'agent'"
+                class="border-l-2 border-cyber-accent/80 pl-3 py-1">
+                <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">
+                  <HiChevronRight class="w-3 h-3 inline" /> {{ rolePrefix(msg.role) }} · {{ msg.timestamp }}
+                </div>
+                <div v-if="msg.typing" class="text-sm leading-relaxed break-words text-cyber-text">
+                  {{ msg.content }}
+                </div>
+                <template v-else>
+                  <template v-for="(seg, si) in parseSegments(msg.content)" :key="si">
+                    <div v-if="seg.type === 'markdown'" class="text-sm leading-relaxed break-words text-cyber-text markdown-body" v-html="seg.content" />
+                    <FormBlock v-else :html="seg.content" :index="si" @submit="(data) => onFormSubmit(data)" />
+                  </template>
+                </template>
               </div>
-              <div v-else-if="msg.role === 'system'" class="pl-3 py-0.5">
+
+              <div v-else-if="msg.role === 'plan' && msg.plan"
+                class="border-l-2 border-cyber-accent/80 pl-3 py-1">
+                <div class="text-sm text-cyber-accent/80 mb-1 font-mono">
+                  <HiChevronRight class="w-3 h-3 inline" /> plan · {{ msg.timestamp }}
+                </div>
+                <PlanBubble
+                  :plan="msg.plan"
+                  :streaming="streaming"
+                  @approve="handleApprove"
+                  @reject="handleReject"
+                  @resume="handleResumeFromBubble"
+                />
+              </div>
+
+              <div v-else-if="msg.role === 'user'"
+                class="border-l-2 border-cyber-accent/80 pl-3 py-1">
+                <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">{{ rolePrefix(msg.role) }} · {{ msg.timestamp }}</div>
+                <div class="text-sm leading-relaxed break-words text-cyber-text" v-html="highlightUserMessage(msg.content)"></div>
+              </div>
+
+              <div v-else-if="msg.role === 'system'"
+                class="pl-3 py-0.5">
                 <div class="text-sm text-cyber-muted font-mono">{{ msg.content }}</div>
               </div>
-              <div v-else-if="msg.role === 'plan' && msg.plan" class="border-l-2 border-cyber-accent/80 pl-3 py-1">
-                <PlanBubble :plan="msg.plan" :streaming="streaming" @approve="handleApprove" @reject="handleReject" />
-              </div>
+
             </div>
           </div>
         </div>
@@ -108,12 +154,16 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { HiChevronRight } from 'vue-icons-plus/hi'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import FileTree from './FileTree.vue'
 import ArtifactsPanel from './ArtifactsPanel.vue'
 import PlanBubble from './PlanBubble.vue'
 import DirectoryBrowser from './DirectoryBrowser.vue'
 import ModelSelector from './ModelSelector.vue'
 import SessionModal from './SessionModal.vue'
+import FormBlock from './FormBlock.vue'
 
 interface PlanStep { id: number; order: number; text: string; status: string }
 interface PlanData { id: number; title: string; status: string; steps: PlanStep[] }
@@ -124,6 +174,7 @@ const { t } = useI18n()
 const projectPath = ref<string | null>(null)
 const input = ref('')
 const inputEl = ref<HTMLInputElement | null>(null)
+const messagesEl = ref<HTMLElement | null>(null)
 const messages = ref<ChatMessage[]>([])
 const streaming = ref(false)
 const abortController = ref<AbortController | null>(null)
@@ -282,6 +333,115 @@ async function disconnect() {
 
 function now(): string {
   return new Date().toLocaleTimeString('vi-VN', { hour12: false })
+}
+
+function rolePrefix(role: string): string {
+  if (role === 'user') return t('chat.user.prefix')
+  if (role === 'agent') return t('chat.agent.prefix')
+  if (role === 'system') return t('chat.system.prefix')
+  return ''
+}
+
+const toolExpanded = ref<Set<ChatMessage>>(new Set())
+
+function isToolLong(content: string): boolean {
+  return content.split('\n').length > 5
+}
+
+function toolPreview(content: string): string {
+  return content.split('\n').slice(0, 5).join('\n')
+}
+
+function isToolExpanded(msg: ChatMessage): boolean {
+  return toolExpanded.value.has(msg)
+}
+
+function toggleToolExpand(msg: ChatMessage): void {
+  const s = toolExpanded.value
+  if (s.has(msg)) { s.delete(msg) } else { s.add(msg) }
+  toolExpanded.value = new Set(s)
+}
+
+function renderMarkdown(content: string): string {
+  let html = marked.parse(content) as string
+  html = html.replace(
+    /\[Source:\s*([^\]]+)\]/g,
+    (_m, content) => {
+      const sources: string[] = []
+      const re = /&quot;([^&]+)&quot;[^§]*§(\d+)/g
+      let m
+      while ((m = re.exec(content)) !== null) {
+        sources.push(`<span class="citation">[📄 ${m[1]} · §${m[2]}]</span>`)
+      }
+      return sources.join(' ')
+    }
+  )
+  return DOMPurify.sanitize(html)
+}
+
+interface MessageSegment { type: 'markdown' | 'form'; content: string }
+
+function parseSegments(content: string): MessageSegment[] {
+  const segments: MessageSegment[] = []
+  const formRegex = /```form\s*\n([\s\S]*?)```/g
+  let lastIndex = 0
+  let m
+  while ((m = formRegex.exec(content)) !== null) {
+    if (m.index > lastIndex) {
+      const markdownPart = content.slice(lastIndex, m.index).trim()
+      if (markdownPart) segments.push({ type: 'markdown', content: renderMarkdown(markdownPart) })
+    }
+    segments.push({ type: 'form', content: m[1].trim() })
+    lastIndex = m.index + m[0].length
+  }
+  if (lastIndex < content.length) {
+    const remaining = content.slice(lastIndex).trim()
+    if (remaining) segments.push({ type: 'markdown', content: renderMarkdown(remaining) })
+  }
+  return segments
+}
+
+function highlightUserMessage(content: string): string {
+  return DOMPurify.sanitize(highlightSlash(content))
+}
+
+function highlightSlash(text: string): string {
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  if (text.startsWith('/')) {
+    const spaceIdx = text.indexOf(' ')
+    if (spaceIdx !== -1) {
+      const cmd = text.slice(0, spaceIdx)
+      const rest = text.slice(spaceIdx)
+      return `<span class="text-cyber-cyan">${esc(cmd)}</span><span class="text-cyber-text">${esc(rest)}</span>`
+    }
+    return `<span class="text-cyber-cyan">${esc(text)}</span>`
+  }
+  return `<span class="text-cyber-text">${esc(text)}</span>`
+}
+
+function onFormSubmit(data: Record<string, string>) {
+  const json = JSON.stringify(data, null, 2)
+  messages.value.push({
+    role: 'user',
+    content: `Form submission:\n\`\`\`json\n${json}\n\`\`\``,
+    timestamp: now(),
+  })
+  scrollToBottom()
+  if (currentSessionId.value !== null && selectedModelId.value !== null) {
+    const text = JSON.stringify(data)
+    input.value = text
+    submit()
+  }
+}
+
+async function scrollToBottom() {
+  await nextTick()
+  if (messagesEl.value) messagesEl.value.scrollTop = messagesEl.value.scrollHeight
+}
+
+function handleResumeFromBubble(planId: number) {
+  input.value = `/plan resume ${planId}`
+  submit()
 }
 
 function stopStream() {
