@@ -104,6 +104,9 @@
   "cowork.browse.select": "Select this directory",
   "cowork.artifacts": "Artifacts",
   "cowork.connected": "● Working with:",
+  "cowork.connect.title": "Connect Workspace",
+  "cowork.connect.description": "Open a project directory to start working with the AI Agent.",
+  "cowork.connect.browse": "Browse project directory",
 
   "sessions.header": "SESSIONS",
   "sessions.new": "+ New",

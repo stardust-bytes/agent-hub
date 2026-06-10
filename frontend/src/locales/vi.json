@@ -104,6 +104,9 @@
   "cowork.browse.select": "Chọn thư mục này",
   "cowork.artifacts": "Artifacts",
   "cowork.connected": "● Đang làm việc với:",
+  "cowork.connect.title": "Kết nối Workspace",
+  "cowork.connect.description": "Mở một thư mục dự án để bắt đầu làm việc với AI Agent.",
+  "cowork.connect.browse": "Chọn thư mục dự án",
 
   "sessions.header": "SESSIONS",
   "sessions.new": "+ Mới",
