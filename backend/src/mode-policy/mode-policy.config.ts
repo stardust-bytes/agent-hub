@@ -42,7 +42,11 @@ export const MODE_POLICY: Record<string, ModePolicyEntry> = {
   },
   cowork: {
     enabledTools: '*',
-    deniedTools: [],
+    deniedTools: [
+      'create_task',
+      'update_task',
+      'delete_tasks',
+    ],
     allowedPaths: ['{projectPath}'],
     systemPromptStyle: 'cowork',
     envContext: ['platform', 'projectPath'],

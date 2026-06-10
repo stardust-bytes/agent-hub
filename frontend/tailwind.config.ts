@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        'cyber-bg':          '#000000',
+        'cyber-bg':          '#1e1e1e',
         'cyber-dark':        '#111111',
         'cyber-status':      '#161616',
         'cyber-modal-bg':    '#282828',
