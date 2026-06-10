@@ -105,7 +105,7 @@ export class AgentLoopService {
     res: Response,
     signal: AbortSignal,
     sessionId?: number,
-    mode: 'chat' | 'agent' | 'cowork' = 'agent',
+    mode: string = 'agent',
     providerConfig: { baseUrl: string; key?: string } = { baseUrl: 'http://localhost:11434' },
   ): Promise<string> {
     this.state = AgentState.PLANNING;
@@ -168,7 +168,7 @@ export class AgentLoopService {
 
             let result: string;
             try {
-              result = await this.executeTool(name, args, { mode, sessionId: sessionId ?? 0 });
+              result = await this.executeTool(name, args, { mode: mode as 'chat' | 'agent' | 'cowork', sessionId: sessionId ?? 0 });
             } catch (e) {
               result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
             }
