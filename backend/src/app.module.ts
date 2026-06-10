@@ -14,6 +14,7 @@ import { PlansModule } from './plans/plans.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 import { CoworkModule } from './cowork/cowork.module';
 import { FilesModule } from './files/files.module';
+import { ModePolicyModule } from './mode-policy/mode-policy.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { FilesModule } from './files/files.module';
     WorkspaceModule,
     CoworkModule,
     FilesModule,
+    ModePolicyModule,
   ],
   controllers: [AppController],
 })
