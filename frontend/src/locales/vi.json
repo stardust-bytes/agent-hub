@@ -85,6 +85,7 @@
   "files.watch.title": "Codebase Watcher",
   "files.watch.path": "Đường dẫn:",
   "files.watch.btn": "Theo dõi",
+  "files.watch.stop": "Dừng",
   "files.watch.status": "● đang theo dõi",
 
   "sessions.header": "SESSIONS",

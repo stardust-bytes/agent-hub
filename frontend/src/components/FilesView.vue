@@ -46,13 +46,18 @@
 
         <!-- Codebase watcher -->
         <div class="border-t border-cyber-accent/10 pt-4">
-          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('files.watch.title') }}</div>
+          <div class="text-[#888888] text-[10px] font-mono mb-2">{{ t('files.watch.title') }}</div>
           <div class="flex gap-2 items-center">
-            <span class="text-cyber-muted text-sm font-mono">{{ t('files.watch.path') }}</span>
-            <input v-model="watchDir" placeholder="/workspace" class="flex-1 bg-cyber-dark text-cyber-text text-sm px-2 py-1.5 font-mono outline-none" />
-            <button @click="toggleWatch" class="px-3 py-1.5 text-sm font-mono text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20 transition-colors duration-150">{{ t('files.watch.btn') }}</button>
+            <span class="text-[#888888] text-xs font-mono">{{ t('files.watch.path') }}</span>
+            <input v-model="watchDir" :disabled="watching" placeholder="/workspace"
+              class="flex-1 bg-cyber-dark text-[#EEEEEE] text-sm px-2 py-1.5 font-mono outline-none" />
+            <button @click="toggleWatch"
+              class="px-3 py-1.5 text-xs font-mono transition-colors duration-150"
+              :class="watching ? 'text-red-400 bg-red-400/10 hover:bg-red-400/20' : 'text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20'">
+              {{ watching ? t('files.watch.stop') : t('files.watch.btn') }}
+            </button>
           </div>
-          <div v-if="watching" class="text-cyber-green text-sm font-mono mt-1">{{ t('files.watch.status') }} ({{ indexedCount }} files)</div>
+          <div v-if="watching" class="text-cyber-green text-[10px] font-mono mt-1">{{ t('files.watch.status') }} ({{ indexedCount }} files)</div>
         </div>
 
       </div>
@@ -83,6 +88,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const watchDir = ref('')
 const watching = ref(false)
 const indexedCount = ref(0)
+let watchPollTimer: ReturnType<typeof setInterval> | null = null
 
 const filteredFiles = computed(() =>
   files.value.filter(f => f.filename.toLowerCase().includes(filter.value.toLowerCase()))
@@ -144,14 +150,39 @@ async function loadFiles() {
 }
 
 async function toggleWatch() {
+  if (watching.value) {
+    try {
+      await fetch('/api/workspace/watch', { method: 'DELETE' })
+      watching.value = false
+      if (watchPollTimer) {
+        clearInterval(watchPollTimer)
+        watchPollTimer = null
+      }
+    } catch { /* ignore */ }
+    return
+  }
   if (!watchDir.value.trim()) return
   try {
-    await fetch('/api/knowledge/watch', {
+    const res = await fetch('/api/workspace/watch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ directory: watchDir.value }),
     })
-    watching.value = true
+    if (res.ok) {
+      watching.value = true
+      watchPollTimer = setInterval(pollWatchStatus, 3000)
+    }
+  } catch { /* ignore */ }
+}
+
+async function pollWatchStatus() {
+  try {
+    const res = await fetch('/api/workspace/watch/status')
+    if (res.ok) {
+      const data = await res.json()
+      watching.value = data.watching
+      indexedCount.value = data.indexedCount
+    }
   } catch { /* ignore */ }
 }
 
@@ -176,5 +207,6 @@ onMounted(async () => {
 
 onUnmounted(() => {
   if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
+  if (watchPollTimer) { clearInterval(watchPollTimer); watchPollTimer = null }
 })
 </script>
