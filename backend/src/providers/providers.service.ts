@@ -35,7 +35,10 @@ export class ProvidersService {
   }
 
   async findAllModels() {
-    const models = await this.prisma.providerModel.findMany({ include: { provider: true } });
+    const models = await this.prisma.providerModel.findMany({
+      include: { provider: true },
+      orderBy: [{ provider: { name: 'asc' } }, { name: 'asc' }],
+    });
     return models.map(m => ({
       id: m.id,
       name: m.name,
