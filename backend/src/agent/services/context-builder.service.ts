@@ -94,8 +94,6 @@ export class ContextBuilderService {
       '',
       'System Environment:',
       `  Platform: ${process.platform}`,
-      `  Current Working Directory: ${process.cwd()}`,
-      `  User Home: ${process.env.USERPROFILE || process.env.HOME || '(unknown)'}`,
       '',
       `Current date: ${dateStr}`,
       `Current time: ${timeStr}`,
