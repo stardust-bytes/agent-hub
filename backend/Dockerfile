@@ -16,6 +16,5 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY prisma ./prisma
 RUN mkdir -p /app/data
-RUN npx playwright install chromium --with-deps
-EXPOSE 3001
+EXPOSE 13596
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
