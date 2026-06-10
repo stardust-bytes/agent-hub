@@ -69,6 +69,13 @@
                 >{{ t('chat.stop') }}</button>
               </form>
             </div>
+            <div class="flex items-center gap-2 pt-2">
+              <ModelSelector
+                v-model="selectedModelId"
+                :models="availableModels"
+                :disabled="streaming"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -95,6 +102,7 @@ import FileTree from './FileTree.vue'
 import ArtifactsPanel from './ArtifactsPanel.vue'
 import PlanBubble from './PlanBubble.vue'
 import DirectoryBrowser from './DirectoryBrowser.vue'
+import ModelSelector from './ModelSelector.vue'
 
 interface PlanStep { id: number; order: number; text: string; status: string }
 interface PlanData { id: number; title: string; status: string; steps: PlanStep[] }
@@ -115,6 +123,8 @@ const previewFileName = ref('')
 const activePlans = ref<PlanData[]>([])
 const recentToolResults = ref<Array<{ toolName: string; content: string }>>([])
 const selectedModelId = ref<number | null>(null)
+const availableModels = ref<Array<{ id: number; name: string; providerName: string; providerId: number }>>([])
+const currentSessionId = ref<number | null>(null)
 
 onMounted(async () => {
   await loadProject()
@@ -135,8 +145,12 @@ async function loadModel() {
   try {
     const res = await fetch('/api/providers/models')
     if (res.ok) {
-      const models = await res.json() as Array<{ id: number; name: string }>
-      if (models.length > 0) selectedModelId.value = models[0].id
+      const models = await res.json() as Array<{ id: number; name: string; providerName: string; providerId: number }>
+      availableModels.value = models
+      if (models.length > 0) {
+        const savedId = Number(localStorage.getItem('workspace.modelId'))
+        selectedModelId.value = models.find(m => m.id === savedId)?.id ?? models[0].id
+      }
     }
   } catch { /* ignore */ }
 }
@@ -168,21 +182,16 @@ function onDirSelected(dirPath: string) {
 
 async function connectProject(dirPath: string) {
   try {
-    console.log('[CoworkView] connectProject:', dirPath)
     const res = await fetch('/api/cowork/project', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: dirPath }),
     })
-    console.log('[CoworkView] POST result:', res.status, res.ok)
     if (res.ok) {
       projectPath.value = dirPath
       showDirBrowser.value = false
-      console.log('[CoworkView] projectPath set:', projectPath.value)
     }
-  } catch (e) {
-    console.error('[CoworkView] POST failed:', e)
-  }
+  } catch { /* ignore */ }
 }
 
 async function disconnect() {
@@ -217,6 +226,17 @@ async function submit() {
   const text = input.value.trim()
   if (!text || streaming.value || !selectedModelId.value) return
 
+  if (currentSessionId.value === null) {
+    try {
+      const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+      if (res.ok) {
+        const session = await res.json() as { id: number }
+        currentSessionId.value = session.id
+      }
+    } catch { /* ignore */ }
+  }
+
+  localStorage.setItem('workspace.modelId', String(selectedModelId.value))
   input.value = ''
   streaming.value = true
 
@@ -244,7 +264,7 @@ async function submit() {
       body: JSON.stringify({
         message: text,
         providerModelId: selectedModelId.value,
-        sessionId: 0,
+        sessionId: currentSessionId.value ?? 0,
         mode: 'cowork',
       }),
       signal: ctrl.signal,
