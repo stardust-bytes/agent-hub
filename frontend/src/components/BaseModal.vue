@@ -3,7 +3,6 @@
     <div
       v-if="modelValue"
       class="fixed inset-0 bg-cyber-dark/80 z-50 flex items-center justify-center"
-      @click.self="$emit('update:modelValue', false)"
     >
       <div class="w-100 bg-cyber-modal-bg border-t border-cyber-orange flex flex-col" :style="{ maxHeight, 'max-width': '90vw' }">
         <div v-if="$slots.header" class="px-3 py-2 bg-cyber-modal-bg flex items-center justify-between shrink-0">
@@ -26,13 +25,33 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { watch, onUnmounted } from 'vue'
+
+const props = defineProps<{
   modelValue: boolean
   closable?: boolean
   maxHeight?: string
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && props.modelValue) {
+    emit('update:modelValue', false)
+  }
+}
+
+watch(() => props.modelValue, (val) => {
+  if (val) {
+    window.addEventListener('keydown', onKeydown)
+  } else {
+    window.removeEventListener('keydown', onKeydown)
+  }
+}, { immediate: true })
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+})
 </script>
