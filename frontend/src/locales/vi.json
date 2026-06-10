@@ -84,9 +84,17 @@
   "files.empty": "Chưa có file nào",
   "files.watch.title": "Codebase Watcher",
   "files.watch.path": "Đường dẫn:",
+  "files.watch.browse": "Chọn",
   "files.watch.btn": "Theo dõi",
   "files.watch.stop": "Dừng",
   "files.watch.status": "● đang theo dõi",
+
+  "cowork.title": "Workspace",
+  "cowork.path": "Đường dẫn:",
+  "cowork.browse": "Chọn",
+  "cowork.connect": "Kết nối",
+  "cowork.disconnect": "Ngắt kết nối",
+  "cowork.connected": "● Đang làm việc với:",
 
   "sessions.header": "SESSIONS",
   "sessions.new": "+ Mới",

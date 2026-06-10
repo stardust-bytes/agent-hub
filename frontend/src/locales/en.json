@@ -84,9 +84,17 @@
   "files.empty": "No files yet",
   "files.watch.title": "Codebase Watcher",
   "files.watch.path": "Directory:",
+  "files.watch.browse": "Browse",
   "files.watch.btn": "Watch",
   "files.watch.stop": "Stop",
   "files.watch.status": "● watching",
+
+  "cowork.title": "Workspace",
+  "cowork.path": "Directory:",
+  "cowork.browse": "Browse",
+  "cowork.connect": "Connect",
+  "cowork.disconnect": "Disconnect",
+  "cowork.connected": "● Working with:",
 
   "sessions.header": "SESSIONS",
   "sessions.new": "+ New",

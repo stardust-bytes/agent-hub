@@ -44,20 +44,25 @@
           <button @click="deleteFile(f.id)" class="text-cyber-muted hover:text-red-400 shrink-0 transition-colors duration-150">{{ t('files.delete') }}</button>
         </div>
 
-        <!-- Codebase watcher -->
+        <!-- Workspace / Cowork -->
         <div class="border-t border-cyber-accent/10 pt-4">
-          <div class="text-[#888888] text-[10px] font-mono mb-2">{{ t('files.watch.title') }}</div>
+          <div class="text-[#888888] text-[10px] font-mono mb-2">{{ t('cowork.title') }}</div>
           <div class="flex gap-2 items-center">
-            <span class="text-[#888888] text-xs font-mono">{{ t('files.watch.path') }}</span>
-            <input v-model="watchDir" :disabled="watching" placeholder="/workspace"
+            <span class="text-[#888888] text-xs font-mono">{{ t('cowork.path') }}</span>
+            <input v-model="projectPath" :disabled="!!connectedProject" placeholder="/path/to/project"
               class="flex-1 bg-cyber-dark text-[#EEEEEE] text-sm px-2 py-1.5 font-mono outline-none" />
-            <button @click="toggleWatch"
+            <input ref="projectDirInput" type="file" webkitdirectory class="hidden" @change="onProjectDirChange" />
+            <button @click="browseProjectDir" :disabled="!!connectedProject"
+              class="px-3 py-1.5 text-xs font-mono text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20 transition-colors duration-150">
+              {{ t('cowork.browse') }}
+            </button>
+            <button @click="toggleProject"
               class="px-3 py-1.5 text-xs font-mono transition-colors duration-150"
-              :class="watching ? 'text-red-400 bg-red-400/10 hover:bg-red-400/20' : 'text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20'">
-              {{ watching ? t('files.watch.stop') : t('files.watch.btn') }}
+              :class="connectedProject ? 'text-red-400 bg-red-400/10 hover:bg-red-400/20' : 'text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20'">
+              {{ connectedProject ? t('cowork.disconnect') : t('cowork.connect') }}
             </button>
           </div>
-          <div v-if="watching" class="text-cyber-green text-[10px] font-mono mt-1">{{ t('files.watch.status') }} ({{ indexedCount }} files)</div>
+          <div v-if="connectedProject" class="text-cyber-green text-[10px] font-mono mt-1">{{ t('cowork.connected') }} {{ connectedProject }}</div>
         </div>
 
       </div>
@@ -85,10 +90,9 @@ const { t } = useI18n()
 const files = ref<KnowledgeFile[]>([])
 const filter = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
-const watchDir = ref('')
-const watching = ref(false)
-const indexedCount = ref(0)
-let watchPollTimer: ReturnType<typeof setInterval> | null = null
+const projectDirInput = ref<HTMLInputElement | null>(null)
+const projectPath = ref(localStorage.getItem('workspace.projectPath') || '')
+const connectedProject = ref<string | null>(null)
 
 const filteredFiles = computed(() =>
   files.value.filter(f => f.filename.toLowerCase().includes(filter.value.toLowerCase()))
@@ -149,39 +153,52 @@ async function loadFiles() {
   } catch { /* ignore */ }
 }
 
-async function toggleWatch() {
-  if (watching.value) {
+function browseProjectDir() {
+  projectDirInput.value?.click()
+}
+
+function onProjectDirChange() {
+  const f = projectDirInput.value?.files?.[0]
+  if (!f) return
+  const raw = (f as unknown as { path?: string }).path
+  const fullPath = f.webkitRelativePath
+    ? f.webkitRelativePath.split('/')[0]
+    : f.name
+  projectPath.value = raw || fullPath
+}
+
+async function toggleProject() {
+  if (connectedProject.value) {
     try {
-      await fetch('/api/workspace/watch', { method: 'DELETE' })
-      watching.value = false
-      if (watchPollTimer) {
-        clearInterval(watchPollTimer)
-        watchPollTimer = null
-      }
+      await fetch('/api/cowork/project', { method: 'DELETE' })
+      connectedProject.value = null
+      localStorage.removeItem('workspace.projectPath')
     } catch { /* ignore */ }
     return
   }
-  if (!watchDir.value.trim()) return
+  if (!projectPath.value.trim()) return
   try {
-    const res = await fetch('/api/workspace/watch', {
+    const res = await fetch('/api/cowork/project', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ directory: watchDir.value }),
+      body: JSON.stringify({ path: projectPath.value }),
     })
     if (res.ok) {
-      watching.value = true
-      watchPollTimer = setInterval(pollWatchStatus, 3000)
+      connectedProject.value = projectPath.value
+      localStorage.setItem('workspace.projectPath', projectPath.value)
     }
   } catch { /* ignore */ }
 }
 
-async function pollWatchStatus() {
+async function loadProject() {
   try {
-    const res = await fetch('/api/workspace/watch/status')
+    const res = await fetch('/api/cowork/project')
     if (res.ok) {
       const data = await res.json()
-      watching.value = data.watching
-      indexedCount.value = data.indexedCount
+      if (data.isActive) {
+        connectedProject.value = data.projectPath
+        projectPath.value = data.projectPath
+      }
     }
   } catch { /* ignore */ }
 }
@@ -202,11 +219,11 @@ function startPolling() {
 
 onMounted(async () => {
   await loadFiles()
+  await loadProject()
   if (files.value.some(f => f.status === 'indexing')) startPolling()
 })
 
 onUnmounted(() => {
   if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
-  if (watchPollTimer) { clearInterval(watchPollTimer); watchPollTimer = null }
 })
 </script>
