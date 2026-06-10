@@ -1,12 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WriteFileExecutor } from './write-file.executor';
 import { WorkspaceService } from '../../workspace/workspace.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 describe('WriteFileExecutor', () => {
   let executor: WriteFileExecutor;
   const mockWorkspace = {
     isPathAllowed: jest.fn().mockReturnValue(true),
     writeFile: jest.fn().mockResolvedValue({ bytesWritten: 5, resolved: '/workspace/test.txt' }),
+    getWorkspaceRoot: jest.fn().mockReturnValue('/workspace'),
+  };
+  const mockPrisma = {
+    agentFile: {
+      create: jest.fn().mockResolvedValue({ id: 1 }),
+    },
   };
 
   beforeEach(async () => {
@@ -15,15 +22,19 @@ describe('WriteFileExecutor', () => {
       providers: [
         WriteFileExecutor,
         { provide: WorkspaceService, useValue: mockWorkspace },
+        { provide: PrismaService, useValue: mockPrisma },
       ],
     }).compile();
     executor = module.get<WriteFileExecutor>(WriteFileExecutor);
   });
 
-  it('write_file writes content and returns byte count', async () => {
+  it('write_file writes content and returns download URL for workspace files', async () => {
     const result = await executor.execute({ path: 'test.txt', content: 'hello' });
     expect(mockWorkspace.writeFile).toHaveBeenCalledWith('test.txt', 'hello');
-    expect(result).toBe('Written 5 bytes to /workspace/test.txt');
+    expect(mockPrisma.agentFile.create).toHaveBeenCalledWith({
+      data: { filename: 'test.txt', path: '/workspace/test.txt', sessionId: 0 },
+    });
+    expect(result).toBe('Written 5 bytes. [Download "test.txt"](api/files/agent/1/download)');
   });
 
   it('write_file returns error when path not allowed', async () => {
