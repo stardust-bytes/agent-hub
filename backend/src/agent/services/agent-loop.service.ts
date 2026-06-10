@@ -176,6 +176,38 @@ export class AgentLoopService {
               result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
             }
 
+            if (result.startsWith('[PLAN_CREATED]')) {
+              const idMatch = result.match(/id=(\d+)/);
+              const approvalMatch = result.match(/requireApproval=(\w+)/);
+              const titleMatch = result.match(/title="([^"]*)"/);
+
+              const planId = idMatch ? parseInt(idMatch[1], 10) : 0;
+              const requireApproval = approvalMatch ? approvalMatch[1] === 'true' : true;
+
+              if (planId > 0) {
+                const plan = await this.plansService.findOne(planId);
+
+                res.write(`data: ${JSON.stringify({
+                  plan: {
+                    id: plan.id,
+                    title: plan.title,
+                    status: plan.status,
+                    steps: plan.steps.map(s => ({ id: s.id, order: s.order, text: s.text, status: s.status })),
+                  },
+                })}\n\n`);
+
+                await this.savePlanExecutionMessage(sessionId, plan);
+
+                if (requireApproval) {
+                  res.write('data: [DONE]\n\n');
+                  return finalText;
+                } else {
+                  await this.executePlan(planId, providerType, model, systemPrompt, activeTools, providerConfig, signal, res, sessionId);
+                  return finalText;
+                }
+              }
+            }
+
             res.write(`data: ${JSON.stringify({ toolResult: { name, result } })}\n\n`);
             if (sessionId) {
               await this.sessionsService.saveMessage(sessionId, 'tool', result, name, true);
@@ -313,6 +345,22 @@ export class AgentLoopService {
     } else {
       await this.plansService.updateStatus(planId, 'DONE');
       res.write('data: [DONE]\n\n');
+    }
+  }
+
+  private async savePlanExecutionMessage(sessionId: number | undefined, plan: { id: number; title: string; status: string; steps: Array<{ id: number; order: number; text: string; status: string }> }) {
+    if (sessionId) {
+      await this.sessionsService.saveMessage(
+        sessionId, 'plan',
+        JSON.stringify({
+          id: plan.id, title: plan.title, status: plan.status,
+          steps: plan.steps.map(s => ({ id: s.id, order: s.order, text: s.text, status: s.status })),
+        }),
+      );
+      await this.sessionsService.saveMessage(
+        sessionId, 'system',
+        `[Plan] ${plan.title} — ${plan.steps.length} steps created`,
+      );
     }
   }
 

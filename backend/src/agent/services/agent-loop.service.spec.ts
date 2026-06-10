@@ -63,6 +63,7 @@ describe('AgentLoopService', () => {
   let createTask: CreateTaskExecutor;
   let permissionsService: { isAllowed: jest.Mock };
   let plansService: typeof mockPlansService;
+  let createPlanExec: { name: string; execute: jest.Mock };
 
   const defaultTools = [
     { type: 'function' as const, function: { name: 'web_search', description: 'Search the web', parameters: {} } },
@@ -132,6 +133,7 @@ describe('AgentLoopService', () => {
     createTask = module.get(CreateTaskExecutor);
     permissionsService = module.get(PermissionsService);
     plansService = module.get(PlansService);
+    createPlanExec = module.get(CreatePlanExecutor);
     jest.clearAllMocks();
   });
 
@@ -397,6 +399,76 @@ describe('AgentLoopService', () => {
       );
       expect(mockPlansService.create).not.toHaveBeenCalled();
       expect(res.write).toHaveBeenCalledWith('data: [DONE]\n\n');
+    });
+  });
+
+  describe('PLAN_CREATED detection', () => {
+    it('emits plan SSE and [DONE] when requireApproval=true, skips toolResult', async () => {
+      const toolCall: StreamChunk = {
+        type: 'tool_call',
+        toolCall: { name: 'create_plan', arguments: { title: 'Test Plan', steps: ['Step 1'] } },
+      };
+      llmController.stream = buildStreamMock(
+        [{ type: 'token', token: 'I will create a plan' }, toolCall, DONE],
+      );
+      createPlanExec.execute.mockResolvedValue('[PLAN_CREATED] id=1 requireApproval=true title="Test Plan"');
+      mockPlansService.findOne.mockResolvedValue({
+        id: 1,
+        title: 'Test Plan',
+        status: 'PENDING',
+        steps: [{ id: 10, planId: 1, order: 0, text: 'Step 1', status: 'TODO' }],
+      });
+
+      const res = mockRes();
+      const signal = new AbortController().signal;
+      const result = await service.run(
+        'ollama', 'llama3', 'You are helpful', [], 'create a plan',
+        defaultTools, res, signal, 1, 'agent', defaultConfig,
+      );
+
+      expect(result).toBe('I will create a plan');
+      expect(res.write).toHaveBeenCalledWith(
+        'data: ' + JSON.stringify({ plan: { id: 1, title: 'Test Plan', status: 'PENDING', steps: [{ id: 10, order: 0, text: 'Step 1', status: 'TODO' }] } }) + '\n\n',
+      );
+      expect(res.write).toHaveBeenCalledWith('data: [DONE]\n\n');
+      expect(mockPlansService.findOne).toHaveBeenCalledWith(1);
+      expect(mockPlansService.updateStatus).not.toHaveBeenCalledWith(1, 'EXECUTING');
+      const toolResultCalls = (res.write as jest.Mock).mock.calls.filter(
+        (c: string[]) => typeof c[0] === 'string' && c[0].includes('"toolResult"') && c[0].includes('create_plan'),
+      );
+      expect(toolResultCalls.length).toBe(0);
+    });
+
+    it('calls executePlan when requireApproval=false', async () => {
+      const toolCall: StreamChunk = {
+        type: 'tool_call',
+        toolCall: { name: 'create_plan', arguments: { title: 'Auto Plan', steps: ['Step 1'] } },
+      };
+      llmController.stream = buildStreamMock(
+        [{ type: 'token', token: 'Auto creating plan' }, toolCall, DONE],
+        [{ type: 'token', token: 'Step 1 done' }, DONE],
+      );
+      createPlanExec.execute.mockResolvedValue('[PLAN_CREATED] id=2 requireApproval=false title="Auto Plan"');
+      mockPlansService.findOne.mockResolvedValue({
+        id: 2,
+        title: 'Auto Plan',
+        status: 'APPROVED',
+        steps: [{ id: 20, planId: 2, order: 0, text: 'Step 1', status: 'TODO' }],
+      });
+
+      const res = mockRes();
+      const signal = new AbortController().signal;
+      const result = await service.run(
+        'ollama', 'llama3', 'You are helpful', [], 'auto plan',
+        defaultTools, res, signal, 1, 'agent', defaultConfig,
+      );
+
+      expect(result).toBe('Auto creating plan');
+      expect(res.write).toHaveBeenCalledWith(
+        expect.stringContaining('"plan"'),
+      );
+      expect(mockPlansService.updateStatus).toHaveBeenCalledWith(2, 'EXECUTING');
+      expect(createPlanExec.execute).toHaveBeenCalledTimes(1);
     });
   });
 
