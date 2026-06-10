@@ -27,15 +27,17 @@ Base path: `/api/plans`
 | `GET` | `/api/plans/session/:sessionId` | List plans for a session (with steps) |
 | `GET` | `/api/plans/:id` | Get plan with steps |
 | `POST` | `/api/plans/:id/approve` | Set plan status PENDING → APPROVED |
-| `POST` | `/api/plans/:id/reject` | Delete plan (cascade to steps) |
+| `POST` | `/api/plans/:id/reject` | Set plan status → CANCELLED |
 | `GET` | `/api/plans/session/:sessionId/next` | Find next actionable plan for session |
 
 ## Plan Status Flow
 
 ```
 PENDING → APPROVED (via POST /approve)
+PENDING → CANCELLED (via POST /reject)
 APPROVED → EXECUTING (set by AgentLoopService.executePlan())
 EXECUTING → DONE (set when all steps complete)
+EXECUTING → INTERRUPTED (set on signal abort)
 ```
 
 ## PlanStep Status Values

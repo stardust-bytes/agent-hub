@@ -67,10 +67,9 @@ Get current tool permissions config.
 
 Update tool permissions config.
 
-**`POST /api/agent/plans/:id/execute`**
+**`POST /api/agent/chat` (plan approve/reject/resume)**
 
-Request body: `{ "providerModelId": 1, "sessionId": 1 }`
-Response: SSE stream executing plan steps. Emits `planStepUpdate` events plus standard token/toolCall/toolResult events.
+Plan execution is now handled inside the main `/chat` SSE stream. Send messages prefixed with `/plan approve <id>`, `/plan reject <id>`, or `/plan resume <id>` in cowork mode. The backend executes the plan and streams events through the same SSE connection.
 
 ## SSE Events
 
@@ -112,13 +111,14 @@ Self-correction fallback map: `web_fetch` → `web_search`, `search_knowledge` �
 ## Dependencies
 
 - ModePolicyModule (tool filtering per agent mode)
+- PlansModule (plan persistence + approve/reject via AgentService)
 - TasksModule (task tool executors)
 - KnowledgeModule (search_knowledge executor)
 - SessionsModule (chat history CRUD)
 - ProvidersModule (provider model resolution)
 - ToolsModule (all ToolExecutor implementations)
 - NotesModule (note tool executors — create/update/list/delete/convert)
-- PlansModule (plan persistence — `create`, `findOne`, `updateStepStatus`, `updateStatus`)
+
 
 ## Testing
 
