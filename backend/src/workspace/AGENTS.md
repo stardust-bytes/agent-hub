@@ -14,7 +14,11 @@ workspace/
 ├── workspace.service.ts
 ├── workspace.service.spec.ts
 ├── workspace-watcher.service.ts
-└── workspace-watcher.service.spec.ts
+├── workspace-watcher.service.spec.ts
+├── workspace.controller.ts
+├── workspace.controller.spec.ts
+└── dto/
+    └── watch.dto.ts
 ```
 
 ## Services
@@ -42,13 +46,13 @@ workspace/
 ## Testing
 
 ```bash
-npx jest src/workspace     # 2 suites, 11 tests
+npx jest src/workspace     # 3 suites, 15 tests
 ```
 
 Tests mock chokidar and KnowledgeService.
 
 ## TODOs
 
-- [ ] Add `WorkspaceWatcherController` for REST control (start/stop/status)
-- [ ] Wire into `WorkspaceModule` providers
+- [x] Add `WorkspaceController` for REST control (start/stop/status)
+- [x] Wire `WorkspaceController` into `WorkspaceModule`
 - [ ] Auto-start watcher on module init via `onApplicationBootstrap`
