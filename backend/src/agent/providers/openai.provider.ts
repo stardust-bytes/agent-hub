@@ -13,7 +13,20 @@ export class OpenAIProvider implements LLMProvider {
     const msgs: Array<Record<string, unknown>> = messages.map(m => ({
       role: m.role,
       content: m.content,
-      ...(m.toolCalls ? { tool_calls: m.toolCalls } : {}),
+      ...(m.reasoningContent ? { reasoning_content: m.reasoningContent } : {}),
+      ...(m.toolCalls ? {
+        tool_calls: m.toolCalls.map(tc => ({
+          id: tc.id ?? `call_${Date.now()}`,
+          type: 'function',
+          function: {
+            name: tc.function.name,
+            arguments: typeof tc.function.arguments === 'string'
+              ? tc.function.arguments
+              : JSON.stringify(tc.function.arguments),
+          },
+        })),
+      } : {}),
+      ...(m.toolCallId ? { tool_call_id: m.toolCallId } : {}),
     }));
 
     const body: Record<string, unknown> = { model, messages: msgs, stream: true };
@@ -47,6 +60,8 @@ export class OpenAIProvider implements LLMProvider {
     const reader = res.body!.getReader();
     const decoder = new TextDecoder();
     let buf = '';
+    const pendingToolCalls: Map<number, { name: string; arguments: string }> = new Map();
+    let reasoningContent = '';
 
     signal.addEventListener('abort', () => reader.cancel(), { once: true });
 
@@ -61,12 +76,28 @@ export class OpenAIProvider implements LLMProvider {
         const trimmed = line.trim();
         if (!trimmed || !trimmed.startsWith('data: ')) continue;
         const payload = trimmed.slice(6);
-        if (payload === '[DONE]') { yield { type: 'done' }; return; }
+        if (payload === '[DONE]') {
+          for (const [, tc] of pendingToolCalls) {
+            let parsedArgs: unknown;
+            try { parsedArgs = JSON.parse(tc.arguments); } catch { parsedArgs = tc.arguments; }
+            yield { type: 'tool_call', toolCall: { name: tc.name, arguments: parsedArgs }, reasoningContent };
+          }
+          pendingToolCalls.clear();
+          yield { type: 'done' };
+          return;
+        }
 
         try {
           const parsed = JSON.parse(payload) as {
             choices?: Array<{
-              delta?: { content?: string; tool_calls?: Array<{ function: { name: string; arguments: string } }> };
+              delta?: {
+                content?: string;
+                reasoning_content?: string;
+                tool_calls?: Array<{
+                  index?: number;
+                  function?: { name?: string; arguments?: string };
+                }>;
+              };
               finish_reason?: string;
             }>;
             usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
@@ -75,22 +106,43 @@ export class OpenAIProvider implements LLMProvider {
           const choice = parsed.choices?.[0];
           if (!choice) continue;
 
+          if (choice.delta?.reasoning_content) {
+            reasoningContent += choice.delta.reasoning_content;
+          }
+
           if (choice.delta?.content) {
-            yield { type: 'token', token: choice.delta.content };
+            yield { type: 'token', token: choice.delta.content, reasoningContent: choice.delta.reasoning_content || reasoningContent };
           }
 
           if (choice.delta?.tool_calls) {
             for (const tc of choice.delta.tool_calls) {
-              let parsedArgs: unknown;
-              try { parsedArgs = JSON.parse(tc.function.arguments); } catch { parsedArgs = tc.function.arguments; }
-              yield {
-                type: 'tool_call',
-                toolCall: { name: tc.function.name, arguments: parsedArgs },
-              };
+              const index = tc.index ?? 0;
+              const existing = pendingToolCalls.get(index) ?? { name: '', arguments: '' };
+              if (tc.function?.name) existing.name += tc.function.name;
+              if (tc.function?.arguments) existing.arguments += tc.function.arguments;
+              pendingToolCalls.set(index, existing);
             }
+          }
+
+          if (choice.finish_reason === 'tool_calls') {
+            for (const [, tc] of pendingToolCalls) {
+              let parsedArgs: unknown;
+              try { parsedArgs = JSON.parse(tc.arguments); } catch { parsedArgs = tc.arguments; }
+              yield { type: 'tool_call', toolCall: { name: tc.name, arguments: parsedArgs }, reasoningContent };
+            }
+            pendingToolCalls.clear();
           }
         } catch { /* skip unparseable */ }
       }
+    }
+
+    if (pendingToolCalls.size > 0) {
+      for (const [, tc] of pendingToolCalls) {
+        let parsedArgs: unknown;
+        try { parsedArgs = JSON.parse(tc.arguments); } catch { parsedArgs = tc.arguments; }
+        yield { type: 'tool_call', toolCall: { name: tc.name, arguments: parsedArgs }, reasoningContent };
+      }
+      pendingToolCalls.clear();
     }
     yield { type: 'done' };
   }

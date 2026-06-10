@@ -131,8 +131,9 @@ export class AgentLoopService {
       if (this.state === AgentState.EXECUTING) {
         let text: string;
         let toolCalls: Array<{ name: string; arguments: unknown }>;
+        let reasoningContent: string | undefined;
           try {
-            ({ text, toolCalls } = await this.executeStep(
+            ({ text, toolCalls, reasoningContent } = await this.executeStep(
               model, messages, activeTools, signal, providerConfig, res, sessionId, providerType,
             ));
         } catch {
@@ -141,7 +142,7 @@ export class AgentLoopService {
         finalText += text;
 
         if (toolCalls.length > 0) {
-          messages = this.addToolCallsToMessages(messages, text, toolCalls);
+          messages = this.addToolCallsToMessages(messages, text, toolCalls, reasoningContent);
           this.state = AgentState.EVALUATING;
         } else {
           this.state = AgentState.RESPONDING;
@@ -149,8 +150,11 @@ export class AgentLoopService {
 
         if (this.state === AgentState.EVALUATING) {
           let allGood = true;
+          let ti = 0;
           for (const tc of toolCalls) {
+            const idx = ti++;
             const name = tc.name;
+            const toolCallId = `call_${idx}_${name}`;
             const args = this.normalizeArgs(tc.arguments);
 
             res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
@@ -165,7 +169,7 @@ export class AgentLoopService {
               if (sessionId) {
                 await this.sessionsService.saveMessage(sessionId, 'tool', denyMsg, name, true);
               }
-              messages.push({ role: 'tool', content: denyMsg });
+              messages.push({ role: 'tool', content: denyMsg, toolCallId });
               continue;
             }
 
@@ -217,11 +221,11 @@ export class AgentLoopService {
             if (!isGood) {
               allGood = false;
               this.failedTool = name;
-              messages.push({ role: 'tool', content: result });
+              messages.push({ role: 'tool', content: result, toolCallId });
               break;
             }
 
-            messages.push({ role: 'tool', content: result });
+            messages.push({ role: 'tool', content: result, toolCallId });
 
             if (name === 'search_knowledge') {
               messages = await this.handleKnowledgeResult(messages, result, res, sessionId);
@@ -447,9 +451,10 @@ export class AgentLoopService {
     res: Response,
     sessionId?: number,
     providerType: string = 'ollama',
-  ): Promise<{ text: string; toolCalls: Array<{ name: string; arguments: unknown }> }> {
+  ): Promise<{ text: string; toolCalls: Array<{ name: string; arguments: unknown }>; reasoningContent?: string }> {
     let text = '';
     const toolCalls: Array<{ name: string; arguments: unknown }> = [];
+    let reasoningContent = '';
 
     const stream = this.llmController.stream(
       providerType, model, messages, tools, signal,
@@ -467,7 +472,10 @@ export class AgentLoopService {
           }
           break;
         case 'tool_call':
-          if (chunk.toolCall) toolCalls.push(chunk.toolCall);
+          if (chunk.toolCall) {
+            toolCalls.push(chunk.toolCall);
+            if (chunk.reasoningContent) reasoningContent = chunk.reasoningContent;
+          }
           break;
         case 'error':
           res.write(`data: ${JSON.stringify({ error: chunk.error })}\n\n`);
@@ -477,7 +485,7 @@ export class AgentLoopService {
       }
     }
 
-    return { text, toolCalls };
+    return { text, toolCalls, reasoningContent: reasoningContent || undefined };
   }
 
   private evaluateResult(toolName: string, result: string): boolean {
@@ -507,13 +515,16 @@ export class AgentLoopService {
     messages: OllamaMessage[],
     text: string,
     toolCalls: Array<{ name: string; arguments: unknown }>,
+    reasoningContent?: string,
   ): OllamaMessage[] {
     return [
       ...messages,
       {
         role: 'assistant',
         content: text || '',
-        toolCalls: toolCalls.map(tc => ({
+        reasoningContent,
+        toolCalls: toolCalls.map((tc, i) => ({
+          id: `call_${i}_${tc.name}`,
           function: { name: tc.name, arguments: this.normalizeArgs(tc.arguments) },
         })),
       },
@@ -615,7 +626,7 @@ export class AgentLoopService {
 
     while (!signal.aborted && iterations < MAX_ITERATIONS) {
       iterations++;
-      const { text, toolCalls } = await this.executeStep(
+      const { text, toolCalls, reasoningContent } = await this.executeStep(
         model, currentMessages, tools, signal, providerConfig, res, sessionId, providerType,
       );
 
@@ -626,10 +637,12 @@ export class AgentLoopService {
         break;
       }
 
-      currentMessages = this.addToolCallsToMessages(currentMessages, text, toolCalls);
+      currentMessages = this.addToolCallsToMessages(currentMessages, text, toolCalls, reasoningContent);
 
-      for (const tc of toolCalls) {
+      for (let ti = 0; ti < toolCalls.length; ti++) {
+        const tc = toolCalls[ti];
         const name = tc.name;
+        const toolCallId = `call_${ti}_${name}`;
         const args = this.normalizeArgs(tc.arguments);
         res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
         if (sessionId) {
@@ -643,7 +656,7 @@ export class AgentLoopService {
           if (sessionId) {
             await this.sessionsService.saveMessage(sessionId, 'tool', denyMsg, name, true);
           }
-          currentMessages.push({ role: 'tool', content: denyMsg });
+          currentMessages.push({ role: 'tool', content: denyMsg, toolCallId });
           continue;
         }
 
@@ -657,7 +670,7 @@ export class AgentLoopService {
         if (sessionId) {
           await this.sessionsService.saveMessage(sessionId, 'tool', result, name, true);
         }
-        currentMessages.push({ role: 'tool', content: result });
+        currentMessages.push({ role: 'tool', content: result, toolCallId });
       }
     }
   }

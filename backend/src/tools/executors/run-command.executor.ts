@@ -12,8 +12,11 @@ export class RunCommandExecutor implements ToolExecutor {
   readonly name = 'run_command';
 
   async execute(args: Record<string, unknown>): Promise<string> {
-    const command = args.command as string | undefined;
+    let command = args.command as string | undefined;
     const cwd = (args.cwd as string) || process.cwd();
+    if (!command || command.trim().length === 0) {
+      command = args.raw as string | undefined;
+    }
     if (!command || command.trim().length === 0) return 'Error: command is required.';
     try {
       const { stdout, stderr } = await asyncExec(command, {
