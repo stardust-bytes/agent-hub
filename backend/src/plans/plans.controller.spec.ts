@@ -7,6 +7,7 @@ const mockService = {
   findOne: jest.fn(),
   approve: jest.fn(),
   reject: jest.fn(),
+  findNextActionable: jest.fn(),
 };
 
 describe('PlansController', () => {
@@ -46,5 +47,13 @@ describe('PlansController', () => {
     mockService.reject.mockResolvedValue(undefined);
     await controller.reject(1);
     expect(mockService.reject).toHaveBeenCalledWith(1);
+  });
+
+  it('getNextActionable delegates to plansService.findNextActionable', async () => {
+    const plan = { id: 1, sessionId: 1, title: 'Test', status: 'EXECUTING', steps: [], createdAt: new Date(), updatedAt: new Date() };
+    mockService.findNextActionable.mockResolvedValue({ found: true, plan, action: 'resume' });
+    const result = await controller.getNextActionable(1);
+    expect(mockService.findNextActionable).toHaveBeenCalledWith(1);
+    expect(result).toEqual({ found: true, plan, action: 'resume' });
   });
 });

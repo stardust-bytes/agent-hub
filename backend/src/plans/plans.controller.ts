@@ -26,4 +26,9 @@ export class PlansController {
   async reject(@Param('id', ParseIntPipe) id: number): Promise<void> {
     await this.plansService.reject(id);
   }
+
+  @Get('session/:sessionId/next')
+  getNextActionable(@Param('sessionId', ParseIntPipe) sessionId: number) {
+    return this.plansService.findNextActionable(sessionId);
+  }
 }
