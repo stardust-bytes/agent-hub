@@ -1,10 +1,14 @@
 import { Controller, Get, Post, Delete, Body } from '@nestjs/common';
 import { WorkspaceWatcherService } from './workspace-watcher.service';
+import { IndexerService } from './indexer.service';
 import { WatchDto } from './dto/watch.dto';
 
 @Controller('workspace')
 export class WorkspaceController {
-  constructor(private readonly watcher: WorkspaceWatcherService) {}
+  constructor(
+    private readonly watcher: WorkspaceWatcherService,
+    private readonly indexer: IndexerService,
+  ) {}
 
   @Post('watch')
   async watch(@Body() dto: WatchDto) {
@@ -22,5 +26,10 @@ export class WorkspaceController {
   async stopWatch() {
     await this.watcher.stopWatch();
     return { ok: true };
+  }
+
+  @Get('indexer/status')
+  getIndexerStatus() {
+    return this.indexer.getStatus();
   }
 }
