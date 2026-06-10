@@ -21,6 +21,7 @@ import { RunCommandExecutor } from './executors/run-command.executor';
 import { GrepExecutor } from './executors/grep.executor';
 import { GlobExecutor } from './executors/glob.executor';
 import { ResumePlanExecutor } from './executors/resume-plan.executor';
+import { CreatePlanExecutor } from './executors/create-plan.executor';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { NotesModule } from '../notes/notes.module';
@@ -48,6 +49,7 @@ const EXECUTORS = [
   GrepExecutor,
   GlobExecutor,
   ResumePlanExecutor,
+  CreatePlanExecutor,
 ];
 
 @Module({
