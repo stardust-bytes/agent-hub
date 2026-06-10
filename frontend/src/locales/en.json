@@ -135,6 +135,7 @@
   "tools.config.save": "Save",
   "tools.config.noConfig": "No configuration needed",
   "tools.form.cancel": "Cancel",
+  "nav.plans": "Plans",
   "nav.notes": "Notes",
   "notes.header": "NOTES",
   "notes.empty": "No notes yet",
