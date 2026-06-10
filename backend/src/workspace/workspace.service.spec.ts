@@ -44,8 +44,8 @@ describe('WorkspaceService', () => {
     expect(service.isPathAllowed(path.resolve(os.tmpdir(), '..', 'outside.txt'))).toBe(false);
   });
 
-  it('isPathAllowed allows process.cwd() by default', () => {
-    expect(service.isPathAllowed(process.cwd())).toBe(true);
+  it('isPathAllowed rejects process.cwd() by default', () => {
+    expect(service.isPathAllowed(process.cwd())).toBe(false);
   });
 
   it('isPathAllowed allows temp dir', () => {
