@@ -49,18 +49,43 @@ describe('ContextBuilderService', () => {
     );
   });
 
-  it('injects cowork project path into system prompt when project is set', async () => {
+  it('injects cowork project path into system prompt in cowork mode', async () => {
     mockCowork.getProject.mockResolvedValue('/test/project');
     const runState = new AgentRunState(10);
-    const context = await service.build(runState, 0);
+    const context = await service.build(runState, 0, 'cowork');
     expect(context.systemPrompt).toContain('Current working project: /test/project');
     expect(context.systemPrompt).toContain('File operations are available in this directory.');
   });
 
-  it('system prompt contains platform and environment info', async () => {
+  it('does not include project path in agent mode even when project is set', async () => {
+    mockCowork.getProject.mockResolvedValue('/test/project');
+    const runState = new AgentRunState(10);
+    const context = await service.build(runState, 0, 'agent');
+    expect(context.systemPrompt).toContain('access to the following tools');
+    expect(context.systemPrompt).not.toContain('Current working project:');
+  });
+
+  it('system prompt contains platform and environment info in agent mode', async () => {
     const runState = new AgentRunState(10);
     const context = await service.build(runState, 0);
     expect(context.systemPrompt).toContain('System Environment:');
     expect(context.systemPrompt).toContain('Platform:');
+  });
+
+  it('build with mode=chat returns simple prompt without tool descriptions', async () => {
+    const runState = new AgentRunState(10);
+    const context = await service.build(runState, 0, 'chat');
+    expect(context.systemPrompt).not.toContain('access to the following tools');
+    expect(context.systemPrompt).not.toContain('System Environment:');
+    expect(context.systemPrompt).toContain('You are a helpful AI assistant.');
+  });
+
+  it('build with mode=cowork includes project path and tools when project is set', async () => {
+    mockCowork.getProject.mockResolvedValue('/test/project');
+    const runState = new AgentRunState(10);
+    const context = await service.build(runState, 0, 'cowork');
+    expect(context.systemPrompt).toContain('access to the following tools');
+    expect(context.systemPrompt).toContain('Current working project: /test/project');
+    expect(context.systemPrompt).toContain('System Environment:');
   });
 });

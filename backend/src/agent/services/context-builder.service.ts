@@ -33,12 +33,13 @@ export class ContextBuilderService {
   async build(
     runState: AgentRunState,
     sessionId: number,
+    mode: string = 'agent',
     systemPromptOverride?: string,
   ): Promise<AgentContext> {
     const tools = await this.getEnabledTools();
     const project = await this.cowork.getProject();
 
-    const systemPrompt = systemPromptOverride || this.buildSystemPrompt(tools, project);
+    const systemPrompt = systemPromptOverride || this.buildSystemPrompt(tools, project, mode);
 
     const messages = await this.loadChatHistory(sessionId);
 
@@ -61,7 +62,17 @@ export class ContextBuilderService {
     return history.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
   }
 
-  private buildSystemPrompt(tools: ToolDefinition[], projectPath?: string | null): string {
+  private buildSystemPrompt(tools: ToolDefinition[], projectPath?: string | null, mode: string = 'agent'): string {
+    if (mode === 'chat') {
+      return [
+        'You are a helpful AI assistant.',
+        'Answer user questions using the available tools when needed.',
+        'Use web_search and web_fetch to find current information.',
+        '',
+        'Respond in the same language the user writes in.',
+      ].join('\n');
+    }
+
     const now = new Date();
     const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
@@ -99,7 +110,7 @@ export class ContextBuilderService {
       `Current time: ${timeStr}`,
     );
 
-    if (projectPath) {
+    if (mode === 'cowork' && projectPath) {
       lines.push('',
         `Current working project: ${projectPath}`,
         'File operations are available in this directory.',
