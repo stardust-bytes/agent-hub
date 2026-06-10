@@ -38,9 +38,7 @@
             <div class="text-sm text-cyber-accent/80 mb-0.5 font-mono">
               <HiChevronRight class="w-3 h-3 inline" /> {{ rolePrefix(msg.role) }} · {{ msg.timestamp }}
             </div>
-            <div v-if="msg.typing" class="text-sm leading-relaxed break-words text-cyber-text">
-              {{ msg.content }}
-            </div>
+            <div v-if="msg.typing" class="text-sm leading-relaxed break-words text-cyber-text markdown-body" v-html="renderMarkdown(msg.content)"></div>
             <template v-else>
               <template v-for="(seg, si) in parseSegments(msg.content)" :key="si">
                 <div v-if="seg.type === 'markdown'" class="text-sm leading-relaxed break-words text-cyber-text markdown-body" v-html="seg.content" />
