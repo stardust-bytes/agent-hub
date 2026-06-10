@@ -47,6 +47,8 @@ export class OllamaProvider implements LLMProvider {
     const decoder = new TextDecoder();
     let buf = '';
 
+    signal.addEventListener('abort', () => reader.cancel(), { once: true });
+
     while (!signal.aborted) {
       const { done, value } = await reader.read();
       if (done) break;
