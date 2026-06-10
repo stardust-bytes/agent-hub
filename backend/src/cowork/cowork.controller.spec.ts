@@ -10,6 +10,7 @@ describe('CoworkController', () => {
     clearProject: jest.fn().mockResolvedValue(undefined),
     getDrives: jest.fn().mockResolvedValue(['C:\\', 'D:\\']),
     browseDirectory: jest.fn().mockResolvedValue({ path: '/test', entries: [{ name: 'subdir', isDirectory: true }] }),
+    readFile: jest.fn().mockResolvedValue({ content: 'hi', filename: 'test.ts', size: 2 }),
   };
 
   beforeEach(async () => {
@@ -53,5 +54,20 @@ it('browse delegates to service.browseDirectory', async () => {
 
 it('browse throws when path is missing', async () => {
   await expect(controller.browse('')).rejects.toThrow('path query parameter is required');
+});
+
+it('readFile delegates to service and returns file content', async () => {
+  mockService.getStatus.mockResolvedValue({ projectPath: '/project', isActive: true });
+  mockService.readFile.mockResolvedValue({ content: 'hi', filename: 'test.ts', size: 2 });
+
+  const result = await controller.readFile('/project/test.ts');
+  expect(mockService.getStatus).toHaveBeenCalled();
+  expect(mockService.readFile).toHaveBeenCalledWith('/project/test.ts', '/project');
+  expect(result).toEqual({ content: 'hi', filename: 'test.ts', size: 2 });
+});
+
+it('readFile throws when no project connected', async () => {
+  mockService.getStatus.mockResolvedValue({ projectPath: null, isActive: false });
+  await expect(controller.readFile('/project/test.ts')).rejects.toThrow('No project connected');
 });
 });

@@ -3,6 +3,7 @@ import { CoworkService } from './cowork.service';
 import { SettingsService } from '../settings/settings.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 import * as path from 'path';
+import * as fs from 'fs/promises';
 
 describe('CoworkService', () => {
   let service: CoworkService;
@@ -108,6 +109,35 @@ describe('CoworkService', () => {
       for (const entry of result.entries) {
         expect(entry.isDirectory).toBe(true);
       }
+    });
+  });
+
+  describe('readFile', () => {
+    it('reads file content within project path', async () => {
+      jest.spyOn(fs, 'readFile').mockResolvedValue('file content');
+      jest.spyOn(fs, 'stat').mockResolvedValue({ isFile: () => true, size: 12 } as any);
+
+      const result = await service.readFile('/project/src/main.ts', '/project');
+      expect(result).toEqual({ content: 'file content', filename: 'main.ts', size: 12 });
+    });
+
+    it('rejects path traversal', async () => {
+      await expect(
+        service.readFile('/project/../outside/secret.txt', '/project'),
+      ).rejects.toThrow('Path is outside the project directory');
+    });
+
+    it('rejects path outside project dir', async () => {
+      await expect(
+        service.readFile('/outside/secret.txt', '/project'),
+      ).rejects.toThrow('Path is outside the project directory');
+    });
+
+    it('rejects non-file paths', async () => {
+      jest.spyOn(fs, 'stat').mockResolvedValue({ isFile: () => false } as any);
+      await expect(
+        service.readFile('/project/src', '/project'),
+      ).rejects.toThrow('Path is not a file');
     });
   });
 });

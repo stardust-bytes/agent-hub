@@ -54,6 +54,27 @@ export class CoworkService implements OnModuleInit {
     return ['/'];
   }
 
+  async readFile(filePath: string, projectPath: string): Promise<{ content: string; filename: string; size: number }> {
+    const resolved = path.resolve(filePath);
+    const project = path.resolve(projectPath);
+
+    if (!resolved.startsWith(project)) {
+      throw new Error('Path is outside the project directory');
+    }
+
+    const stat = await fs.stat(resolved);
+    if (!stat.isFile()) {
+      throw new Error('Path is not a file');
+    }
+
+    const content = await fs.readFile(resolved, 'utf-8');
+    return {
+      content,
+      filename: path.basename(resolved),
+      size: stat.size,
+    };
+  }
+
   async browseDirectory(dirPath: string): Promise<{ path: string; entries: Array<{ name: string; isDirectory: boolean }> }> {
     const resolved = path.resolve(dirPath);
     const dirents = await fs.readdir(resolved, { withFileTypes: true });

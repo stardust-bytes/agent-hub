@@ -33,4 +33,12 @@ async browse(@Query('path') path: string) {
   if (!path) throw new BadRequestException('path query parameter is required');
   return this.cowork.browseDirectory(path);
 }
+
+@Get('read-file')
+async readFile(@Query('path') filePath: string) {
+  if (!filePath) throw new BadRequestException('path query parameter is required');
+  const status = await this.cowork.getStatus();
+  if (!status.projectPath) throw new BadRequestException('No project connected');
+  return this.cowork.readFile(filePath, status.projectPath);
+}
 }
