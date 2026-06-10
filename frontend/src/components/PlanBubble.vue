@@ -29,7 +29,16 @@
     </div>
 
     <div v-if="plan.status !== 'PENDING'" class="px-3 py-2 border-t border-cyber-accent/20">
-      <span :class="statusClass(plan.status)" class="text-xs">{{ t('plans.status.' + plan.status.toLowerCase()) }}</span>
+      <div class="flex items-center justify-between">
+        <span :class="statusClass(plan.status)" class="text-xs">
+          {{ plan.status === 'INTERRUPTED' ? '⏸ ' + t('plans.status.interrupted') : t('plans.status.' + plan.status.toLowerCase()) }}
+        </span>
+        <button
+          v-if="plan.status === 'INTERRUPTED'"
+          @click="emit('resume', plan.id)"
+          class="text-cyber-cyan text-xs font-bold px-2 py-0.5 border border-cyber-cyan/40 transition-colors duration-150 hover:bg-cyber-cyan/20"
+        >&#9654; {{ t('plans.resume') }}</button>
+      </div>
     </div>
   </div>
 </template>
@@ -60,6 +69,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   approve: [planId: number]
   reject: [planId: number]
+  resume: [planId: number]
 }>()
 
 const { t } = useI18n()
@@ -91,6 +101,7 @@ function statusClass(status: string): string {
   if (status === 'EXECUTING') return 'text-cyber-orange'
   if (status === 'DONE') return 'text-cyber-green'
   if (status === 'FAILED') return 'text-red-400'
+  if (status === 'INTERRUPTED') return 'text-cyber-cyan'
   return 'text-cyber-muted'
 }
 </script>

@@ -176,5 +176,6 @@
   "plans.status.approved": "Approved",
   "plans.status.executing": "Executing...",
   "plans.status.done": "Done",
+  "plans.status.interrupted": "Interrupted",
   "plans.status.failed": "Failed"
 }

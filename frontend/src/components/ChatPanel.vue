@@ -60,6 +60,7 @@
               :streaming="streaming"
               @approve="handleApprove"
               @reject="handleReject"
+              @resume="handleResumeFromBubble"
             />
           </div>
 
@@ -604,6 +605,11 @@ async function resumePlan(planId: number) {
 
 async function handleReject(planId: number) {
   input.value = `/plan reject ${planId}`
+  await submit()
+}
+
+async function handleResumeFromBubble(planId: number) {
+  input.value = `/plan resume ${planId}`
   await submit()
 }
 

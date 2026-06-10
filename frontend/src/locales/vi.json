@@ -176,5 +176,6 @@
   "plans.status.approved": "Đã duyệt",
   "plans.status.executing": "Đang thực hiện",
   "plans.status.done": "Hoàn thành",
+  "plans.status.interrupted": "Đã dừng",
   "plans.status.failed": "Thất bại"
 }
