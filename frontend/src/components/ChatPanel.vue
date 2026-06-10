@@ -252,6 +252,55 @@ const showResumeModal = ref(false)
 const resumePlans = ref<Array<{ id: number; title: string; status: string; steps: Array<{ id: number; order: number; text: string; status: string }> }>>([])
 const loadingResumePlans = ref(false)
 
+interface PlanExecCallbacks {
+  onStepUpdate: (planId: number, stepId: number, status: string) => void
+  onToken: (token: string) => void
+  onToolCall: (name: string, args: Record<string, unknown>) => void
+  onToolResult: (name: string, result: string) => void
+  onDone: () => void
+  onError: (error: string) => void
+}
+
+async function readPlanExecuteStream(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  callbacks: PlanExecCallbacks,
+): Promise<void> {
+  const decoder = new TextDecoder()
+  let buf = ''
+  let done = false
+
+  while (!done) {
+    const { done: streamDone, value } = await reader.read()
+    if (streamDone) break
+    buf += decoder.decode(value, { stream: true })
+    const lines = buf.split('\n')
+    buf = lines.pop() ?? ''
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue
+      const payload = line.slice(6)
+      if (payload === '[DONE]') { callbacks.onDone(); done = true; break }
+      try {
+        const parsed = JSON.parse(payload) as Record<string, unknown>
+        if (parsed.planStepUpdate) {
+          const upd = parsed.planStepUpdate as { planId: number; stepId: number; status: string }
+          callbacks.onStepUpdate(upd.planId, upd.stepId, upd.status)
+        } else if (parsed.token) {
+          callbacks.onToken(String(parsed.token))
+        } else if (parsed.toolCall) {
+          const tc = parsed.toolCall as { name: string; args: Record<string, unknown> }
+          callbacks.onToolCall(tc.name, tc.args)
+        } else if (parsed.toolResult) {
+          const tr = parsed.toolResult as { name: string; result: string }
+          callbacks.onToolResult(tr.name, tr.result)
+        } else if (parsed.error) {
+          callbacks.onError(String(parsed.error))
+        }
+      } catch { /* skip malformed */ }
+    }
+  }
+}
+
 const hasChatMessages = computed(() =>
   messages.value.some(m => m.role === 'user' || m.role === 'agent' || m.role === 'plan')
 )
@@ -544,59 +593,47 @@ async function handleApprove(planId: number) {
     if (!execRes.ok || !execRes.body) throw new Error(`HTTP ${execRes.status}`)
 
     const reader = execRes.body.getReader()
-    const decoder = new TextDecoder()
-    let buf = ''
-    let done = false
-
-    while (!done) {
-      const { done: streamDone, value } = await reader.read()
-      if (streamDone) break
-      buf += decoder.decode(value, { stream: true })
-      const lines = buf.split('\n')
-      buf = lines.pop() ?? ''
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue
-        const payload = line.slice(6)
-        if (payload === '[DONE]') { done = true; break }
-        try {
-          const parsed = JSON.parse(payload) as Record<string, unknown>
-          if (parsed.planStepUpdate) {
-            const upd = parsed.planStepUpdate as { planId: number; stepId: number; status: string }
-            const msg = messages.value.find(m => m.role === 'plan' && m.plan?.id === upd.planId)
-            if (msg?.plan) {
-              const step = msg.plan.steps.find(s => s.id === upd.stepId)
-              if (step) step.status = upd.status
-            }
-            await scrollToBottom()
-          } else if (parsed.token) {
-            if (currentAgentIdx < 0) {
-              currentAgentIdx = messages.value.length
-              messages.value.push({ role: 'agent', content: '', timestamp: now(), typing: true })
-            }
-            messages.value[currentAgentIdx].content += String(parsed.token)
-            await scrollToBottom()
-          } else if (parsed.toolCall) {
-            currentAgentIdx = -1
-            const tc = parsed.toolCall as { name: string; args: Record<string, unknown> }
-            const argsStr = Object.entries(tc.args).map(([k, v]) => `${k}=${v}`).join(', ')
-            messages.value.push({ role: 'tool', content: `${tc.name}(${argsStr})`, timestamp: now(), toolName: tc.name, isResult: false })
-            await scrollToBottom()
-          } else if (parsed.toolResult) {
-            currentAgentIdx = -1
-            const tr = parsed.toolResult as { name: string; result: string }
-            messages.value.push({ role: 'tool', content: tr.result, timestamp: now(), toolName: tr.name, isResult: true })
-            await scrollToBottom()
-          }
-        } catch { /* skip malformed */ }
-      }
-    }
-
-    const msg2 = messages.value.find(m => m.role === 'plan' && m.plan?.id === planId)
-    if (msg2?.plan && msg2.plan.status === 'EXECUTING') msg2.plan.status = 'DONE'
-    if (currentAgentIdx >= 0) messages.value[currentAgentIdx].typing = false
-    await scrollToBottom()
+    await readPlanExecuteStream(reader, {
+      onStepUpdate: (planId, stepId, status) => {
+        const msg = messages.value.find(m => m.role === 'plan' && m.plan?.id === planId)
+        if (msg?.plan) {
+          const step = msg.plan.steps.find(s => s.id === stepId)
+          if (step) step.status = status
+        }
+        scrollToBottom()
+      },
+      onToken: (token) => {
+        if (currentAgentIdx < 0) {
+          currentAgentIdx = messages.value.length
+          messages.value.push({ role: 'agent', content: '', timestamp: now(), typing: true })
+        }
+        messages.value[currentAgentIdx].content += token
+        scrollToBottom()
+      },
+      onToolCall: (name, args) => {
+        currentAgentIdx = -1
+        const argsStr = Object.entries(args).map(([k, v]) => `${k}=${v}`).join(', ')
+        messages.value.push({ role: 'tool', content: `${name}(${argsStr})`, timestamp: now(), toolName: name, isResult: false })
+        scrollToBottom()
+      },
+      onToolResult: (name, result) => {
+        currentAgentIdx = -1
+        messages.value.push({ role: 'tool', content: result, timestamp: now(), toolName: name, isResult: true })
+        scrollToBottom()
+      },
+      onDone: () => {
+        const msg2 = messages.value.find(m => m.role === 'plan' && m.plan?.id === planId)
+        if (msg2?.plan && msg2.plan.status === 'EXECUTING') msg2.plan.status = 'DONE'
+        if (currentAgentIdx >= 0) messages.value[currentAgentIdx].typing = false
+        scrollToBottom()
+      },
+      onError: (error) => {
+        messages.value.push({ role: 'system', content: `${t('chat.error.unreachable')} (${error})`, timestamp: now() })
+        scrollToBottom()
+      },
+    })
   } catch (e) {
+    if (currentAgentIdx >= 0) messages.value[currentAgentIdx].typing = false
     if (e instanceof Error && e.name !== 'AbortError') {
       messages.value.push({ role: 'system', content: t('chat.error.unreachable'), timestamp: now() })
     }
@@ -627,17 +664,69 @@ async function resumePlan(planId: number) {
   const sid = currentSessionId.value
   const mid = selectedModelId.value
   if (!sid || mid === null) return
+
+  messages.value.push({ role: 'system', content: `Resuming plan...`, timestamp: now() })
+  await scrollToBottom()
+
+  streaming.value = true
+  let currentAgentIdx = -1
+
   try {
-    const res = await fetch(`/api/agent/plans/${planId}/execute`, {
+    const execRes = await fetch(`/api/agent/plans/${planId}/execute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ providerModelId: mid, sessionId: sid }),
     })
-    if (res.ok) {
-      messages.value.push({ role: 'system', content: `Resuming plan ${planId}...`, timestamp: now() })
-      await scrollToBottom()
+    if (!execRes.ok || !execRes.body) throw new Error(`HTTP ${execRes.status}`)
+
+    const reader = execRes.body.getReader()
+    await readPlanExecuteStream(reader, {
+      onStepUpdate: (pid, stepId, status) => {
+        const msg = messages.value.find(m => m.role === 'plan' && m.plan?.id === pid)
+        if (msg?.plan) {
+          const step = msg.plan.steps.find(s => s.id === stepId)
+          if (step) step.status = status
+        }
+        scrollToBottom()
+      },
+      onToken: (token) => {
+        if (currentAgentIdx < 0) {
+          currentAgentIdx = messages.value.length
+          messages.value.push({ role: 'agent', content: '', timestamp: now(), typing: true })
+        }
+        messages.value[currentAgentIdx].content += token
+        scrollToBottom()
+      },
+      onToolCall: (name, args) => {
+        currentAgentIdx = -1
+        const argsStr = Object.entries(args).map(([k, v]) => `${k}=${v}`).join(', ')
+        messages.value.push({ role: 'tool', content: `${name}(${argsStr})`, timestamp: now(), toolName: name, isResult: false })
+        scrollToBottom()
+      },
+      onToolResult: (name, result) => {
+        currentAgentIdx = -1
+        messages.value.push({ role: 'tool', content: result, timestamp: now(), toolName: name, isResult: true })
+        scrollToBottom()
+      },
+      onDone: () => {
+        const msg2 = messages.value.find(m => m.role === 'plan' && m.plan?.id === planId)
+        if (msg2?.plan && msg2.plan.status === 'EXECUTING') msg2.plan.status = 'DONE'
+        if (currentAgentIdx >= 0) messages.value[currentAgentIdx].typing = false
+        scrollToBottom()
+      },
+      onError: (error) => {
+        messages.value.push({ role: 'system', content: `${t('chat.error.unreachable')} (${error})`, timestamp: now() })
+        scrollToBottom()
+      },
+    })
+  } catch (e) {
+    if (currentAgentIdx >= 0) messages.value[currentAgentIdx].typing = false
+    if (e instanceof Error && e.name !== 'AbortError') {
+      messages.value.push({ role: 'system', content: t('chat.error.unreachable'), timestamp: now() })
     }
-  } catch { /* ignore */ }
+  } finally {
+    streaming.value = false
+  }
 }
 
 async function handleReject(planId: number) {
