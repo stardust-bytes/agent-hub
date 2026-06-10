@@ -168,16 +168,21 @@ function onDirSelected(dirPath: string) {
 
 async function connectProject(dirPath: string) {
   try {
+    console.log('[CoworkView] connectProject:', dirPath)
     const res = await fetch('/api/cowork/project', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: dirPath }),
     })
+    console.log('[CoworkView] POST result:', res.status, res.ok)
     if (res.ok) {
       projectPath.value = dirPath
       showDirBrowser.value = false
+      console.log('[CoworkView] projectPath set:', projectPath.value)
     }
-  } catch { /* ignore */ }
+  } catch (e) {
+    console.error('[CoworkView] POST failed:', e)
+  }
 }
 
 async function disconnect() {

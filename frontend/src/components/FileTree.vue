@@ -54,26 +54,32 @@ const error = ref('')
 const selectedPath = ref<string | null>(null)
 
 watch(() => props.projectPath, async (val) => {
+  console.log('[FileTree] watch fired, projectPath:', val)
   if (val) await loadRoot(val)
 }, { immediate: true })
 
 async function loadRoot(projectPath: string) {
+  console.log('[FileTree] loadRoot:', projectPath)
   loading.value = true
   error.value = ''
   try {
     const entries = await fetchChildren(projectPath, 0)
+    console.log('[FileTree] entries loaded:', entries.length)
     tree.value = entries
   } catch (e) {
+    console.error('[FileTree] loadRoot error:', e)
     error.value = t('cowork.browse.error')
   } finally {
+    console.log('[FileTree] loading set to false')
     loading.value = false
   }
 }
 
 async function fetchChildren(dirPath: string, depth: number): Promise<TreeEntry[]> {
   const enc = encodeURIComponent(dirPath)
+  console.log('[FileTree] fetching:', `/api/cowork/browse?path=${enc}`)
   const res = await fetch(`/api/cowork/browse?path=${enc}`)
-  if (!res.ok) throw new Error('fetch failed')
+  if (!res.ok) throw new Error(`fetch failed: ${res.status}`)
   const data = await res.json() as { entries: Array<{ name: string; isDirectory: boolean }> }
   return data.entries.map(e => ({
     name: e.name,
