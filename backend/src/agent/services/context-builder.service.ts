@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { OllamaMessage } from '../providers/llm-provider.interface';
 import { AgentRunState } from '../dto/agent-run-state';
 import { ToolsService } from '../../tools/tools.service';
+import { McpService } from '../mcp/mcp.service';
 
 export interface ToolDefinition {
   type: 'function';
@@ -24,6 +25,7 @@ export class ContextBuilderService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly toolsService: ToolsService,
+    private readonly mcpService: McpService,
   ) {}
 
   async build(
@@ -101,7 +103,7 @@ export class ContextBuilderService {
 
   private async getEnabledTools(): Promise<ToolDefinition[]> {
     const dbTools = await this.toolsService.findEnabled();
-    return dbTools.map(t => ({
+    const tools: ToolDefinition[] = dbTools.map(t => ({
       type: 'function' as const,
       function: {
         name: t.name,
@@ -109,5 +111,19 @@ export class ContextBuilderService {
         parameters: JSON.parse(t.parameters),
       },
     }));
+    try {
+      const mcpTools = await this.mcpService.getAllTools();
+      for (const t of mcpTools) {
+        tools.push({
+          type: 'function' as const,
+          function: {
+            name: t.name,
+            description: t.description ?? '',
+            parameters: t.parameters,
+          },
+        });
+      }
+    } catch { /* MCP not available */ }
+    return tools;
   }
 }

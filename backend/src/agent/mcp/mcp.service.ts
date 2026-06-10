@@ -22,7 +22,7 @@ export class McpService implements OnModuleInit {
       ]);
       this.servers.set('playwright', { id: 'playwright', client });
     } catch (e) {
-      // Playwright MCP may not be available in all environments
+      console.warn('Playwright MCP not available:', e instanceof Error ? e.message : e);
     }
   }
 
@@ -37,6 +37,21 @@ export class McpService implements OnModuleInit {
 
   getServers(): string[] {
     return Array.from(this.servers.keys());
+  }
+
+  async getAllTools(): Promise<Array<{ name: string; description?: string; parameters: Record<string, unknown> }>> {
+    const tools: Array<{ name: string; description?: string; parameters: Record<string, unknown> }> = [];
+    for (const [serverId, entry] of this.servers) {
+      const mcpTools = await entry.client.listTools();
+      for (const t of mcpTools) {
+        tools.push({
+          name: `mcp__${serverId}__${t.name}`,
+          description: t.description,
+          parameters: t.inputSchema ?? {},
+        });
+      }
+    }
+    return tools;
   }
 
   async addServer(id: string, command: string, args: string[]): Promise<void> {

@@ -58,7 +58,7 @@ export class McpClientService {
         .map(c => (c.text ?? JSON.stringify(c)))
         .join('\n');
     } catch (e) {
-      return `Error calling MCP tool "${name}": ${e instanceof Error ? e.message : 'Unknown error'}`;
+      return `Error: MCP tool "${name}" failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
     }
   }
 
