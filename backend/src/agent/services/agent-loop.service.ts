@@ -20,6 +20,10 @@ import { UpdateNoteExecutor } from '../../tools/executors/update-note.executor';
 import { ListNotesExecutor } from '../../tools/executors/list-notes.executor';
 import { DeleteNoteExecutor } from '../../tools/executors/delete-note.executor';
 import { ConvertNoteToTaskExecutor } from '../../tools/executors/convert-note-to-task.executor';
+import { WriteFileExecutor } from '../../tools/executors/write-file.executor';
+import { ReadFileExecutor } from '../../tools/executors/read-file.executor';
+import { ListDirectoryExecutor } from '../../tools/executors/list-directory.executor';
+import { RunCommandExecutor } from '../../tools/executors/run-command.executor';
 import { PermissionsService } from './permissions.service';
 import { PlansService } from '../../plans/plans.service';
 
@@ -54,6 +58,10 @@ export class AgentLoopService {
     listNotes: ListNotesExecutor,
     deleteNote: DeleteNoteExecutor,
     convertNoteToTask: ConvertNoteToTaskExecutor,
+    writeFile: WriteFileExecutor,
+    readFile: ReadFileExecutor,
+    listDirectory: ListDirectoryExecutor,
+    runCommand: RunCommandExecutor,
   ) {
     this.executorMap = new Map<string, ToolExecutor>([
       [createTask.name, createTask],
@@ -69,6 +77,10 @@ export class AgentLoopService {
       [listNotes.name, listNotes],
       [deleteNote.name, deleteNote],
       [convertNoteToTask.name, convertNoteToTask],
+      [writeFile.name, writeFile],
+      [readFile.name, readFile],
+      [listDirectory.name, listDirectory],
+      [runCommand.name, runCommand],
     ]);
   }
 

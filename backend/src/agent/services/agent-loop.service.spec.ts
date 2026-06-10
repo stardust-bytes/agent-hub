@@ -16,6 +16,10 @@ import { UpdateNoteExecutor } from '../../tools/executors/update-note.executor';
 import { ListNotesExecutor } from '../../tools/executors/list-notes.executor';
 import { DeleteNoteExecutor } from '../../tools/executors/delete-note.executor';
 import { ConvertNoteToTaskExecutor } from '../../tools/executors/convert-note-to-task.executor';
+import { WriteFileExecutor } from '../../tools/executors/write-file.executor';
+import { ReadFileExecutor } from '../../tools/executors/read-file.executor';
+import { ListDirectoryExecutor } from '../../tools/executors/list-directory.executor';
+import { RunCommandExecutor } from '../../tools/executors/run-command.executor';
 import { PermissionsService } from './permissions.service';
 import { PlansService } from '../../plans/plans.service';
 import { StreamChunk } from '../providers/llm-provider.interface';
@@ -101,6 +105,10 @@ describe('AgentLoopService', () => {
         { provide: ListNotesExecutor, useValue: { name: 'list_notes', execute: jest.fn() } },
         { provide: DeleteNoteExecutor, useValue: { name: 'delete_note', execute: jest.fn() } },
         { provide: ConvertNoteToTaskExecutor, useValue: { name: 'convert_note_to_task', execute: jest.fn() } },
+        { provide: WriteFileExecutor, useValue: { name: 'write_file', execute: jest.fn() } },
+        { provide: ReadFileExecutor, useValue: { name: 'read_file', execute: jest.fn() } },
+        { provide: ListDirectoryExecutor, useValue: { name: 'list_directory', execute: jest.fn() } },
+        { provide: RunCommandExecutor, useValue: { name: 'run_command', execute: jest.fn() } },
         { provide: PermissionsService, useValue: { isAllowed: jest.fn().mockResolvedValue(true) } },
         { provide: PlansService, useValue: mockPlansService },
       ],

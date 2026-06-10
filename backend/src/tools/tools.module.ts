@@ -14,6 +14,10 @@ import { UpdateNoteExecutor } from './executors/update-note.executor';
 import { ListNotesExecutor } from './executors/list-notes.executor';
 import { DeleteNoteExecutor } from './executors/delete-note.executor';
 import { ConvertNoteToTaskExecutor } from './executors/convert-note-to-task.executor';
+import { WriteFileExecutor } from './executors/write-file.executor';
+import { ReadFileExecutor } from './executors/read-file.executor';
+import { ListDirectoryExecutor } from './executors/list-directory.executor';
+import { RunCommandExecutor } from './executors/run-command.executor';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { NotesModule } from '../notes/notes.module';
@@ -32,6 +36,10 @@ const EXECUTORS = [
   ListNotesExecutor,
   DeleteNoteExecutor,
   ConvertNoteToTaskExecutor,
+  WriteFileExecutor,
+  ReadFileExecutor,
+  ListDirectoryExecutor,
+  RunCommandExecutor,
 ];
 
 @Module({
