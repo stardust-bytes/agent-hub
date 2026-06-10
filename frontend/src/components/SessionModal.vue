@@ -51,6 +51,7 @@ interface SessionItem {
 const props = defineProps<{
   modelValue: boolean
   currentSessionId: number | null
+  mode?: string
 }>()
 
 const emit = defineEmits<{
@@ -72,7 +73,8 @@ function onClose() {
 
 async function fetchSessions() {
   try {
-    const res = await fetch('/api/sessions')
+    const q = props.mode ? `?mode=${props.mode}` : ''
+    const res = await fetch(`/api/sessions${q}`)
     if (!res.ok) return
     sessions.value = (await res.json()) as SessionItem[]
   } catch { /* ignore */ }
@@ -83,7 +85,7 @@ async function createSession() {
     const res = await fetch('/api/sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: '{}',
+      body: JSON.stringify({ mode: props.mode ?? 'chat' }),
     })
     if (!res.ok) return
     const session = (await res.json()) as SessionItem

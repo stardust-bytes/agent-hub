@@ -10,15 +10,16 @@ export interface OllamaMessage {
 export class SessionsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(mode?: string) {
     return this.prisma.session.findMany({
+      where: mode ? { mode } : undefined,
       orderBy: { updatedAt: 'desc' },
       include: { _count: { select: { messages: true } } },
     });
   }
 
-  async create() {
-    return this.prisma.session.create({ data: {} });
+  async create(mode: string = 'chat') {
+    return this.prisma.session.create({ data: { mode } });
   }
 
   async remove(id: number) {

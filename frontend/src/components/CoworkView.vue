@@ -134,6 +134,7 @@
     <SessionModal
       v-model="showSessionModal"
       :current-session-id="currentSessionId"
+      mode="cowork"
       @select="loadSession"
       @created="(id: number) => { currentSessionId = id; loadSession(id) }"
     />
@@ -440,7 +441,7 @@ async function submit() {
 
   if (currentSessionId.value === null) {
     try {
-      const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+      const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'cowork' }) })
       if (res.ok) {
         const session = await res.json() as { id: number }
         currentSessionId.value = session.id

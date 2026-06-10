@@ -36,7 +36,7 @@ describe('SessionsService', () => {
     it('creates a session with default title', async () => {
       mockPrisma.session.create.mockResolvedValue({ id: 1, title: 'New Session' });
       const result = await service.create();
-      expect(mockPrisma.session.create).toHaveBeenCalledWith({ data: {} });
+      expect(mockPrisma.session.create).toHaveBeenCalledWith({ data: { mode: 'chat' } });
       expect(result.id).toBe(1);
     });
   });

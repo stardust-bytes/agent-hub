@@ -89,6 +89,7 @@
     <SessionModal
       v-model="showSessionModal"
       :current-session-id="currentSessionId"
+      mode="chat"
       @select="loadSession"
       @created="(id: number) => { currentSessionId = id; loadSession(id) }"
     />
@@ -513,7 +514,7 @@ async function submit() {
   if (!text || streaming.value || selectedModelId.value === null) return
   if (currentSessionId.value === null) {
     try {
-      const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+      const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'chat' }) })
       if (res.ok) {
         const session = await res.json() as { id: number }
         currentSessionId.value = session.id
