@@ -772,7 +772,7 @@ async function submit() {
       }
     } catch { /* ignore */ }
   }
-  if (text === '/resume-plan') {
+  if (currentMode.value === 'cowork' && text === '/resume-plan') {
     await openResumeModal()
     streaming.value = false
     return

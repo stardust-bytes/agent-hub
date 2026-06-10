@@ -39,7 +39,7 @@ export class AgentService {
     };
     const providerType = providerModel.provider.type ?? 'ollama';
 
-    if (message.startsWith('/plan ')) {
+    if (mode === 'cowork' && message.startsWith('/plan ')) {
       const taskText = message.slice(6).trim();
       if (!signal.aborted) {
         await this.sessionsService.saveMessage(sessionId, 'user', message);
