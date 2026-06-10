@@ -26,6 +26,12 @@ export class SessionsService {
     return this.prisma.session.delete({ where: { id } });
   }
 
+  async removeAll() {
+    await this.prisma.chatMessage.deleteMany();
+    await this.prisma.plan.deleteMany();
+    return this.prisma.session.deleteMany();
+  }
+
   async getMessages(sessionId: number) {
     const session = await this.prisma.session.findUnique({ where: { id: sessionId } });
     if (!session) throw new NotFoundException(`Session ${sessionId} not found`);

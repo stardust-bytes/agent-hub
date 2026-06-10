@@ -15,6 +15,11 @@ export class SessionsController {
     return this.sessionsService.create(mode ?? 'chat');
   }
 
+  @Delete()
+  removeAll() {
+    return this.sessionsService.removeAll();
+  }
+
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.sessionsService.remove(id);
