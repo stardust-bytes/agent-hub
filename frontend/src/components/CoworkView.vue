@@ -20,6 +20,7 @@
     <div v-if="projectPath" class="flex flex-1 overflow-hidden">
       <FileTree
         :project-path="projectPath"
+        :refresh-key="fileTreeRefreshKey"
         class="w-60 shrink-0"
         @file-select="onFileSelect"
       />
@@ -176,6 +177,7 @@ const selectedModelId = ref<number | null>(null)
 const availableModels = ref<Array<{ id: number; name: string; providerName: string; providerId: number }>>([])
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
+const fileTreeRefreshKey = ref(0)
 
 onMounted(async () => {
   await loadProject()
@@ -588,6 +590,7 @@ async function submit() {
     const lastAgent = [...messages.value].reverse().find(m => m.role === 'agent')
     if (lastAgent) lastAgent.typing = false
     await scrollToBottom()
+    fileTreeRefreshKey.value++
   } catch (e) {
     if (currentAgentIdx >= 0) {
       messages.value[currentAgentIdx].typing = false
@@ -604,6 +607,7 @@ async function submit() {
     clearThinking()
     streaming.value = false
     abortController.value = null
+    fileTreeRefreshKey.value++
   }
 }
 </script>

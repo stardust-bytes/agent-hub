@@ -39,6 +39,7 @@ interface TreeEntry {
 
 const props = defineProps<{
   projectPath: string
+  refreshKey?: number
 }>()
 
 const emit = defineEmits<{
@@ -56,6 +57,13 @@ const selectedPath = ref<string | null>(null)
 watch(() => props.projectPath, async (val) => {
   if (val) await loadRoot(val)
 }, { immediate: true })
+
+watch(() => props.refreshKey, () => {
+  if (props.projectPath) {
+    expanded.value = {}
+    loadRoot(props.projectPath)
+  }
+})
 
 async function loadRoot(projectPath: string) {
   loading.value = true
