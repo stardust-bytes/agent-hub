@@ -113,7 +113,12 @@ export class AgentLoopService {
     this.retryCount = 0;
     this.failedTool = null;
 
-    const activeTools = mode === 'chat' ? [] : tools;
+    let activeTools: ToolDefinition[];
+    if (mode === 'chat') {
+      activeTools = tools.filter(t => ['web_search', 'web_fetch'].includes(t.function.name));
+    } else {
+      activeTools = tools;
+    }
     let finalText = '';
     let messages = this.llmController.buildMessages(systemPrompt, history, userMessage);
     let iterationCount = 0;
