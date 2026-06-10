@@ -13,6 +13,7 @@ import { ToolsModule } from './tools/tools.module';
 import { PlansModule } from './plans/plans.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 import { CoworkModule } from './cowork/cowork.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CoworkModule } from './cowork/cowork.module';
     PlansModule,
     WorkspaceModule,
     CoworkModule,
+    FilesModule,
   ],
   controllers: [AppController],
 })
