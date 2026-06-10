@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@lancedb/lancedb": "^0.30.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^10.0.0",
@@ -20,6 +21,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/platform-socket.io": "^10.4.22",
     "@nestjs/websockets": "^10.4.22",
+    "@playwright/mcp": "^0.0.76",
     "@prisma/client": "^5.0.0",
     "chokidar": "^3.6.0",
     "class-transformer": "^0.5.1",
