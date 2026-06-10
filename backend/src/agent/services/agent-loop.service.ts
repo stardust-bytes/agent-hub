@@ -522,7 +522,7 @@ export class AgentLoopService {
 
   private async executeTool(name: string, args: Record<string, unknown>, context?: ToolContext): Promise<string> {
     const executor = this.executorMap.get(name);
-    if (executor) return executor.execute(args);
+    if (executor) return executor.execute(args, context);
     const mcpResult = await this.mcpService.tryExecute(name, args);
     if (mcpResult !== null) return mcpResult;
     return `Error: Unknown tool: ${name}`;

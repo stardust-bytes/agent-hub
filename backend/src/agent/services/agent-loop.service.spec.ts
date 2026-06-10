@@ -176,7 +176,7 @@ describe('AgentLoopService', () => {
       );
 
       expect(result).toBe('Here are the search results');
-      expect(webSearch.execute).toHaveBeenCalledWith({ q: 'test query' });
+      expect(webSearch.execute).toHaveBeenCalledWith({ q: 'test query' }, { mode: 'agent', sessionId: 0 });
       expect(res.write).toHaveBeenCalledWith(
         'data: ' + JSON.stringify({ toolCall: { name: 'web_search', args: { q: 'test query' } } }) + '\n\n',
       );
