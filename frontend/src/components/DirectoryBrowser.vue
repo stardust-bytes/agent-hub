@@ -76,6 +76,7 @@ async function fetchJson(url: string): Promise<unknown> {
 }
 
 async function loadDrives() {
+  console.log('[DirBrowser] loadDrives')
   loading.value = true
   error.value = false
   currentPath.value = ''
@@ -83,24 +84,38 @@ async function loadDrives() {
   pathStack.value = []
   try {
     const drives = await fetchJson('/api/cowork/drives') as string[]
+    console.log('[DirBrowser] drives:', drives)
     entries.value = drives.map(d => ({ name: d, isDirectory: true }))
-  } catch { if (!abortController?.signal.aborted) error.value = true }
+  } catch (e) {
+    console.error('[DirBrowser] drives error:', e)
+    if (!abortController?.signal.aborted) error.value = true
+  }
   loading.value = false
 }
 
 async function loadDirectory(dirPath: string) {
+  console.log('[DirBrowser] loadDirectory:', dirPath)
   loading.value = true
   error.value = false
   try {
-    const data = await fetchJson(`/api/cowork/browse?path=${encodeURIComponent(dirPath)}`) as { path: string; entries: DirEntry[] }
+    const url = `/api/cowork/browse?path=${encodeURIComponent(dirPath)}`
+    console.log('[DirBrowser] fetching:', url)
+    const data = await fetchJson(url) as { path: string; entries: DirEntry[] }
+    console.log('[DirBrowser] loaded:', data.entries?.length, 'entries')
     currentPath.value = data.path
     entries.value = data.entries
-  } catch { if (!abortController?.signal.aborted) error.value = true }
+  } catch (e) {
+    console.error('[DirBrowser] load error:', e)
+    if (!abortController?.signal.aborted) error.value = true
+  }
   loading.value = false
+  console.log('[DirBrowser] loading complete')
 }
 
 function navigate(name: string) {
+  console.log('[DirBrowser] navigate:', name)
   const target = joinPath(currentPath.value, name)
+  console.log('[DirBrowser] target path:', target)
   pathStack.value.push(currentPath.value)
   canGoUp.value = true
   loadDirectory(target)
