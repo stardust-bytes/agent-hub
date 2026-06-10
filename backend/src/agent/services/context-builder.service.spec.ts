@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { ToolsService } from '../../tools/tools.service';
 import { McpService } from '../mcp/mcp.service';
 import { CoworkService } from '../../cowork/cowork.service';
+import { ModePolicyService } from '../../mode-policy/mode-policy.service';
 import { AgentRunState } from '../dto/agent-run-state';
 
 describe('ContextBuilderService', () => {
@@ -28,6 +29,16 @@ describe('ContextBuilderService', () => {
     getProject: jest.fn().mockResolvedValue(null),
   };
 
+  const mockModePolicy = {
+    getEnabledTools: jest.fn().mockImplementation((mode, dbTools) =>
+      dbTools.map(t => ({
+        type: 'function' as const,
+        function: { name: t.name, description: t.description, parameters: JSON.parse(t.parameters) },
+      }))
+    ),
+    resolveAllowedPaths: jest.fn().mockReturnValue(['/tmp/workspace/agent-output']),
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -36,6 +47,7 @@ describe('ContextBuilderService', () => {
         { provide: ToolsService, useValue: mockToolsService },
         { provide: McpService, useValue: mockMcpService },
         { provide: CoworkService, useValue: mockCowork },
+        { provide: ModePolicyService, useValue: mockModePolicy },
       ],
     }).compile();
     service = module.get(ContextBuilderService);

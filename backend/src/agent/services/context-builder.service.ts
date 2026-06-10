@@ -5,15 +5,9 @@ import { AgentRunState } from '../dto/agent-run-state';
 import { ToolsService } from '../../tools/tools.service';
 import { McpService } from '../mcp/mcp.service';
 import { CoworkService } from '../../cowork/cowork.service';
-
-export interface ToolDefinition {
-  type: 'function';
-  function: {
-    name: string;
-    description: string;
-    parameters: Record<string, unknown>;
-  };
-}
+import { ModePolicyService } from '../../mode-policy/mode-policy.service';
+import { ToolDefinition } from '../../mode-policy/mode-policy.config';
+export { ToolDefinition };
 
 export interface AgentContext {
   systemPrompt: string;
@@ -28,6 +22,7 @@ export class ContextBuilderService {
     private readonly toolsService: ToolsService,
     private readonly mcpService: McpService,
     private readonly cowork: CoworkService,
+    private readonly modePolicy: ModePolicyService,
   ) {}
 
   async build(
@@ -110,6 +105,17 @@ export class ContextBuilderService {
       `Current time: ${timeStr}`,
     );
 
+    if (mode === 'agent') {
+      const agentPaths = this.modePolicy.resolveAllowedPaths('agent');
+      const agentOutputPath = agentPaths[0] || '{workspaceRoot}/agent-output';
+      lines.push(
+        '',
+        'When writing files, use relative paths (e.g., "output.txt").',
+        `Files will be saved to: ${agentOutputPath}/session_{sessionId}`,
+        'Files written here are automatically downloadable via links returned by write_file.',
+      );
+    }
+
     if (mode === 'cowork' && projectPath) {
       lines.push('',
         `Current working project: ${projectPath}`,
@@ -122,16 +128,8 @@ export class ContextBuilderService {
 
   private async getEnabledTools(mode: string = 'agent'): Promise<ToolDefinition[]> {
     const dbTools = await this.toolsService.findEnabled();
-    const tools: ToolDefinition[] = dbTools
-      .filter(t => mode !== 'agent' || t.name !== 'run_command')
-      .map(t => ({
-        type: 'function' as const,
-        function: {
-          name: t.name,
-          description: t.description,
-          parameters: JSON.parse(t.parameters),
-        },
-      }));
+    const tools = this.modePolicy.getEnabledTools(mode, dbTools);
+
     if (mode === 'cowork') {
       try {
         const mcpTools = await this.mcpService.getAllTools();
