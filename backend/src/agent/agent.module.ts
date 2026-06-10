@@ -27,9 +27,10 @@ import { ConvertNoteToTaskExecutor } from '../tools/executors/convert-note-to-ta
 import { NotesModule } from '../notes/notes.module';
 import { PlansModule } from '../plans/plans.module';
 import { McpModule } from './mcp/mcp.module';
+import { CoworkModule } from '../cowork/cowork.module';
 
 @Module({
-  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule],
+  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule],
   controllers: [AgentController],
   providers: [
     AgentService,

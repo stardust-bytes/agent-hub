@@ -4,6 +4,7 @@ import { OllamaMessage } from '../providers/llm-provider.interface';
 import { AgentRunState } from '../dto/agent-run-state';
 import { ToolsService } from '../../tools/tools.service';
 import { McpService } from '../mcp/mcp.service';
+import { CoworkService } from '../../cowork/cowork.service';
 
 export interface ToolDefinition {
   type: 'function';
@@ -26,6 +27,7 @@ export class ContextBuilderService {
     private readonly prisma: PrismaService,
     private readonly toolsService: ToolsService,
     private readonly mcpService: McpService,
+    private readonly cowork: CoworkService,
   ) {}
 
   async build(
@@ -34,8 +36,9 @@ export class ContextBuilderService {
     systemPromptOverride?: string,
   ): Promise<AgentContext> {
     const tools = await this.getEnabledTools();
+    const project = await this.cowork.getProject();
 
-    const systemPrompt = systemPromptOverride || this.buildSystemPrompt(tools);
+    const systemPrompt = systemPromptOverride || this.buildSystemPrompt(tools, project);
 
     const messages = await this.loadChatHistory(sessionId);
 
@@ -58,7 +61,7 @@ export class ContextBuilderService {
     return history.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
   }
 
-  private buildSystemPrompt(tools: ToolDefinition[]): string {
+  private buildSystemPrompt(tools: ToolDefinition[], projectPath?: string | null): string {
     const now = new Date();
     const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
@@ -97,6 +100,13 @@ export class ContextBuilderService {
       `Current date: ${dateStr}`,
       `Current time: ${timeStr}`,
     );
+
+    if (projectPath) {
+      lines.push('',
+        `Current working project: ${projectPath}`,
+        'File operations are available in this directory.',
+      );
+    }
 
     return lines.join('\n');
   }
