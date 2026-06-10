@@ -24,4 +24,12 @@ export class SettingsService {
       create: { key, value },
     });
   }
+
+  async set(key: string, value: string): Promise<void> {
+    return this.upsert(key, value);
+  }
+
+  async delete(key: string): Promise<void> {
+    await this.prisma.setting.delete({ where: { key } });
+  }
 }
