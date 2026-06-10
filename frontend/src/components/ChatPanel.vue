@@ -99,23 +99,14 @@
         <div class="bg-cyber-dark px-3 py-2">
           <form @submit.prevent="submit" class="flex items-center gap-2">
             <div class="relative flex-1">
-              <SlashMenu
-                :visible="showSlashMenu"
-                :filter="slashFilter"
-                :selected-index="slashSelectedIndex"
-                @select="onSlashSelect"
-                @highlight="(i: number) => { slashSelectedIndex = i }"
-              />
               <input
                 ref="inputEl"
                 v-model="input"
                 class="flex-1 bg-transparent text-cyber-text text-sm outline-none font-mono placeholder-cyber-muted/40 caret-white w-full"
                 :placeholder="t('chat.placeholder')"
                 :disabled="streaming"
-                autocomplete="off"
+                 autocomplete="off"
                 spellcheck="false"
-                @input="onInput"
-                @keydown="onKeyDown"
               />
             </div>
             <button
@@ -150,11 +141,6 @@
                 :class="currentMode === 'agent' ? 'bg-cyber-accent/20 text-cyber-accent' : 'text-cyber-muted'"
                 class="px-2 py-0.5 text-sm font-mono transition-colors duration-150"
               >{{ t('chat.mode.agent') }}</button>
-              <button
-                @click="currentMode = 'cowork'"
-                :class="currentMode === 'cowork' ? 'bg-cyber-accent/20 text-cyber-accent' : 'text-cyber-muted'"
-                class="px-2 py-0.5 text-sm font-mono transition-colors duration-150"
-              >{{ t('chat.mode.cowork') }}</button>
             </div>
           </div>
           <button
@@ -164,32 +150,6 @@
         </div>
       </div>
     </div>
-    <!-- Resume Plan Modal -->
-    <Teleport to="body">
-    <div v-if="showResumeModal" class="fixed inset-0 bg-cyber-dark/80 z-50 flex items-center justify-center" @click.self="showResumeModal = false">
-      <div class="w-100 bg-cyber-modal-bg border-t border-cyber-orange flex flex-col" style="max-height: 80vh; max-width: 90vw">
-        <div class="px-3 py-2 bg-cyber-modal-bg flex items-center justify-between shrink-0">
-          <span class="text-cyber-text text-sm font-mono">Resume Plan</span>
-          <button @click="showResumeModal = false" class="text-cyber-muted text-sm font-mono hover:text-cyber-accent">✕</button>
-        </div>
-        <div class="overflow-y-auto flex-1 px-3 py-3">
-          <div v-if="loadingResumePlans" class="text-cyber-muted text-sm font-mono text-center py-4">⟳ {{ t('chat.loading') }}</div>
-          <div v-else-if="resumePlans.length === 0" class="text-cyber-muted text-sm font-mono text-center py-4">{{ t('plans.empty') }}</div>
-          <div v-else class="space-y-2">
-            <div v-for="plan in resumePlans" :key="plan.id"
-              class="bg-cyber-dark border border-cyber-border rounded p-3 cursor-pointer hover:border-cyber-accent/40 transition-colors duration-150"
-              @click="resumePlan(plan.id)">
-              <div class="flex items-center justify-between">
-                <span class="text-cyber-text text-sm font-mono">{{ plan.title }}</span>
-                <span class="text-cyber-muted text-[10px] font-mono">{{ plan.status }}</span>
-              </div>
-              <div class="text-cyber-muted text-xs font-mono mt-1">{{ plan.steps.filter(s => s.status === 'DONE').length }}/{{ plan.steps.length }} steps</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </Teleport>
   </div>
 </template>
 
@@ -203,7 +163,6 @@ import ModelSelector from './ModelSelector.vue'
 import SessionModal from './SessionModal.vue'
 import FormBlock from './FormBlock.vue'
 import PlanBubble from './PlanBubble.vue'
-import SlashMenu from './SlashMenu.vue'
 
 interface PlanStep {
   id: number
@@ -250,13 +209,7 @@ const input = ref('')
 const messagesEl = ref<HTMLElement | null>(null)
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
-const currentMode = ref<'chat' | 'agent' | 'cowork'>('chat')
-const showSlashMenu = ref(false)
-const slashFilter = ref('')
-const slashSelectedIndex = ref(0)
-const showResumeModal = ref(false)
-const resumePlans = ref<Array<{ id: number; title: string; status: string; steps: Array<{ id: number; order: number; text: string; status: string }> }>>([])
-const loadingResumePlans = ref(false)
+const currentMode = ref<'chat' | 'agent'>('chat')
 
 interface PlanExecCallbacks {
   onStepUpdate: (planId: number, stepId: number, status: string) => void
@@ -446,63 +399,6 @@ function stopStream() {
   abortController.value?.abort()
 }
 
-function onInput(e: Event) {
-  const el = e.target as HTMLInputElement
-  const text = el.value || ''
-
-  if (currentMode.value === 'cowork' && text.startsWith('/')) {
-    const spaceIdx = text.indexOf(' ')
-    if (spaceIdx === -1) {
-      showSlashMenu.value = true
-      slashFilter.value = text
-      slashSelectedIndex.value = 0
-    } else {
-      showSlashMenu.value = false
-    }
-  } else {
-    showSlashMenu.value = false
-  }
-}
-
-function onKeyDown(e: KeyboardEvent) {
-  if (!showSlashMenu.value) return
-
-  if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    slashSelectedIndex.value = Math.min(slashSelectedIndex.value + 1, 2)
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    slashSelectedIndex.value = Math.max(slashSelectedIndex.value - 1, 0)
-  } else if (e.key === 'Enter' || e.key === 'Tab') {
-    e.preventDefault()
-    const filtered = getSlashCommands().filter(c => c.command.startsWith(slashFilter.value))
-    if (filtered[slashSelectedIndex.value]) {
-      insertSlash(filtered[slashSelectedIndex.value].command)
-    }
-  } else if (e.key === 'Escape') {
-    showSlashMenu.value = false
-  }
-}
-
-function onSlashSelect(command: string) {
-  insertSlash(command)
-}
-
-function insertSlash(command: string) {
-  input.value = command + ' '
-  showSlashMenu.value = false
-  inputEl.value?.focus()
-}
-
-function getSlashCommands() {
-  return [
-    { command: '/plan', description: '' },
-    { command: '/resume-plan', description: '' },
-    { command: '/help', description: '' },
-    { command: '/clear', description: '' },
-  ]
-}
-
 async function loadSession(id: number) {
   currentSessionId.value = id
   messages.value = []
@@ -580,25 +476,7 @@ async function handleApprove(planId: number) {
   await submit()
 }
 
-async function openResumeModal() {
-  const sid = currentSessionId.value
-  if (!sid) return
-  loadingResumePlans.value = true
-  showResumeModal.value = true
-  try {
-    const res = await fetch(`/api/plans/session/${sid}`)
-    if (res.ok) {
-      const allPlans = await res.json()
-      resumePlans.value = allPlans.filter((p: { status: string }) =>
-        p.status === 'APPROVED' || p.status === 'INTERRUPTED' || p.status === 'EXECUTING'
-      )
-    }
-  } catch { /* ignore */ }
-  loadingResumePlans.value = false
-}
-
 async function resumePlan(planId: number) {
-  showResumeModal.value = false
   input.value = `/plan resume ${planId}`
   await submit()
 }
@@ -643,12 +521,6 @@ async function submit() {
       }
     } catch { /* ignore */ }
   }
-  if (currentMode.value === 'cowork' && text === '/resume-plan') {
-    await openResumeModal()
-    streaming.value = false
-    return
-  }
-
   const continuePattern = /^(tiếp\s*tục|tiếp|continue|resume)\b/i
   if (currentSessionId.value !== null && continuePattern.test(text.trim())) {
     input.value = ''
