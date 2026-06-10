@@ -1,23 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { WorkspaceService } from './workspace.service';
+import { IndexerService } from './indexer.service';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import * as chokidar from 'chokidar';
 import * as path from 'path';
-import * as fs from 'fs/promises';
-
-const SUPPORTED_EXTS = ['.ts', '.js', '.py', '.md', '.txt', '.json', '.yaml', '.yml'];
-const DEBOUNCE_MS = 300;
 
 @Injectable()
 export class WorkspaceWatcherService {
   private watcher: chokidar.FSWatcher | null = null;
   private watching = false;
   private directory = '';
-  private indexedCount = 0;
-  private debounceTimers = new Map<string, NodeJS.Timeout>();
 
   constructor(
     private readonly workspace: WorkspaceService,
+    private readonly indexer: IndexerService,
     private readonly knowledge: KnowledgeService,
   ) {}
 
@@ -37,8 +33,8 @@ export class WorkspaceWatcherService {
       ignoreInitial: true,
     });
 
-    this.watcher.on('add', (filePath: string) => this.handleFileChange(filePath, 'add'));
-    this.watcher.on('change', (filePath: string) => this.handleFileChange(filePath, 'change'));
+    this.watcher.on('add', (filePath: string) => this.indexer.enqueue(filePath));
+    this.watcher.on('change', (filePath: string) => this.indexer.enqueue(filePath));
     this.watcher.on('unlink', (filePath: string) => this.handleFileDelete(filePath));
 
     this.watching = true;
@@ -48,63 +44,17 @@ export class WorkspaceWatcherService {
     if (this.watcher) await this.watcher.close();
     this.watcher = null;
     this.watching = false;
-    for (const timer of this.debounceTimers.values()) clearTimeout(timer);
-    this.debounceTimers.clear();
   }
 
   getStatus(): { watching: boolean; directory: string; indexedCount: number } {
-    return { watching: this.watching, directory: this.directory, indexedCount: this.indexedCount };
-  }
-
-  private async handleFileChange(filePath: string, _event: string): Promise<void> {
-    const ext = path.extname(filePath).toLowerCase();
-    if (!SUPPORTED_EXTS.includes(ext)) return;
-
-    const existing = this.debounceTimers.get(filePath);
-    if (existing) clearTimeout(existing);
-
-    this.debounceTimers.set(filePath, setTimeout(async () => {
-      this.debounceTimers.delete(filePath);
-      try {
-        const existingFiles = await this.knowledge.findAll();
-        const known = existingFiles.find((f: { filepath: string }) => f.filepath === filePath);
-        if (known) {
-          await this.knowledge.processFile(known.id);
-          this.indexedCount++;
-        } else {
-          const stats = await fs.stat(filePath);
-          const mimeType = this.inferMimeType(ext);
-          const record = await this.knowledge.createWithPath(
-            path.basename(filePath), filePath, stats.size, mimeType,
-          );
-          await this.knowledge.processFile(record.id);
-          this.indexedCount++;
-        }
-      } catch { /* file may have been deleted between timer and execution */ }
-    }, DEBOUNCE_MS));
+    const s = this.indexer.getStatus();
+    return { watching: this.watching, directory: this.directory, indexedCount: s.done };
   }
 
   private async handleFileDelete(filePath: string): Promise<void> {
     try {
-      const existingFiles = await this.knowledge.findAll();
-      const known = existingFiles.find((f: { filepath: string }) => f.filepath === filePath);
-      if (known) {
-        await this.knowledge.remove(known.id);
-      }
-    } catch { /* file may have been removed from DB between calls */ }
-  }
-
-  private inferMimeType(ext: string): string {
-    const mimeMap: Record<string, string> = {
-      '.ts': 'text/typescript',
-      '.js': 'text/javascript',
-      '.py': 'text/x-python',
-      '.md': 'text/markdown',
-      '.txt': 'text/plain',
-      '.json': 'application/json',
-      '.yaml': 'text/yaml',
-      '.yml': 'text/yaml',
-    };
-    return mimeMap[ext] || 'text/plain';
+      const known = await this.knowledge.findByFilepath(filePath);
+      if (known) await this.knowledge.remove(known.id);
+    } catch { /* ignore */ }
   }
 }
