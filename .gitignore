@@ -35,3 +35,6 @@ coverage/
 Thumbs.db
 
 temp/
+
+# Playwright / MCP
+.playwright-mcp/
