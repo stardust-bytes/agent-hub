@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MODE_POLICY, SystemPromptStyle } from './mode-policy.config';
-import { ToolDefinition } from '../agent/services/context-builder.service';
+import { MODE_POLICY, ToolDefinition, SystemPromptStyle } from './mode-policy.config';
 import * as path from 'path';
 
 export interface ToolInfo {
@@ -43,10 +42,10 @@ export class ModePolicyService {
 
   resolveAllowedPaths(mode: string, projectPath?: string | null): string[] {
     const policy = MODE_POLICY[mode] ?? MODE_POLICY.agent;
-    const pp = projectPath ?? '';
-    return policy.allowedPaths.map(p =>
-      p.replace('{workspaceRoot}', this.workspaceRoot).replace('{projectPath}', pp)
-    );
+    return policy.allowedPaths.map(p => {
+      if (p.includes('{projectPath}') && !projectPath) return '';
+      return p.replace('{workspaceRoot}', this.workspaceRoot).replace('{projectPath}', projectPath ?? '');
+    }).filter(p => p.length > 0);
   }
 
   getSystemPromptStyle(mode: string): SystemPromptStyle {
