@@ -22,6 +22,7 @@ import { ListDirectoryExecutor } from '../../tools/executors/list-directory.exec
 import { RunCommandExecutor } from '../../tools/executors/run-command.executor';
 import { GrepExecutor } from '../../tools/executors/grep.executor';
 import { GlobExecutor } from '../../tools/executors/glob.executor';
+import { ResumePlanExecutor } from '../../tools/executors/resume-plan.executor';
 import { PermissionsService } from './permissions.service';
 import { PlansService } from '../../plans/plans.service';
 import { McpService } from '../mcp/mcp.service';
@@ -114,6 +115,7 @@ describe('AgentLoopService', () => {
         { provide: RunCommandExecutor, useValue: { name: 'run_command', execute: jest.fn() } },
         { provide: GrepExecutor, useValue: { name: 'grep', execute: jest.fn() } },
         { provide: GlobExecutor, useValue: { name: 'glob', execute: jest.fn() } },
+        { provide: ResumePlanExecutor, useValue: { name: 'resume_plan', execute: jest.fn() } },
         { provide: PermissionsService, useValue: { isAllowed: jest.fn().mockResolvedValue(true) } },
         { provide: PlansService, useValue: mockPlansService },
         { provide: McpService, useValue: { tryExecute: jest.fn().mockResolvedValue(null) } },
