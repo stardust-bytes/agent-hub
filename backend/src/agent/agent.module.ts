@@ -4,6 +4,7 @@ import { AgentService } from './agent.service';
 import { AgentLoopService } from './services/agent-loop.service';
 import { LLMControllerService } from './services/llm-controller.service';
 import { OllamaProvider } from './providers/ollama.provider';
+import { OpenAIProvider } from './providers/openai.provider';
 import { ContextBuilderService } from './services/context-builder.service';
 import { PermissionsService } from './services/permissions.service';
 import { TasksModule } from '../tasks/tasks.module';
@@ -40,6 +41,7 @@ import { ModePolicyModule } from '../mode-policy/mode-policy.module';
     AgentLoopService,
     LLMControllerService,
     OllamaProvider,
+    OpenAIProvider,
     ContextBuilderService,
     PermissionsService,
     CreateTaskExecutor,

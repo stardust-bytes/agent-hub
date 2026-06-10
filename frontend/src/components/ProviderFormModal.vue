@@ -8,6 +8,19 @@
 
     <div class="px-3 py-3 space-y-3">
       <div>
+        <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('providers.form.type') }}</label>
+        <select
+          v-model="form.type"
+          @change="onTypeChange"
+          class="w-full bg-cyber-dark text-slate-100 text-sm px-2 py-1.5 font-mono outline-none border border-cyber-accent/10 focus:border-cyber-accent/40"
+        >
+          <option value="ollama">Ollama</option>
+          <option value="openai">OpenAI</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="openai">OpenAI-compatible</option>
+        </select>
+      </div>
+      <div>
         <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('providers.form.name') }}</label>
         <input
           v-model="form.name"
@@ -76,24 +89,46 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const form = ref({ name: '', baseUrl: '', key: '' })
+interface ProviderTypeConfig {
+  baseUrl: string
+  models: string[]
+}
+
+const providerTypes: Record<string, ProviderTypeConfig> = {
+  ollama: { baseUrl: 'http://localhost:11434', models: ['llama3.2', 'codellama', 'mistral'] },
+  openai: { baseUrl: 'https://api.openai.com/v1', models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'] },
+  deepseek: { baseUrl: 'https://api.deepseek.com', models: ['deepseek-chat', 'deepseek-reasoner'] },
+}
+
+const form = ref({ type: 'ollama', name: '', baseUrl: '', key: '' })
 const saving = ref(false)
 
 watch(() => props.modelValue, (open) => {
   if (open) {
+    const type = props.editing?.type ?? 'ollama'
     form.value = {
+      type,
       name: props.editing?.name ?? '',
-      baseUrl: props.editing?.baseUrl ?? '',
+      baseUrl: props.editing?.baseUrl ?? providerTypes[type]?.baseUrl ?? '',
       key: '',
     }
   }
 })
 
+function onTypeChange() {
+  const type = form.value.type
+  const cfg = providerTypes[type]
+  if (cfg && !props.editing) {
+    if (!form.value.name) form.value.name = type.charAt(0).toUpperCase() + type.slice(1)
+    form.value.baseUrl = cfg.baseUrl
+  }
+}
+
 async function save() {
   if (!form.value.name.trim()) return
   saving.value = true
   try {
-    const body: Record<string, string> = { name: form.value.name.trim(), type: 'ollama' }
+    const body: Record<string, string> = { name: form.value.name.trim(), type: form.value.type }
     if (form.value.baseUrl.trim()) body.baseUrl = form.value.baseUrl.trim()
     if (form.value.key.trim()) body.key = form.value.key.trim()
 
