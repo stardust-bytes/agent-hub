@@ -773,6 +773,31 @@ async function submit() {
     return
   }
 
+  const continuePattern = /^(tiếp\s*tục|tiếp|continue|resume)\b/i
+  if (currentSessionId.value !== null && continuePattern.test(text.trim())) {
+    input.value = ''
+    try {
+      const nextRes = await fetch(`/api/plans/session/${currentSessionId.value}/next`)
+      if (nextRes.ok) {
+        const nextData = await nextRes.json() as { found: boolean; plan?: PlanData; action?: string }
+        if (nextData.found && nextData.plan && nextData.action === 'resume') {
+          await resumePlan(nextData.plan.id)
+          return
+        }
+        if (nextData.found && nextData.plan && nextData.action === 'approve') {
+          messages.value.push({
+            role: 'plan',
+            content: '',
+            timestamp: now(),
+            plan: { ...nextData.plan, steps: nextData.plan.steps.map(s => ({ ...s })) },
+          })
+          await scrollToBottom()
+          return
+        }
+      }
+    } catch { /* fall through to normal chat */ }
+  }
+
   input.value = ''
   streaming.value = true
 
