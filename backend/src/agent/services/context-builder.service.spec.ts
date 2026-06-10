@@ -36,4 +36,13 @@ describe('ContextBuilderService', () => {
       'If no results AND the question is about internal documents',
     );
   });
+
+  it('system prompt contains platform and environment info', async () => {
+    const runState = new AgentRunState(10);
+    const context = await service.build(runState, 0);
+    expect(context.systemPrompt).toContain('System Environment:');
+    expect(context.systemPrompt).toContain('Platform:');
+    expect(context.systemPrompt).toContain('Current Working Directory:');
+    expect(context.systemPrompt).toContain('User Home:');
+  });
 });

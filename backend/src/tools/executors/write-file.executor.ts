@@ -26,7 +26,13 @@ export class WriteFileExecutor implements ToolExecutor {
   private isPathAllowed(filePath: string): boolean {
     const allowed = process.env.ALLOWED_PATHS
       ? process.env.ALLOWED_PATHS.split(',').map(p => path.resolve(p.trim()))
-      : [path.resolve('./workspace_data'), os.tmpdir()];
+      : [
+          path.resolve('./workspace_data'),
+          path.resolve(os.tmpdir()),
+          ...(process.env.USERPROFILE ? [path.resolve(process.env.USERPROFILE)] : []),
+          ...(process.env.HOME ? [path.resolve(process.env.HOME)] : []),
+          process.cwd(),
+        ];
     const resolved = path.resolve(filePath);
     return allowed.some(dir => resolved === dir || resolved.startsWith(dir + path.sep));
   }
