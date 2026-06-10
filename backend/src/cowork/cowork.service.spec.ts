@@ -28,6 +28,26 @@ describe('CoworkService', () => {
     service = module.get<CoworkService>(CoworkService);
   });
 
+  it('onModuleInit restores saved project path to allowed paths', async () => {
+    const savedMock = { ...mockSettings, get: jest.fn().mockResolvedValue('/saved/path') };
+    const mod: TestingModule = await Test.createTestingModule({
+      providers: [
+        CoworkService,
+        { provide: SettingsService, useValue: savedMock },
+        { provide: WorkspaceService, useValue: mockWorkspace },
+      ],
+    }).compile();
+    const svc = mod.get<CoworkService>(CoworkService);
+    jest.clearAllMocks();
+    await svc.onModuleInit();
+    expect(mockWorkspace.addAllowedPath).toHaveBeenCalledWith('/saved/path');
+  });
+
+  it('onModuleInit does nothing when no saved path', async () => {
+    await service.onModuleInit();
+    expect(mockWorkspace.addAllowedPath).not.toHaveBeenCalled();
+  });
+
   it('setProject persists path and adds to allowed paths', async () => {
     const resolved = path.resolve('/test/project');
     await service.setProject('/test/project');
