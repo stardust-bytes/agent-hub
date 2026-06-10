@@ -574,77 +574,9 @@ async function loadSession(id: number) {
 }
 
 async function handleApprove(planId: number) {
-  const planMsg = messages.value.find(m => m.role === 'plan' && m.plan?.id === planId)
-  if (!planMsg?.plan || selectedModelId.value === null || currentSessionId.value === null) return
-
-  try {
-    const approveRes = await fetch(`/api/plans/${planId}/approve`, { method: 'POST' })
-    if (!approveRes.ok) throw new Error(`HTTP ${approveRes.status}`)
-    planMsg.plan.status = 'EXECUTING'
-  } catch {
-    messages.value.push({ role: 'system', content: t('chat.error.unreachable'), timestamp: now() })
-    return
-  }
-
-  streaming.value = true
-  let currentAgentIdx = -1
-
-  try {
-    const execRes = await fetch(`/api/agent/plans/${planId}/execute`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ providerModelId: selectedModelId.value, sessionId: currentSessionId.value }),
-    })
-    if (!execRes.ok || !execRes.body) throw new Error(`HTTP ${execRes.status}`)
-
-    const reader = execRes.body.getReader()
-    await readPlanExecuteStream(reader, {
-      onStepUpdate: (planId, stepId, status) => {
-        const msg = messages.value.find(m => m.role === 'plan' && m.plan?.id === planId)
-        if (msg?.plan) {
-          const step = msg.plan.steps.find(s => s.id === stepId)
-          if (step) step.status = status
-        }
-        scrollToBottom()
-      },
-      onToken: (token) => {
-        if (currentAgentIdx < 0) {
-          currentAgentIdx = messages.value.length
-          messages.value.push({ role: 'agent', content: '', timestamp: now(), typing: true })
-        }
-        messages.value[currentAgentIdx].content += token
-        scrollToBottom()
-      },
-      onToolCall: (name, args) => {
-        currentAgentIdx = -1
-        const argsStr = Object.entries(args).map(([k, v]) => `${k}=${v}`).join(', ')
-        messages.value.push({ role: 'tool', content: `${name}(${argsStr})`, timestamp: now(), toolName: name, isResult: false })
-        scrollToBottom()
-      },
-      onToolResult: (name, result) => {
-        currentAgentIdx = -1
-        messages.value.push({ role: 'tool', content: result, timestamp: now(), toolName: name, isResult: true })
-        scrollToBottom()
-      },
-      onDone: () => {
-        const msg2 = messages.value.find(m => m.role === 'plan' && m.plan?.id === planId)
-        if (msg2?.plan && msg2.plan.status === 'EXECUTING') msg2.plan.status = 'DONE'
-        if (currentAgentIdx >= 0) messages.value[currentAgentIdx].typing = false
-        scrollToBottom()
-      },
-      onError: (error) => {
-        messages.value.push({ role: 'system', content: `${t('chat.error.unreachable')} (${error})`, timestamp: now() })
-        scrollToBottom()
-      },
-    })
-  } catch (e) {
-    if (currentAgentIdx >= 0) messages.value[currentAgentIdx].typing = false
-    if (e instanceof Error && e.name !== 'AbortError') {
-      messages.value.push({ role: 'system', content: t('chat.error.unreachable'), timestamp: now() })
-    }
-  } finally {
-    streaming.value = false
-  }
+  if (selectedModelId.value === null) return
+  input.value = `/plan approve ${planId}`
+  await submit()
 }
 
 async function openResumeModal() {
@@ -666,80 +598,13 @@ async function openResumeModal() {
 
 async function resumePlan(planId: number) {
   showResumeModal.value = false
-  const sid = currentSessionId.value
-  const mid = selectedModelId.value
-  if (!sid || mid === null) return
-
-  messages.value.push({ role: 'system', content: `Resuming plan...`, timestamp: now() })
-  await scrollToBottom()
-
-  streaming.value = true
-  let currentAgentIdx = -1
-
-  try {
-    const execRes = await fetch(`/api/agent/plans/${planId}/execute`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ providerModelId: mid, sessionId: sid }),
-    })
-    if (!execRes.ok || !execRes.body) throw new Error(`HTTP ${execRes.status}`)
-
-    const reader = execRes.body.getReader()
-    await readPlanExecuteStream(reader, {
-      onStepUpdate: (pid, stepId, status) => {
-        const msg = messages.value.find(m => m.role === 'plan' && m.plan?.id === pid)
-        if (msg?.plan) {
-          const step = msg.plan.steps.find(s => s.id === stepId)
-          if (step) step.status = status
-        }
-        scrollToBottom()
-      },
-      onToken: (token) => {
-        if (currentAgentIdx < 0) {
-          currentAgentIdx = messages.value.length
-          messages.value.push({ role: 'agent', content: '', timestamp: now(), typing: true })
-        }
-        messages.value[currentAgentIdx].content += token
-        scrollToBottom()
-      },
-      onToolCall: (name, args) => {
-        currentAgentIdx = -1
-        const argsStr = Object.entries(args).map(([k, v]) => `${k}=${v}`).join(', ')
-        messages.value.push({ role: 'tool', content: `${name}(${argsStr})`, timestamp: now(), toolName: name, isResult: false })
-        scrollToBottom()
-      },
-      onToolResult: (name, result) => {
-        currentAgentIdx = -1
-        messages.value.push({ role: 'tool', content: result, timestamp: now(), toolName: name, isResult: true })
-        scrollToBottom()
-      },
-      onDone: () => {
-        const msg2 = messages.value.find(m => m.role === 'plan' && m.plan?.id === planId)
-        if (msg2?.plan && msg2.plan.status === 'EXECUTING') msg2.plan.status = 'DONE'
-        if (currentAgentIdx >= 0) messages.value[currentAgentIdx].typing = false
-        scrollToBottom()
-      },
-      onError: (error) => {
-        messages.value.push({ role: 'system', content: `${t('chat.error.unreachable')} (${error})`, timestamp: now() })
-        scrollToBottom()
-      },
-    })
-  } catch (e) {
-    if (currentAgentIdx >= 0) messages.value[currentAgentIdx].typing = false
-    if (e instanceof Error && e.name !== 'AbortError') {
-      messages.value.push({ role: 'system', content: t('chat.error.unreachable'), timestamp: now() })
-    }
-  } finally {
-    streaming.value = false
-  }
+  input.value = `/plan resume ${planId}`
+  await submit()
 }
 
 async function handleReject(planId: number) {
-  try {
-    await fetch(`/api/plans/${planId}/reject`, { method: 'POST' })
-  } catch { /* ignore */ }
-  const idx = messages.value.findIndex(m => m.role === 'plan' && m.plan?.id === planId)
-  if (idx !== -1) messages.value.splice(idx, 1)
+  input.value = `/plan reject ${planId}`
+  await submit()
 }
 
 function highlightUserMessage(content: string): string {

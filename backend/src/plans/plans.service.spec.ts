@@ -126,12 +126,15 @@ describe('PlansService', () => {
   });
 
   describe('reject', () => {
-    it('deletes the plan', async () => {
-      mockPrisma.plan.delete.mockResolvedValue({ id: 1 });
+    it('sets plan status to CANCELLED', async () => {
+      mockPrisma.plan.findUnique.mockResolvedValue({ id: 1, status: 'PENDING' });
+      mockPrisma.plan.update.mockResolvedValue({ id: 1, status: 'CANCELLED' });
 
-      await service.reject(1);
+      const result = await service.reject(1);
 
-      expect(mockPrisma.plan.delete).toHaveBeenCalledWith({ where: { id: 1 } });
+      expect(mockPrisma.plan.findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+      expect(mockPrisma.plan.update).toHaveBeenCalledWith({ where: { id: 1 }, data: { status: 'CANCELLED' } });
+      expect(result.status).toBe('CANCELLED');
     });
   });
 

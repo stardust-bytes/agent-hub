@@ -5,6 +5,7 @@ import { SessionsService } from '../sessions/sessions.service';
 import { ContextBuilderService } from './services/context-builder.service';
 import { ProvidersService } from '../providers/providers.service';
 import { PermissionsService } from './services/permissions.service';
+import { PlansService } from '../plans/plans.service';
 
 describe('AgentService', () => {
   let service: AgentService;
@@ -37,6 +38,10 @@ describe('AgentService', () => {
     getConfig: jest.fn(),
     updateConfig: jest.fn(),
   };
+  const mockPlansService = {
+    approve: jest.fn().mockResolvedValue({ id: 1, status: 'APPROVED' }),
+    reject: jest.fn().mockResolvedValue({ id: 1, status: 'CANCELLED' }),
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -47,6 +52,7 @@ describe('AgentService', () => {
         { provide: ContextBuilderService, useValue: mockContextBuilder },
         { provide: ProvidersService, useValue: mockProvidersService },
         { provide: PermissionsService, useValue: mockPermissionsService },
+        { provide: PlansService, useValue: mockPlansService },
       ],
     }).compile();
     service = module.get(AgentService);

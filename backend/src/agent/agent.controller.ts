@@ -4,8 +4,6 @@ import { AgentService } from './agent.service';
 import { ChatDto } from './dto/chat.dto';
 import { UpdatePermissionsDto } from './dto/update-permissions.dto';
 import { PermissionsConfig } from './dto/permissions-config';
-import { ExecutePlanDto } from './dto/execute-plan.dto';
-
 @Controller('agent')
 export class AgentController {
   constructor(private readonly agentService: AgentService) {}
@@ -30,30 +28,6 @@ export class AgentController {
       res.write('data: {"error":"internal_error"}\n\n');
     } finally {
       res.end();
-    }
-  }
-
-  @Post('plans/:id/execute')
-  async executePlanStream(
-    @Param('id', ParseIntPipe) planId: number,
-    @Body() dto: ExecutePlanDto,
-    @Req() req: Request,
-    @Res({ passthrough: false }) res: Response,
-  ): Promise<void> {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders();
-
-    const ctrl = new AbortController();
-    req.on('close', () => ctrl.abort());
-
-    try {
-      await this.agentService.executePlan(planId, dto.providerModelId, dto.sessionId, ctrl.signal, res);
-    } catch {
-      if (!ctrl.signal.aborted) res.write('data: {"error":"internal_error"}\n\n');
-    } finally {
-      if (!ctrl.signal.aborted) res.end();
     }
   }
 

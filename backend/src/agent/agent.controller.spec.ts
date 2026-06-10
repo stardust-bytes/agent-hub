@@ -60,18 +60,4 @@ describe('AgentController', () => {
     expect(res.end).toHaveBeenCalled();
   });
 
-  describe('POST /agent/plans/:id/execute', () => {
-    it('sets SSE headers', async () => {
-      const { req, res } = makeReqRes();
-      await controller.executePlanStream(42, { providerModelId: 5, sessionId: 1 }, req, res);
-      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/event-stream');
-      expect(res.end).toHaveBeenCalled();
-    });
-
-    it('calls agentService.executePlan with planId, providerModelId, sessionId', async () => {
-      const { req, res } = makeReqRes();
-      await controller.executePlanStream(42, { providerModelId: 5, sessionId: 1 }, req, res);
-      expect(mockAgentService.executePlan).toHaveBeenCalledWith(42, 5, 1, expect.any(AbortSignal), res);
-    });
-  });
 });

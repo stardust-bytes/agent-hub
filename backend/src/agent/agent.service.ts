@@ -5,6 +5,7 @@ import { ContextBuilderService } from './services/context-builder.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { ProvidersService } from '../providers/providers.service';
 import { PermissionsService } from './services/permissions.service';
+import { PlansService } from '../plans/plans.service';
 import { PermissionsConfig } from './dto/permissions-config';
 import { AgentRunState } from './dto/agent-run-state';
 
@@ -16,6 +17,7 @@ export class AgentService {
     private readonly contextBuilder: ContextBuilderService,
     private readonly providersService: ProvidersService,
     private readonly permissionsService: PermissionsService,
+    private readonly plansService: PlansService,
   ) {}
 
   async streamChat(
@@ -40,14 +42,64 @@ export class AgentService {
     const providerType = providerModel.provider.type ?? 'ollama';
 
     if (mode === 'cowork' && message.startsWith('/plan ')) {
-      const taskText = message.slice(6).trim();
-      if (!signal.aborted) {
-        await this.sessionsService.saveMessage(sessionId, 'user', message);
+      const approveMatch = message.match(/^\/plan approve (\d+)$/);
+      if (approveMatch) {
+        const planId = parseInt(approveMatch[1], 10);
+        if (!isNaN(planId)) {
+          if (!signal.aborted) {
+            await this.sessionsService.saveMessage(sessionId, 'user', message);
+          }
+          await this.plansService.approve(planId);
+          const runState = {
+            step: 0, maxIterations: 10, roomId: String(sessionId),
+            steps: [], startTime: Date.now(), currentState: 'PLANNING',
+          } as AgentRunState;
+          const context = await this.contextBuilder.build(runState, sessionId, mode);
+          await this.agentLoop.executePlan(
+            planId, providerType, providerModel.name, context.systemPrompt,
+            context.tools, providerConfig, signal, res, sessionId,
+          );
+          return;
+        }
       }
-      await this.agentLoop.runPlanMode(
-        taskText, providerType, providerModel.name, providerConfig, sessionId, res,
-      );
-      return;
+
+      const resumeMatch = message.match(/^\/plan resume (\d+)$/);
+      if (resumeMatch) {
+        const planId = parseInt(resumeMatch[1], 10);
+        if (!isNaN(planId)) {
+          if (!signal.aborted) {
+            await this.sessionsService.saveMessage(sessionId, 'user', message);
+          }
+          const runState = {
+            step: 0, maxIterations: 10, roomId: String(sessionId),
+            steps: [], startTime: Date.now(), currentState: 'PLANNING',
+          } as AgentRunState;
+          const context = await this.contextBuilder.build(runState, sessionId, mode);
+          await this.agentLoop.executePlan(
+            planId, providerType, providerModel.name, context.systemPrompt,
+            context.tools, providerConfig, signal, res, sessionId,
+          );
+          return;
+        }
+      }
+
+      const rejectMatch = message.match(/^\/plan reject (\d+)$/);
+      if (rejectMatch) {
+        const planId = parseInt(rejectMatch[1], 10);
+        if (!isNaN(planId)) {
+          await this.plansService.reject(planId);
+        }
+        // Fall through to normal run so LLM can respond about the cancellation
+      } else {
+        const taskText = message.slice(6).trim();
+        if (!signal.aborted) {
+          await this.sessionsService.saveMessage(sessionId, 'user', message);
+        }
+        await this.agentLoop.runPlanMode(
+          taskText, providerType, providerModel.name, providerConfig, sessionId, res,
+        );
+        return;
+      }
     }
 
     const runState = {

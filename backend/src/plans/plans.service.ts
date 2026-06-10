@@ -45,7 +45,9 @@ export class PlansService {
   }
 
   async reject(id: number) {
-    await this.prisma.plan.delete({ where: { id } });
+    const plan = await this.prisma.plan.findUnique({ where: { id } });
+    if (!plan) throw new NotFoundException(`Plan ${id} not found`);
+    return this.prisma.plan.update({ where: { id }, data: { status: 'CANCELLED' } });
   }
 
   async updateStepStatus(stepId: number, status: string) {

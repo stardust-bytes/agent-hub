@@ -22,9 +22,9 @@ export class PlansController {
   }
 
   @Post(':id/reject')
-  @HttpCode(204)
-  async reject(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    await this.plansService.reject(id);
+  @HttpCode(200)
+  reject(@Param('id', ParseIntPipe) id: number) {
+    return this.plansService.reject(id);
   }
 
   @Get('session/:sessionId/next')
