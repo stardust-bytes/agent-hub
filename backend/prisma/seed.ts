@@ -37,6 +37,26 @@ async function main() {
     });
   }
   console.log(`Seeded ${DEFAULT_TOOLS.length} tools`);
+
+  const mcpConfig = await prisma.setting.findUnique({ where: { key: 'mcp.servers' } });
+  if (!mcpConfig) {
+    await prisma.setting.create({
+      data: {
+        key: 'mcp.servers',
+        value: JSON.stringify([
+          {
+            id: 'playwright',
+            name: 'Playwright Browser',
+            type: 'stdio',
+            command: 'npx',
+            args: ['@playwright/mcp'],
+            enabled: true,
+          },
+        ]),
+      },
+    });
+    console.log('Seeded default MCP server: playwright');
+  }
 }
 
 main()
