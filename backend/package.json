@@ -6,7 +6,7 @@
     "build": "nest build",
     "start": "node dist/main",
     "start:dev": "nest start --watch",
-    "setup": "prisma migrate deploy && prisma db seed",
+    "setup": "prisma generate && prisma migrate deploy && prisma db seed",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage"
