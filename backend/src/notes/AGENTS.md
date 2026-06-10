@@ -6,7 +6,7 @@ Notes management module. Full CRUD for the `Note` entity. Includes Socket.io gat
 
 - `NotesController` — REST endpoints under `/api/notes`.
 - `NotesService` — business logic; all DB access via injected `PrismaService`. Emits WS events on mutations.
-- `NotesGateway` — Socket.io `/notes` namespace with CORS for dev (5173) and prod (3000).
+- `NotesGateway` — Socket.io `/notes` namespace with CORS for dev (171305) and prod (3000).
 
 ## Files
 

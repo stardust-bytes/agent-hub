@@ -140,7 +140,7 @@ These rules apply to ALL tasks in this project. Claude must follow them strictly
 - The `DATABASE_URL` must always use the Docker volume path (`file:/app/data/dev.db`) in production and a local path in `.env` for dev.
 
 **CORS:**
-- Only `http://localhost:5173` (Vite dev) and `http://localhost:3000` (Docker) are allowed origins.
+- Only `http://localhost:171305` (Vite dev) and `http://localhost:3000` (Docker) are allowed origins.
 - Never set `origin: '*'` or `origin: true`.
 
 **Error handling:**

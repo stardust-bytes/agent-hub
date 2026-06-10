@@ -4,7 +4,7 @@ import { Task } from '@prisma/client';
 
 @WebSocketGateway({
   namespace: '/tasks',
-  cors: { origin: ['http://localhost:5173', 'http://localhost:3000'] },
+  cors: { origin: ['http://localhost:171305', 'http://localhost:3000'] },
 })
 export class TasksGateway {
   @WebSocketServer() server: Server;

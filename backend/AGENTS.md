@@ -267,7 +267,7 @@ npx prisma generate         # regenerate client after schema edit
 ## CORS Policy
 
 Allowed origins (hardcoded in `main.ts`):
-- `http://localhost:5173` — Vite dev server
+- `http://localhost:171305` — Vite dev server
 - `http://localhost:3000` — Nginx production
 
 Never add `origin: '*'`.
