@@ -3,7 +3,6 @@ import { ToolExecutor, ToolContext } from './tool-executor.interface';
 import { WorkspaceService } from '../../workspace/workspace.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as path from 'path';
-import * as fs from 'fs/promises';
 
 @Injectable()
 export class WriteFileExecutor implements ToolExecutor {
@@ -29,7 +28,6 @@ export class WriteFileExecutor implements ToolExecutor {
         `session_${context.sessionId}`,
       );
       filePath = path.join(sessionDir, filename);
-      await fs.mkdir(sessionDir, { recursive: true });
     } else {
       filePath = args.path as string;
       if (!filePath) return 'Error: path is required.';
