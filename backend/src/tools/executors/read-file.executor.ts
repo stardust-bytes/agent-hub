@@ -1,41 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { ToolExecutor } from './tool-executor.interface';
-import * as path from 'path';
-import * as fs from 'fs/promises';
-import * as os from 'os';
-
-const MAX_READ_SIZE = 100 * 1024;
+import { WorkspaceService } from '../../workspace/workspace.service';
 
 @Injectable()
 export class ReadFileExecutor implements ToolExecutor {
   readonly name = 'read_file';
 
+  constructor(private readonly workspace: WorkspaceService) {}
+
   async execute(args: Record<string, unknown>): Promise<string> {
     const filePath = args.path as string | undefined;
     if (!filePath) return 'Error: path is required.';
-    if (!this.isPathAllowed(filePath)) return `Error: path "${filePath}" is not allowed.`;
+    if (!this.workspace.isPathAllowed(filePath)) return `Error: path "${filePath}" is not allowed.`;
     try {
-      const resolved = path.resolve(filePath);
-      const stat = await fs.stat(resolved);
-      if (!stat.isFile()) return `Error: "${resolved}" is not a file.`;
-      if (stat.size > MAX_READ_SIZE) return `Error: File too large (${stat.size} bytes, max ${MAX_READ_SIZE}).`;
-      return await fs.readFile(resolved, 'utf-8');
+      const content = await this.workspace.readFile(filePath);
+      const maxSize = 100 * 1024;
+      if (content.length > maxSize) {
+        return content.substring(0, maxSize) + `\n... [truncated ${content.length - maxSize} bytes]`;
+      }
+      return content;
     } catch (e) {
       return `Error reading file: ${e instanceof Error ? e.message : 'Unknown error'}`;
     }
-  }
-
-  private isPathAllowed(filePath: string): boolean {
-    const allowed = process.env.ALLOWED_PATHS
-      ? process.env.ALLOWED_PATHS.split(',').map(p => path.resolve(p.trim()))
-      : [
-          path.resolve('./workspace_data'),
-          path.resolve(os.tmpdir()),
-          ...(process.env.USERPROFILE ? [path.resolve(process.env.USERPROFILE)] : []),
-          ...(process.env.HOME ? [path.resolve(process.env.HOME)] : []),
-          process.cwd(),
-        ];
-    const resolved = path.resolve(filePath);
-    return allowed.some(dir => resolved === dir || resolved.startsWith(dir + path.sep));
   }
 }

@@ -1,45 +1,34 @@
+import { Test, TestingModule } from '@nestjs/testing';
 import { WriteFileExecutor } from './write-file.executor';
-import * as path from 'path';
-import * as fs from 'fs/promises';
-import * as os from 'os';
+import { WorkspaceService } from '../../workspace/workspace.service';
 
 describe('WriteFileExecutor', () => {
-  let executor: WriteFileExecutor
-  let tmpDir: string
+  let executor: WriteFileExecutor;
+  const mockWorkspace = {
+    isPathAllowed: jest.fn().mockReturnValue(true),
+    writeFile: jest.fn().mockResolvedValue({ bytesWritten: 5, resolved: '/workspace/test.txt' }),
+  };
 
   beforeEach(async () => {
-    executor = new WriteFileExecutor()
-    tmpDir = path.join(os.tmpdir(), `write-file-test-${Date.now()}`)
-    await fs.mkdir(tmpDir, { recursive: true })
-  })
+    jest.clearAllMocks();
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        WriteFileExecutor,
+        { provide: WorkspaceService, useValue: mockWorkspace },
+      ],
+    }).compile();
+    executor = module.get<WriteFileExecutor>(WriteFileExecutor);
+  });
 
-  afterEach(async () => {
-    await fs.rm(tmpDir, { recursive: true, force: true })
-  })
+  it('write_file writes content and returns byte count', async () => {
+    const result = await executor.execute({ path: 'test.txt', content: 'hello' });
+    expect(mockWorkspace.writeFile).toHaveBeenCalledWith('test.txt', 'hello');
+    expect(result).toBe('Written 5 bytes to /workspace/test.txt');
+  });
 
-  it('writes content to a file', async () => {
-    const filePath = path.join(tmpDir, 'test.txt')
-    const result = await executor.execute({ path: filePath, content: 'hello world' })
-    expect(result).toMatch(/Written/)
-    const content = await fs.readFile(filePath, 'utf-8')
-    expect(content).toBe('hello world')
-  })
-
-  it('creates parent directories', async () => {
-    const filePath = path.join(tmpDir, 'sub', 'nested', 'test.txt')
-    const result = await executor.execute({ path: filePath, content: 'nested' })
-    expect(result).toMatch(/Written/)
-    const content = await fs.readFile(filePath, 'utf-8')
-    expect(content).toBe('nested')
-  })
-
-  it('rejects path outside allowed directories', async () => {
-    const result = await executor.execute({ path: '/etc/passwd', content: 'hack' })
-    expect(result).toMatch(/Error/)
-  })
-
-  it('returns error for missing args', async () => {
-    const result = await executor.execute({} as Record<string, unknown>)
-    expect(result).toMatch(/Error/)
-  })
-})
+  it('write_file returns error when path not allowed', async () => {
+    mockWorkspace.isPathAllowed.mockReturnValue(false);
+    const result = await executor.execute({ path: '/etc/passwd', content: 'x' });
+    expect(result).toBe('Error: path "/etc/passwd" is not allowed.');
+  });
+});

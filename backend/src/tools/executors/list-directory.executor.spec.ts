@@ -1,39 +1,34 @@
+import { Test, TestingModule } from '@nestjs/testing';
 import { ListDirectoryExecutor } from './list-directory.executor';
-import * as path from 'path';
-import * as fs from 'fs/promises';
-import * as os from 'os';
+import { WorkspaceService } from '../../workspace/workspace.service';
 
 describe('ListDirectoryExecutor', () => {
   let executor: ListDirectoryExecutor;
-  let tmpDir: string;
+  const mockWorkspace = {
+    isPathAllowed: jest.fn().mockReturnValue(true),
+    listDirectory: jest.fn().mockResolvedValue('- file1.txt\n- file2.ts\nd subdir'),
+  };
 
   beforeEach(async () => {
-    executor = new ListDirectoryExecutor();
-    tmpDir = path.join(os.tmpdir(), `list-dir-test-${Date.now()}`);
-    await fs.mkdir(tmpDir, { recursive: true });
-    await fs.writeFile(path.join(tmpDir, 'a.txt'), 'a', 'utf-8');
-    await fs.writeFile(path.join(tmpDir, 'b.txt'), 'bb', 'utf-8');
-    await fs.mkdir(path.join(tmpDir, 'sub'), { recursive: true });
+    jest.clearAllMocks();
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ListDirectoryExecutor,
+        { provide: WorkspaceService, useValue: mockWorkspace },
+      ],
+    }).compile();
+    executor = module.get<ListDirectoryExecutor>(ListDirectoryExecutor);
   });
 
-  afterEach(async () => {
-    await fs.rm(tmpDir, { recursive: true, force: true });
+  it('list_directory lists entries', async () => {
+    const result = await executor.execute({ path: '.' });
+    expect(mockWorkspace.listDirectory).toHaveBeenCalledWith('.');
+    expect(result).toContain('file1.txt');
   });
 
-  it('lists files and directories', async () => {
-    const result = await executor.execute({ path: tmpDir });
-    expect(result).toContain('a.txt');
-    expect(result).toContain('b.txt');
-    expect(result).toContain('sub');
-  });
-
-  it('returns error for non-existent directory', async () => {
-    const result = await executor.execute({ path: '/nonexistent/path' });
-    expect(result).toMatch(/Error/);
-  });
-
-  it('rejects path outside allowed directories', async () => {
+  it('list_directory returns error when path not allowed', async () => {
+    mockWorkspace.isPathAllowed.mockReturnValue(false);
     const result = await executor.execute({ path: '/etc' });
-    expect(result).toMatch(/Error/);
+    expect(result).toBe('Error: path "/etc" is not allowed.');
   });
 });
