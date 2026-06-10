@@ -51,7 +51,7 @@
           </div>
         </div>
 
-        <div class="shrink-0 border-t border-cyber-code-border">
+        <div class="shrink-0 pt-1">
           <div class="max-w-60rem mx-auto w-full px-3 pb-3">
             <div class="bg-cyber-dark px-3 py-2">
               <form @submit.prevent="submit" class="flex items-center gap-2">
@@ -69,12 +69,16 @@
                 >{{ t('chat.stop') }}</button>
               </form>
             </div>
-            <div class="flex items-center gap-2 pt-2">
+            <div class="flex items-center justify-between pt-2">
               <ModelSelector
                 v-model="selectedModelId"
                 :models="availableModels"
                 :disabled="streaming"
               />
+              <button
+                @click="showSessionModal = true"
+                class="text-cyber-accent/70 text-sm font-mono px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent"
+              >{{ t('sessions.header') }}</button>
             </div>
           </div>
         </div>
@@ -91,6 +95,12 @@
       />
     </div>
 
+    <SessionModal
+      v-model="showSessionModal"
+      :current-session-id="currentSessionId"
+      @select="loadSession"
+      @created="(id: number) => { currentSessionId = id; loadSession(id) }"
+    />
     <DirectoryBrowser v-model="showDirBrowser" @select="onDirSelected" />
   </div>
 </template>
@@ -103,6 +113,7 @@ import ArtifactsPanel from './ArtifactsPanel.vue'
 import PlanBubble from './PlanBubble.vue'
 import DirectoryBrowser from './DirectoryBrowser.vue'
 import ModelSelector from './ModelSelector.vue'
+import SessionModal from './SessionModal.vue'
 
 interface PlanStep { id: number; order: number; text: string; status: string }
 interface PlanData { id: number; title: string; status: string; steps: PlanStep[] }
@@ -125,6 +136,7 @@ const recentToolResults = ref<Array<{ toolName: string; content: string }>>([])
 const selectedModelId = ref<number | null>(null)
 const availableModels = ref<Array<{ id: number; name: string; providerName: string; providerId: number }>>([])
 const currentSessionId = ref<number | null>(null)
+const showSessionModal = ref(false)
 
 onMounted(async () => {
   await loadProject()
@@ -150,6 +162,70 @@ async function loadModel() {
       if (models.length > 0) {
         const savedId = Number(localStorage.getItem('workspace.modelId'))
         selectedModelId.value = models.find(m => m.id === savedId)?.id ?? models[0].id
+      }
+    }
+  } catch { /* ignore */ }
+}
+
+async function loadSession(id: number) {
+  currentSessionId.value = id
+  messages.value = []
+  try {
+    const res = await fetch(`/api/sessions/${id}/messages`)
+    if (res.ok) {
+      const history = await res.json() as Array<{ role: string; content: string; createdAt: string; toolName?: string; isResult?: boolean }>
+      for (const msg of history) {
+        if (msg.toolName != null) {
+          messages.value.push({
+            role: 'tool',
+            content: msg.content,
+            timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+            toolName: msg.toolName,
+            isResult: msg.isResult ?? false,
+          })
+        } else if (msg.role === 'system') {
+          messages.value.push({
+            role: 'system',
+            content: msg.content,
+            timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+          })
+        } else if (msg.role === 'plan') {
+          try {
+            const planData = JSON.parse(msg.content) as PlanData
+            const planForDisplay = { ...planData, steps: planData.steps.map(s => ({ ...s })) }
+            try {
+              const fres = await fetch(`/api/plans/${planData.id}`)
+              if (fres.ok) {
+                const fresh = await fres.json() as PlanData
+                planForDisplay.status = fresh.status
+                if (fresh.steps) {
+                  for (const fs of fresh.steps) {
+                    const step = planForDisplay.steps.find(s => s.id === fs.id)
+                    if (step) step.status = fs.status
+                  }
+                }
+              }
+            } catch { /* use saved data */ }
+            if (planForDisplay.status === 'EXECUTING' && planForDisplay.steps.every(s => s.status === 'DONE' || s.status === 'FAILED')) {
+              planForDisplay.status = 'DONE'
+            }
+            messages.value.push({
+              role: 'plan',
+              content: '',
+              timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+              plan: planForDisplay,
+            })
+          } catch {
+            messages.value.push({ role: 'system', content: msg.content, timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }) })
+          }
+        } else {
+          const mappedRole = msg.role === 'assistant' ? 'agent' : msg.role
+          messages.value.push({
+            role: mappedRole as 'user' | 'agent',
+            content: msg.content,
+            timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+          })
+        }
       }
     }
   } catch { /* ignore */ }
