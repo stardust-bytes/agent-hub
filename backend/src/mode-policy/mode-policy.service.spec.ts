@@ -77,7 +77,7 @@ describe('ModePolicyService', () => {
       expect(service.isToolAllowed('agent', 'write_file')).toBe(true);
     });
 
-    it('should deny web_search in chat mode', () => {
+    it('should deny write_file in chat mode', () => {
       expect(service.isToolAllowed('chat', 'write_file')).toBe(false);
     });
   });
