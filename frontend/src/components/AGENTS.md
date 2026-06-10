@@ -19,6 +19,7 @@ AppShell.vue              — layout coordinator, owns activeView state
 ├── BottomTabBar.vue     — mobile navigation (visible < sm)
 ├── StatusBar.vue         — bottom bar: model name, DB status, WS status, live clock
 
+DirectoryBrowser.vue         — backend-driven filesystem tree modal for cowork project selection (Teleport to body)
 SessionModal.vue             — session list modal (teleported to body, session CRUD)
 ├── BaseModal.vue            — reusable modal shell
 ModelSelector.vue            — model dropdown
@@ -164,7 +165,7 @@ Renders BaseSelect with options formatted as `"{providerName} / {modelName}"`.
 
 ## FilesView.vue
 
-File upload zone (drag-and-drop + click), filter input, file list with status polling. Codebase watcher section.
+File upload zone (drag-and-drop + click), filter input, file list with status polling. Cowork project path input with DirectoryBrowser modal for directory selection.
 
 ---
 
