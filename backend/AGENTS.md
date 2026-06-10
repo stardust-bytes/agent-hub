@@ -4,7 +4,7 @@ Local-First AI Agent Workspace · NestJS backend service.
 
 ## What this is
 
-REST API server for the AI Workspace. Handles task CRUD, agent chat (Ollama ReAct loop), sessions, settings, LLM provider management, knowledge base indexing, and health checks. Backed by SQLite via Prisma. Runs on port **3001** (internal); in production traffic comes through Nginx on port 3000.
+REST API server for the AI Workspace. Handles task CRUD, agent chat (Ollama ReAct loop), sessions, settings, LLM provider management, knowledge base indexing, and health checks. Backed by SQLite via Prisma. Runs on port **130596** (internal); in production traffic comes through Nginx on port 3000.
 
 ---
 
@@ -18,7 +18,7 @@ REST API server for the AI Workspace. Handles task CRUD, agent chat (Ollama ReAc
 | Validation | `class-validator` + `class-transformer` via `ValidationPipe` |
 | Config | `@nestjs/config` — reads `.env` |
 | Vector DB | LanceDB (local file at `./workspace_data/lancedb`) |
-| Port | `process.env.PORT ?? 3001` |
+| Port | `process.env.PORT ?? 130596` |
 
 ---
 
@@ -235,7 +235,7 @@ Run: `npx prisma migrate dev --name <name>` then `npx prisma generate`.
 `.env` (git-ignored):
 ```
 DATABASE_URL="file:../workspace_data/dev.db"
-PORT=3001
+PORT=130596
 OLLAMA_URL=http://localhost:11434
 UPLOAD_DIR=./workspace_data/uploads
 EMBED_MODEL=nomic-embed-text
