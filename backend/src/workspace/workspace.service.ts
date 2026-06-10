@@ -17,8 +17,6 @@ export class WorkspaceService {
     this.allowedPaths = [
       this.workspaceRoot,
       path.resolve(os.tmpdir()),
-      ...(process.env.USERPROFILE ? [path.resolve(process.env.USERPROFILE)] : []),
-      ...(process.env.HOME ? [path.resolve(process.env.HOME)] : []),
       ...envPaths,
     ];
   }
