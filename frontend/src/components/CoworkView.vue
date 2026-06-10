@@ -36,21 +36,21 @@
 
               <div v-else-if="msg.role === 'tool' && !msg.isResult"
                 class="border-l-2 border-cyber-orange/50 pl-3 py-1.5">
-                <div class="text-sm text-cyber-orange font-mono mb-0.5">[⚙] {{ msg.content }}</div>
+                <div class="text-sm text-cyber-orange font-mono mb-0.5 break-all">[⚙] {{ msg.content }}</div>
               </div>
 
               <div v-else-if="msg.role === 'tool' && msg.isResult"
                 class="border-l-2 border-cyber-green/50 pl-3 py-1.5">
                 <template v-if="isToolLong(msg.content)">
-                  <div v-if="!isToolExpanded(msg)" class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ toolPreview(msg.content) }}</div>
+                  <div v-if="!isToolExpanded(msg)" class="text-sm text-cyber-green font-mono whitespace-pre-wrap break-all">{{ toolPreview(msg.content) }}</div>
                   <div v-if="!isToolExpanded(msg)" class="text-sm text-cyber-muted font-mono mt-0.5">...</div>
-                  <div v-if="isToolExpanded(msg)" class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ msg.content }}</div>
+                  <div v-if="isToolExpanded(msg)" class="text-sm text-cyber-green font-mono whitespace-pre-wrap break-all">{{ msg.content }}</div>
                   <button
                     @click="toggleToolExpand(msg)"
                     class="text-sm font-mono mt-0.5 transition-colors duration-150 text-cyber-accent/60 hover:text-cyber-accent"
                   >{{ isToolExpanded(msg) ? t('chat.tool.collapse') : t('chat.tool.expand') }}</button>
                 </template>
-                <div v-else class="text-sm text-cyber-green font-mono whitespace-pre-wrap">{{ msg.content }}</div>
+                <div v-else class="text-sm text-cyber-green font-mono whitespace-pre-wrap break-all">{{ msg.content }}</div>
               </div>
 
               <div v-else-if="msg.role === 'agent'"
