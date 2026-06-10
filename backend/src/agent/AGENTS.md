@@ -6,7 +6,7 @@ AI agent integration module. Implements State Machine orchestrator with Planning
 
 - `AgentController` — exposes `POST /api/agent/chat` (SSE streaming endpoint). Uses `@Res({ passthrough: false })` to directly write SSE events.
 - `AgentService` — thin orchestrator: resolves provider model, builds context, delegates to `AgentLoopService`, persists messages.
-- `AgentLoopService` — State Machine orchestrator: drives PLANNING → EXECUTING → EVALUATING → CORRECTING → RESPONDING → DONE loop, executes tools, emits SSE events. Implements `runPlanMode()` and `executePlan()` for Plan Mode. Detects `[PLAN_CREATED]` marker from `create_plan` tool execution and routes to approval (`[DONE]`) or auto-execution (`executePlan()`).
+- `AgentLoopService` — State Machine orchestrator: drives PLANNING → EXECUTING → EVALUATING → CORRECTING → RESPONDING → DONE loop, executes tools, emits SSE events. Implements `runPlanMode()` and `executePlan()` for Plan Mode. Detects `[PLAN_CREATED]` marker from `create_plan` tool execution and routes to approval (`[DONE]`) or auto-execution (`executePlan()`). Emits `planInterrupted` SSE event when a plan execution is aborted.
 - `LLMControllerService` — provider-agnostic LLM routing: selects registered provider, manages message history, builds message arrays.
 - `OllamaProvider` — raw LLM streaming only: calls Ollama `/api/chat`, yields `StreamChunk` objects (token/tool_call/done/error). No tool execution or loop logic.
 - `ContextBuilderService` — builds system prompt with tool definitions (filtered via `ModePolicyService`) + agent output path info + OS environment info (platform, cwd, user home), loads chat history from Prisma.
@@ -83,6 +83,7 @@ Plan execution is now handled inside the main `/chat` SSE stream. Send messages 
 | `error` | `{error: string}` | Error occurred |
 | `plan` | `{id, title, status, steps:[{id,order,text,status}]}` | LLM proposes a plan (runPlanMode or create_plan tool) |
 | `planStepUpdate` | `{planId, stepId, status}` | Step changes state during plan execution |
+| `planInterrupted` | `{planId, stepId, reason}` | Plan execution was aborted by user |
 
 ## State Machine Loop
 

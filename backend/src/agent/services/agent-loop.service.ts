@@ -305,7 +305,10 @@ export class AgentLoopService {
       .filter(s => s.status !== 'DONE')
       .sort((a, b) => a.order - b.order);
 
+    let currentStepId: number | null = null;
+
     for (const step of sortedSteps) {
+      currentStepId = step.id;
       if (signal.aborted) break;
       await this.plansService.updateStepStatus(step.id, 'DOING');
       if (!signal.aborted) res.write(
@@ -318,7 +321,7 @@ export class AgentLoopService {
       try {
         const stepSystemPrompt = `${systemPrompt}\n\nYou are executing plan step ${step.order + 1}: "${step.text}". Complete only this step.`;
         const messages = this.llmController.buildMessages(stepSystemPrompt, [], step.text);
-        await this.runForStep(model, messages, tools, providerConfig, res, sessionId);
+        await this.runForStep(model, messages, tools, providerConfig, res, sessionId, signal);
 
         if (signal.aborted) break;
         await this.plansService.updateStepStatus(step.id, 'DONE');
@@ -341,6 +344,7 @@ export class AgentLoopService {
     }
 
     if (signal.aborted) {
+      res.write(`data: ${JSON.stringify({ planInterrupted: { planId, stepId: currentStepId, reason: 'user_stopped' } })}\n\n`);
       await this.plansService.setInterrupted(planId);
     } else {
       await this.plansService.updateStatus(planId, 'DONE');
@@ -596,12 +600,13 @@ export class AgentLoopService {
     providerConfig: { baseUrl: string; key?: string },
     res: Response,
     sessionId?: number,
+    parentSignal?: AbortSignal,
   ): Promise<void> {
-    const signal = new AbortController().signal;
+    const signal = parentSignal ?? new AbortController().signal;
     let currentMessages = [...messages];
     let iterations = 0;
 
-    while (iterations < MAX_ITERATIONS) {
+    while (!signal.aborted && iterations < MAX_ITERATIONS) {
       iterations++;
       const { text, toolCalls } = await this.executeStep(
         model, currentMessages, tools, signal, providerConfig, res, sessionId,
