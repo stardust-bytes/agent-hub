@@ -31,7 +31,7 @@ agent/
 │   ├── agent-loop.service.ts       — State Machine orchestrator (main loop)
 │   ├── agent-loop.service.spec.ts
 │   ├── llm-controller.service.ts   — provider-agnostic LLM routing + message building
-│   ├── context-builder.service.ts  — builds LLM context with tool definitions + history
+│   ├── context-builder.service.ts  — builds LLM context with tool definitions (via ModePolicyService), history, agent output path instructions
 │   ├── context-builder.service.spec.ts
 │   ├── permissions.service.ts      — tool permission config: getConfig/updateConfig/isAllowed
 │   └── permissions.service.spec.ts

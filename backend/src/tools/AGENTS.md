@@ -80,6 +80,7 @@ Base path: `/api/tools`
 
 - **Allowed paths:** write_file, read_file, list_directory check `isPathAllowed()` against `ALLOWED_PATHS` env var. Defaults: `./workspace_data`, `os.tmpdir()`, `USERPROFILE`/`HOME`, `process.cwd()`.
 - **run_command** disabled by default; enabled via Tools UI with permission check.
+- **Mode-aware sandbox:** `write_file` receives `ToolContext` (mode + sessionId). In `agent` mode, path is forced to `{workspaceRoot}/agent-output/session_{sessionId}/` — directory parts are stripped from LLM-supplied paths. Non-agent modes retain standard `isPathAllowed()` checks.
 
 ## Dependency Injection
 
