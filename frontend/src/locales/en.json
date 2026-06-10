@@ -1,5 +1,6 @@
 {
   "nav.chat": "Chat",
+  "nav.cowork": "Cowork",
   "nav.tasks": "Tasks",
   "nav.files": "Files",
   "nav.settings": "Settings",
@@ -102,6 +103,7 @@
   "cowork.browse.empty": "Empty directory",
   "cowork.browse.parent": "(parent)",
   "cowork.browse.select": "Select this directory",
+  "cowork.files": "Files",
   "cowork.artifacts": "Artifacts",
   "cowork.connected": "● Working with:",
   "cowork.connect.title": "Connect Workspace",

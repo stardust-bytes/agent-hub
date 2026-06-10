@@ -1,5 +1,6 @@
 {
   "nav.chat": "Trò chuyện",
+  "nav.cowork": "Làm việc",
   "nav.tasks": "Nhiệm vụ",
   "nav.files": "Tệp tin",
   "nav.settings": "Cài đặt",
@@ -102,6 +103,7 @@
   "cowork.browse.empty": "Thư mục trống",
   "cowork.browse.parent": "(thư mục cha)",
   "cowork.browse.select": "Chọn thư mục này",
+  "cowork.files": "Tệp tin",
   "cowork.artifacts": "Artifacts",
   "cowork.connected": "● Đang làm việc với:",
   "cowork.connect.title": "Kết nối Workspace",
