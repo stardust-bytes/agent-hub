@@ -28,6 +28,6 @@ export class WriteFileExecutor implements ToolExecutor {
       ? process.env.ALLOWED_PATHS.split(',').map(p => path.resolve(p.trim()))
       : [path.resolve('./workspace_data'), os.tmpdir()];
     const resolved = path.resolve(filePath);
-    return allowed.some(dir => resolved.startsWith(dir));
+    return allowed.some(dir => resolved === dir || resolved.startsWith(dir + path.sep));
   }
 }
