@@ -36,7 +36,7 @@ export class ContextBuilderService {
     mode: string = 'agent',
     systemPromptOverride?: string,
   ): Promise<AgentContext> {
-    const tools = await this.getEnabledTools();
+    const tools = await this.getEnabledTools(mode);
     const project = await this.cowork.getProject();
 
     const systemPrompt = systemPromptOverride || this.buildSystemPrompt(tools, project, mode);
@@ -120,29 +120,33 @@ export class ContextBuilderService {
     return lines.join('\n');
   }
 
-  private async getEnabledTools(): Promise<ToolDefinition[]> {
+  private async getEnabledTools(mode: string = 'agent'): Promise<ToolDefinition[]> {
     const dbTools = await this.toolsService.findEnabled();
-    const tools: ToolDefinition[] = dbTools.map(t => ({
-      type: 'function' as const,
-      function: {
-        name: t.name,
-        description: t.description,
-        parameters: JSON.parse(t.parameters),
-      },
-    }));
-    try {
-      const mcpTools = await this.mcpService.getAllTools();
-      for (const t of mcpTools) {
-        tools.push({
-          type: 'function' as const,
-          function: {
-            name: t.name,
-            description: t.description ?? '',
-            parameters: t.parameters,
-          },
-        });
-      }
-    } catch { /* MCP not available */ }
+    const tools: ToolDefinition[] = dbTools
+      .filter(t => mode !== 'agent' || t.name !== 'run_command')
+      .map(t => ({
+        type: 'function' as const,
+        function: {
+          name: t.name,
+          description: t.description,
+          parameters: JSON.parse(t.parameters),
+        },
+      }));
+    if (mode === 'cowork') {
+      try {
+        const mcpTools = await this.mcpService.getAllTools();
+        for (const t of mcpTools) {
+          tools.push({
+            type: 'function' as const,
+            function: {
+              name: t.name,
+              description: t.description ?? '',
+              parameters: t.parameters,
+            },
+          });
+        }
+      } catch { /* MCP not available */ }
+    }
     return tools;
   }
 }
