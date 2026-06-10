@@ -161,4 +161,15 @@ describe('PlansService', () => {
       expect(result.status).toBe('EXECUTING');
     });
   });
+
+  describe('setInterrupted', () => {
+    it('sets plan status to INTERRUPTED', async () => {
+      mockPrisma.plan.update.mockResolvedValue({ id: 1, status: 'INTERRUPTED' });
+      const result = await service.setInterrupted(1);
+      expect(mockPrisma.plan.update).toHaveBeenCalledWith({
+        where: { id: 1 }, data: { status: 'INTERRUPTED' },
+      });
+      expect(result.status).toBe('INTERRUPTED');
+    });
+  });
 });
