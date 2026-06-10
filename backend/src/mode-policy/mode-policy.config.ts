@@ -46,6 +46,8 @@ export const MODE_POLICY: Record<string, ModePolicyEntry> = {
       'create_task',
       'update_task',
       'delete_tasks',
+      'convert_note_to_task',
+      'search_knowledge',
     ],
     allowedPaths: ['{projectPath}'],
     systemPromptStyle: 'cowork',

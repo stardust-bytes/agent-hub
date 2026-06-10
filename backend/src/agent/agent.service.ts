@@ -28,6 +28,12 @@ export class AgentService {
     sessionId: number,
     mode: string = 'agent',
   ): Promise<void> {
+    if (!sessionId || sessionId <= 0) {
+      res.write('data: {"error":"Invalid session ID"}\n\n');
+      res.write('data: [DONE]\n\n');
+      return;
+    }
+
     const providerModel = await this.providersService.findModelWithProvider(providerModelId);
     if (!providerModel) {
       res.write('data: {"error":"provider_not_found"}\n\n');

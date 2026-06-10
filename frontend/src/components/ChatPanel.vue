@@ -518,8 +518,10 @@ async function submit() {
       if (res.ok) {
         const session = await res.json() as { id: number }
         currentSessionId.value = session.id
+      } else {
+        return
       }
-    } catch { /* ignore */ }
+    } catch { return }
   }
   const continuePattern = /^(tiếp\s*tục|tiếp|continue|resume)\b/i
   if (currentSessionId.value !== null && continuePattern.test(text.trim())) {

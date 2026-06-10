@@ -445,8 +445,10 @@ async function submit() {
       if (res.ok) {
         const session = await res.json() as { id: number }
         currentSessionId.value = session.id
+      } else {
+        return
       }
-    } catch { /* ignore */ }
+    } catch { return }
   }
 
   localStorage.setItem('workspace.modelId', String(selectedModelId.value))
