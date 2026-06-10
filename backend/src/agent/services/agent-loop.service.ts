@@ -6,7 +6,7 @@ import { OllamaMessage } from '../providers/llm-provider.interface';
 import { ToolDefinition } from './context-builder.service';
 import { SessionsService } from '../../sessions/sessions.service';
 import { KnowledgeService } from '../../knowledge/knowledge.service';
-import { ToolExecutor } from '../../tools/executors/tool-executor.interface';
+import { ToolContext, ToolExecutor } from '../../tools/executors/tool-executor.interface';
 import { CreateTaskExecutor } from '../../tools/executors/create-task.executor';
 import { UpdateTaskExecutor } from '../../tools/executors/update-task.executor';
 import { ListTasksExecutor } from '../../tools/executors/list-tasks.executor';
@@ -105,7 +105,7 @@ export class AgentLoopService {
     res: Response,
     signal: AbortSignal,
     sessionId?: number,
-    mode: string = 'agent',
+    mode: 'chat' | 'agent' | 'cowork' = 'agent',
     providerConfig: { baseUrl: string; key?: string } = { baseUrl: 'http://localhost:11434' },
   ): Promise<string> {
     this.state = AgentState.PLANNING;
@@ -113,12 +113,7 @@ export class AgentLoopService {
     this.retryCount = 0;
     this.failedTool = null;
 
-    let activeTools: ToolDefinition[];
-    if (mode === 'chat') {
-      activeTools = tools.filter(t => ['web_search', 'web_fetch'].includes(t.function.name));
-    } else {
-      activeTools = tools;
-    }
+    let activeTools = tools;
     let finalText = '';
     let messages = this.llmController.buildMessages(systemPrompt, history, userMessage);
     let iterationCount = 0;
@@ -173,7 +168,7 @@ export class AgentLoopService {
 
             let result: string;
             try {
-              result = await this.executeTool(name, args);
+              result = await this.executeTool(name, args, { mode, sessionId: sessionId ?? 0 });
             } catch (e) {
               result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
             }
@@ -525,7 +520,7 @@ export class AgentLoopService {
     ];
   }
 
-  private async executeTool(name: string, args: Record<string, unknown>): Promise<string> {
+  private async executeTool(name: string, args: Record<string, unknown>, context?: ToolContext): Promise<string> {
     const executor = this.executorMap.get(name);
     if (executor) return executor.execute(args);
     const mcpResult = await this.mcpService.tryExecute(name, args);
@@ -581,7 +576,7 @@ export class AgentLoopService {
 
         let result: string;
         try {
-          result = await this.executeTool(name, args);
+          result = await this.executeTool(name, args, { mode: 'cowork', sessionId: sessionId ?? 0 });
         } catch (e) {
           result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
         }
