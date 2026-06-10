@@ -131,10 +131,10 @@ export class AgentLoopService {
       if (this.state === AgentState.EXECUTING) {
         let text: string;
         let toolCalls: Array<{ name: string; arguments: unknown }>;
-        try {
-          ({ text, toolCalls } = await this.executeStep(
-            model, messages, activeTools, signal, providerConfig, res, sessionId,
-          ));
+          try {
+            ({ text, toolCalls } = await this.executeStep(
+              model, messages, activeTools, signal, providerConfig, res, sessionId, providerType,
+            ));
         } catch {
           break;
         }
@@ -266,7 +266,7 @@ export class AgentLoopService {
             this.state = AgentState.EXECUTING;
           } else {
             finalText += await this.generateCloseMessage(
-              model, messages, 'no fallback tool', signal, providerConfig, res, sessionId,
+              model, messages, 'no fallback tool', signal, providerConfig, res, sessionId, providerType,
             );
             this.state = AgentState.RESPONDING;
           }
@@ -276,7 +276,7 @@ export class AgentLoopService {
 
     if (iterationCount >= MAX_ITERATIONS) {
       finalText += await this.generateCloseMessage(
-        model, messages, 'reached max iterations', signal, providerConfig, res, sessionId,
+        model, messages, 'reached max iterations', signal, providerConfig, res, sessionId, providerType,
       );
     }
 
@@ -321,7 +321,7 @@ export class AgentLoopService {
       try {
         const stepSystemPrompt = `${systemPrompt}\n\nYou are executing plan step ${step.order + 1}: "${step.text}". Complete only this step.`;
         const messages = this.llmController.buildMessages(stepSystemPrompt, [], step.text);
-        await this.runForStep(model, messages, tools, providerConfig, res, sessionId, signal);
+        await this.runForStep(model, messages, tools, providerConfig, res, sessionId, signal, providerType);
 
         if (signal.aborted) break;
         await this.plansService.updateStepStatus(step.id, 'DONE');
@@ -394,7 +394,7 @@ export class AgentLoopService {
 
     let fullText = '';
     const stream = this.llmController.stream(
-      'ollama', model, messages, [], new AbortController().signal,
+      providerType, model, messages, [], new AbortController().signal,
       providerConfig.baseUrl, providerConfig.key,
     );
 
@@ -446,12 +446,13 @@ export class AgentLoopService {
     providerConfig: { baseUrl: string; key?: string },
     res: Response,
     sessionId?: number,
+    providerType: string = 'ollama',
   ): Promise<{ text: string; toolCalls: Array<{ name: string; arguments: unknown }> }> {
     let text = '';
     const toolCalls: Array<{ name: string; arguments: unknown }> = [];
 
     const stream = this.llmController.stream(
-      'ollama', model, messages, tools, signal,
+      providerType, model, messages, tools, signal,
       providerConfig.baseUrl, providerConfig.key,
     );
 
@@ -572,6 +573,7 @@ export class AgentLoopService {
     providerConfig: { baseUrl: string; key?: string },
     res: Response,
     sessionId?: number,
+    providerType: string = 'ollama',
   ): Promise<string> {
     res.write(`data: ${JSON.stringify({ thinking: `Generating closing message: ${reason}` })}\n\n`);
     if (sessionId) {
@@ -587,7 +589,7 @@ export class AgentLoopService {
     let closeText = '';
     try {
       ({ text: closeText } = await this.executeStep(
-        model, closeMessages, [], signal, providerConfig, res, sessionId,
+        model, closeMessages, [], signal, providerConfig, res, sessionId, providerType,
       ));
     } catch { }
 
@@ -605,6 +607,7 @@ export class AgentLoopService {
     res: Response,
     sessionId?: number,
     parentSignal?: AbortSignal,
+    providerType: string = 'ollama',
   ): Promise<void> {
     const signal = parentSignal ?? new AbortController().signal;
     let currentMessages = [...messages];
@@ -613,7 +616,7 @@ export class AgentLoopService {
     while (!signal.aborted && iterations < MAX_ITERATIONS) {
       iterations++;
       const { text, toolCalls } = await this.executeStep(
-        model, currentMessages, tools, signal, providerConfig, res, sessionId,
+        model, currentMessages, tools, signal, providerConfig, res, sessionId, providerType,
       );
 
       if (toolCalls.length === 0) {

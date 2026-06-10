@@ -12,6 +12,7 @@ export class LLMControllerService {
     this.providers = new Map<string, LLMProvider>([
       ['ollama', ollama],
       ['openai', openai],
+      ['deepseek', openai],
     ]);
   }
 
