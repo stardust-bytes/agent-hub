@@ -24,6 +24,7 @@ import { UpdateNoteExecutor } from '../tools/executors/update-note.executor';
 import { ListNotesExecutor } from '../tools/executors/list-notes.executor';
 import { DeleteNoteExecutor } from '../tools/executors/delete-note.executor';
 import { ConvertNoteToTaskExecutor } from '../tools/executors/convert-note-to-task.executor';
+import { ResumePlanExecutor } from '../tools/executors/resume-plan.executor';
 import { NotesModule } from '../notes/notes.module';
 import { PlansModule } from '../plans/plans.module';
 import { McpModule } from './mcp/mcp.module';
@@ -53,6 +54,7 @@ import { WorkspaceModule } from '../workspace/workspace.module';
     ListNotesExecutor,
     DeleteNoteExecutor,
     ConvertNoteToTaskExecutor,
+    ResumePlanExecutor,
   ],
 })
 export class AgentModule {}

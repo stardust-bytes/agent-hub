@@ -26,6 +26,7 @@ import { ListDirectoryExecutor } from '../../tools/executors/list-directory.exec
 import { RunCommandExecutor } from '../../tools/executors/run-command.executor';
 import { GrepExecutor } from '../../tools/executors/grep.executor';
 import { GlobExecutor } from '../../tools/executors/glob.executor';
+import { ResumePlanExecutor } from '../../tools/executors/resume-plan.executor';
 import { PermissionsService } from './permissions.service';
 import { PlansService } from '../../plans/plans.service';
 import { McpService } from '../mcp/mcp.service';
@@ -68,6 +69,7 @@ export class AgentLoopService {
     runCommand: RunCommandExecutor,
     private readonly grep: GrepExecutor,
     private readonly glob: GlobExecutor,
+    private readonly resumePlan: ResumePlanExecutor,
   ) {
     this.executorMap = new Map<string, ToolExecutor>([
       [createTask.name, createTask],
@@ -89,6 +91,7 @@ export class AgentLoopService {
       [runCommand.name, runCommand],
       [grep.name, grep],
       [glob.name, glob],
+      [resumePlan.name, resumePlan],
     ]);
   }
 

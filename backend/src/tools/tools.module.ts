@@ -20,10 +20,12 @@ import { ListDirectoryExecutor } from './executors/list-directory.executor';
 import { RunCommandExecutor } from './executors/run-command.executor';
 import { GrepExecutor } from './executors/grep.executor';
 import { GlobExecutor } from './executors/glob.executor';
+import { ResumePlanExecutor } from './executors/resume-plan.executor';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { NotesModule } from '../notes/notes.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
+import { PlansModule } from '../plans/plans.module';
 
 const EXECUTORS = [
   CreateTaskExecutor,
@@ -45,10 +47,11 @@ const EXECUTORS = [
   RunCommandExecutor,
   GrepExecutor,
   GlobExecutor,
+  ResumePlanExecutor,
 ];
 
 @Module({
-  imports: [TasksModule, KnowledgeModule, NotesModule, WorkspaceModule],
+  imports: [TasksModule, KnowledgeModule, NotesModule, WorkspaceModule, PlansModule],
   controllers: [ToolsController],
   providers: [ToolsService, ...EXECUTORS],
   exports: [ToolsService, ...EXECUTORS],
