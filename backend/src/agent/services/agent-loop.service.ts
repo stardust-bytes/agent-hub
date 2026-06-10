@@ -279,17 +279,21 @@ export class AgentLoopService {
     systemPrompt: string,
     tools: ToolDefinition[],
     providerConfig: { baseUrl: string; key?: string },
+    signal: AbortSignal,
     res: Response,
     sessionId?: number,
   ): Promise<void> {
     const plan = await this.plansService.findOne(planId);
     await this.plansService.updateStatus(planId, 'EXECUTING');
 
-    const sortedSteps = [...plan.steps].sort((a, b) => a.order - b.order);
+    const sortedSteps = [...plan.steps]
+      .filter(s => s.status !== 'DONE')
+      .sort((a, b) => a.order - b.order);
 
     for (const step of sortedSteps) {
+      if (signal.aborted) break;
       await this.plansService.updateStepStatus(step.id, 'DOING');
-      res.write(
+      if (!signal.aborted) res.write(
         `data: ${JSON.stringify({ planStepUpdate: { planId, stepId: step.id, status: 'DOING' } })}\n\n`,
       );
       if (sessionId) {
@@ -301,16 +305,18 @@ export class AgentLoopService {
         const messages = this.llmController.buildMessages(stepSystemPrompt, [], step.text);
         await this.runForStep(model, messages, tools, providerConfig, res, sessionId);
 
+        if (signal.aborted) break;
         await this.plansService.updateStepStatus(step.id, 'DONE');
-        res.write(
+        if (!signal.aborted) res.write(
           `data: ${JSON.stringify({ planStepUpdate: { planId, stepId: step.id, status: 'DONE' } })}\n\n`,
         );
         if (sessionId) {
           await this.sessionsService.saveMessage(sessionId, 'system', `Step completed: ${step.text}`);
         }
       } catch {
+        if (signal.aborted) break;
         await this.plansService.updateStepStatus(step.id, 'FAILED');
-        res.write(
+        if (!signal.aborted) res.write(
           `data: ${JSON.stringify({ planStepUpdate: { planId, stepId: step.id, status: 'FAILED' } })}\n\n`,
         );
         if (sessionId) {
@@ -319,8 +325,12 @@ export class AgentLoopService {
       }
     }
 
-    await this.plansService.updateStatus(planId, 'DONE');
-    res.write('data: [DONE]\n\n');
+    if (signal.aborted) {
+      await this.plansService.setInterrupted(planId);
+    } else {
+      await this.plansService.updateStatus(planId, 'DONE');
+      res.write('data: [DONE]\n\n');
+    }
   }
 
   async runPlanMode(
