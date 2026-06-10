@@ -22,15 +22,15 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { HiChatAlt2, HiClipboardList, HiFolder, HiCog, HiLightningBolt, HiDocumentText, HiCode } from 'vue-icons-plus/hi'
+import { HiChatAlt2, HiClipboardList, HiCog, HiLightningBolt, HiDocumentText, HiCode } from 'vue-icons-plus/hi'
 
-defineProps<{ activeView: 'chat' | 'cowork' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' }>()
-defineEmits<{ navigate: [view: 'chat' | 'cowork' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans'] }>()
+defineProps<{ activeView: 'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' }>()
+defineEmits<{ navigate: [view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans'] }>()
 
 const { t } = useI18n()
 
 interface NavItem {
-  view: 'chat' | 'cowork' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans'
+  view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans'
   labelKey: string
   icon: Component | string
 }
@@ -39,7 +39,6 @@ const navItems: NavItem[] = [
   { view: 'chat',      labelKey: 'nav.chat',      icon: HiChatAlt2 },
   { view: 'cowork',    labelKey: 'nav.cowork',    icon: HiCode },
   { view: 'tasks',     labelKey: 'nav.tasks',     icon: HiClipboardList },
-  { view: 'files',     labelKey: 'nav.files',     icon: HiFolder },
   { view: 'plans',     labelKey: 'nav.plans',     icon: '📋' },
   { view: 'tools',     labelKey: 'nav.tools',     icon: HiLightningBolt },
   { view: 'providers', labelKey: 'nav.providers', icon: HiCog },
