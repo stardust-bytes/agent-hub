@@ -18,6 +18,8 @@ import { WriteFileExecutor } from './executors/write-file.executor';
 import { ReadFileExecutor } from './executors/read-file.executor';
 import { ListDirectoryExecutor } from './executors/list-directory.executor';
 import { RunCommandExecutor } from './executors/run-command.executor';
+import { GrepExecutor } from './executors/grep.executor';
+import { GlobExecutor } from './executors/glob.executor';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { NotesModule } from '../notes/notes.module';
@@ -41,6 +43,8 @@ const EXECUTORS = [
   ReadFileExecutor,
   ListDirectoryExecutor,
   RunCommandExecutor,
+  GrepExecutor,
+  GlobExecutor,
 ];
 
 @Module({
