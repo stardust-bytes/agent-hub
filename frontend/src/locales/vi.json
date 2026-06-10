@@ -17,6 +17,7 @@
   "chat.stop": "◼ Dừng",
   "chat.mode.agent": "Agent",
   "chat.mode.chat": "Chat",
+  "chat.mode.cowork": "Cowork",
   "chat.thinking": "⟳ đang nghĩ...",
   "chat.tool.expand": "[+ mở rộng]",
   "chat.tool.collapse": "[- thu gọn]",

@@ -17,6 +17,7 @@
   "chat.stop": "◼ Stop",
   "chat.mode.agent": "Agent",
   "chat.mode.chat": "Chat",
+  "chat.mode.cowork": "Cowork",
   "chat.thinking": "⟳ thinking...",
   "chat.tool.expand": "[+ expand]",
   "chat.tool.collapse": "[- collapse]",

@@ -140,15 +140,20 @@
             />
             <div class="flex border border-cyber-accent/20 rounded">
               <button
-                @click="agentMode = true"
-                :class="agentMode ? 'bg-cyber-accent/20 text-cyber-accent' : 'text-cyber-muted'"
+                @click="currentMode = 'chat'"
+                :class="currentMode === 'chat' ? 'bg-cyber-accent/20 text-cyber-accent' : 'text-cyber-muted'"
+                class="px-2 py-0.5 text-sm font-mono transition-colors duration-150"
+              >{{ t('chat.mode.chat') }}</button>
+              <button
+                @click="currentMode = 'agent'"
+                :class="currentMode === 'agent' ? 'bg-cyber-accent/20 text-cyber-accent' : 'text-cyber-muted'"
                 class="px-2 py-0.5 text-sm font-mono transition-colors duration-150"
               >{{ t('chat.mode.agent') }}</button>
               <button
-                @click="agentMode = false"
-                :class="!agentMode ? 'bg-cyber-accent/20 text-cyber-accent' : 'text-cyber-muted'"
+                @click="currentMode = 'cowork'"
+                :class="currentMode === 'cowork' ? 'bg-cyber-accent/20 text-cyber-accent' : 'text-cyber-muted'"
                 class="px-2 py-0.5 text-sm font-mono transition-colors duration-150"
-              >{{ t('chat.mode.chat') }}</button>
+              >{{ t('chat.mode.cowork') }}</button>
             </div>
           </div>
           <button
@@ -244,7 +249,7 @@ const input = ref('')
 const messagesEl = ref<HTMLElement | null>(null)
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
-const agentMode = ref(true)
+const currentMode = ref<'chat' | 'agent' | 'cowork'>('chat')
 const showSlashMenu = ref(false)
 const slashFilter = ref('')
 const slashSelectedIndex = ref(0)
@@ -831,7 +836,7 @@ async function submit() {
     const res = await fetch('/api/agent/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, providerModelId: selectedModelId.value, sessionId: currentSessionId.value, mode: agentMode.value ? 'agent' : 'chat' }),
+      body: JSON.stringify({ message: text, providerModelId: selectedModelId.value, sessionId: currentSessionId.value, mode: currentMode.value }),
       signal: ctrl.signal,
     })
 
