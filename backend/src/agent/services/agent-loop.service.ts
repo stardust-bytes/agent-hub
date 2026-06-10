@@ -230,10 +230,9 @@ export class AgentLoopService {
             });
             this.state = AgentState.EXECUTING;
           } else {
-            res.write(`data: ${JSON.stringify({ thinking: 'Unable to complete after retries. Asking user...' })}\n\n`);
-            if (sessionId) {
-              await this.sessionsService.saveMessage(sessionId, 'system', 'Unable to complete after retries. Asking user...');
-            }
+            finalText += await this.generateCloseMessage(
+              model, messages, 'no fallback tool', signal, providerConfig, res, sessionId,
+            );
             this.state = AgentState.RESPONDING;
           }
         }
@@ -241,31 +240,9 @@ export class AgentLoopService {
     }
 
     if (iterationCount >= MAX_ITERATIONS) {
-      res.write(`data: ${JSON.stringify({ thinking: 'Reached max iterations. Generating closing message...' })}\n\n`);
-      if (sessionId) {
-        await this.sessionsService.saveMessage(sessionId, 'system', 'Reached max iterations. Generating closing message...');
-      }
-
-      const closePrompt = `I have reached the maximum number of iterations. Based on the conversation and tool results above, write a closing message to the user explaining what happened and suggesting alternative approaches.`;
-
-      const closeMessages: OllamaMessage[] = [
-        ...messages,
-        { role: 'user', content: closePrompt },
-      ];
-
-      let closeText = '';
-      try {
-        ({ text: closeText } = await this.executeStep(
-          model, closeMessages, [], signal, providerConfig, res, sessionId,
-        ));
-      } catch {
-        // error SSE already written by executeStep
-      }
-
-      if (closeText && sessionId) {
-        await this.sessionsService.saveMessage(sessionId, 'assistant', closeText);
-      }
-      finalText += closeText ?? '';
+      finalText += await this.generateCloseMessage(
+        model, messages, 'reached max iterations', signal, providerConfig, res, sessionId,
+      );
     }
 
     if (!signal.aborted) {
@@ -526,6 +503,39 @@ export class AgentLoopService {
     const mcpResult = await this.mcpService.tryExecute(name, args);
     if (mcpResult !== null) return mcpResult;
     return `Error: Unknown tool: ${name}`;
+  }
+
+  private async generateCloseMessage(
+    model: string,
+    messages: OllamaMessage[],
+    reason: string,
+    signal: AbortSignal,
+    providerConfig: { baseUrl: string; key?: string },
+    res: Response,
+    sessionId?: number,
+  ): Promise<string> {
+    res.write(`data: ${JSON.stringify({ thinking: `Generating closing message: ${reason}` })}\n\n`);
+    if (sessionId) {
+      await this.sessionsService.saveMessage(sessionId, 'system', `Generating closing message: ${reason}`);
+    }
+
+    const closePrompt = `I was unable to complete the task after several attempts. Based on the conversation and tool results above, write a closing message to the user explaining what happened and suggesting alternative approaches.`;
+    const closeMessages: OllamaMessage[] = [
+      ...messages,
+      { role: 'user', content: closePrompt },
+    ];
+
+    let closeText = '';
+    try {
+      ({ text: closeText } = await this.executeStep(
+        model, closeMessages, [], signal, providerConfig, res, sessionId,
+      ));
+    } catch { }
+
+    if (closeText && sessionId) {
+      await this.sessionsService.saveMessage(sessionId, 'assistant', closeText);
+    }
+    return closeText ?? '';
   }
 
   private async runForStep(

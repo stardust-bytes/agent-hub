@@ -263,14 +263,15 @@ describe('AgentLoopService', () => {
 
       const res = mockRes();
       const signal = new AbortController().signal;
-      await service.run(
+      const result = await service.run(
         'ollama', 'llama3', 'You are helpful', [], 'create task',
         defaultTools, res, signal, undefined, 'agent', defaultConfig,
       );
 
       expect(res.write).toHaveBeenCalledWith(
-        'data: ' + JSON.stringify({ thinking: 'Unable to complete after retries. Asking user...' }) + '\n\n',
+        'data: ' + JSON.stringify({ thinking: 'Generating closing message: no fallback tool' }) + '\n\n',
       );
+      expect(result).toContain('Cannot complete');
     });
   });
 
@@ -312,7 +313,7 @@ describe('AgentLoopService', () => {
       expect(result).toContain('Would you like to try a different approach');
       // Verify the thinking event changed
       expect(res.write).toHaveBeenCalledWith(
-        'data: ' + JSON.stringify({ thinking: 'Reached max iterations. Generating closing message...' }) + '\n\n',
+        'data: ' + JSON.stringify({ thinking: 'Generating closing message: reached max iterations' }) + '\n\n',
       );
       expect(sessionsService.saveMessage).toHaveBeenCalledWith(
         1, 'assistant', 'I tried searching but could not find the results you wanted. Would you like to try a different approach?',
