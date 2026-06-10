@@ -784,6 +784,26 @@ async function submit() {
               plan: { ...planData, steps: planData.steps.map(s => ({ ...s })) },
             })
             await scrollToBottom()
+          } else if (parsed.planStepUpdate) {
+            const upd = parsed.planStepUpdate as { planId: number; stepId: number; status: string }
+            for (const msg of messages.value) {
+              if (msg.role === 'plan' && msg.plan && msg.plan.id === upd.planId) {
+                const step = msg.plan.steps.find(s => s.id === upd.stepId)
+                if (step) {
+                  step.status = upd.status
+                  msg.plan = { ...msg.plan, steps: [...msg.plan.steps] }
+                }
+                break
+              }
+            }
+          } else if (parsed.planInterrupted) {
+            const interrupt = parsed.planInterrupted as { planId: number; reason: string }
+            messages.value.push({
+              role: 'system',
+              content: '[⏹ Plan execution interrupted. Send "tiếp tục" to resume.]',
+              timestamp: now(),
+            })
+            await scrollToBottom()
           } else if (parsed.token) {
             clearThinking()
             const idx = getOrCreateAgentMsg()
