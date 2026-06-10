@@ -41,6 +41,22 @@
             <div v-if="fetchError" class="text-red-400 text-xs font-mono mt-2">{{ t('settings.fetchError') }}</div>
           </div>
         </div>
+
+        <div class="border-t border-cyber-accent/10 pt-4 mt-4">
+          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.mcpServers') }}</div>
+          <div v-if="mcpServers.length === 0" class="text-cyber-muted/50 text-xs font-mono">
+            {{ t('settings.noMcpServers') }}
+          </div>
+          <div v-for="server in mcpServers" :key="server.id"
+            class="flex items-center justify-between py-1.5 px-2 bg-cyber-dark border border-cyber-code-border rounded mb-1">
+            <div>
+              <div class="text-cyber-text text-xs font-mono">{{ server.name }}</div>
+              <div class="text-cyber-muted/50 text-2xs font-mono">{{ server.type }} &middot; {{ server.id }}</div>
+            </div>
+            <span :class="server.enabled ? 'text-cyber-green' : 'text-cyber-muted/50'"
+              class="text-xs font-mono">{{ server.enabled ? t('settings.mcpOn') : t('settings.mcpOff') }}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -59,11 +75,19 @@ interface ProviderModelOption {
   label: string
 }
 
+interface McpServerInfo {
+  id: string
+  name: string
+  type: string
+  enabled: boolean
+}
+
 const providers = ref<ProviderModelOption[]>([])
 const embedModelId = ref<string>('')
 const summaryModelId = ref<string>('')
 const saved = ref(false)
 const fetchError = ref(false)
+const mcpServers = ref<McpServerInfo[]>([])
 
 onMounted(async () => {
   try {
@@ -87,6 +111,11 @@ onMounted(async () => {
       const settingsData = await settingsRes.json() as Record<string, string>
       embedModelId.value = settingsData['embed_model_id'] ?? ''
       summaryModelId.value = settingsData['summary_model_id'] ?? ''
+      if (settingsData['mcp.servers']) {
+        try {
+          mcpServers.value = JSON.parse(settingsData['mcp.servers']) as McpServerInfo[]
+        } catch { /* ignore malformed JSON */ }
+      }
     }
   } catch { fetchError.value = true }
 })

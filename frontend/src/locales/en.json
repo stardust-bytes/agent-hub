@@ -69,6 +69,10 @@
   "settings.defaultOption": "Default (env)",
   "settings.models": "MODEL CONFIG",
   "settings.fetchError": "Could not load model config",
+  "settings.mcpServers": "MCP SERVERS",
+  "settings.noMcpServers": "No MCP servers configured",
+  "settings.mcpOn": "ON",
+  "settings.mcpOff": "OFF",
 
   "files.header": "KNOWLEDGE BASE",
   "files.dropzone": "Drop files or click to upload",

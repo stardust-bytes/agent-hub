@@ -69,6 +69,10 @@
   "settings.defaultOption": "Mặc định (env)",
   "settings.models": "CẤU HÌNH MODEL",
   "settings.fetchError": "Không thể tải cấu hình model",
+  "settings.mcpServers": "MCP SERVERS",
+  "settings.noMcpServers": "Chưa có MCP server nào",
+  "settings.mcpOn": "BẬT",
+  "settings.mcpOff": "TẮT",
 
   "files.header": "KIẾN THỨC",
   "files.dropzone": "Thả file hoặc click để upload",
