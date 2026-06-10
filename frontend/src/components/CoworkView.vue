@@ -84,7 +84,7 @@
       />
     </div>
 
-    <DirectoryBrowser v-if="showDirBrowser" v-model="showDirBrowser" @select="onDirSelected" />
+    <DirectoryBrowser v-model="showDirBrowser" @select="onDirSelected" />
   </div>
 </template>
 
