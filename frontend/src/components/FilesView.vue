@@ -63,6 +63,7 @@
             </button>
           </div>
           <div v-if="isBrowsing" class="text-cyber-orange text-[10px] font-mono mt-1">⟳ {{ t('cowork.scanning') }}</div>
+          <div v-if="browseMessage" class="text-cyber-orange text-[10px] font-mono mt-1">{{ browseMessage }}</div>
           <div v-if="connectedProject" class="text-cyber-green text-[10px] font-mono mt-1">{{ t('cowork.connected') }} {{ connectedProject }}</div>
         </div>
 
@@ -95,6 +96,7 @@ const projectDirInput = ref<HTMLInputElement | null>(null)
 const projectPath = ref(localStorage.getItem('workspace.projectPath') || '')
 const connectedProject = ref<string | null>(null)
 const isBrowsing = ref(false)
+const browseMessage = ref('')
 
 const filteredFiles = computed(() =>
   files.value.filter(f => f.filename.toLowerCase().includes(filter.value.toLowerCase()))
@@ -167,6 +169,7 @@ function browseProjectDir() {
 
 function onProjectDirChange() {
   isBrowsing.value = false
+  browseMessage.value = ''
   window.removeEventListener('focus', onWindowFocus)
   const f = projectDirInput.value?.files?.[0]
   if (!f) return
@@ -176,12 +179,14 @@ function onProjectDirChange() {
     const rawParts = raw.split(sep)
     const relParts = f.webkitRelativePath.split('/')
     projectPath.value = rawParts.slice(0, -(relParts.length - 1)).join(sep)
+    if (projectPath.value.trim()) toggleProject()
   } else if (f.webkitRelativePath) {
     projectPath.value = f.webkitRelativePath.split('/')[0]
+    browseMessage.value = `Directory selected: "${projectPath.value}". Enter the full path manually and click Connect.`
   } else {
     projectPath.value = f.name
+    browseMessage.value = `Could not determine directory path. Enter it manually and click Connect.`
   }
-  if (projectPath.value.trim()) toggleProject()
   if (projectDirInput.value) projectDirInput.value.value = ''
 }
 
