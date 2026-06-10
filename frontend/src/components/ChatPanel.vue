@@ -466,6 +466,7 @@ async function loadSession(id: number) {
       }
     }
   } catch { /* ignore */ }
+  await scrollToBottom()
 }
 
 async function handleApprove(planId: number) {

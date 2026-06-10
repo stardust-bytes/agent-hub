@@ -270,6 +270,7 @@ async function loadSession(id: number) {
       }
     }
   } catch { /* ignore */ }
+  await scrollToBottom()
 }
 
 function onFileSelect(filePath: string) {
