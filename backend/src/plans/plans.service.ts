@@ -59,4 +59,18 @@ export class PlansService {
   async setInterrupted(id: number) {
     return this.prisma.plan.update({ where: { id }, data: { status: 'INTERRUPTED' } });
   }
+
+  async findNextActionable(sessionId: number) {
+    const plan = await this.prisma.plan.findFirst({
+      where: { sessionId },
+      include: { steps: { orderBy: { order: 'asc' } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!plan) return { found: false as const };
+    if (plan.status === 'DONE') return { found: false as const };
+    if (plan.status === 'PENDING') return { found: true as const, plan, action: 'approve' as const };
+    const incompleteSteps = plan.steps.filter(s => s.status !== 'DONE');
+    if (incompleteSteps.length === 0) return { found: false as const };
+    return { found: true as const, plan, action: 'resume' as const };
+  }
 }

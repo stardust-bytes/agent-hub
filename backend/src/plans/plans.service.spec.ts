@@ -10,6 +10,7 @@ const mockPrisma = {
     findMany: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    findFirst: jest.fn(),
   },
   planStep: {
     update: jest.fn(),
@@ -159,6 +160,68 @@ describe('PlansService', () => {
         data: { status: 'EXECUTING' },
       });
       expect(result.status).toBe('EXECUTING');
+    });
+  });
+
+  describe('findNextActionable', () => {
+    it('returns found=false when no plans exist', async () => {
+      mockPrisma.plan.findFirst.mockResolvedValue(null);
+      const result = await service.findNextActionable(1);
+      expect(result).toEqual({ found: false });
+      expect(mockPrisma.plan.findFirst).toHaveBeenCalledWith({
+        where: { sessionId: 1 },
+        include: { steps: { orderBy: { order: 'asc' } } },
+        orderBy: { createdAt: 'desc' },
+      });
+    });
+
+    it('returns action=approve for PENDING plan', async () => {
+      const plan = { id: 1, sessionId: 1, title: 'Test', status: 'PENDING', steps: [{ id: 1, planId: 1, order: 0, text: 'step 1', status: 'TODO' }] };
+      mockPrisma.plan.findFirst.mockResolvedValue(plan);
+      const result = await service.findNextActionable(1);
+      expect(result).toEqual({ found: true, plan, action: 'approve' });
+    });
+
+    it('returns action=resume for EXECUTING plan with incomplete steps', async () => {
+      const plan = { id: 1, sessionId: 1, title: 'Test', status: 'EXECUTING', steps: [{ id: 1, planId: 1, order: 0, text: 'step 1', status: 'DOING' }] };
+      mockPrisma.plan.findFirst.mockResolvedValue(plan);
+      const result = await service.findNextActionable(1);
+      expect(result).toEqual({ found: true, plan, action: 'resume' });
+    });
+
+    it('returns found=false when plan is DONE', async () => {
+      const plan = { id: 1, sessionId: 1, title: 'Test', status: 'DONE', steps: [{ id: 1, planId: 1, order: 0, text: 'step 1', status: 'DONE' }] };
+      mockPrisma.plan.findFirst.mockResolvedValue(plan);
+      const result = await service.findNextActionable(1);
+      expect(result).toEqual({ found: false });
+    });
+
+    it('returns action=resume for INTERRUPTED plan', async () => {
+      const plan = { id: 1, sessionId: 1, title: 'Test', status: 'INTERRUPTED', steps: [{ id: 1, planId: 1, order: 0, text: 'step 1', status: 'DOING' }] };
+      mockPrisma.plan.findFirst.mockResolvedValue(plan);
+      const result = await service.findNextActionable(1);
+      expect(result).toEqual({ found: true, plan, action: 'resume' });
+    });
+
+    it('returns found=false when EXECUTING plan has all steps DONE', async () => {
+      const plan = { id: 1, sessionId: 1, title: 'Test', status: 'EXECUTING', steps: [{ id: 1, planId: 1, order: 0, text: 'step 1', status: 'DONE' }] };
+      mockPrisma.plan.findFirst.mockResolvedValue(plan);
+      const result = await service.findNextActionable(1);
+      expect(result).toEqual({ found: false });
+    });
+
+    it('returns action=resume for APPROVED plan with incomplete steps', async () => {
+      const plan = { id: 1, sessionId: 1, title: 'Test', status: 'APPROVED', steps: [{ id: 1, planId: 1, order: 0, text: 'step 1', status: 'TODO' }] };
+      mockPrisma.plan.findFirst.mockResolvedValue(plan);
+      const result = await service.findNextActionable(1);
+      expect(result).toEqual({ found: true, plan, action: 'resume' });
+    });
+
+    it('returns action=resume for FAILED plan with incomplete steps', async () => {
+      const plan = { id: 1, sessionId: 1, title: 'Test', status: 'FAILED', steps: [{ id: 1, planId: 1, order: 0, text: 'step 1', status: 'TODO' }] };
+      mockPrisma.plan.findFirst.mockResolvedValue(plan);
+      const result = await service.findNextActionable(1);
+      expect(result).toEqual({ found: true, plan, action: 'resume' });
     });
   });
 
