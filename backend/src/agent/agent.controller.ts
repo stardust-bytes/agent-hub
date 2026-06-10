@@ -49,11 +49,11 @@ export class AgentController {
     req.on('close', () => ctrl.abort());
 
     try {
-      await this.agentService.executePlan(planId, dto.providerModelId, dto.sessionId, res);
+      await this.agentService.executePlan(planId, dto.providerModelId, dto.sessionId, ctrl.signal, res);
     } catch {
-      res.write('data: {"error":"internal_error"}\n\n');
+      if (!ctrl.signal.aborted) res.write('data: {"error":"internal_error"}\n\n');
     } finally {
-      res.end();
+      if (!ctrl.signal.aborted) res.end();
     }
   }
 

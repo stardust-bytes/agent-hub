@@ -7,7 +7,7 @@ import * as fs from 'fs/promises';
 const DEFAULT_CONCURRENCY = 3;
 const SUPPORTED_EXTS = ['.ts', '.js', '.py', '.md', '.txt', '.json', '.yaml', '.yml'];
 
-interface IndexerStatus {
+export interface IndexerStatus {
   pending: number;
   processing: number;
   done: number;

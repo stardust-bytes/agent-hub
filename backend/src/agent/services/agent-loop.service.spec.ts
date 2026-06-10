@@ -421,7 +421,7 @@ describe('AgentLoopService', () => {
         [{ type: 'token', token: 'Done step 2' }, DONE],
       );
 
-      await service.executePlan(7, 'ollama', 'llama3.2', 'System prompt', tools, planConfig, res);
+      await service.executePlan(7, 'ollama', 'llama3.2', 'System prompt', tools, planConfig, new AbortController().signal, res);
 
       expect(mockPlansService.updateStatus).toHaveBeenCalledWith(7, 'EXECUTING');
 
@@ -450,7 +450,7 @@ describe('AgentLoopService', () => {
         [{ type: 'token', token: 'Response text from LLM' }, DONE],
       );
 
-      await service.executePlan(7, 'ollama', 'llama3.2', 'System prompt', tools, planConfig, res, 1);
+      await service.executePlan(7, 'ollama', 'llama3.2', 'System prompt', tools, planConfig, new AbortController().signal, res, 1);
 
       expect(sessionsService.saveMessage).toHaveBeenCalledWith(1, 'assistant', 'Response text from LLM');
     });
@@ -475,7 +475,7 @@ describe('AgentLoopService', () => {
         [{ type: 'token', token: 'Step 2 OK' }, DONE],
       );
 
-      await service.executePlan(7, 'ollama', 'llama3.2', 'System', tools, planConfig, res);
+      await service.executePlan(7, 'ollama', 'llama3.2', 'System', tools, planConfig, new AbortController().signal, res);
 
       const writeCalls = (res.write as jest.Mock).mock.calls.map(c => c[0] as string);
       const failedCalls = writeCalls.filter(s => s.includes('"FAILED"'));

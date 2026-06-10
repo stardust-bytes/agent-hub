@@ -136,8 +136,9 @@ describe('AgentService', () => {
   describe('executePlan', () => {
     it('calls agentLoop.executePlan with resolved provider config', async () => {
       const res = { write: jest.fn() } as any;
+      const signal = new AbortController().signal;
 
-      await service.executePlan(42, 5, 1, res);
+      await service.executePlan(42, 5, 1, signal, res);
 
       expect(mockProvidersService.findModelWithProvider).toHaveBeenCalledWith(5);
       expect(mockAgentLoop.executePlan).toHaveBeenCalledWith(
@@ -147,6 +148,7 @@ describe('AgentService', () => {
         expect.any(String),
         expect.any(Array),
         expect.objectContaining({ baseUrl: 'http://localhost:11434' }),
+        signal,
         res,
         1,
       );
@@ -156,7 +158,7 @@ describe('AgentService', () => {
       mockProvidersService.findModelWithProvider.mockResolvedValueOnce(null);
       const res = { write: jest.fn() } as any;
 
-      await service.executePlan(42, 999, 1, res);
+      await service.executePlan(42, 999, 1, new AbortController().signal, res);
 
       expect(res.write).toHaveBeenCalledWith('data: {"error":"provider_not_found"}\n\n');
       expect(mockAgentLoop.executePlan).not.toHaveBeenCalled();

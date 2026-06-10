@@ -49,19 +49,20 @@
           <div class="text-[#888888] text-[10px] font-mono mb-2">{{ t('cowork.title') }}</div>
           <div class="flex gap-2 items-center">
             <span class="text-[#888888] text-xs font-mono">{{ t('cowork.path') }}</span>
-            <input v-model="projectPath" :disabled="!!connectedProject" placeholder="/path/to/project"
+            <input v-model="projectPath" :disabled="!!connectedProject || isBrowsing" placeholder="/path/to/project"
               class="flex-1 bg-cyber-dark text-[#EEEEEE] text-sm px-2 py-1.5 font-mono outline-none" />
             <input ref="projectDirInput" type="file" webkitdirectory class="hidden" @change="onProjectDirChange" />
-            <button @click="browseProjectDir" :disabled="!!connectedProject"
+            <button @click="browseProjectDir" :disabled="!!connectedProject || isBrowsing"
               class="px-3 py-1.5 text-xs font-mono text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20 transition-colors duration-150">
               {{ t('cowork.browse') }}
             </button>
-            <button @click="toggleProject"
+            <button @click="toggleProject" :disabled="isBrowsing"
               class="px-3 py-1.5 text-xs font-mono transition-colors duration-150"
               :class="connectedProject ? 'text-red-400 bg-red-400/10 hover:bg-red-400/20' : 'text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20'">
               {{ connectedProject ? t('cowork.disconnect') : t('cowork.connect') }}
             </button>
           </div>
+          <div v-if="isBrowsing" class="text-cyber-orange text-[10px] font-mono mt-1">⟳ {{ t('cowork.scanning') }}</div>
           <div v-if="connectedProject" class="text-cyber-green text-[10px] font-mono mt-1">{{ t('cowork.connected') }} {{ connectedProject }}</div>
         </div>
 
@@ -93,6 +94,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const projectDirInput = ref<HTMLInputElement | null>(null)
 const projectPath = ref(localStorage.getItem('workspace.projectPath') || '')
 const connectedProject = ref<string | null>(null)
+const isBrowsing = ref(false)
 
 const filteredFiles = computed(() =>
   files.value.filter(f => f.filename.toLowerCase().includes(filter.value.toLowerCase()))
@@ -153,18 +155,34 @@ async function loadFiles() {
   } catch { /* ignore */ }
 }
 
+function onWindowFocus() {
+  if (isBrowsing.value) isBrowsing.value = false
+}
+
 function browseProjectDir() {
+  isBrowsing.value = true
+  window.addEventListener('focus', onWindowFocus, { once: true })
   projectDirInput.value?.click()
 }
 
 function onProjectDirChange() {
+  isBrowsing.value = false
+  window.removeEventListener('focus', onWindowFocus)
   const f = projectDirInput.value?.files?.[0]
   if (!f) return
   const raw = (f as unknown as { path?: string }).path
-  const fullPath = f.webkitRelativePath
-    ? f.webkitRelativePath.split('/')[0]
-    : f.name
-  projectPath.value = raw || fullPath
+  if (raw && f.webkitRelativePath) {
+    const sep = raw.includes('/') ? '/' : '\\'
+    const rawParts = raw.split(sep)
+    const relParts = f.webkitRelativePath.split('/')
+    projectPath.value = rawParts.slice(0, -(relParts.length - 1)).join(sep)
+  } else if (f.webkitRelativePath) {
+    projectPath.value = f.webkitRelativePath.split('/')[0]
+  } else {
+    projectPath.value = f.name
+  }
+  if (projectPath.value.trim()) toggleProject()
+  if (projectDirInput.value) projectDirInput.value.value = ''
 }
 
 async function toggleProject() {
