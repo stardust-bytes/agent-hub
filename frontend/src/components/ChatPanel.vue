@@ -449,7 +449,7 @@ function onInput(e: Event) {
   const el = e.target as HTMLInputElement
   const text = el.value || ''
 
-  if (text.startsWith('/')) {
+  if (currentMode.value === 'cowork' && text.startsWith('/')) {
     const spaceIdx = text.indexOf(' ')
     if (spaceIdx === -1) {
       showSlashMenu.value = true
