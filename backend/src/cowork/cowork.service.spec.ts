@@ -79,4 +79,35 @@ describe('CoworkService', () => {
     expect(status.isActive).toBe(false);
     expect(status.projectPath).toBeNull();
   });
+
+  describe('getDrives', () => {
+    it('returns an array of drive strings', async () => {
+      const drives = await service.getDrives();
+      expect(Array.isArray(drives)).toBe(true);
+      expect(drives.length).toBeGreaterThan(0);
+      expect(drives[0]).toMatch(/^[a-zA-Z]:\\$|^\/$/);
+    });
+  });
+
+  describe('browseDirectory', () => {
+    it('returns entries for a valid directory', async () => {
+      const result = await service.browseDirectory(process.cwd());
+      expect(result.path).toBe(process.cwd());
+      expect(Array.isArray(result.entries)).toBe(true);
+      expect(result.entries.length).toBeGreaterThan(0);
+      expect(result.entries[0]).toHaveProperty('name');
+      expect(result.entries[0]).toHaveProperty('isDirectory');
+    });
+
+    it('throws for non-existent path', async () => {
+      await expect(service.browseDirectory('Z:\\__nonexistent__')).rejects.toThrow();
+    });
+
+    it('only returns directories', async () => {
+      const result = await service.browseDirectory(process.cwd());
+      for (const entry of result.entries) {
+        expect(entry.isDirectory).toBe(true);
+      }
+    });
+  });
 });

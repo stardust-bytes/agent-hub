@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { SettingsService } from '../settings/settings.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 import * as path from 'path';
+import * as fs from 'fs/promises';
 
 const PROJECT_KEY = 'cowork_project_path';
 
@@ -36,5 +37,30 @@ export class CoworkService implements OnModuleInit {
   async getStatus(): Promise<{ projectPath: string | null; isActive: boolean }> {
     const projectPath = await this.getProject();
     return { projectPath, isActive: projectPath !== null };
+  }
+
+  async getDrives(): Promise<string[]> {
+    if (process.platform === 'win32') {
+      const drives: string[] = [];
+      for (let i = 65; i <= 90; i++) {
+        const letter = String.fromCharCode(i);
+        try {
+          await fs.access(letter + ':\\');
+          drives.push(letter + ':\\');
+        } catch { /* skip unavailable drives */ }
+      }
+      return drives;
+    }
+    return ['/'];
+  }
+
+  async browseDirectory(dirPath: string): Promise<{ path: string; entries: Array<{ name: string; isDirectory: boolean }> }> {
+    const resolved = path.resolve(dirPath);
+    const dirents = await fs.readdir(resolved, { withFileTypes: true });
+    const entries = dirents
+      .filter(d => d.isDirectory())
+      .map(d => ({ name: d.name, isDirectory: true }))
+      .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+    return { path: resolved, entries };
   }
 }
