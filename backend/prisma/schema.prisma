@@ -32,6 +32,7 @@ model Session {
   updatedAt DateTime      @updatedAt
   messages  ChatMessage[]
   plans     Plan[]
+  agentFiles AgentFile[]
 }
 
 model ChatMessage {
@@ -113,4 +114,13 @@ model PlanStep {
   text      String
   status    String   @default("TODO")
   updatedAt DateTime @updatedAt
+}
+
+model AgentFile {
+  id        Int      @id @default(autoincrement())
+  filename  String
+  path      String
+  sessionId Int
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }

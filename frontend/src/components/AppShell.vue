@@ -8,7 +8,7 @@
       <TasksView      v-else-if="activeView === 'tasks'"     class="flex-1 overflow-hidden" @ws-status="wsConnected = $event" />
       <ProvidersView  v-else-if="activeView === 'providers'" class="flex-1 overflow-hidden" />
       <NotesView      v-else-if="activeView === 'notes'"     class="flex-1 overflow-hidden" />
-      <PlansView      v-else-if="activeView === 'plans'"     class="flex-1 overflow-hidden" />
+      <!-- <PlansView      v-else-if="activeView === 'plans'"     class="flex-1 overflow-hidden" /> -->
       <ChatPanel      v-else                                  class="flex-1 overflow-hidden" />
     </div>
     <BottomTabBar :active-view="activeView" @navigate="activeView = $event" />

@@ -58,7 +58,7 @@ const navItems: NavItem[] = [
   { view: 'chat',      labelKey: 'nav.chat',      icon: HiChatAlt2 },
   { view: 'tasks',     labelKey: 'nav.tasks',     icon: HiClipboardList },
   { view: 'notes',     labelKey: 'nav.notes',     icon: HiDocumentText },
-  { view: 'plans',     labelKey: 'nav.plans',     icon: '📋' },
+  // { view: 'plans',     labelKey: 'nav.plans',     icon: '📋' },
   { view: 'files',     labelKey: 'nav.files',     icon: HiFolder },
   { view: 'tools',     labelKey: 'nav.tools',     icon: HiLightningBolt },
   { view: 'providers', labelKey: 'nav.providers', icon: HiCog },
