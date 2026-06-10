@@ -102,6 +102,7 @@
   "cowork.browse.empty": "Empty directory",
   "cowork.browse.parent": "(parent)",
   "cowork.browse.select": "Select this directory",
+  "cowork.artifacts": "Artifacts",
   "cowork.connected": "● Working with:",
 
   "sessions.header": "SESSIONS",
