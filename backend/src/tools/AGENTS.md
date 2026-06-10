@@ -35,7 +35,9 @@ tools/
 │   ├── write-file.executor.ts
 │   ├── write-file.executor.spec.ts
 │   ├── list-directory.executor.ts
-│   └── list-directory.executor.spec.ts
+│   ├── list-directory.executor.spec.ts
+│   ├── grep.executor.ts
+│   └── grep.executor.spec.ts
 ```
 
 ## API Endpoints
@@ -69,6 +71,7 @@ Base path: `/api/tools`
 | `WriteFileExecutor` | `write_file` | Write content to file |
 | `ListDirectoryExecutor` | `list_directory` | List directory entries |
 | `RunCommandExecutor` | `run_command` | Execute shell command (disabled by default) |
+| `GrepExecutor` | `grep` | Search file contents recursively using a pattern |
 
 ## Security
 
