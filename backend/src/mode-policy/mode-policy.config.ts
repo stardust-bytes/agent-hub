@@ -43,7 +43,7 @@ export const MODE_POLICY: Record<string, ModePolicyEntry> = {
   cowork: {
     enabledTools: '*',
     deniedTools: [],
-    allowedPaths: ['{projectPath}', '{workspaceRoot}'],
+    allowedPaths: ['{projectPath}'],
     systemPromptStyle: 'cowork',
     envContext: ['platform', 'projectPath'],
   },

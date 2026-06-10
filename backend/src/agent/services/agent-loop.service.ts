@@ -33,7 +33,7 @@ import { PlansService } from '../../plans/plans.service';
 import { McpService } from '../mcp/mcp.service';
 
 const MAX_RETRIES = 2;
-const MAX_ITERATIONS = 10;
+const MAX_ITERATIONS = 100;
 const KB_NO_RESULTS = 'No relevant information found in knowledge base.';
 
 @Injectable()
