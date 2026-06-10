@@ -88,10 +88,13 @@ Visible on mobile only (`flex sm:hidden`, `h-[3rem]`). Same navigation items as 
 | `tool` (call) | `[⚙] toolName(args)`, orange | — |
 | `tool` (result) | Raw result text, green | — |
 | `system` | Thinking indicator / errors, muted | `[hệ thống]` / `[system]` |
+| `plan` | PlanBubble with step list + approve/reject/resume buttons | `plan` |
 
 **renderMarkdown:** `DOMPurify.sanitize(marked.parse(content))`. Styled via `.markdown-body` CSS.
 
 **Mode toggle:** Agent mode (ReAct loop with tools) vs Chat mode (plain conversation).
+
+**Plan execution SSE:** `planStepUpdate` events update step statuses in-place on PlanBubble. `planInterrupted` pushes a system message. PlanBubble now supports INTERRUPTED status with a "Tiếp tục" resume button.
 
 ---
 

@@ -133,6 +133,9 @@ The chat panel reads an SSE stream from `POST /api/agent/chat` using the Fetch A
 | `thinking` | Reset currentAgentIdx, push thinking indicator message |
 | `[DONE]` | Stop stream, set agent message typing=false |
 | `error` | Push error system message |
+| `plan` | Push plan chat message with PlanBubble component |
+| `planStepUpdate` | Update step status in-place on existing PlanBubble |
+| `planInterrupted` | Push system message: "[⏹ Plan execution interrupted...]" |
 
 **Message ordering:** Agent message is NOT created upfront — created lazily on first `token` event. This ensures tool call/result/thinking messages always appear BEFORE the agent response text.
 
