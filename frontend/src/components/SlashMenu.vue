@@ -36,6 +36,7 @@ const { t } = useI18n()
 
 const commands = computed(() => [
   { command: '/plan', description: t('slash.plan') },
+  { command: '/resume-plan', description: t('slash.resume_plan') },
   { command: '/help', description: t('slash.help') },
   { command: '/clear', description: t('slash.clear') },
 ])
