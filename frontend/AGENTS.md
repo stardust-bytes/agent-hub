@@ -4,7 +4,7 @@ Local-First AI Agent Workspace · Vue 3 SPA.
 
 ## What this is
 
-Single-page application with a multi-panel IDE layout: icon sidebar + content panel + bottom tab bar (mobile). Served by Nginx on port 3000 in production, Vite dev server on port 171305 locally. Proxies `/api` requests to the NestJS backend on port 130596.
+Single-page application with a multi-panel IDE layout: icon sidebar + content panel + bottom tab bar (mobile). Served by Nginx on port 3000 in production, Vite dev server on port 17135 locally. Proxies `/api` requests to the NestJS backend on port 13596.
 
 ---
 
@@ -163,7 +163,7 @@ Language toggle persists to `localStorage('workspace.lang')` (values: `'vi'` | `
 ## Commands
 
 ```bash
-npm run dev              # Hot reload, port 171305
+npm run dev              # Hot reload, port 17135
 npm run type-check       # vue-tsc --noEmit
 npm run build            # Production build to dist/
 npm run preview          # Preview production build

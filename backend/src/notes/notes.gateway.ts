@@ -4,7 +4,7 @@ import { Note } from '@prisma/client'
 
 @WebSocketGateway({
   namespace: '/notes',
-  cors: { origin: ['http://localhost:171305', 'http://localhost:3000'] },
+  cors: { origin: ['http://localhost:17135', 'http://localhost:3000'] },
 })
 export class NotesGateway {
   @WebSocketServer()

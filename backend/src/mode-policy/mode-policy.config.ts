@@ -34,6 +34,7 @@ export const MODE_POLICY: Record<string, ModePolicyEntry> = {
       'grep',
       'glob',
       'resume_plan',
+      'create_plan',
     ],
     allowedPaths: ['{workspaceRoot}/agent-output'],
     systemPromptStyle: 'agent',
