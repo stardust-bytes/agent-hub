@@ -4,7 +4,7 @@
 ### 1. Project Overview & Architecture
 We are building a local-first, self-hosted AI Agent Workspace tailored primarily for software developers (coding-focused) but accessible to general office users. 
 - **Deployment Mode:** Single-command installation using Docker Compose.
-- **Access Mode:** Web URL interface (e.g., `http://localhost:3000` or local network IP).
+- **Access Mode:** Web URL interface (e.g., `http://localhost:17135` or local network IP).
 - **Core Strategy:** Local-first data privacy. Heavy usage of embedded/zero-config components. No complex multi-server databases installation required for the user.
 
 ### 2. Tech Stack Requirements
@@ -140,7 +140,7 @@ These rules apply to ALL tasks in this project. Claude must follow them strictly
 - The `DATABASE_URL` must always use the Docker volume path (`file:/app/data/dev.db`) in production and a local path in `.env` for dev.
 
 **CORS:**
-- Only `http://localhost:17135` (Vite dev) and `http://localhost:3000` (Docker) are allowed origins.
+- Only `http://localhost:17135` is allowed as origin.
 - Never set `origin: '*'` or `origin: true`.
 
 **Error handling:**

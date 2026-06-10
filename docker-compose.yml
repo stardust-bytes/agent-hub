@@ -29,7 +29,7 @@ services:
       dockerfile: Dockerfile
     container_name: workspace-frontend
     ports:
-      - "3000:80"
+      - "17135:80"
     depends_on:
       workspace-backend:
         condition: service_healthy

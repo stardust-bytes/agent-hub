@@ -4,7 +4,7 @@ Local-First AI Agent Workspace · NestJS backend service.
 
 ## What this is
 
-REST API server for the AI Workspace. Handles task CRUD, agent chat (Ollama ReAct loop), sessions, settings, LLM provider management, knowledge base indexing, and health checks. Backed by SQLite via Prisma. Runs on port **13596** (internal); in production traffic comes through Nginx on port 3000.
+REST API server for the AI Workspace. Handles task CRUD, agent chat (Ollama ReAct loop), sessions, settings, LLM provider management, knowledge base indexing, and health checks. Backed by SQLite via Prisma. Runs on port **13596** (internal); in production traffic comes through Nginx on port 17135.
 
 ---
 
@@ -268,7 +268,7 @@ npx prisma generate         # regenerate client after schema edit
 
 Allowed origins (hardcoded in `main.ts`):
 - `http://localhost:17135` — Vite dev server
-- `http://localhost:3000` — Nginx production
+- `http://localhost:17135` — Nginx production
 
 Never add `origin: '*'`.
 

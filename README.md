@@ -24,21 +24,8 @@
 
 ## Overview
 
-**171305** is a privacy-first AI agent workspace that runs entirely on your machine. It combines a ChatGPT-like chat interface with developer tools — file browsing, task management, code execution — powered by local AI models via Ollama or external providers like OpenAI.
+**171305** is a privacy-first AI agent workspace that runs entirely on your machine. It combines a ChatGPT-like chat interface with developer tools — file browsing, task management, code execution — powered by local AI models via Ollama or external providers like OpenAI, DeepSeek, Gemini.
 
-```
-┌─────────────────────────────────────────────────────┐
-│  Chat Panel  │  Agent Response (Markdown)           │
-│  ─────────── │  ─────────────────────────────────── │
-│  $ user      │  ▶ agent · 14:30                     │
-│  "Refactor   │  I'll refactor the auth module.      │
-│   auth"      │  [PLAN]                              │
-│              │  ✓ Extract JWT logic                  │
-│              │  ⟳ Add refresh tokens                 │
-│              │                                       │
-│  ▶ chat │ ▶ agent                                   │
-└─────────────────────────────────────────────────────┘
-```
 
 ### Key Features
 
@@ -60,7 +47,7 @@
 docker compose up --build
 ```
 
-Open http://localhost:3000
+Open http://localhost:17135
 
 ### Native (Windows)
 
@@ -91,7 +78,7 @@ Open http://localhost:17135
 ### Architecture
 
 ```
-Browser ──► Nginx (:3000) ──► Frontend (Vue SPA)
+Browser ──► Nginx (:17135) ──► Frontend (Vue SPA)
                │
                └──► /api/* ──► Backend (NestJS :13596)
                                     │
