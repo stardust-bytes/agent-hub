@@ -83,7 +83,7 @@ Plan execution is now handled inside the main `/chat` SSE stream. Send messages 
 | `error` | `{error: string}` | Error occurred |
 | `plan` | `{id, title, status, steps:[{id,order,text,status}]}` | LLM proposes a plan (runPlanMode or create_plan tool) |
 | `planStepUpdate` | `{planId, stepId, status}` | Step changes state during plan execution |
-| `planInterrupted` | `{planId, stepId, reason}` | Plan execution was aborted by user |
+| `planInterrupted` | `{planId, stepId, reason}` | Plan execution was aborted by user (followed by `[DONE]`; also persisted to session history as system message) |
 
 ## State Machine Loop
 

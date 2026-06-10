@@ -32,7 +32,7 @@ Base path: `/api/sessions`
 ## Key Patterns
 
 - **Auto-title**: On first user message, sets session title to first 5 words of the message
-- **History format**: `getHistory()` returns messages in Ollama format (`{ role, content }[]`) for context building
+- **History format**: `getHistory()` returns messages in Ollama format (`{ role, content }[]`) for context building. Filters out non-standard roles (`plan`, etc.) — only `system`, `user`, `assistant`, `tool` are included.
 - **Cascade delete**: Deleting a session cascades to all its `ChatMessage` records (via Prisma schema `onDelete: Cascade`)
 
 ## Dependencies

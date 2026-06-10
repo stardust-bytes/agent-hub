@@ -345,6 +345,10 @@ export class AgentLoopService {
 
     if (signal.aborted) {
       res.write(`data: ${JSON.stringify({ planInterrupted: { planId, stepId: currentStepId, reason: 'user_stopped' } })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      if (sessionId) {
+        await this.sessionsService.saveMessage(sessionId, 'system', '[Plan execution interrupted by user]');
+      }
       await this.plansService.setInterrupted(planId);
     } else {
       await this.plansService.updateStatus(planId, 'DONE');

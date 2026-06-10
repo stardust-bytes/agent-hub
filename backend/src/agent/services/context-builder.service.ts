@@ -54,7 +54,10 @@ export class ContextBuilderService {
       where: { sessionId },
       orderBy: { createdAt: 'asc' },
     });
-    return history.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
+    const validRoles = new Set(['system', 'user', 'assistant', 'tool']);
+    return history
+      .filter(m => validRoles.has(m.role))
+      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
   }
 
   private buildSystemPrompt(tools: ToolDefinition[], projectPath?: string | null, mode: string = 'agent'): string {

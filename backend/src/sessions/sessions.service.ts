@@ -39,7 +39,10 @@ export class SessionsService {
       where: { sessionId },
       orderBy: { createdAt: 'asc' },
     });
-    return messages.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
+    const validRoles = new Set(['system', 'user', 'assistant', 'tool']);
+    return messages
+      .filter(m => validRoles.has(m.role))
+      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
   }
 
   async saveMessage(sessionId: number, role: string, content: string, toolName?: string, isResult?: boolean) {
