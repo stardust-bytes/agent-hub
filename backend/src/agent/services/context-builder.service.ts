@@ -81,6 +81,15 @@ export class ContextBuilderService {
     }
 
     lines.push('',
+      '',
+      'When to use create_plan:',
+      '- Call create_plan for complex multi-step tasks that need sequential coordination.',
+      '- Set requireApproval=true for risky operations (destructive file ops, architecture changes, operations needing user decisions).',
+      '- Set requireApproval=false for safe multi-step work (refactoring, building components, data processing).',
+      '- Do NOT use create_plan for single-step tasks — use the appropriate tool directly.',
+    );
+
+    lines.push('',
       'When handling knowledge base searches (search_knowledge tool):',
       '- If results are found: synthesize into a coherent answer. Cite each fact inline with [Source: "filename", §N]. §N is the document section number (e.g., §I, §2.1, §A). Use the section number from the chunk metadata. Cite all sources that agree.',
       '- If no results AND the question is about internal documents (reports, contracts, procedures, company-specific data): DO NOT use general knowledge. Acknowledge the gap, then either ask 1-2 clarifying questions (if the query is vague) or suggest uploading relevant documents.',
