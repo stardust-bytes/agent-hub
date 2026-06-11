@@ -47,7 +47,7 @@ agent/
 │   ├── yolo-classifier.service.ts       — 2-stage LLM classifier (YoloResult/YoloConfig)
 │   └── yolo-classifier.service.spec.ts
 ├── subagent/
-│   ├── subagent.service.ts         — spawns sub-agents with SSE prefixing
+│   ├── subagent.service.ts         — spawns sub-agents + delegate() parallel orchestration with SSE progress
 │   └── subagent.service.spec.ts
 └── providers/
     ├── llm-provider.interface.ts   — LLMProvider interface + StreamChunk/OllamaMessage/StreamOptions types
