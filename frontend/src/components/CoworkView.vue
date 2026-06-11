@@ -663,6 +663,7 @@ async function submit() {
               messages.value.push({ role: 'system', content: `${icon} ${stepText}`, timestamp: now() })
               await scrollToBottom()
             }
+            activePlans.value = [...activePlans.value]
           } else if (parsed.planInterrupted) {
             messages.value.push({
               role: 'system',
