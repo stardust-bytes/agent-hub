@@ -43,7 +43,7 @@ export class LLMControllerService {
   ): OllamaMessage[] {
     const messages: OllamaMessage[] = [
       { role: 'system', content: systemPrompt },
-      ...history,
+      ...history.filter(m => m.role !== 'tool'),
       { role: 'user', content: userMessage },
     ];
 
