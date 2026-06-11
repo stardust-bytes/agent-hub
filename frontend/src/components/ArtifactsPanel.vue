@@ -18,8 +18,8 @@
           PLAN: {{ plan.title }}
         </div>
         <div class="px-2 py-1 space-y-0.5">
-          <div v-for="step in plan.steps" :key="step.id" class="flex items-center gap-2 text-sm font-mono">
-            <span :class="step.status === 'DONE' ? 'text-cyber-green' : step.status === 'DOING' ? 'text-cyber-orange' : step.status === 'FAILED' ? 'text-red-400' : 'text-cyber-muted'">
+          <div v-for="step in plan.steps" :key="step.id" class="flex gap-2 items-start text-sm font-mono">
+            <span :class="step.status === 'DONE' ? 'text-cyber-green' : step.status === 'DOING' ? 'text-cyber-orange' : step.status === 'FAILED' ? 'text-red-400' : 'text-cyber-muted'" class="shrink-0 w-6 text-xs leading-5">
               {{ step.status === 'DONE' ? '[✓]' : step.status === 'DOING' ? '[⟳]' : step.status === 'FAILED' ? '[✗]' : '[ ]' }}
             </span>
             <span :class="step.status === 'DONE' ? 'text-cyber-green' : 'text-cyber-code-text'">{{ step.text }}</span>
