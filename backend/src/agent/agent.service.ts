@@ -7,7 +7,6 @@ import { PermissionsService } from './services/permissions.service';
 import { PlansService } from '../plans/plans.service';
 import { PermissionsConfig } from './dto/permissions-config';
 import { AgentRunState } from './dto/agent-run-state';
-import { SubagentService } from './subagent/subagent.service';
 import { WriteStream } from './dto/write-stream.interface';
 
 @Injectable()
@@ -19,7 +18,6 @@ export class AgentService {
     private readonly providersService: ProvidersService,
     private readonly permissionsService: PermissionsService,
     private readonly plansService: PlansService,
-    private readonly subagentService: SubagentService,
   ) {}
 
   async streamChat(
@@ -108,86 +106,6 @@ export class AgentService {
         );
         return;
       }
-    }
-
-    if (message.startsWith('/delegate ')) {
-      const delegateMatch = message.match(/^\/delegate (parallel|sequential) (.+)$/);
-      if (!delegateMatch) {
-        res.write(`data: ${JSON.stringify({ error: 'Usage: /delegate parallel|sequential <requestId>' })}\n\n`);
-        res.write('data: [DONE]\n\n');
-        return;
-      }
-
-      const action = delegateMatch[1];
-      const requestId = delegateMatch[2].trim();
-      const delegation = this.subagentService.getDelegation(requestId);
-
-      if (!delegation) {
-        res.write(`data: ${JSON.stringify({ error: 'Delegation request not found or expired' })}\n\n`);
-        res.write('data: [DONE]\n\n');
-        return;
-      }
-
-      this.subagentService.removeDelegation(requestId);
-
-      if (!signal.aborted) {
-        await this.sessionsService.saveMessage(sessionId, 'user', message);
-      }
-
-      if (action === 'parallel') {
-        await this.sessionsService.saveMessage(
-          sessionId, 'system', `[Running ${delegation.subtasks.length} subtasks via sub-agents...]`
-        );
-
-        for (let i = 0; i < delegation.subtasks.length; i++) {
-          if (signal.aborted) break;
-          const subtask = delegation.subtasks[i];
-          await this.sessionsService.saveMessage(
-            sessionId, 'system', `[Subtask ${i + 1}/${delegation.subtasks.length}] ${subtask}`
-          );
-
-          try {
-            await this.subagentService.spawn(
-              subtask,
-              providerType,
-              providerModel.name,
-              providerConfig,
-              delegation.tools,
-              signal,
-              res,
-              sessionId,
-              delegation.mode,
-            );
-          } catch (e) {
-            const errMsg = `Subtask ${i + 1} failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
-            await this.sessionsService.saveMessage(sessionId, 'system', `[Error] ${errMsg}`);
-          }
-        }
-
-        if (!signal.aborted) {
-          await this.sessionsService.saveMessage(
-            sessionId, 'system', '[All subtasks completed]'
-          );
-        }
-        res.write('data: [DONE]\n\n');
-      } else if (action === 'sequential') {
-        const runState = {
-          step: 0, maxIterations: 10, roomId: String(sessionId),
-          steps: [], startTime: Date.now(), currentState: 'PLANNING',
-        } as AgentRunState;
-        const seqContext = await this.contextBuilder.build(runState, sessionId, delegation.mode);
-        const history = await this.sessionsService.getHistory(sessionId);
-        await this.sessionsService.saveMessage(sessionId, 'user', delegation.task);
-        const finalText = await this.agentLoop.run(
-          providerType, providerModel.name, seqContext.systemPrompt,
-          history, delegation.task, seqContext.tools, res,
-          signal, sessionId, delegation.mode, providerConfig,
-        );
-        if (!signal.aborted && finalText) {
-          await this.sessionsService.saveMessage(sessionId, 'assistant', finalText);
-        }
-      }
-      return;
     }
 
     const runState = {
