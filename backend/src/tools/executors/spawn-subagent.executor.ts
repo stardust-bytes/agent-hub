@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ToolExecutor, ToolContext } from './tool-executor.interface';
-import { SubagentService } from '../../agent/subagent/subagent.service';
 
 @Injectable()
 export class SpawnSubagentExecutor implements ToolExecutor {
   readonly name = 'spawn_subagent';
-
-  constructor(private readonly subagentService: SubagentService) {}
 
   async execute(args: Record<string, unknown>, context?: ToolContext): Promise<string> {
     const task = args.task as string | undefined;

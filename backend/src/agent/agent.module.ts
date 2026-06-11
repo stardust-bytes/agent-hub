@@ -31,6 +31,7 @@ import { PlansModule } from '../plans/plans.module';
 import { McpModule } from './mcp/mcp.module';
 import { CoworkModule } from '../cowork/cowork.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
+import { SubagentService } from './subagent/subagent.service';
 import { ModePolicyModule } from '../mode-policy/mode-policy.module';
 
 @Module({
@@ -44,6 +45,7 @@ import { ModePolicyModule } from '../mode-policy/mode-policy.module';
     OpenAIProvider,
     ContextBuilderService,
     PermissionsService,
+    SubagentService,
     CreateTaskExecutor,
     UpdateTaskExecutor,
     ListTasksExecutor,

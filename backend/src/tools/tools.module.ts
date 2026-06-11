@@ -22,6 +22,7 @@ import { GrepExecutor } from './executors/grep.executor';
 import { GlobExecutor } from './executors/glob.executor';
 import { ResumePlanExecutor } from './executors/resume-plan.executor';
 import { CreatePlanExecutor } from './executors/create-plan.executor';
+import { SpawnSubagentExecutor } from './executors/spawn-subagent.executor';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { NotesModule } from '../notes/notes.module';
@@ -50,6 +51,7 @@ const EXECUTORS = [
   GlobExecutor,
   ResumePlanExecutor,
   CreatePlanExecutor,
+  SpawnSubagentExecutor,
 ];
 
 @Module({

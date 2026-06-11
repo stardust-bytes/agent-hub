@@ -31,6 +31,7 @@ import { CreatePlanExecutor } from '../../tools/executors/create-plan.executor';
 import { PermissionsService } from './permissions.service';
 import { PlansService } from '../../plans/plans.service';
 import { McpService } from '../mcp/mcp.service';
+import { SubagentService } from '../subagent/subagent.service';
 
 const MAX_RETRIES = 2;
 const MAX_ITERATIONS = 100;
@@ -51,6 +52,7 @@ export class AgentLoopService {
     private readonly permissionsService: PermissionsService,
     private readonly plansService: PlansService,
     private readonly mcpService: McpService,
+    private readonly subagentService: SubagentService,
     createTask: CreateTaskExecutor,
     updateTask: UpdateTaskExecutor,
     listTasks: ListTasksExecutor,
@@ -174,10 +176,27 @@ export class AgentLoopService {
             }
 
             let result: string;
-            try {
-              result = await this.executeTool(name, args, { mode: mode as 'chat' | 'agent' | 'cowork', sessionId: sessionId ?? 0 });
-            } catch (e) {
-              result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
+            if (name === 'spawn_subagent') {
+              const task = typeof args === 'object' && args !== null ? String((args as any).task ?? '') : '';
+              if (!task) {
+                result = 'Error: spawn_subagent requires a "task" parameter';
+              } else {
+                try {
+                  result = await this.subagentService.spawn(
+                    task, providerType, model, providerConfig,
+                    activeTools, signal, res, sessionId,
+                    mode as 'chat' | 'agent' | 'cowork',
+                  );
+                } catch (e) {
+                  result = `Error: Subagent failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+                }
+              }
+            } else {
+              try {
+                result = await this.executeTool(name, args, { mode: mode as 'chat' | 'agent' | 'cowork', sessionId: sessionId ?? 0 });
+              } catch (e) {
+                result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
+              }
             }
 
             if (result.startsWith('[PLAN_CREATED]')) {
