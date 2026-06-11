@@ -91,6 +91,15 @@ src/
 │   ├── settings.service.ts    — key-value store in Setting table (get, set, delete, upsert, findAll)
 │   └── *.spec.ts
 │
+├── memory/
+│   ├── memory.module.ts
+│   ├── memory.controller.ts    — CRUD under /api/memories + GET /api/memories/context
+│   ├── memory.service.ts       — CRUD + dedup(SHA256) + context query for prompt injection
+│   ├── memory.gateway.ts       — Socket.io gateway (namespace /memories)
+│   ├── memory-extraction.service.ts — background auto-extraction on agent.idle event
+│   ├── memory.service.spec.ts, memory.controller.spec.ts, memory.gateway.spec.ts, memory-extraction.service.spec.ts
+│   └── dto/ (create-memory.dto.ts, update-memory.dto.ts, search-memory.dto.ts)
+│
 └── knowledge/
     ├── knowledge.module.ts
     ├── knowledge.controller.ts — file upload + search + delete under /api/knowledge
@@ -128,6 +137,11 @@ All routes are prefixed with `/api`.
 | `POST` | `/api/cowork/project` | Set project path |
 | `GET` | `/api/cowork/project` | Get current project status |
 | `DELETE` | `/api/cowork/project` | Clear current project |
+| `GET` | `/api/memories` | List memories (filter by type, search, session) |
+| `POST` | `/api/memories` | Create memory |
+| `PATCH` | `/api/memories/:id` | Update memory |
+| `DELETE` | `/api/memories/:id` | Delete memory |
+| `GET` | `/api/memories/context` | Get memories for agent prompt injection |
 | `GET` | `/api/knowledge` | List knowledge files |
 | `POST` | `/api/knowledge/upload` | Upload file for indexing |
 | `POST` | `/api/knowledge/search` | Search indexed files |
@@ -147,6 +161,18 @@ data: [DONE]
 ## Prisma Schema
 
 ```prisma
+model Memory {
+  id        String   @id @default(cuid())
+  type      String   // USER | FEEDBACK | PROJECT | REFERENCE
+  title     String
+  content   String
+  metadata  String?  // JSON: { source, hash, sessionId, keywords }
+  sessionId Int?
+  agentId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Setting {
   key   String @id
   value String

@@ -14,7 +14,8 @@ AppShell.vue              — layout coordinator, owns activeView state
 │   │   ├── TaskCard.vue      — individual task card with priority highlight
 │   │   │   └── TaskCardMenu.vue — priority picker + delete action
 │   ├── FilesView.vue         — knowledge base upload + codebase watcher
-│   ├── SettingsView.vue      — health check + version info
+│   ├── SettingsView.vue      — health check + version info + memories tab (MemoryView)
+│   │   └── MemoryView.vue   — memory CRUD with type filter, search, auto-extracted badge, create/edit modals
 │   └── ProvidersView.vue     — LLM provider CRUD + model management
 ├── BottomTabBar.vue     — mobile navigation (visible < sm)
 ├── StatusBar.vue         — bottom bar: model name, DB status, WS status, live clock
