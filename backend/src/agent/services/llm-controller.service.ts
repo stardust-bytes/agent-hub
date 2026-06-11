@@ -35,6 +35,26 @@ export class LLMControllerService {
     yield* provider.stream(opts);
   }
 
+  async generateCompletion(
+    messages: OllamaMessage[],
+    options?: { max_tokens?: number; temperature?: number },
+  ): Promise<string> {
+    const providerType = 'ollama';
+    const model = 'llama3.2';
+    const baseUrl = 'http://localhost:11434';
+    let fullResponse = '';
+    const stream = this.stream(providerType, model, messages, [], new AbortController().signal, baseUrl);
+    for await (const chunk of stream) {
+      if (chunk.type === 'token' && chunk.token) {
+        fullResponse += chunk.token;
+      }
+      if (chunk.type === 'error') {
+        throw new Error(chunk.error);
+      }
+    }
+    return fullResponse;
+  }
+
   buildMessages(
     systemPrompt: string,
     history: OllamaMessage[],
