@@ -120,6 +120,8 @@ All routes are prefixed with `/api`.
 | `POST` | `/api/tasks` | Create task |
 | `PATCH` | `/api/tasks/:id` | Update task |
 | `DELETE` | `/api/tasks/:id` | Delete task |
+| `GET` | `/api/agent/yolo-config` | Get YOLO classifier config |
+| `PATCH` | `/api/agent/yolo-config` | Update YOLO classifier config |
 | `POST` | `/api/agent/chat` | Agent chat (SSE stream) |
 | `GET` | `/api/sessions` | List sessions |
 | `POST` | `/api/sessions` | Create session |

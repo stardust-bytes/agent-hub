@@ -37,7 +37,7 @@ agent/
 │   ├── llm-controller.service.ts        — provider-agnostic LLM routing + message building + generateCompletion (non-streaming)
 │   ├── context-builder.service.ts       — builds LLM context with tool definitions (via ModePolicyService), history, agent output path instructions
 │   ├── context-builder.service.spec.ts
-│   ├── permissions.service.ts           — tool permission config: getConfig/updateConfig/isAllowed
+│   ├── permissions.service.ts           — tool permission config: getConfig/updateConfig/isAllowed + decide() with 6-mode dispatch
 │   ├── permissions.service.spec.ts
 │   ├── danger-patterns.config.ts        — pattern-based BLOCK_RULES + matchDangerPattern
 │   ├── danger-patterns.config.spec.ts
