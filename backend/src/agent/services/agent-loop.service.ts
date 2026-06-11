@@ -154,9 +154,11 @@ export class AgentLoopService {
 
         if (this.state === AgentState.EVALUATING) {
           let allGood = true;
+          let executedCount = 0;
           let ti = 0;
           for (const tc of toolCalls) {
             const idx = ti++;
+            executedCount++;
             const name = tc.name;
             const toolCallId = `call_${idx}_${name}`;
             const args = this.normalizeArgs(tc.arguments);
@@ -268,6 +270,23 @@ export class AgentLoopService {
 
             if (name === 'search_knowledge') {
               messages = await this.handleKnowledgeResult(messages, result, res, sessionId);
+            }
+          }
+
+          if (!allGood && executedCount < toolCalls.length) {
+            for (let i = messages.length - 1; i >= 0; i--) {
+              if (messages[i].role === 'assistant' && messages[i].toolCalls) {
+                messages[i] = {
+                  role: 'assistant',
+                  content: text || '',
+                  reasoningContent,
+                  toolCalls: toolCalls.slice(0, executedCount).map((tc, j) => ({
+                    id: `call_${j}_${tc.name}`,
+                    function: { name: tc.name, arguments: this.normalizeArgs(tc.arguments) },
+                  })),
+                };
+                break;
+              }
             }
           }
 
