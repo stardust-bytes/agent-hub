@@ -150,7 +150,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, triggerRef, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiChevronRight } from 'vue-icons-plus/hi'
 import { marked } from 'marked'
@@ -663,7 +663,7 @@ async function submit() {
               messages.value.push({ role: 'system', content: `${icon} ${stepText}`, timestamp: now() })
               await scrollToBottom()
             }
-            activePlans.value = [...activePlans.value]
+            triggerRef(activePlans)
           } else if (parsed.planInterrupted) {
             messages.value.push({
               role: 'system',
