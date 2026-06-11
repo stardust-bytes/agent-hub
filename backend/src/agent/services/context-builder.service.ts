@@ -83,14 +83,26 @@ export class ContextBuilderService {
       lines.push(`- ${tool.function.name}: ${tool.function.description}`);
     }
 
-    lines.push('',
-      '',
-      'When to use create_plan:',
-      '- Call create_plan for complex multi-step tasks that need sequential coordination.',
-      '- Set requireApproval=true for risky operations (destructive file ops, architecture changes, operations needing user decisions).',
-      '- Set requireApproval=false for safe multi-step work (refactoring, building components, data processing).',
-      '- Do NOT use create_plan for single-step tasks — use the appropriate tool directly.',
-    );
+    if (mode === 'cowork') {
+      lines.push('',
+        '',
+        'When to use create_plan:',
+        '- Call create_plan for complex multi-step tasks that need sequential coordination.',
+        '- Always set requireApproval=false — plans execute automatically.',
+        '- The user trusts you to decide when and how to break down work.',
+        '- Do not ask for approval or confirmation before executing plans.',
+        '- Do NOT use create_plan for single-step tasks — use the appropriate tool directly.',
+      );
+    } else {
+      lines.push('',
+        '',
+        'When to use create_plan:',
+        '- Call create_plan for complex multi-step tasks that need sequential coordination.',
+        '- Set requireApproval=true for risky operations (destructive file ops, architecture changes, operations needing user decisions).',
+        '- Set requireApproval=false for safe multi-step work (refactoring, building components, data processing).',
+        '- Do NOT use create_plan for single-step tasks — use the appropriate tool directly.',
+      );
+    }
 
     lines.push('',
       'When handling knowledge base searches (search_knowledge tool):',
