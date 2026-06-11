@@ -105,19 +105,15 @@ Plan execution is now handled inside the main `/chat` SSE stream. Send messages 
 
 1. Resolve provider model from `ProvidersService` (get baseUrl + key + model name)
 2. Build context (system prompt + tool definitions + chat history)
-3. **PLANNING** → **EXECUTING**: stream LLM response, collect tokens + tool_calls
-4. If tool_calls present → **EVALUATING**: execute each tool, check result quality
+3. **PLANNING** → **EXECUTING**: stream LLM response (unlimited iterations — LLM self-evaluates and decides when done)
+4. If tool_calls present: execute each tool, feed results back to LLM, continue loop
    - If `create_plan` returns `[PLAN_CREATED]` marker: emit `plan` SSE, route to approval (emit `[DONE]` and return) or auto-execute via `executePlan()` and return
-5. If result OK → back to **EXECUTING** (continue loop, max 10 iterations)
-6. If result fails → **CORRECTING**: retry up to 2× with different args, then try fallback tool, then ask user
-7. No tool_calls or correction exhausted → **RESPONDING**: emit final text tokens
-8. **DONE**: emit `[DONE]` SSE event
+5. If no tool_calls → **RESPONDING**: LLM decided task is complete, emit final text tokens
+6. **DONE**: emit `[DONE]` SSE event
 
 Tools available: create_task, update_task, list_tasks, get_task, delete_tasks, search_knowledge, web_fetch, web_search, create_note, update_note, list_notes, delete_note, convert_note_to_task, resume_plan, create_plan, spawn_subagent
 
-Permission check: before each tool execution, `PermissionsService.isAllowed(name)` is called. Denied tools emit a `toolResult` denial SSE and `continue` (skip CORRECTING).
-
-Self-correction fallback map: `web_fetch` → `web_search`, `search_knowledge` → `web_search`
+Permission check: before each tool execution, `PermissionsService.isAllowed(name)` is called. Denied tools emit a `toolResult` denial SSE and continue to next tool call.
 
 ## Key Patterns
 
@@ -141,7 +137,7 @@ Self-correction fallback map: `web_fetch` → `web_search`, `search_knowledge` �
 ## Testing
 
 ```bash
-npx jest src/agent          # 12 suites, 79 tests
+npx jest src/agent          # 12 suites, 75 tests
 npx jest --watch            # watch mode
 ```
 
