@@ -47,12 +47,12 @@ export class AgentController {
   }
 
   @Get('yolo-config')
-  getYoloConfig() {
+  async getYoloConfig() {
     return this.yoloClassifier.getConfig();
   }
 
   @Patch('yolo-config')
-  updateYoloConfig(@Body() dto: UpdateYoloConfigDto) {
+  async updateYoloConfig(@Body() dto: UpdateYoloConfigDto) {
     return this.yoloClassifier.updateConfig(dto);
   }
 }

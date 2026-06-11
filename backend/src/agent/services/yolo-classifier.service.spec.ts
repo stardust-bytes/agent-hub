@@ -1,9 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { YoloClassifierService } from './yolo-classifier.service';
 import { LLMControllerService } from './llm-controller.service';
+import { SettingsService } from '../../settings/settings.service';
 
 const mockLLM = {
   generateCompletion: jest.fn(),
+};
+
+const mockSettings = {
+  get: jest.fn().mockResolvedValue(''),
+  upsert: jest.fn().mockResolvedValue(undefined),
 };
 
 describe('YoloClassifierService', () => {
@@ -14,6 +20,7 @@ describe('YoloClassifierService', () => {
       providers: [
         YoloClassifierService,
         { provide: LLMControllerService, useValue: mockLLM },
+        { provide: SettingsService, useValue: mockSettings },
       ],
     }).compile();
 

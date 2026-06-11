@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { SettingsService } from '../../settings/settings.service';
 import { LLMControllerService } from './llm-controller.service';
 import { BLOCK_RULES, matchDangerPattern, BlockRule } from './danger-patterns.config';
 import { DenialTracker } from './denial-tracking';
@@ -33,17 +34,36 @@ export const DEFAULT_YOLO_CONFIG: YoloConfig = {
 
 @Injectable()
 export class YoloClassifierService {
+  private static readonly SETTING_KEY = 'agent.yolo_config';
   private trackers = new Map<string, DenialTracker>();
   private config: YoloConfig = { ...DEFAULT_YOLO_CONFIG };
+  private configLoaded = false;
 
-  constructor(private readonly llmController: LLMControllerService) {}
+  constructor(
+    private readonly llmController: LLMControllerService,
+    private readonly settingsService: SettingsService,
+  ) {}
 
-  getConfig(): YoloConfig {
+  private async ensureConfig() {
+    if (this.configLoaded) return;
+    const raw = await this.settingsService.get(YoloClassifierService.SETTING_KEY, '');
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as Partial<YoloConfig>;
+        this.config = { ...DEFAULT_YOLO_CONFIG, ...parsed };
+      } catch { /* use defaults */ }
+    }
+    this.configLoaded = true;
+  }
+
+  async getConfig(): Promise<YoloConfig> {
+    await this.ensureConfig();
     return { ...this.config };
   }
 
-  updateConfig(updates: Partial<YoloConfig>): YoloConfig {
+  async updateConfig(updates: Partial<YoloConfig>): Promise<YoloConfig> {
     this.config = { ...this.config, ...updates };
+    await this.settingsService.upsert(YoloClassifierService.SETTING_KEY, JSON.stringify(this.config));
     return this.getConfig();
   }
 
@@ -53,6 +73,7 @@ export class YoloClassifierService {
     transcript: string,
     sessionId?: number,
   ): Promise<YoloResult> {
+    await this.ensureConfig();
     const sessionKey = sessionId?.toString() ?? 'default';
     let tracker = this.trackers.get(sessionKey);
     if (!tracker) {
