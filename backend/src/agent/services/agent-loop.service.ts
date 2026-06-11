@@ -193,6 +193,24 @@ export class AgentLoopService {
                   result = `Error: Subagent failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
                 }
               }
+            } else if (name === 'delegate') {
+              const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
+              const tasks = argsObj.tasks;
+              const taskList = Array.isArray(tasks) ? tasks.map(String) : [];
+
+              if (taskList.length === 0) {
+                result = 'Error: delegate requires a non-empty "tasks" array';
+              } else {
+                try {
+                  result = await this.subagentService.delegate(
+                    taskList, providerType, model, providerConfig,
+                    activeTools, signal, res, sessionId,
+                    mode as 'chat' | 'agent' | 'cowork',
+                  );
+                } catch (e) {
+                  result = `Error: Delegate failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+                }
+              }
             } else if (name === 'delegate_parallel') {
               const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
               const task = String(argsObj.task ?? '');

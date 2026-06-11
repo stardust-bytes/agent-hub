@@ -37,6 +37,39 @@ export class SubagentService {
     this.pendingDelegations.delete(requestId);
   }
 
+  async delegate(
+    tasks: string[],
+    providerType: string,
+    model: string,
+    providerConfig: { baseUrl: string; key?: string },
+    tools: ToolDefinition[],
+    signal: AbortSignal,
+    res: WriteStream,
+    sessionId?: number,
+    mode: string = 'agent',
+  ): Promise<string> {
+    const requestId = crypto.randomUUID();
+
+    res.write(`data: ${JSON.stringify({ delegate: { requestId, taskCount: tasks.length } })}\n\n`);
+
+    const promises = tasks.map((task, i) => {
+      res.write(`data: ${JSON.stringify({ delegateProgress: { requestId, index: i, subtask: task, status: 'running' } })}\n\n`);
+      return this.spawn(task, providerType, model, providerConfig, tools, signal, res, sessionId, mode)
+        .then(result => ({ index: i, task, status: 'completed' as const, summary: result.slice(0, 200) }))
+        .catch((err: Error) => ({ index: i, task, status: 'failed' as const, summary: err.message ?? 'Unknown error' }));
+    });
+
+    const settled = await Promise.allSettled(promises);
+    const results: Array<{ index: number; task: string; status: string; summary: string }> = settled.map((r, i) => {
+      if (r.status === 'fulfilled') return r.value;
+      return { index: i, task: tasks[i], status: 'failed', summary: 'Promise rejected' };
+    });
+
+    res.write(`data: ${JSON.stringify({ delegateResult: { requestId, results } })}\n\n`);
+
+    return results.map(r => `Task ${r.index}: [${r.status}] ${r.task}\n  ${r.summary}`).join('\n');
+  }
+
   async spawn(
     task: string,
     providerType: string,
