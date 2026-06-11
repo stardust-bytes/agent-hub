@@ -4,9 +4,14 @@ import { AgentService } from './agent.service';
 import { ChatDto } from './dto/chat.dto';
 import { UpdatePermissionsDto } from './dto/update-permissions.dto';
 import { PermissionsConfig } from './dto/permissions-config';
+import { YoloClassifierService } from './services/yolo-classifier.service';
+import { UpdateYoloConfigDto } from './dto/yolo-config.dto';
 @Controller('agent')
 export class AgentController {
-  constructor(private readonly agentService: AgentService) {}
+  constructor(
+    private readonly agentService: AgentService,
+    private readonly yoloClassifier: YoloClassifierService,
+  ) {}
 
   @Post('chat')
   async chatStream(
@@ -39,5 +44,15 @@ export class AgentController {
   @Patch('permissions')
   async updatePermissions(@Body() dto: UpdatePermissionsDto): Promise<PermissionsConfig> {
     return this.agentService.updatePermissions(dto);
+  }
+
+  @Get('yolo-config')
+  getYoloConfig() {
+    return this.yoloClassifier.getConfig();
+  }
+
+  @Patch('yolo-config')
+  updateYoloConfig(@Body() dto: UpdateYoloConfigDto) {
+    return this.yoloClassifier.updateConfig(dto);
   }
 }

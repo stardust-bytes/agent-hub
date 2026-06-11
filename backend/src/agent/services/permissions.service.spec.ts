@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionsService } from './permissions.service';
 import { SettingsService } from '../../settings/settings.service';
+import { YoloClassifierService } from './yolo-classifier.service';
 
 describe('PermissionsService', () => {
   let service: PermissionsService;
@@ -8,10 +9,12 @@ describe('PermissionsService', () => {
 
   beforeEach(async () => {
     settingsService = { get: jest.fn(), upsert: jest.fn() };
+    const yoloClassifier = { evaluate: jest.fn(), getConfig: jest.fn(), updateConfig: jest.fn() };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PermissionsService,
         { provide: SettingsService, useValue: settingsService },
+        { provide: YoloClassifierService, useValue: yoloClassifier },
       ],
     }).compile();
     service = module.get<PermissionsService>(PermissionsService);

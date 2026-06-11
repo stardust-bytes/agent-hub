@@ -7,6 +7,7 @@ import { OllamaProvider } from './providers/ollama.provider';
 import { OpenAIProvider } from './providers/openai.provider';
 import { ContextBuilderService } from './services/context-builder.service';
 import { PermissionsService } from './services/permissions.service';
+import { YoloClassifierService } from './services/yolo-classifier.service';
 import { MemoryModule } from '../memory/memory.module';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
@@ -46,6 +47,7 @@ import { ModePolicyModule } from '../mode-policy/mode-policy.module';
     OpenAIProvider,
     ContextBuilderService,
     PermissionsService,
+    YoloClassifierService,
     SubagentService,
     CreateTaskExecutor,
     UpdateTaskExecutor,

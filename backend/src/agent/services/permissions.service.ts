@@ -1,12 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { SettingsService } from '../../settings/settings.service';
 import { PermissionsConfig, DEFAULT_PERMISSIONS_CONFIG } from '../dto/permissions-config';
+import { YoloClassifierService } from './yolo-classifier.service';
+
+export type PermissionDecision =
+  | { action: 'allow' }
+  | { action: 'deny'; reason: string }
+  | { action: 'ask' };
 
 @Injectable()
 export class PermissionsService {
   private static readonly SETTING_KEY = 'agent.permissions';
 
-  constructor(private readonly settingsService: SettingsService) {}
+  constructor(
+    private readonly settingsService: SettingsService,
+    private readonly yoloClassifier: YoloClassifierService,
+  ) {}
 
   async getConfig(): Promise<PermissionsConfig> {
     const raw = await this.settingsService.get(PermissionsService.SETTING_KEY, '');
@@ -30,5 +39,68 @@ export class PermissionsService {
     if (config.deniedTools.includes(toolName)) return false;
     if (config.allowedTools.includes(toolName)) return true;
     return config.defaultPolicy === 'allow';
+  }
+
+  async decide(
+    mode: string,
+    toolName: string,
+    toolInput: string,
+    transcript: string,
+    sessionId?: number,
+  ): Promise<PermissionDecision> {
+    const config = await this.getConfig();
+    if (config.deniedTools.includes(toolName)) {
+      return { action: 'deny', reason: 'Tool denied by configuration' };
+    }
+
+    const permissionMode = this.getPermissionMode(mode);
+
+    switch (permissionMode) {
+      case 'bypassPermissions':
+        return { action: 'allow' };
+
+      case 'dontAsk':
+        return { action: 'deny', reason: 'Blocked by dontAsk mode' };
+
+      case 'acceptEdits':
+        if (['read_file', 'write_file', 'list_directory', 'grep', 'glob'].includes(toolName)) {
+          return { action: 'allow' };
+        }
+        return { action: 'ask' };
+
+      case 'auto':
+        return this.handleAutoMode(toolName, toolInput, transcript, sessionId);
+
+      case 'plan':
+        if (['create_plan', 'resume_plan'].includes(toolName)) {
+          const result = await this.yoloClassifier.evaluate(toolName, toolInput, transcript, sessionId);
+          return result.allowed
+            ? { action: 'allow' }
+            : { action: 'deny', reason: result.reason ?? 'Blocked by classifier' };
+        }
+        return { action: 'ask' };
+
+      default:
+        return { action: 'ask' };
+    }
+  }
+
+  private async handleAutoMode(
+    toolName: string,
+    toolInput: string,
+    transcript: string,
+    sessionId?: number,
+  ): Promise<PermissionDecision> {
+    const result = await this.yoloClassifier.evaluate(toolName, toolInput, transcript, sessionId);
+    if (result.allowed) return { action: 'allow' };
+    return {
+      action: 'deny',
+      reason: result.reason ? `YOLO: ${result.reason}` : 'Blocked by YOLO classifier',
+    };
+  }
+
+  private getPermissionMode(mode: string): string {
+    const { MODE_POLICY } = require('../../mode-policy/mode-policy.config');
+    return (MODE_POLICY[mode] ?? MODE_POLICY.agent).permissionMode ?? 'default';
   }
 }

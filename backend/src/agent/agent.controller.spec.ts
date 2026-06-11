@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { AgentController } from './agent.controller';
 import { AgentService } from './agent.service';
+import { YoloClassifierService } from './services/yolo-classifier.service';
 import { Request, Response } from 'express';
 
 describe('AgentController', () => {
@@ -12,11 +13,18 @@ describe('AgentController', () => {
     getPermissions: jest.fn(),
     updatePermissions: jest.fn(),
   };
+  const mockYoloClassifier = {
+    getConfig: jest.fn(),
+    updateConfig: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       controllers: [AgentController],
-      providers: [{ provide: AgentService, useValue: mockAgentService }],
+      providers: [
+        { provide: AgentService, useValue: mockAgentService },
+        { provide: YoloClassifierService, useValue: mockYoloClassifier },
+      ],
     }).compile();
     controller = module.get(AgentController);
     jest.clearAllMocks();
