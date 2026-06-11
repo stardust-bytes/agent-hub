@@ -34,7 +34,6 @@ import { PlansService } from '../../plans/plans.service';
 import { McpService } from '../mcp/mcp.service';
 import { SubagentService } from '../subagent/subagent.service';
 
-const MAX_RETRIES = 2;
 const MAX_ITERATIONS = 100;
 const KB_NO_RESULTS = 'No relevant information found in knowledge base.';
 
@@ -42,9 +41,6 @@ const KB_NO_RESULTS = 'No relevant information found in knowledge base.';
 export class AgentLoopService {
   private state: AgentState = AgentState.PLANNING;
   private readonly executorMap: Map<string, ToolExecutor>;
-  private currentPlan: string[] = [];
-  private retryCount = 0;
-  private failedTool: string | null = null;
 
   constructor(
     private readonly llmController: LLMControllerService,
@@ -116,228 +112,147 @@ export class AgentLoopService {
     providerConfig: { baseUrl: string; key?: string } = { baseUrl: 'http://localhost:11434' },
   ): Promise<string> {
     this.state = AgentState.PLANNING;
-    this.currentPlan = [];
-    this.retryCount = 0;
-    this.failedTool = null;
 
     let activeTools = tools;
     let finalText = '';
     let messages = this.llmController.buildMessages(systemPrompt, history, userMessage);
-    let iterationCount = 0;
 
-    while (!signal.aborted && iterationCount < MAX_ITERATIONS && this.state !== AgentState.RESPONDING) {
-      iterationCount++;
+    while (!signal.aborted) {
+      this.state = AgentState.EXECUTING;
 
-      if (this.state === AgentState.PLANNING) {
-        this.state = AgentState.EXECUTING;
+      let text: string;
+      let toolCalls: Array<{ name: string; arguments: unknown }>;
+      try {
+        ({ text, toolCalls } = await this.executeStep(
+          model, messages, activeTools, signal, providerConfig, res, sessionId, providerType,
+        ));
+      } catch {
+        break;
       }
 
-      if (this.state === AgentState.EXECUTING) {
-        let text: string;
-        let toolCalls: Array<{ name: string; arguments: unknown }>;
-        let reasoningContent: string | undefined;
-          try {
-            ({ text, toolCalls, reasoningContent } = await this.executeStep(
-              model, messages, activeTools, signal, providerConfig, res, sessionId, providerType,
-            ));
-        } catch {
-          break;
+      if (text && sessionId) {
+        await this.sessionsService.saveMessage(sessionId, 'assistant', text);
+      }
+      finalText += text;
+
+      if (toolCalls.length === 0) break;
+
+      let reasoningContent: string | undefined;
+      messages = this.addToolCallsToMessages(messages, text, toolCalls, reasoningContent);
+
+      for (let ti = 0; ti < toolCalls.length; ti++) {
+        if (signal.aborted) break;
+        const tc = toolCalls[ti];
+        const name = tc.name;
+        const toolCallId = `call_${ti}_${name}`;
+        const args = this.normalizeArgs(tc.arguments);
+
+        res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
+        if (sessionId) {
+          await this.sessionsService.saveMessage(sessionId, 'tool', `${name}(${JSON.stringify(args)})`, name, false);
         }
-        if (text && sessionId) {
-          await this.sessionsService.saveMessage(sessionId, 'assistant', text);
+
+        const allowed = await this.permissionsService.isAllowed(name);
+        if (!allowed) {
+          const denyMsg = `Tool "${name}" is not permitted by workspace policy.`;
+          res.write(`data: ${JSON.stringify({ toolResult: { name, result: denyMsg } })}\n\n`);
+          if (sessionId) {
+            await this.sessionsService.saveMessage(sessionId, 'tool', denyMsg, name, true);
+          }
+          messages.push({ role: 'tool', content: denyMsg, toolCallId });
+          continue;
         }
-        finalText += text;
 
-        if (toolCalls.length > 0) {
-          messages = this.addToolCallsToMessages(messages, text, toolCalls, reasoningContent);
-          let allGood = true;
-          let executedCount = 0;
-          let ti = 0;
-          for (const tc of toolCalls) {
-            if (signal.aborted) break;
-            const idx = ti++;
-            executedCount++;
-            const name = tc.name;
-            const toolCallId = `call_${idx}_${name}`;
-            const args = this.normalizeArgs(tc.arguments);
-
-            res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
-            if (sessionId) {
-              await this.sessionsService.saveMessage(sessionId, 'tool', `${name}(${JSON.stringify(args)})`, name, false);
-            }
-
-            const allowed = await this.permissionsService.isAllowed(name);
-            if (!allowed) {
-              const denyMsg = `Tool "${name}" is not permitted by workspace policy.`;
-              res.write(`data: ${JSON.stringify({ toolResult: { name, result: denyMsg } })}\n\n`);
-              if (sessionId) {
-                await this.sessionsService.saveMessage(sessionId, 'tool', denyMsg, name, true);
-              }
-              messages.push({ role: 'tool', content: denyMsg, toolCallId });
-              continue;
-            }
-
-            let result: string;
-            if (name === 'spawn_subagent') {
-              const task = typeof args === 'object' && args !== null ? String((args as any).task ?? '') : '';
-              if (!task) {
-                result = 'Error: spawn_subagent requires a "task" parameter';
-              } else {
-                try {
-                  result = await this.subagentService.spawn(
-                    task, providerType, model, providerConfig,
-                    activeTools, signal, res, sessionId,
-                    mode as 'chat' | 'agent' | 'cowork',
-                  );
-                } catch (e) {
-                  result = `Error: Subagent failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
-                }
-              }
-            } else if (name === 'delegate') {
-              const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
-              const tasks = argsObj.tasks;
-              const taskList = Array.isArray(tasks) ? tasks.map(String) : [];
-
-              if (taskList.length === 0) {
-                result = 'Error: delegate requires a non-empty "tasks" array';
-              } else {
-                try {
-                  result = await this.subagentService.delegate(
-                    taskList, providerType, model, providerConfig,
-                    activeTools, signal, res, sessionId,
-                    mode as 'chat' | 'agent' | 'cowork',
-                  );
-                } catch (e) {
-                  result = `Error: Delegate failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
-                }
-              }
-            } else {
-              try {
-                result = await this.executeTool(name, args, { mode: mode as 'chat' | 'agent' | 'cowork', sessionId: sessionId ?? 0 });
-              } catch (e) {
-                result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
-              }
-            }
-
-            if (result.startsWith('[PLAN_CREATED]')) {
-              const idMatch = result.match(/id=(\d+)/);
-              const approvalMatch = result.match(/requireApproval=(\w+)/);
-              const titleMatch = result.match(/title="([^"]*)"/);
-
-              const planId = idMatch ? parseInt(idMatch[1], 10) : 0;
-              const requireApproval = approvalMatch ? approvalMatch[1] === 'true' : true;
-
-              if (planId > 0) {
-                const plan = await this.plansService.findOne(planId);
-
-                res.write(`data: ${JSON.stringify({
-                  plan: {
-                    id: plan.id,
-                    title: plan.title,
-                    status: plan.status,
-                    steps: plan.steps.map(s => ({ id: s.id, order: s.order, text: s.text, status: s.status })),
-                  },
-                })}\n\n`);
-
-                await this.savePlanExecutionMessage(sessionId, plan);
-
-                if (requireApproval) {
-                  res.write('data: [DONE]\n\n');
-                  return finalText;
-                } else {
-                  await this.executePlan(planId, providerType, model, systemPrompt, activeTools, providerConfig, signal, res, sessionId);
-                  return finalText;
-                }
-              }
-            }
-
-            res.write(`data: ${JSON.stringify({ toolResult: { name, result } })}\n\n`);
-            if (sessionId) {
-              await this.sessionsService.saveMessage(sessionId, 'tool', result, name, true);
-            }
-
-            const isGood = this.evaluateResult(name, result);
-            if (!isGood) {
-              allGood = false;
-              this.failedTool = name;
-              messages.push({ role: 'tool', content: result, toolCallId });
-              break;
-            }
-
-            messages.push({ role: 'tool', content: result, toolCallId });
-
-            if (name === 'search_knowledge') {
-              messages = await this.handleKnowledgeResult(messages, result, res, sessionId);
-            }
-          }
-
-          if (!allGood && executedCount < toolCalls.length) {
-            for (let i = messages.length - 1; i >= 0; i--) {
-              if (messages[i].role === 'assistant' && messages[i].toolCalls) {
-                messages[i] = {
-                  role: 'assistant',
-                  content: text || '',
-                  reasoningContent,
-                  toolCalls: toolCalls.slice(0, executedCount).map((tc, j) => ({
-                    id: `call_${j}_${tc.name}`,
-                    function: { name: tc.name, arguments: this.normalizeArgs(tc.arguments) },
-                  })),
-                };
-                break;
-              }
-            }
-          }
-
-          if (allGood) {
-            this.retryCount = 0;
-            this.failedTool = null;
+        let result: string;
+        if (name === 'spawn_subagent') {
+          const task = typeof args === 'object' && args !== null ? String((args as any).task ?? '') : '';
+          if (!task) {
+            result = 'Error: spawn_subagent requires a "task" parameter';
           } else {
-            if (signal.aborted) break;
-            if (this.retryCount < MAX_RETRIES) {
-              this.retryCount++;
-              res.write(`data: ${JSON.stringify({ thinking: `\u27f3 Retrying (${this.retryCount}/${MAX_RETRIES})...` })}\n\n`);
-              if (sessionId) {
-                await this.sessionsService.saveMessage(sessionId, 'system', `Retrying (${this.retryCount}/${MAX_RETRIES})...`);
-              }
-              messages.push({
-                role: 'user',
-                content: `The tool "${this.failedTool}" failed. Please try again with different arguments.`,
-              });
-            } else {
-              const fallbackTool = this.findFallbackTool(this.failedTool);
-              if (fallbackTool) {
-                res.write(`data: ${JSON.stringify({ thinking: `\u27f3 Trying alternative tool: ${fallbackTool}...` })}\n\n`);
-                if (sessionId) {
-                  await this.sessionsService.saveMessage(sessionId, 'system', `Trying alternative tool: ${fallbackTool}...`);
-                }
-                this.failedTool = fallbackTool;
-                this.retryCount = 0;
-                messages.push({
-                  role: 'user',
-                  content: `The tool failed after retries. Try using "${fallbackTool}" instead.`,
-                });
-              } else {
-                finalText += await this.generateCloseMessage(
-                  model, messages, 'no fallback tool', signal, providerConfig, res, sessionId, providerType,
-                );
-                this.state = AgentState.RESPONDING;
-              }
+            try {
+              result = await this.subagentService.spawn(
+                task, providerType, model, providerConfig,
+                activeTools, signal, res, sessionId,
+                mode as 'chat' | 'agent' | 'cowork',
+              );
+            } catch (e) {
+              result = `Error: Subagent failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+            }
+          }
+        } else if (name === 'delegate') {
+          const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
+          const tasks = argsObj.tasks;
+          const taskList = Array.isArray(tasks) ? tasks.map(String) : [];
+
+          if (taskList.length === 0) {
+            result = 'Error: delegate requires a non-empty "tasks" array';
+          } else {
+            try {
+              result = await this.subagentService.delegate(
+                taskList, providerType, model, providerConfig,
+                activeTools, signal, res, sessionId,
+                mode as 'chat' | 'agent' | 'cowork',
+              );
+            } catch (e) {
+              result = `Error: Delegate failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
             }
           }
         } else {
-          this.state = AgentState.RESPONDING;
+          try {
+            result = await this.executeTool(name, args, { mode: mode as 'chat' | 'agent' | 'cowork', sessionId: sessionId ?? 0 });
+          } catch (e) {
+            result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
+          }
+        }
+
+        if (result.startsWith('[PLAN_CREATED]')) {
+          const idMatch = result.match(/id=(\d+)/);
+          const approvalMatch = result.match(/requireApproval=(\w+)/);
+          const titleMatch = result.match(/title="([^"]*)"/);
+
+          const planId = idMatch ? parseInt(idMatch[1], 10) : 0;
+          const requireApproval = approvalMatch ? approvalMatch[1] === 'true' : true;
+
+          if (planId > 0) {
+            const plan = await this.plansService.findOne(planId);
+
+            res.write(`data: ${JSON.stringify({
+              plan: {
+                id: plan.id,
+                title: plan.title,
+                status: plan.status,
+                steps: plan.steps.map(s => ({ id: s.id, order: s.order, text: s.text, status: s.status })),
+              },
+            })}\n\n`);
+
+            await this.savePlanExecutionMessage(sessionId, plan);
+
+            if (requireApproval) {
+              res.write('data: [DONE]\n\n');
+              return finalText;
+            } else {
+              await this.executePlan(planId, providerType, model, systemPrompt, activeTools, providerConfig, signal, res, sessionId);
+              return finalText;
+            }
+          }
+        }
+
+        res.write(`data: ${JSON.stringify({ toolResult: { name, result } })}\n\n`);
+        if (sessionId) {
+          await this.sessionsService.saveMessage(sessionId, 'tool', result, name, true);
+        }
+
+        messages.push({ role: 'tool', content: result, toolCallId });
+
+        if (name === 'search_knowledge') {
+          messages = await this.handleKnowledgeResult(messages, result, res, sessionId);
         }
       }
     }
 
-    if (iterationCount >= MAX_ITERATIONS) {
-      finalText += await this.generateCloseMessage(
-        model, messages, 'reached max iterations', signal, providerConfig, res, sessionId, providerType,
-      );
-    }
-
+    this.state = AgentState.RESPONDING;
     if (!signal.aborted) {
-      if (this.state === AgentState.RESPONDING && sessionId) {
+      if (sessionId) {
         this.eventEmitter.emit('agent.idle', {
           sessionId,
           providerType,
@@ -554,21 +469,6 @@ export class AgentLoopService {
     return { text, toolCalls, reasoningContent: reasoningContent || undefined };
   }
 
-  private evaluateResult(toolName: string, result: string): boolean {
-    if (!result || result.startsWith('Error:')) return false;
-    if (result === KB_NO_RESULTS) return false;
-    return true;
-  }
-
-  private findFallbackTool(failedTool: string | null): string | null {
-    if (!failedTool) return null;
-    const fallbackMap: Record<string, string> = {
-      'web_fetch': 'web_search',
-      'search_knowledge': 'web_search',
-    };
-    return fallbackMap[failedTool] ?? null;
-  }
-
   private normalizeArgs(args: unknown): Record<string, unknown> {
     if (typeof args === 'string') {
       try { return JSON.parse(args); } catch { return { raw: args }; }
@@ -640,40 +540,6 @@ export class AgentLoopService {
     const mcpResult = await this.mcpService.tryExecute(name, args);
     if (mcpResult !== null) return mcpResult;
     return `Error: Unknown tool: ${name}`;
-  }
-
-  private async generateCloseMessage(
-    model: string,
-    messages: OllamaMessage[],
-    reason: string,
-    signal: AbortSignal,
-    providerConfig: { baseUrl: string; key?: string },
-    res: WriteStream,
-    sessionId?: number,
-    providerType: string = 'ollama',
-  ): Promise<string> {
-    res.write(`data: ${JSON.stringify({ thinking: `Generating closing message: ${reason}` })}\n\n`);
-    if (sessionId) {
-      await this.sessionsService.saveMessage(sessionId, 'system', `Generating closing message: ${reason}`);
-    }
-
-    const closePrompt = `I was unable to complete the task after several attempts. Based on the conversation and tool results above, write a closing message to the user explaining what happened and suggesting alternative approaches.`;
-    const closeMessages: OllamaMessage[] = [
-      ...messages,
-      { role: 'user', content: closePrompt },
-    ];
-
-    let closeText = '';
-    try {
-      ({ text: closeText } = await this.executeStep(
-        model, closeMessages, [], signal, providerConfig, res, sessionId, providerType,
-      ));
-    } catch { }
-
-    if (closeText && sessionId) {
-      await this.sessionsService.saveMessage(sessionId, 'assistant', closeText);
-    }
-    return closeText ?? '';
   }
 
   private async runForStep(
