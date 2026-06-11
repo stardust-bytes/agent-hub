@@ -42,6 +42,8 @@ tools/
 │   ├── resume-plan.executor.spec.ts
 │   ├── create-plan.executor.ts
 │   └── create-plan.executor.spec.ts
+│   ├── spawn-subagent.executor.ts
+│   └── spawn-subagent.executor.spec.ts
 ```
 
 ## API Endpoints
@@ -78,6 +80,7 @@ Base path: `/api/tools`
 | `GrepExecutor` | `grep` | Search file contents recursively using a pattern |
 | `ResumePlanExecutor` | `resume_plan` | Validate and describe plan status for resumption |
 | `CreatePlanExecutor` | `create_plan` | Create a plan with steps, optional auto-approve |
+| `SpawnSubagentExecutor` | `spawn_subagent` | Registration placeholder — subagent spawning handled by AgentLoopService |
 
 ## Security
 
