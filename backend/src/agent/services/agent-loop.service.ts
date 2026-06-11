@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Response } from 'express';
+import { WriteStream } from '../dto/write-stream.interface';
 import { AgentState } from '../dto/agent-state.enum';
 import { LLMControllerService } from './llm-controller.service';
 import { OllamaMessage } from '../providers/llm-provider.interface';
@@ -105,7 +105,7 @@ export class AgentLoopService {
     history: OllamaMessage[],
     userMessage: string,
     tools: ToolDefinition[],
-    res: Response,
+    res: WriteStream,
     signal: AbortSignal,
     sessionId?: number,
     mode: string = 'agent',
@@ -299,7 +299,7 @@ export class AgentLoopService {
     tools: ToolDefinition[],
     providerConfig: { baseUrl: string; key?: string },
     signal: AbortSignal,
-    res: Response,
+    res: WriteStream,
     sessionId?: number,
   ): Promise<void> {
     const plan = await this.plansService.findOne(planId);
@@ -382,7 +382,7 @@ export class AgentLoopService {
     model: string,
     providerConfig: { baseUrl: string; key?: string },
     sessionId: number,
-    res: Response,
+    res: WriteStream,
   ): Promise<void> {
     const planningPrompt =
       'You are in Plan Mode. Output ONLY a JSON object — no prose, no markdown, no code fences.\n' +
@@ -448,7 +448,7 @@ export class AgentLoopService {
     tools: ToolDefinition[],
     signal: AbortSignal,
     providerConfig: { baseUrl: string; key?: string },
-    res: Response,
+    res: WriteStream,
     sessionId?: number,
     providerType: string = 'ollama',
   ): Promise<{ text: string; toolCalls: Array<{ name: string; arguments: unknown }>; reasoningContent?: string }> {
@@ -534,7 +534,7 @@ export class AgentLoopService {
   private async handleKnowledgeResult(
     messages: OllamaMessage[],
     result: string,
-    res: Response,
+    res: WriteStream,
     sessionId?: number,
   ): Promise<OllamaMessage[]> {
     res.write(`data: ${JSON.stringify({ thinking: 'Synthesizing search results...' })}\n\n`);
@@ -582,7 +582,7 @@ export class AgentLoopService {
     reason: string,
     signal: AbortSignal,
     providerConfig: { baseUrl: string; key?: string },
-    res: Response,
+    res: WriteStream,
     sessionId?: number,
     providerType: string = 'ollama',
   ): Promise<string> {
@@ -615,7 +615,7 @@ export class AgentLoopService {
     messages: OllamaMessage[],
     tools: ToolDefinition[],
     providerConfig: { baseUrl: string; key?: string },
-    res: Response,
+    res: WriteStream,
     sessionId?: number,
     parentSignal?: AbortSignal,
     providerType: string = 'ollama',
