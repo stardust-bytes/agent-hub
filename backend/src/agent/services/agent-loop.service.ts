@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { WriteStream } from '../dto/write-stream.interface';
 import { AgentState } from '../dto/agent-state.enum';
 import { LLMControllerService } from './llm-controller.service';
@@ -52,7 +52,7 @@ export class AgentLoopService {
     private readonly permissionsService: PermissionsService,
     private readonly plansService: PlansService,
     private readonly mcpService: McpService,
-    private readonly subagentService: SubagentService,
+    @Inject(forwardRef(() => SubagentService)) private readonly subagentService: SubagentService,
     createTask: CreateTaskExecutor,
     updateTask: UpdateTaskExecutor,
     listTasks: ListTasksExecutor,
@@ -190,6 +190,29 @@ export class AgentLoopService {
                 } catch (e) {
                   result = `Error: Subagent failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
                 }
+              }
+            } else if (name === 'delegate_parallel') {
+              const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
+              const task = String(argsObj.task ?? '');
+              const subtasksArr = argsObj.subtasks;
+              const subtasks = Array.isArray(subtasksArr) ? subtasksArr.map(String) : [];
+
+              if (!task || subtasks.length === 0) {
+                result = 'Error: delegate_parallel requires "task" (string) and "subtasks" (non-empty array)';
+              } else {
+                const requestId = this.subagentService.createDelegation({
+                  task, subtasks,
+                  providerType, model, providerConfig,
+                  tools: activeTools, sessionId,
+                  mode: mode as 'chat' | 'agent' | 'cowork',
+                });
+
+                res.write(`data: ${JSON.stringify({
+                  subagent: true,
+                  delegate: { requestId, task, subtasks },
+                })}\n\n`);
+
+                result = `[DELEGATION_CREATED: ${requestId}] Awaiting user decision.`;
               }
             } else {
               try {
