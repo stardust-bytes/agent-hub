@@ -96,6 +96,16 @@ export class ContextBuilderService {
         '- Do not ask for approval or confirmation before executing plans.',
         '- Do NOT use create_plan for single-step tasks — use the appropriate tool directly.',
       );
+      lines.push('',
+        '',
+        'When handling complex multi-step tasks:',
+        '- Use the delegate tool to run subtasks in parallel workers for independent sub-tasks like reading multiple files, processing separate datasets, or searching different sources.',
+        '- Break the task into self-contained subtasks — each must be completable without seeing other subtask results.',
+        '- Do NOT wait for user approval — delegate automatically.',
+        '- After all subtasks complete, synthesize the results into a coherent answer.',
+        '- Each subtask description should include all context needed (file paths, search queries, instructions).',
+        '- Do NOT use delegate for single-step tasks — use the appropriate tool directly.',
+      );
     } else {
       lines.push('',
         '',
