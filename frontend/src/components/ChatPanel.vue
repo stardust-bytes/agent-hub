@@ -767,6 +767,27 @@ async function submit() {
               timestamp: now(),
             })
             await scrollToBottom()
+          } else if (parsed.delegateProgress) {
+            const dp = parsed.delegateProgress as { index: number; subtask: string; status: string }
+            clearThinking()
+            currentAgentIdx = -1
+            const key = dp.status === 'running' ? 'delegate.running' : dp.status === 'completed' ? 'delegate.completed' : 'delegate.failed'
+            messages.value.push({
+              role: 'system',
+              content: t(key, { index: dp.index + 1, task: dp.subtask }),
+              timestamp: now(),
+            })
+            await scrollToBottom()
+          } else if (parsed.delegateResult) {
+            const dr = parsed.delegateResult as { count: number }
+            clearThinking()
+            currentAgentIdx = -1
+            messages.value.push({
+              role: 'system',
+              content: t('delegate.complete', { count: dr.count }),
+              timestamp: now(),
+            })
+            await scrollToBottom()
           } else if (parsed.token) {
             clearThinking()
             const idx = getOrCreateAgentMsg()

@@ -247,6 +247,10 @@
     "task": "Complex task — choose execution mode",
     "subtasks": "Independent subtasks",
     "parallel": "Sub-agent parallel",
-    "sequential": "Step-by-step"
+    "sequential": "Step-by-step",
+    "running": "▶ Sub-task {index}: {task}",
+    "completed": "✓ Sub-task {index}: completed",
+    "failed": "✗ Sub-task {index}: failed",
+    "complete": "└ Delegate complete ({count} tasks)"
   }
 }
