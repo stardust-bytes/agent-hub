@@ -37,7 +37,7 @@ export class SubagentService {
 
     res.write(`data: ${JSON.stringify({ delegateResult: { requestId, results } })}\n\n`);
 
-    return results.map(r => `Task ${r.index}: [${r.status}] ${r.task}\n  ${r.summary}`).join('\n');
+    return results.map(r => `Delegate result ${r.index}: [${r.status}] — ${r.task}\n  Summary: ${r.summary}`).join('\n');
   }
 
   async spawn(
