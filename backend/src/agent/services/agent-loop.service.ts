@@ -143,6 +143,9 @@ export class AgentLoopService {
         } catch {
           break;
         }
+        if (text && sessionId) {
+          await this.sessionsService.saveMessage(sessionId, 'assistant', text);
+        }
         finalText += text;
 
         if (toolCalls.length > 0) {

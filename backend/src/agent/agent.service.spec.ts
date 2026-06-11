@@ -109,7 +109,6 @@ describe('AgentService', () => {
     await service.streamChat('World', 5, { write: jest.fn() } as any, signal, 1);
 
     expect(mockSessionsService.saveMessage).toHaveBeenCalledWith(1, 'user', 'World');
-    expect(mockSessionsService.saveMessage).toHaveBeenCalledWith(1, 'assistant', 'Hello!');
     expect(mockSessionsService.autoTitle).toHaveBeenCalledWith(1, 'World');
   });
 

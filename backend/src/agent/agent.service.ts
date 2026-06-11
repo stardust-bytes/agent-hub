@@ -124,8 +124,7 @@ export class AgentService {
       message, context.tools, res, signal, sessionId, mode, providerConfig,
     );
 
-    if (!signal.aborted && finalText) {
-      await this.sessionsService.saveMessage(sessionId, 'assistant', finalText);
+    if (!signal.aborted) {
       await this.sessionsService.autoTitle(sessionId, message);
     }
   }
