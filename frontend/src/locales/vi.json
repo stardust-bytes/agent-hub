@@ -187,5 +187,12 @@
   "plans.status.executing": "Đang thực hiện",
   "plans.status.done": "Hoàn thành",
   "plans.status.interrupted": "Đã dừng",
-  "plans.status.failed": "Thất bại"
+  "plans.status.failed": "Thất bại",
+
+  "delegate": {
+    "task": "Task phức tạp — chọn chế độ chạy",
+    "subtasks": "Các phần có thể chạy song song",
+    "parallel": "Sub-agent parallel",
+    "sequential": "Step-by-step"
+  }
 }

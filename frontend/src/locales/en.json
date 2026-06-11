@@ -187,5 +187,12 @@
   "plans.status.executing": "Executing...",
   "plans.status.done": "Done",
   "plans.status.interrupted": "Interrupted",
-  "plans.status.failed": "Failed"
+  "plans.status.failed": "Failed",
+
+  "delegate": {
+    "task": "Complex task — choose execution mode",
+    "subtasks": "Independent subtasks",
+    "parallel": "Sub-agent parallel",
+    "sequential": "Step-by-step"
+  }
 }

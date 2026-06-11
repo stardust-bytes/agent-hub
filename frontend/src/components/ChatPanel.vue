@@ -76,6 +76,13 @@
           </div>
 
         </div>
+        <DelegateBubble
+          v-for="del in activeDelegations"
+          :key="del.requestId"
+          :delegation="del"
+          :disabled="streaming"
+          @choose="onDelegateChoose"
+        />
         </div>
       </div>
     </template>
@@ -162,6 +169,13 @@ import ModelSelector from './ModelSelector.vue'
 import SessionModal from './SessionModal.vue'
 import FormBlock from './FormBlock.vue'
 import PlanBubble from './PlanBubble.vue'
+import DelegateBubble from './DelegateBubble.vue'
+
+interface DelegateData {
+  requestId: string
+  task: string
+  subtasks: string[]
+}
 
 interface PlanStep {
   id: number
@@ -209,6 +223,7 @@ const messagesEl = ref<HTMLElement | null>(null)
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
 const currentMode = ref<'chat' | 'agent'>('chat')
+const activeDelegations = ref<DelegateData[]>([])
 
 interface PlanExecCallbacks {
   onStepUpdate: (planId: number, stepId: number, status: string) => void
@@ -401,6 +416,7 @@ function stopStream() {
 async function loadSession(id: number) {
   currentSessionId.value = id
   messages.value = []
+  activeDelegations.value = []
   try {
     const res = await fetch(`/api/sessions/${id}/messages`)
     if (res.ok) {
@@ -489,6 +505,12 @@ async function handleReject(planId: number) {
 async function handleResumeFromBubble(planId: number) {
   input.value = `/plan resume ${planId}`
   await submit()
+}
+
+function onDelegateChoose(payload: { requestId: string; mode: string }) {
+  input.value = `/delegate ${payload.mode} ${payload.requestId}`
+  submit()
+  activeDelegations.value = []
 }
 
 function highlightUserMessage(content: string): string {
@@ -618,6 +640,10 @@ async function submit() {
               timestamp: now(),
             })
             await scrollToBottom()
+          } else if (parsed.subagent && parsed.delegate) {
+            clearThinking()
+            currentAgentIdx = -1
+            activeDelegations.value.push(parsed.delegate as DelegateData)
           } else if (parsed.subagent) {
             clearThinking()
             if (parsed.done) {

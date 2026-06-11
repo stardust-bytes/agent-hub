@@ -81,6 +81,13 @@
               </div>
 
             </div>
+        <DelegateBubble
+          v-for="del in activeDelegations"
+          :key="del.requestId"
+          :delegation="del"
+          :disabled="streaming"
+          @choose="onDelegateChoose"
+        />
           </div>
         </div>
 
@@ -154,6 +161,13 @@ import DirectoryBrowser from './DirectoryBrowser.vue'
 import ModelSelector from './ModelSelector.vue'
 import SessionModal from './SessionModal.vue'
 import FormBlock from './FormBlock.vue'
+import DelegateBubble from './DelegateBubble.vue'
+
+interface DelegateData {
+  requestId: string
+  task: string
+  subtasks: string[]
+}
 
 interface PlanStep { id: number; order: number; text: string; status: string }
 interface PlanData { id: number; title: string; status: string; steps: PlanStep[] }
@@ -179,6 +193,7 @@ const availableModels = ref<Array<{ id: number; name: string; providerName: stri
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
 const fileTreeRefreshKey = ref(0)
+const activeDelegations = ref<DelegateData[]>([])
 
 onMounted(async () => {
   await loadProject()
@@ -320,7 +335,14 @@ async function disconnect() {
     messages.value = []
     previewContent.value = null
     activePlans.value = []
+    activeDelegations.value = []
   } catch { /* ignore */ }
+}
+
+function onDelegateChoose(payload: { requestId: string; mode: string }) {
+  input.value = `/delegate ${payload.mode} ${payload.requestId}`
+  submit()
+  activeDelegations.value = []
 }
 
 function now(): string {
@@ -525,6 +547,10 @@ async function submit() {
               timestamp: now(),
             })
             await scrollToBottom()
+          } else if (parsed.subagent && parsed.delegate) {
+            clearThinking()
+            currentAgentIdx = -1
+            activeDelegations.value.push(parsed.delegate as DelegateData)
           } else if (parsed.subagent) {
             clearThinking()
             if (parsed.done) {
