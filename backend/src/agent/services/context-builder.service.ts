@@ -157,6 +157,30 @@ export class ContextBuilderService {
         }
       } catch { /* MCP not available */ }
     }
+
+    if (mode === 'agent' || mode === 'cowork') {
+      tools.push({
+        type: 'function' as const,
+        function: {
+          name: 'spawn_subagent',
+          description: 'Spawn a sub-agent to complete a specific task. ' +
+            'Use when you need to delegate independent work that can run in parallel ' +
+            'or when a task requires focused attention.',
+          parameters: {
+            type: 'object',
+            properties: {
+              task: {
+                type: 'string',
+                description: 'The task for the sub-agent to complete. ' +
+                  'Be specific and include all context needed.',
+              },
+            },
+            required: ['task'],
+          },
+        },
+      });
+    }
+
     return tools;
   }
 }
