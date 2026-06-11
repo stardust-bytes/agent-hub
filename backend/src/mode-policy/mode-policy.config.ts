@@ -35,6 +35,8 @@ export const MODE_POLICY: Record<string, ModePolicyEntry> = {
       'glob',
       'resume_plan',
       'create_plan',
+      'spawn_subagent', // Only allow in cowork mode where it can be used for delegation, not direct execution
+      'delegate_parallel',
     ],
     allowedPaths: ['{workspaceRoot}/agent-output'],
     systemPromptStyle: 'agent',

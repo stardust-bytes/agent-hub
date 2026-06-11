@@ -204,7 +204,28 @@ settings.*        → Full settings i18n keys
 - **TDD for backend** — write `.spec.ts` before implementing services and controllers.
 - **Commit granularity** — one logical change per commit. Prefix: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`.
 - **No `any` types** in TypeScript. Use proper types or `unknown` with narrowing.
-- **Prisma migrations** — always run `prisma migrate dev --name <description>` for schema changes. Never edit migration files manually.
+
+### Rule Set 5: Database Schema Migration
+
+**Core principle:** Every schema change MUST preserve existing user data. Data loss is never acceptable.
+
+**Migration workflow:**
+- Use `prisma migrate dev --name <desc>` for safe changes (add new table, add optional column).
+- Use `prisma migrate dev --create-only` + manual SQL editing for changes that could break existing data (rename column, change type, add required column). Never edit past migration files.
+
+**Add column:** MUST be nullable or have a DEFAULT value. NEVER add a required (NOT NULL) column to a table that contains data.
+
+**Rename column/table:** Use `--create-only` with custom SQL (`ALTER TABLE ... RENAME COLUMN`). Update the Prisma schema to use the new name.
+
+**Drop column/table:** STRICTLY PROHIBITED on tables/columns that contain user data. Mark as deprecated instead. Only remove after a deprecation period with a data migration plan.
+
+**Change column type:** SQLite ALTER support is limited. Use `--create-only` with the safe pattern: create new table → INSERT INTO ... SELECT (with CAST) → verify → DROP old table → RENAME new table.
+
+**Validation:** Every migration MUST be tested against a copy of production data before deployment.
+
+**Version control:** All migration files are committed. Production uses `prisma migrate deploy`. Never modify or delete historical migration files.
+
+---
 
 ### Commit Conventions
 

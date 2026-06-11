@@ -2,6 +2,10 @@
 
 Local-First AI Agent Workspace · NestJS backend service.
 
+## File
+
+- `scripts/setup.mjs` — custom setup orchestrator: generate → deploy (with auto-resolve) → seed
+
 ## What this is
 
 REST API server for the AI Workspace. Handles task CRUD, agent chat (Ollama ReAct loop), sessions, settings, LLM provider management, knowledge base indexing, and health checks. Backed by SQLite via Prisma. Runs on port **13596** (internal); in production traffic comes through Nginx on port 17135.
@@ -252,14 +256,18 @@ npm run start:dev
 # Production
 npm run build && npm run start:prod
 
+# Setup (generate + migrate + seed, with auto-resolve)
+npm run setup
+
 # Tests
 npx jest                    # all (15+ suites)
 npx jest src/agent          # specific module
 
 # Prisma
 npx prisma studio           # GUI for SQLite
-npx prisma migrate dev      # apply schema changes
+npx prisma migrate dev      # apply schema changes (dev only)
 npx prisma generate         # regenerate client after schema edit
+npx prisma migrate deploy   # apply pending migrations (production)
 ```
 
 ---
