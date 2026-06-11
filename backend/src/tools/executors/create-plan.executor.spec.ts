@@ -44,14 +44,15 @@ describe('CreatePlanExecutor', () => {
     expect(plansService.approve).toHaveBeenCalledWith(1);
   });
 
-  it('defaults requireApproval to true', async () => {
+  it('defaults requireApproval to false (auto-approve)', async () => {
     plansService.create.mockResolvedValue(mockPlan);
+    plansService.approve.mockResolvedValue({ ...mockPlan, status: 'APPROVED' });
     const result = await executor.execute(
       { title: 'Test', steps: ['Step 1'] },
       { mode: 'cowork', sessionId: 1 },
     );
-    expect(result).toMatch(/requireApproval=true/);
-    expect(plansService.approve).not.toHaveBeenCalled();
+    expect(result).toMatch(/requireApproval=false/);
+    expect(plansService.approve).toHaveBeenCalledWith(1);
   });
 
   it('rejects more than 10 steps', async () => {

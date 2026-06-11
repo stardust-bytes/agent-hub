@@ -13,7 +13,7 @@ export class OpenAIProvider implements LLMProvider {
     const msgs: Array<Record<string, unknown>> = messages.map(m => ({
       role: m.role,
       content: m.content,
-      ...(m.reasoningContent ? { reasoning_content: m.reasoningContent } : {}),
+      ...(m.role === 'assistant' ? { reasoning_content: m.reasoningContent ?? '' } : {}),
       ...(m.toolCalls ? {
         tool_calls: m.toolCalls.map(tc => ({
           id: tc.id ?? `call_${Date.now()}`,
