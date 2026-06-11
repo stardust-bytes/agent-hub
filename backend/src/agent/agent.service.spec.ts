@@ -6,6 +6,7 @@ import { ContextBuilderService } from './services/context-builder.service';
 import { ProvidersService } from '../providers/providers.service';
 import { PermissionsService } from './services/permissions.service';
 import { PlansService } from '../plans/plans.service';
+import { SubagentService } from './subagent/subagent.service';
 
 describe('AgentService', () => {
   let service: AgentService;
@@ -42,6 +43,11 @@ describe('AgentService', () => {
     approve: jest.fn().mockResolvedValue({ id: 1, status: 'APPROVED' }),
     reject: jest.fn().mockResolvedValue({ id: 1, status: 'CANCELLED' }),
   };
+  const mockSubagentService = {
+    getDelegation: jest.fn(),
+    removeDelegation: jest.fn(),
+    spawn: jest.fn().mockResolvedValue('subtask done'),
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -53,6 +59,7 @@ describe('AgentService', () => {
         { provide: ProvidersService, useValue: mockProvidersService },
         { provide: PermissionsService, useValue: mockPermissionsService },
         { provide: PlansService, useValue: mockPlansService },
+        { provide: SubagentService, useValue: mockSubagentService },
       ],
     }).compile();
     service = module.get(AgentService);
