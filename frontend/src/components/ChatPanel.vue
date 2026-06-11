@@ -618,6 +618,46 @@ async function submit() {
               timestamp: now(),
             })
             await scrollToBottom()
+          } else if (parsed.subagent) {
+            clearThinking()
+            if (parsed.done) {
+              // Subagent done — do NOT stop the SSE stream (main agent continues)
+            } else if (parsed.token) {
+              // Subagent streaming text tokens
+              const idx = getOrCreateAgentMsg()
+              messages.value[idx].content += String(parsed.token)
+              if (!done) scrollToBottom()
+            } else if (parsed.toolCall) {
+              currentAgentIdx = -1
+              const tc = parsed.toolCall as { name: string; args: Record<string, unknown> }
+              const argsStr = Object.entries(tc.args).map(([k, v]) => `${k}=${v}`).join(', ')
+              messages.value.push({
+                role: 'tool',
+                content: `[subagent] ${tc.name}(${argsStr})`,
+                timestamp: now(),
+                toolName: tc.name,
+                isResult: false,
+              })
+              await scrollToBottom()
+            } else if (parsed.toolResult) {
+              const tr = parsed.toolResult as { name: string; result: string }
+              messages.value.push({
+                role: 'tool',
+                content: `[subagent] ${tr.name}: ${tr.result}`,
+                timestamp: now(),
+                toolName: tr.name,
+                isResult: true,
+              })
+              await scrollToBottom()
+            } else if (parsed.thinking) {
+              currentAgentIdx = -1
+              messages.value.push({
+                role: 'system',
+                content: `⟳ [subagent] ${String(parsed.thinking)}`,
+                timestamp: now(),
+              })
+              await scrollToBottom()
+            }
           } else if (parsed.toolCall) {
             clearThinking()
             currentAgentIdx = -1
