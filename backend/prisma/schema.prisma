@@ -7,6 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Memory {
+  id        String   @id @default(cuid())
+  type      String
+  title     String
+  content   String
+  metadata  String?
+  sessionId Int?
+  agentId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session   Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+}
+
 model Setting {
   key   String @id
   value String
@@ -34,6 +48,7 @@ model Session {
   messages   ChatMessage[]
   plans      Plan[]
   agentFiles AgentFile[]
+  memories   Memory[]
 }
 
 model ChatMessage {
