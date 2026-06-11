@@ -21,6 +21,7 @@
     </div>
 
     <MemoryView v-if="activeSettingsTab === 'memories'" />
+    <PermissionView v-else-if="activeSettingsTab === 'permissions'" />
     <div v-else class="flex-1 overflow-y-auto px-4 py-4">
       <div class="max-w-xl">
         <div class="border-t border-cyber-accent/10 pt-4">
@@ -82,12 +83,14 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiCog } from 'vue-icons-plus/hi'
 import MemoryView from './MemoryView.vue'
+import PermissionView from './PermissionView.vue'
 
 const { t } = useI18n()
 const activeSettingsTab = ref('general')
 const TABS = [
   { key: 'general', labelKey: 'settings.header' },
   { key: 'memories', labelKey: 'memory.title' },
+  { key: 'permissions', labelKey: 'permissions.header' },
 ]
 const healthy = ref(false)
 

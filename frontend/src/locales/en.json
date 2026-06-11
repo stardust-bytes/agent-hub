@@ -212,6 +212,37 @@
   "plans.status.interrupted": "Interrupted",
   "plans.status.failed": "Failed",
 
+  "permissions": {
+    "header": "Permissions",
+    "mode": {
+      "header": "Permission Mode",
+      "default": "Default",
+      "acceptEdits": "Accept Edits",
+      "bypassPermissions": "Bypass All",
+      "dontAsk": "Don't Ask",
+      "auto": "Auto (YOLO)",
+      "plan": "Plan"
+    },
+    "yolo": {
+      "config": "YOLO Config",
+      "failClosed": "Deny on error",
+      "safeTools": "Skip safe tools"
+    },
+    "rules": {
+      "header": "Block Rules",
+      "interpreters": "Interpreters",
+      "package_runners": "Package Runners",
+      "shells": "Shells",
+      "eval": "Eval/Exec",
+      "network": "Network",
+      "cloud_clis": "Cloud CLIs",
+      "git_destructive": "Git Destructive",
+      "irreversible": "Irreversible",
+      "write_scripts": "Write Scripts",
+      "permission_bypass": "Permission Bypass"
+    }
+  },
+
   "delegate": {
     "task": "Complex task — choose execution mode",
     "subtasks": "Independent subtasks",

@@ -212,6 +212,37 @@
   "plans.status.interrupted": "Đã dừng",
   "plans.status.failed": "Thất bại",
 
+  "permissions": {
+    "header": "Phân quyền",
+    "mode": {
+      "header": "Chế độ phân quyền",
+      "default": "Mặc định",
+      "acceptEdits": "Chấp nhận sửa",
+      "bypassPermissions": "Bỏ qua tất cả",
+      "dontAsk": "Không hỏi",
+      "auto": "Tự động (YOLO)",
+      "plan": "Kế hoạch"
+    },
+    "yolo": {
+      "config": "Cấu hình YOLO",
+      "failClosed": "Từ chối khi có lỗi",
+      "safeTools": "Bỏ qua tool an toàn"
+    },
+    "rules": {
+      "header": "Quy tắc chặn",
+      "interpreters": "Trình thông dịch",
+      "package_runners": "Trình chạy gói",
+      "shells": "Shell",
+      "eval": "Thực thi động",
+      "network": "Mạng",
+      "cloud_clis": "Cloud CLI",
+      "git_destructive": "Git phá hủy",
+      "irreversible": "Không thể hoàn tác",
+      "write_scripts": "Ghi script",
+      "permission_bypass": "Vượt quyền"
+    }
+  },
+
   "delegate": {
     "task": "Task phức tạp — chọn chế độ chạy",
     "subtasks": "Các phần có thể chạy song song",
