@@ -33,6 +33,13 @@
         class="text-cyber-accent/30 text-sm font-mono ml-2 shrink-0 transition-colors duration-150 hover:text-red-400"
       >✕</button>
     </div>
+
+    <BaseConfirmModal
+      v-model="showConfirmModal"
+      :title="t('sessions.delete.confirm')"
+      :message="t('sessions.delete.confirm')"
+      @confirm="onDeleteConfirmed"
+    />
   </BaseModal>
 </template>
 
@@ -40,6 +47,7 @@
 import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from './BaseModal.vue'
+import BaseConfirmModal from './BaseConfirmModal.vue'
 
 interface SessionItem {
   id: number
@@ -62,6 +70,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const sessions = ref<SessionItem[]>([])
+const showConfirmModal = ref(false)
+const deletingSessionId = ref<number | null>(null)
 const show = computed({
   get: () => props.modelValue,
   set: (v: boolean) => emit('update:modelValue', v),
@@ -96,7 +106,13 @@ async function createSession() {
 }
 
 async function deleteSession(id: number) {
-  if (!confirm(t('sessions.delete.confirm'))) return
+  deletingSessionId.value = id
+  showConfirmModal.value = true
+}
+
+async function onDeleteConfirmed() {
+  if (deletingSessionId.value === null) return
+  const id = deletingSessionId.value
   try {
     await fetch(`/api/sessions/${id}`, { method: 'DELETE' })
     await fetchSessions()
@@ -105,6 +121,7 @@ async function deleteSession(id: number) {
       if (first) emit('select', first.id)
     }
   } catch { /* ignore */ }
+  deletingSessionId.value = null
 }
 
 function selectSession(id: number) {
