@@ -16,9 +16,9 @@
         <div class="text-sm font-mono text-cyber-text font-semibold truncate">{{ note.title }}</div>
         <div class="text-xs font-mono text-cyber-muted line-clamp-2">{{ note.content }}</div>
         <div class="text-xs font-mono text-cyber-muted/50">{{ new Date(note.updatedAt).toLocaleTimeString('vi-VN', { hour12: false }) }}</div>
-        <div class="flex items-center gap-3 mt-auto pt-1">
-          <button @click="openEdit(note)" class="text-xs font-mono text-cyber-accent/70 hover:text-cyber-accent transition-colors duration-150">{{ t('notes.edit') }}</button>
-          <button @click="deleteNote(note.id)" class="text-xs font-mono text-cyber-muted/50 hover:text-red-400 transition-colors duration-150">{{ t('notes.delete') }}</button>
+        <div class="flex justify-end gap-1 mt-auto pt-1">
+          <button @click="openEdit(note)" class="text-sm px-1.5 py-0.5 font-mono text-cyber-accent border border-cyber-accent/50 hover:bg-cyber-accent/10 transition-colors duration-150">{{ t('notes.edit') }}</button>
+          <button @click="deleteNote(note.id)" class="text-sm px-1.5 py-0.5 font-mono text-red-400 border border-red-400/50 hover:bg-red-400/10 transition-colors duration-150">{{ t('notes.delete') }}</button>
         </div>
       </div>
     </div>
