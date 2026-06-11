@@ -6,6 +6,7 @@ import { ToolsService } from '../../tools/tools.service';
 import { McpService } from '../mcp/mcp.service';
 import { CoworkService } from '../../cowork/cowork.service';
 import { ModePolicyService } from '../../mode-policy/mode-policy.service';
+import { MemoryService } from '../../memory/memory.service';
 import { ToolDefinition } from '../../mode-policy/mode-policy.config';
 export { ToolDefinition };
 
@@ -23,6 +24,7 @@ export class ContextBuilderService {
     private readonly mcpService: McpService,
     private readonly cowork: CoworkService,
     private readonly modePolicy: ModePolicyService,
+    private readonly memoryService: MemoryService,
   ) {}
 
   async build(
@@ -33,8 +35,9 @@ export class ContextBuilderService {
   ): Promise<AgentContext> {
     const tools = await this.getEnabledTools(mode);
     const project = await this.cowork.getProject();
+    const memoryContext = await this.memoryService.getContextMemories();
 
-    const systemPrompt = systemPromptOverride || this.buildSystemPrompt(tools, project, mode);
+    const systemPrompt = systemPromptOverride || this.buildSystemPrompt(tools, project, mode, memoryContext);
 
     const messages = await this.loadChatHistory(sessionId);
 
@@ -60,7 +63,7 @@ export class ContextBuilderService {
       .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
   }
 
-  private buildSystemPrompt(tools: ToolDefinition[], projectPath?: string | null, mode: string = 'agent'): string {
+  private buildSystemPrompt(tools: ToolDefinition[], projectPath?: string | null, mode: string = 'agent', memoryContext?: string): string {
     if (mode === 'chat') {
       return [
         'You are a helpful AI assistant.',
@@ -145,6 +148,10 @@ export class ContextBuilderService {
         `Current working project: ${projectPath}`,
         'File operations are available in this directory.',
       );
+    }
+
+    if (memoryContext && memoryContext !== '## Persistent Memory') {
+      lines.push('', memoryContext);
     }
 
     return lines.join('\n');

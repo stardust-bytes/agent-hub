@@ -7,6 +7,7 @@ import { OllamaProvider } from './providers/ollama.provider';
 import { OpenAIProvider } from './providers/openai.provider';
 import { ContextBuilderService } from './services/context-builder.service';
 import { PermissionsService } from './services/permissions.service';
+import { MemoryModule } from '../memory/memory.module';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { SessionsModule } from '../sessions/sessions.module';
@@ -35,7 +36,7 @@ import { SubagentService } from './subagent/subagent.service';
 import { ModePolicyModule } from '../mode-policy/mode-policy.module';
 
 @Module({
-  imports: [TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule],
+  imports: [MemoryModule, TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule],
   controllers: [AgentController],
   providers: [
     AgentService,

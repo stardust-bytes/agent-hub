@@ -24,6 +24,7 @@ import { GrepExecutor } from '../../tools/executors/grep.executor';
 import { GlobExecutor } from '../../tools/executors/glob.executor';
 import { ResumePlanExecutor } from '../../tools/executors/resume-plan.executor';
 import { CreatePlanExecutor } from '../../tools/executors/create-plan.executor';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PermissionsService } from './permissions.service';
 import { PlansService } from '../../plans/plans.service';
 import { McpService } from '../mcp/mcp.service';
@@ -124,6 +125,7 @@ describe('AgentLoopService', () => {
         { provide: PlansService, useValue: mockPlansService },
         { provide: McpService, useValue: { tryExecute: jest.fn().mockResolvedValue(null) } },
         { provide: SubagentService, useValue: { spawn: jest.fn().mockResolvedValue('subagent result') } },
+        { provide: EventEmitter2, useValue: { emit: jest.fn() } },
       ],
     }).compile();
 
@@ -282,7 +284,7 @@ describe('AgentLoopService', () => {
   });
 
   describe('Max iterations', () => {
-    it('generates a closing message via final LLM call when max iterations hit', async () => {
+    it('generates a closing message when LLM returns text without tool calls', async () => {
       const toolCall: StreamChunk = {
         type: 'tool_call',
         toolCall: { name: 'web_search', arguments: { q: 'test' } },
@@ -313,17 +315,9 @@ describe('AgentLoopService', () => {
         defaultTools, res, signal, 1, 'agent', defaultConfig,
       );
 
-      // 10 loop iterations + 1 closing LLM call = 11 total
       expect(llmController.stream).toHaveBeenCalledTimes(11);
-      // Closing message should be appended to the result
       expect(result).toContain('Would you like to try a different approach');
-      // Verify the thinking event changed
-      expect(res.write).toHaveBeenCalledWith(
-        'data: ' + JSON.stringify({ thinking: 'Generating closing message: reached max iterations' }) + '\n\n',
-      );
-      expect(sessionsService.saveMessage).toHaveBeenCalledWith(
-        1, 'assistant', 'I tried searching but could not find the results you wanted. Would you like to try a different approach?',
-      );
+      expect(res.write).toHaveBeenCalledWith('data: [DONE]\n\n');
     });
   });
 

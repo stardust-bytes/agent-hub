@@ -1,4 +1,5 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WriteStream } from '../dto/write-stream.interface';
 import { AgentState } from '../dto/agent-state.enum';
 import { LLMControllerService } from './llm-controller.service';
@@ -53,6 +54,7 @@ export class AgentLoopService {
     private readonly plansService: PlansService,
     private readonly mcpService: McpService,
     @Inject(forwardRef(() => SubagentService)) private readonly subagentService: SubagentService,
+    private readonly eventEmitter: EventEmitter2,
     createTask: CreateTaskExecutor,
     updateTask: UpdateTaskExecutor,
     listTasks: ListTasksExecutor,
@@ -327,6 +329,14 @@ export class AgentLoopService {
     }
 
     if (!signal.aborted) {
+      if (this.state === AgentState.RESPONDING && sessionId) {
+        this.eventEmitter.emit('agent.idle', {
+          sessionId,
+          providerType,
+          model,
+          providerConfig,
+        });
+      }
       res.write('data: [DONE]\n\n');
     }
 

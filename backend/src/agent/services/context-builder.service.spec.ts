@@ -5,6 +5,7 @@ import { ToolsService } from '../../tools/tools.service';
 import { McpService } from '../mcp/mcp.service';
 import { CoworkService } from '../../cowork/cowork.service';
 import { ModePolicyService } from '../../mode-policy/mode-policy.service';
+import { MemoryService } from '../../memory/memory.service';
 import { AgentRunState } from '../dto/agent-run-state';
 
 describe('ContextBuilderService', () => {
@@ -39,6 +40,10 @@ describe('ContextBuilderService', () => {
     resolveAllowedPaths: jest.fn().mockReturnValue(['/tmp/workspace/agent-output']),
   };
 
+  const mockMemoryService = {
+    getContextMemories: jest.fn().mockResolvedValue('## Persistent Memory'),
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -48,6 +53,7 @@ describe('ContextBuilderService', () => {
         { provide: McpService, useValue: mockMcpService },
         { provide: CoworkService, useValue: mockCowork },
         { provide: ModePolicyService, useValue: mockModePolicy },
+        { provide: MemoryService, useValue: mockMemoryService },
       ],
     }).compile();
     service = module.get(ContextBuilderService);
