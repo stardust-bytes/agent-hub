@@ -7,6 +7,9 @@
       <span class="text-sm font-mono" :class="dbConnected ? 'text-cyber-green' : 'text-cyber-muted'">
         [{{ dbConnected ? '✓' : '✗' }}] {{ t('status.db') }}
       </span>
+      <span v-if="activeSubagents && activeSubagents > 0" class="text-sm font-mono text-cyber-cyan">
+        ● {{ activeSubagents }} {{ t('status.subagents') }}
+      </span>
     </div>
     <div class="flex items-center gap-3">
       <span class="text-sm font-mono" :class="wsConnected ? 'text-cyber-green' : 'text-cyber-muted'">
@@ -31,6 +34,7 @@ const { t, locale } = useI18n()
 defineProps<{
   dbConnected?: boolean
   wsConnected?: boolean
+  activeSubagents?: number
 }>()
 
 const backendOnline = ref(false)
