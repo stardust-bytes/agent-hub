@@ -74,4 +74,25 @@ describe('SubagentService', () => {
       expect.stringContaining('"subagent":true'),
     );
   });
+
+  it('should store and retrieve pending delegations', () => {
+    const requestId = service.createDelegation({
+      task: 'analyze code',
+      subtasks: ['read package.json', 'list directory'],
+      providerType: 'ollama',
+      model: 'llama3.2',
+      providerConfig: { baseUrl: 'http://localhost:11434' },
+      tools: [],
+      sessionId: 1,
+      mode: 'agent',
+    });
+
+    const delegation = service.getDelegation(requestId);
+    expect(delegation).toBeDefined();
+    expect(delegation!.task).toBe('analyze code');
+    expect(delegation!.subtasks).toEqual(['read package.json', 'list directory']);
+
+    service.removeDelegation(requestId);
+    expect(service.getDelegation(requestId)).toBeUndefined();
+  });
 });
