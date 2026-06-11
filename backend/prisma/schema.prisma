@@ -9,7 +9,7 @@ datasource db {
 
 model Memory {
   id        String   @id @default(cuid())
-  type      String
+  type      String   // USER | FEEDBACK | PROJECT | REFERENCE
   title     String
   content   String
   metadata  String?
