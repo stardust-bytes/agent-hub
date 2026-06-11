@@ -42,6 +42,11 @@ export const MODE_POLICY: Record<string, ModePolicyEntry> = {
       'create_plan',
       'spawn_subagent', // Only allow in cowork mode where it can be used for delegation, not direct execution
       'delegate',
+      'read_excel',
+      'write_excel',
+      'excel_add_sheet',
+      'list_excel_sheets',
+      'excel_chart'
     ],
     allowedPaths: ['{workspaceRoot}/agent-output'],
     systemPromptStyle: 'agent',
@@ -51,10 +56,6 @@ export const MODE_POLICY: Record<string, ModePolicyEntry> = {
   cowork: {
     enabledTools: '*',
     deniedTools: [
-      'create_task',
-      'update_task',
-      'delete_tasks',
-      'convert_note_to_task',
       'search_knowledge',
     ],
     allowedPaths: ['{projectPath}'],
