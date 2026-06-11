@@ -1,41 +1,11 @@
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AgentLoopService } from '../services/agent-loop.service';
 import { ToolDefinition } from '../services/context-builder.service';
 import { WriteStream } from '../dto/write-stream.interface';
 
-export interface PendingDelegation {
-  requestId: string;
-  task: string;
-  subtasks: string[];
-  providerType: string;
-  model: string;
-  providerConfig: { baseUrl: string; key?: string };
-  tools: ToolDefinition[];
-  sessionId?: number;
-  mode: string;
-  createdAt: Date;
-}
-
 @Injectable()
 export class SubagentService {
-  constructor(@Inject(forwardRef(() => AgentLoopService)) private readonly agentLoop: AgentLoopService) {}
-
-  private readonly pendingDelegations = new Map<string, PendingDelegation>();
-
-  createDelegation(data: Omit<PendingDelegation, 'requestId' | 'createdAt'>): string {
-    const requestId = crypto.randomUUID();
-    this.pendingDelegations.set(requestId, { ...data, requestId, createdAt: new Date() });
-    setTimeout(() => this.pendingDelegations.delete(requestId), 5 * 60 * 1000);
-    return requestId;
-  }
-
-  getDelegation(requestId: string): PendingDelegation | undefined {
-    return this.pendingDelegations.get(requestId);
-  }
-
-  removeDelegation(requestId: string): void {
-    this.pendingDelegations.delete(requestId);
-  }
+  constructor(private readonly agentLoop: AgentLoopService) {}
 
   async delegate(
     tasks: string[],
