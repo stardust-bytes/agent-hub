@@ -244,10 +244,6 @@
   },
 
   "delegate": {
-    "task": "Task phức tạp — chọn chế độ chạy",
-    "subtasks": "Các phần có thể chạy song song",
-    "parallel": "Sub-agent parallel",
-    "sequential": "Step-by-step",
     "running": "▶ Tác vụ phụ {index}: {task}",
     "completed": "✓ Tác vụ phụ {index}: hoàn thành",
     "failed": "✗ Tác vụ phụ {index}: thất bại",

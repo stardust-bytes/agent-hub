@@ -76,13 +76,6 @@
           </div>
 
         </div>
-        <DelegateBubble
-          v-for="del in activeDelegations"
-          :key="del.requestId"
-          :delegation="del"
-          :disabled="streaming"
-          @choose="onDelegateChoose"
-        />
         </div>
       </div>
     </template>
@@ -169,14 +162,6 @@ import ModelSelector from './ModelSelector.vue'
 import SessionModal from './SessionModal.vue'
 import FormBlock from './FormBlock.vue'
 import PlanBubble from './PlanBubble.vue'
-import DelegateBubble from './DelegateBubble.vue'
-
-interface DelegateData {
-  requestId: string
-  task: string
-  subtasks: string[]
-}
-
 interface PlanStep {
   id: number
   order: number
@@ -227,8 +212,6 @@ const emit = defineEmits<{
   'active-subagents-change': [count: number]
 }>()
 const activeSubagentCount = ref(0)
-const activeDelegations = ref<DelegateData[]>([])
-
 onUnmounted(() => {
   emit('active-subagents-change', 0)
 })
@@ -424,7 +407,6 @@ function stopStream() {
 async function loadSession(id: number) {
   currentSessionId.value = id
   messages.value = []
-  activeDelegations.value = []
   try {
     const res = await fetch(`/api/sessions/${id}/messages`)
     if (res.ok) {
@@ -513,19 +495,6 @@ async function handleReject(planId: number) {
 async function handleResumeFromBubble(planId: number) {
   input.value = `/plan resume ${planId}`
   await submit()
-}
-
-function onDelegateChoose(payload: { requestId: string; mode: string }) {
-  if (payload.mode === 'parallel') {
-    const del = activeDelegations.value.find(d => d.requestId === payload.requestId)
-    if (del) {
-      activeSubagentCount.value += del.subtasks.length
-      emit('active-subagents-change', activeSubagentCount.value)
-    }
-  }
-  input.value = `/delegate ${payload.mode} ${payload.requestId}`
-  submit()
-  activeDelegations.value = []
 }
 
 function highlightUserMessage(content: string): string {
@@ -655,10 +624,6 @@ async function submit() {
               timestamp: now(),
             })
             await scrollToBottom()
-          } else if (parsed.subagent && parsed.delegate) {
-            clearThinking()
-            currentAgentIdx = -1
-            activeDelegations.value.push(parsed.delegate as DelegateData)
           } else if (parsed.subagent) {
             clearThinking()
             if (parsed.done) {
