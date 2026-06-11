@@ -163,8 +163,11 @@ export class ContextBuilderService {
         type: 'function' as const,
         function: {
           name: 'spawn_subagent',
-          description: 'Spawn a sub-agent to complete a specific task. ' +
-            'Use when you need to delegate independent work that can run in parallel ' +
+          description: 'ONLY use for complex, multi-step, or parallel tasks. ' +
+            'Spawn a sub-agent to complete a specific subtask. ' +
+            'Do NOT use for simple questions or single-tool operations — ' +
+            'handle those directly. ' +
+            'Use when delegating independent work that can run in parallel ' +
             'or when a task requires focused attention.',
           parameters: {
             type: 'object',
@@ -176,6 +179,35 @@ export class ContextBuilderService {
               },
             },
             required: ['task'],
+          },
+        },
+      });
+    }
+
+    if (mode === 'agent' || mode === 'cowork') {
+      tools.push({
+        type: 'function' as const,
+        function: {
+          name: 'delegate_parallel',
+          description: 'Decompose a complex task into independent parallel subtasks. ' +
+            'Use ONLY when the user request involves multiple pieces of independent work ' +
+            'that can run concurrently. ' +
+            'This will ask the user whether to use sub-agents or step-by-step execution.',
+          parameters: {
+            type: 'object',
+            properties: {
+              task: {
+                type: 'string',
+                description: 'The original user request or overall task description.',
+              },
+              subtasks: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'List of independent subtasks that can run in parallel. ' +
+                  'Each should be self-contained and not depend on others.',
+              },
+            },
+            required: ['task', 'subtasks'],
           },
         },
       });
