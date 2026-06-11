@@ -150,7 +150,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiChevronRight } from 'vue-icons-plus/hi'
 import { marked } from 'marked'
@@ -202,6 +202,10 @@ const activeDelegations = ref<DelegateData[]>([])
 onMounted(async () => {
   await loadProject()
   await loadModel()
+})
+
+onUnmounted(() => {
+  emit('active-subagents-change', 0)
 })
 
 async function loadProject() {
@@ -618,11 +622,11 @@ async function submit() {
               toolName: tc.name,
               isResult: false,
             })
-            await scrollToBottom()
             if (tc.name === 'spawn_subagent') {
               activeSubagentCount.value++
               emit('active-subagents-change', activeSubagentCount.value)
             }
+            await scrollToBottom()
           } else if (parsed.toolResult) {
             const tr = parsed.toolResult as { name: string; result: string }
             messages.value.push({

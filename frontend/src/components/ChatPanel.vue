@@ -160,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted, watch, computed } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiChevronRight } from 'vue-icons-plus/hi'
 import { marked } from 'marked'
@@ -228,6 +228,10 @@ const emit = defineEmits<{
 }>()
 const activeSubagentCount = ref(0)
 const activeDelegations = ref<DelegateData[]>([])
+
+onUnmounted(() => {
+  emit('active-subagents-change', 0)
+})
 
 interface PlanExecCallbacks {
   onStepUpdate: (planId: number, stepId: number, status: string) => void
