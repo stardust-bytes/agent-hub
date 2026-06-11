@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { AgentLoopService } from '../services/agent-loop.service';
 import { ToolDefinition } from '../services/context-builder.service';
 import { WriteStream } from '../dto/write-stream.interface';
 
 @Injectable()
 export class SubagentService {
-  constructor(private readonly agentLoop: AgentLoopService) {}
+  constructor(@Inject(forwardRef(() => AgentLoopService)) private readonly agentLoop: AgentLoopService) {}
 
   async delegate(
     tasks: string[],
