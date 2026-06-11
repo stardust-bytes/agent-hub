@@ -102,7 +102,7 @@ export class AgentService {
           await this.sessionsService.saveMessage(sessionId, 'user', message);
         }
         await this.agentLoop.runPlanMode(
-          taskText, providerType, providerModel.name, providerConfig, sessionId, res,
+          taskText, providerType, providerModel.name, providerConfig, sessionId, res, signal,
         );
         return;
       }

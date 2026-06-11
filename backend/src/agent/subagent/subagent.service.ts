@@ -18,6 +18,8 @@ export class SubagentService {
     sessionId?: number,
     mode: string = 'agent',
   ): Promise<string> {
+    if (signal.aborted) return 'Aborted';
+
     const requestId = crypto.randomUUID();
 
     res.write(`data: ${JSON.stringify({ delegate: { requestId, taskCount: tasks.length } })}\n\n`);

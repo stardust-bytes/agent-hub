@@ -160,6 +160,7 @@ export class AgentLoopService {
           let executedCount = 0;
           let ti = 0;
           for (const tc of toolCalls) {
+            if (signal.aborted) break;
             const idx = ti++;
             executedCount++;
             const name = tc.name;
@@ -304,6 +305,7 @@ export class AgentLoopService {
       }
 
       if (this.state === AgentState.CORRECTING) {
+        if (signal.aborted) break;
         if (this.retryCount < MAX_RETRIES) {
           this.retryCount++;
           res.write(`data: ${JSON.stringify({ thinking: `\u27f3 Retrying (${this.retryCount}/${MAX_RETRIES})...` })}\n\n`);
@@ -452,7 +454,13 @@ export class AgentLoopService {
     providerConfig: { baseUrl: string; key?: string },
     sessionId: number,
     res: WriteStream,
+    signal?: AbortSignal,
   ): Promise<void> {
+    if (signal?.aborted) {
+      res.write('data: [DONE]\n\n');
+      return;
+    }
+
     const planningPrompt =
       'You are in Plan Mode. Output ONLY a JSON object — no prose, no markdown, no code fences.\n' +
       'Format: { "title": "short plan title", "steps": ["step 1", "step 2", ...] }\n' +
@@ -467,7 +475,7 @@ export class AgentLoopService {
 
     let fullText = '';
     const stream = this.llmController.stream(
-      providerType, model, messages, [], new AbortController().signal,
+      providerType, model, messages, [], signal ?? new AbortController().signal,
       providerConfig.baseUrl, providerConfig.key,
     );
 
