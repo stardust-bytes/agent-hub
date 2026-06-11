@@ -92,6 +92,28 @@
   "files.watch.stop": "Stop",
   "files.watch.status": "● watching",
 
+  "memory": {
+    "title": "Memories",
+    "create": "New Memory",
+    "edit": "Edit Memory",
+    "delete": "Delete Memory",
+    "deleteConfirm": "Delete this memory?",
+    "empty": "No memories yet",
+    "searchPlaceholder": "Search...",
+    "auto_extracted": "[auto]",
+    "type": {
+      "user": "USER",
+      "feedback": "FEEDBACK",
+      "project": "PROJECT",
+      "reference": "REFERENCE"
+    },
+    "form": {
+      "type": "Type",
+      "title": "Title",
+      "content": "Content"
+    }
+  },
+
   "cowork.title": "Workspace",
   "cowork.path": "Directory:",
   "cowork.browse": "Browse",

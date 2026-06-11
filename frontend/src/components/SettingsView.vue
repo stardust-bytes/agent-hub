@@ -6,7 +6,22 @@
       </span>
     </div>
 
-    <div class="flex-1 overflow-y-auto px-4 py-4">
+    <div class="flex border-b border-cyber-code-border shrink-0">
+      <button
+        v-for="tab in TABS"
+        :key="tab.key"
+        @click="activeSettingsTab = tab.key"
+        :class="[
+          'text-sm px-3 py-1.5 font-mono transition-colors duration-150',
+          activeSettingsTab === tab.key
+            ? 'text-cyber-accent border-b-2 border-cyber-accent'
+            : 'text-cyber-muted hover:text-cyber-accent',
+        ]"
+      >{{ t(tab.labelKey) }}</button>
+    </div>
+
+    <MemoryView v-if="activeSettingsTab === 'memories'" />
+    <div v-else class="flex-1 overflow-y-auto px-4 py-4">
       <div class="max-w-xl">
         <div class="border-t border-cyber-accent/10 pt-4">
           <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.info') }}</div>
@@ -66,8 +81,14 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiCog } from 'vue-icons-plus/hi'
+import MemoryView from './MemoryView.vue'
 
 const { t } = useI18n()
+const activeSettingsTab = ref('general')
+const TABS = [
+  { key: 'general', labelKey: 'settings.header' },
+  { key: 'memories', labelKey: 'memory.title' },
+]
 const healthy = ref(false)
 
 interface ProviderModelOption {

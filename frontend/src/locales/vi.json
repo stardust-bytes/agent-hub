@@ -92,6 +92,28 @@
   "files.watch.stop": "Dừng",
   "files.watch.status": "● đang theo dõi",
 
+  "memory": {
+    "title": "Bộ nhớ",
+    "create": "Thêm mới",
+    "edit": "Sửa bộ nhớ",
+    "delete": "Xóa bộ nhớ",
+    "deleteConfirm": "Xóa bộ nhớ này?",
+    "empty": "Chưa có bộ nhớ nào",
+    "searchPlaceholder": "Tìm kiếm...",
+    "auto_extracted": "[tự động]",
+    "type": {
+      "user": "USER",
+      "feedback": "FEEDBACK",
+      "project": "PROJECT",
+      "reference": "REFERENCE"
+    },
+    "form": {
+      "type": "Loại",
+      "title": "Tiêu đề",
+      "content": "Nội dung"
+    }
+  },
+
   "cowork.title": "Workspace",
   "cowork.path": "Đường dẫn:",
   "cowork.browse": "Chọn",
