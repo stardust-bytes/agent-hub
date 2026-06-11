@@ -35,9 +35,15 @@ import { CoworkModule } from '../cowork/cowork.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
 import { SubagentService } from './subagent/subagent.service';
 import { ModePolicyModule } from '../mode-policy/mode-policy.module';
+import { ExcelModule } from '../excel/excel.module';
+import { ReadExcelExecutor } from '../excel/executors/read-excel.executor';
+import { WriteExcelExecutor } from '../excel/executors/write-excel.executor';
+import { ExcelAddSheetExecutor } from '../excel/executors/excel-add-sheet.executor';
+import { ListExcelSheetsExecutor } from '../excel/executors/list-excel-sheets.executor';
+import { ExcelChartExecutor } from '../excel/executors/excel-chart.executor';
 
 @Module({
-  imports: [MemoryModule, TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule],
+  imports: [MemoryModule, TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule],
   controllers: [AgentController],
   providers: [
     AgentService,
@@ -63,6 +69,11 @@ import { ModePolicyModule } from '../mode-policy/mode-policy.module';
     DeleteNoteExecutor,
     ConvertNoteToTaskExecutor,
     ResumePlanExecutor,
+    ReadExcelExecutor,
+    WriteExcelExecutor,
+    ExcelAddSheetExecutor,
+    ListExcelSheetsExecutor,
+    ExcelChartExecutor,
   ],
 })
 export class AgentModule {}

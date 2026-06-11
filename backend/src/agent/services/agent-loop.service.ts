@@ -33,6 +33,11 @@ import { PermissionsService } from './permissions.service';
 import { PlansService } from '../../plans/plans.service';
 import { McpService } from '../mcp/mcp.service';
 import { SubagentService } from '../subagent/subagent.service';
+import { ReadExcelExecutor } from '../../excel/executors/read-excel.executor';
+import { WriteExcelExecutor } from '../../excel/executors/write-excel.executor';
+import { ExcelAddSheetExecutor } from '../../excel/executors/excel-add-sheet.executor';
+import { ListExcelSheetsExecutor } from '../../excel/executors/list-excel-sheets.executor';
+import { ExcelChartExecutor } from '../../excel/executors/excel-chart.executor';
 
 const MAX_ITERATIONS = 100;
 const KB_NO_RESULTS = 'No relevant information found in knowledge base.';
@@ -72,6 +77,11 @@ export class AgentLoopService {
     private readonly glob: GlobExecutor,
     private readonly resumePlan: ResumePlanExecutor,
     private readonly createPlan: CreatePlanExecutor,
+    readExcel: ReadExcelExecutor,
+    writeExcel: WriteExcelExecutor,
+    excelAddSheet: ExcelAddSheetExecutor,
+    listExcelSheets: ListExcelSheetsExecutor,
+    excelChart: ExcelChartExecutor,
   ) {
     this.executorMap = new Map<string, ToolExecutor>([
       [createTask.name, createTask],
@@ -95,6 +105,11 @@ export class AgentLoopService {
       [glob.name, glob],
       [resumePlan.name, resumePlan],
       [createPlan.name, createPlan],
+      [readExcel.name, readExcel],
+      [writeExcel.name, writeExcel],
+      [excelAddSheet.name, excelAddSheet],
+      [listExcelSheets.name, listExcelSheets],
+      [excelChart.name, excelChart],
     ]);
   }
 
