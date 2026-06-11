@@ -193,6 +193,10 @@ const availableModels = ref<Array<{ id: number; name: string; providerName: stri
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
 const fileTreeRefreshKey = ref(0)
+const emit = defineEmits<{
+  'active-subagents-change': [count: number]
+}>()
+const activeSubagentCount = ref(0)
 const activeDelegations = ref<DelegateData[]>([])
 
 onMounted(async () => {
@@ -340,6 +344,13 @@ async function disconnect() {
 }
 
 function onDelegateChoose(payload: { requestId: string; mode: string }) {
+  if (payload.mode === 'parallel') {
+    const del = activeDelegations.value.find(d => d.requestId === payload.requestId)
+    if (del) {
+      activeSubagentCount.value += del.subtasks.length
+      emit('active-subagents-change', activeSubagentCount.value)
+    }
+  }
   input.value = `/delegate ${payload.mode} ${payload.requestId}`
   submit()
   activeDelegations.value = []
@@ -554,6 +565,10 @@ async function submit() {
           } else if (parsed.subagent) {
             clearThinking()
             if (parsed.done) {
+              if (activeSubagentCount.value > 0) {
+                activeSubagentCount.value--
+                emit('active-subagents-change', activeSubagentCount.value)
+              }
               // Subagent done — do NOT stop the SSE stream (main agent continues)
             } else if (parsed.token) {
               // Subagent streaming text tokens
@@ -604,6 +619,10 @@ async function submit() {
               isResult: false,
             })
             await scrollToBottom()
+            if (tc.name === 'spawn_subagent') {
+              activeSubagentCount.value++
+              emit('active-subagents-change', activeSubagentCount.value)
+            }
           } else if (parsed.toolResult) {
             const tr = parsed.toolResult as { name: string; result: string }
             messages.value.push({
