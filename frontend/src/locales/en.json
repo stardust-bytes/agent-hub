@@ -58,6 +58,7 @@
 
   "status.backend": "backend",
   "status.db": "db",
+  "status.subagents": "sub-agents",
 
   "settings.header": "SETTINGS",
   "settings.ollamaUrl": "Ollama Base URL",
