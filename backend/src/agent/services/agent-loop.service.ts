@@ -211,7 +211,7 @@ export class AgentLoopService {
                   result = `Error: Delegate failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
                 }
               }
-             } else {
+            } else {
               try {
                 result = await this.executeTool(name, args, { mode: mode as 'chat' | 'agent' | 'cowork', sessionId: sessionId ?? 0 });
               } catch (e) {
@@ -244,7 +244,7 @@ export class AgentLoopService {
                 if (requireApproval) {
                   res.write('data: [DONE]\n\n');
                   return finalText;
-            } else {
+                } else {
                   await this.executePlan(planId, providerType, model, systemPrompt, activeTools, providerConfig, signal, res, sessionId);
                   return finalText;
                 }
