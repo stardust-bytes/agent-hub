@@ -30,6 +30,13 @@
       :initial-content="editContent"
       @save="handleSave"
     />
+
+    <BaseConfirmModal
+      v-model="showConfirmModal"
+      :title="t('notes.delete.confirm')"
+      :message="t('notes.delete.confirm')"
+      @confirm="onDeleteConfirmed"
+    />
   </div>
 </template>
 
@@ -38,6 +45,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { io, Socket } from 'socket.io-client'
 import NoteModal from './NoteModal.vue'
+import BaseConfirmModal from './BaseConfirmModal.vue'
 
 const { t } = useI18n()
 
@@ -51,6 +59,8 @@ interface Note {
 
 const notes = ref<Note[]>([])
 const showModal = ref(false)
+const showConfirmModal = ref(false)
+const deletingNoteId = ref<number | null>(null)
 const editingId = ref<number | null>(null)
 const editTitle = ref('')
 const editContent = ref('')
@@ -98,11 +108,17 @@ async function handleSave(title: string, content: string) {
 }
 
 async function deleteNote(id: number) {
-  if (!confirm(t('notes.delete.confirm'))) return
+  deletingNoteId.value = id
+  showConfirmModal.value = true
+}
+
+async function onDeleteConfirmed() {
+  if (deletingNoteId.value === null) return
   try {
-    await fetch(`/api/notes/${id}`, { method: 'DELETE' })
+    await fetch(`/api/notes/${deletingNoteId.value}`, { method: 'DELETE' })
     await fetchNotes()
   } catch { /* ignore */ }
+  deletingNoteId.value = null
 }
 
 onMounted(() => {
