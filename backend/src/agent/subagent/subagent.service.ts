@@ -34,7 +34,7 @@ export class SubagentService {
     const originalWrite = res.write.bind(res);
     return {
       write(data: string): boolean {
-        if (data.includes('data: [DONE]')) {
+        if (/^data: \[DONE\]\n?$/m.test(data)) {
           return originalWrite('data: {"subagent":true,"done":true}\n\n');
         }
         const modified = data.replace(

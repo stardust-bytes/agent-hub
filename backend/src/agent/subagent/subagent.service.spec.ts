@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SubagentService } from './subagent.service';
 import { AgentLoopService } from '../services/agent-loop.service';
-import { PermissionsService } from '../services/permissions.service';
 
 describe('SubagentService', () => {
   let service: SubagentService;
@@ -14,7 +13,6 @@ describe('SubagentService', () => {
       providers: [
         SubagentService,
         { provide: AgentLoopService, useValue: agentLoop },
-        { provide: PermissionsService, useValue: { isAllowed: jest.fn().mockResolvedValue(true) } },
       ],
     }).compile();
 
