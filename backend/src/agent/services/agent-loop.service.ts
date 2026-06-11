@@ -150,12 +150,6 @@ export class AgentLoopService {
 
         if (toolCalls.length > 0) {
           messages = this.addToolCallsToMessages(messages, text, toolCalls, reasoningContent);
-          this.state = AgentState.EVALUATING;
-        } else {
-          this.state = AgentState.RESPONDING;
-        }
-
-        if (this.state === AgentState.EVALUATING) {
           let allGood = true;
           let executedCount = 0;
           let ti = 0;
@@ -297,46 +291,41 @@ export class AgentLoopService {
           if (allGood) {
             this.retryCount = 0;
             this.failedTool = null;
-            this.state = AgentState.EXECUTING;
           } else {
-            this.state = AgentState.CORRECTING;
-          }
-        }
-      }
-
-      if (this.state === AgentState.CORRECTING) {
-        if (signal.aborted) break;
-        if (this.retryCount < MAX_RETRIES) {
-          this.retryCount++;
-          res.write(`data: ${JSON.stringify({ thinking: `\u27f3 Retrying (${this.retryCount}/${MAX_RETRIES})...` })}\n\n`);
-          if (sessionId) {
-            await this.sessionsService.saveMessage(sessionId, 'system', `Retrying (${this.retryCount}/${MAX_RETRIES})...`);
-          }
-          messages.push({
-            role: 'user',
-            content: `The tool "${this.failedTool}" failed. Please try again with different arguments.`,
-          });
-          this.state = AgentState.EXECUTING;
-        } else {
-          const fallbackTool = this.findFallbackTool(this.failedTool);
-          if (fallbackTool) {
-            res.write(`data: ${JSON.stringify({ thinking: `\u27f3 Trying alternative tool: ${fallbackTool}...` })}\n\n`);
-            if (sessionId) {
-              await this.sessionsService.saveMessage(sessionId, 'system', `Trying alternative tool: ${fallbackTool}...`);
+            if (signal.aborted) break;
+            if (this.retryCount < MAX_RETRIES) {
+              this.retryCount++;
+              res.write(`data: ${JSON.stringify({ thinking: `\u27f3 Retrying (${this.retryCount}/${MAX_RETRIES})...` })}\n\n`);
+              if (sessionId) {
+                await this.sessionsService.saveMessage(sessionId, 'system', `Retrying (${this.retryCount}/${MAX_RETRIES})...`);
+              }
+              messages.push({
+                role: 'user',
+                content: `The tool "${this.failedTool}" failed. Please try again with different arguments.`,
+              });
+            } else {
+              const fallbackTool = this.findFallbackTool(this.failedTool);
+              if (fallbackTool) {
+                res.write(`data: ${JSON.stringify({ thinking: `\u27f3 Trying alternative tool: ${fallbackTool}...` })}\n\n`);
+                if (sessionId) {
+                  await this.sessionsService.saveMessage(sessionId, 'system', `Trying alternative tool: ${fallbackTool}...`);
+                }
+                this.failedTool = fallbackTool;
+                this.retryCount = 0;
+                messages.push({
+                  role: 'user',
+                  content: `The tool failed after retries. Try using "${fallbackTool}" instead.`,
+                });
+              } else {
+                finalText += await this.generateCloseMessage(
+                  model, messages, 'no fallback tool', signal, providerConfig, res, sessionId, providerType,
+                );
+                this.state = AgentState.RESPONDING;
+              }
             }
-            this.failedTool = fallbackTool;
-            this.retryCount = 0;
-            messages.push({
-              role: 'user',
-              content: `The tool failed after retries. Try using "${fallbackTool}" instead.`,
-            });
-            this.state = AgentState.EXECUTING;
-          } else {
-            finalText += await this.generateCloseMessage(
-              model, messages, 'no fallback tool', signal, providerConfig, res, sessionId, providerType,
-            );
-            this.state = AgentState.RESPONDING;
           }
+        } else {
+          this.state = AgentState.RESPONDING;
         }
       }
     }
