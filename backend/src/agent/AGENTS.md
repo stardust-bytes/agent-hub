@@ -89,6 +89,9 @@ Plan execution is now handled inside the main `/chat` SSE stream. Send messages 
 | `planStepUpdate` | `{planId, stepId, status}` | Step changes state during plan execution |
 | `planInterrupted` | `{planId, stepId, reason}` | Plan execution was aborted by user (followed by `[DONE]`; also persisted to session history as system message) |
 | `subagent` | `{subagent: true, ...original}` | Added by SubagentService to all original SSE events from sub-agent runs; `{subagent:true, done:true}` replaces `[DONE]` |
+| `subagent:delegate` | `{subagent: true, delegate: {requestId, task, subtasks}}` | LLM called `delegate_parallel` tool; frontend should show mode selection UI |
+| `[DONE]` followed by user command | `/delegate parallel <requestId>` | User chose parallel execution — backend runs subtasks via `SubagentService.spawn()` |
+| `[DONE]` followed by user command | `/delegate sequential <requestId>` | User chose step-by-step — backend runs full task through normal `AgentLoopService.run()` |
 
 ## State Machine Loop
 
@@ -102,7 +105,7 @@ Plan execution is now handled inside the main `/chat` SSE stream. Send messages 
 7. No tool_calls or correction exhausted → **RESPONDING**: emit final text tokens
 8. **DONE**: emit `[DONE]` SSE event
 
-Tools available: create_task, update_task, list_tasks, get_task, delete_tasks, search_knowledge, web_fetch, web_search, create_note, update_note, list_notes, delete_note, convert_note_to_task, resume_plan, create_plan
+Tools available: create_task, update_task, list_tasks, get_task, delete_tasks, search_knowledge, web_fetch, web_search, create_note, update_note, list_notes, delete_note, convert_note_to_task, resume_plan, create_plan, spawn_subagent, delegate_parallel
 
 Permission check: before each tool execution, `PermissionsService.isAllowed(name)` is called. Denied tools emit a `toolResult` denial SSE and `continue` (skip CORRECTING).
 
