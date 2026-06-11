@@ -17,6 +17,7 @@ import { CoworkModule } from './cowork/cowork.module';
 import { FilesModule } from './files/files.module';
 import { ModePolicyModule } from './mode-policy/mode-policy.module';
 import { MemoryModule } from './memory/memory.module';
+import { ExcelModule } from './excel/excel.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { MemoryModule } from './memory/memory.module';
     FilesModule,
     ModePolicyModule,
     MemoryModule,
+    ExcelModule,
   ],
   controllers: [AppController],
 })
