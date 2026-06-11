@@ -41,7 +41,7 @@ mode-policy/
 | Aspect | Setting |
 |---|---|
 | Enabled tools | `*` (all) |
-| Denied tools | `create_task`, `update_task`, `delete_tasks`, `convert_note_to_task`, `search_knowledge`, `delegate_parallel` |
+| Denied tools | `create_task`, `update_task`, `delete_tasks`, `convert_note_to_task`, `search_knowledge` |
 | Allowed paths | `{projectPath}`, `{workspaceRoot}` |
 | System prompt | Full agent prompt + project path |
 | Env context | `platform`, `projectPath` |

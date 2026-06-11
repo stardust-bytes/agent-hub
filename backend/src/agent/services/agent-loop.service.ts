@@ -211,30 +211,7 @@ export class AgentLoopService {
                   result = `Error: Delegate failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
                 }
               }
-            } else if (name === 'delegate_parallel') {
-              const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
-              const task = String(argsObj.task ?? '');
-              const subtasksArr = argsObj.subtasks;
-              const subtasks = Array.isArray(subtasksArr) ? subtasksArr.map(String) : [];
-
-              if (!task || subtasks.length === 0) {
-                result = 'Error: delegate_parallel requires "task" (string) and "subtasks" (non-empty array)';
-              } else {
-                const requestId = this.subagentService.createDelegation({
-                  task, subtasks,
-                  providerType, model, providerConfig,
-                  tools: activeTools, sessionId,
-                  mode: mode as 'chat' | 'agent' | 'cowork',
-                });
-
-                res.write(`data: ${JSON.stringify({
-                  subagent: true,
-                  delegate: { requestId, task, subtasks },
-                })}\n\n`);
-
-                result = `[DELEGATION_CREATED: ${requestId}] Awaiting user decision.`;
-              }
-            } else {
+             } else {
               try {
                 result = await this.executeTool(name, args, { mode: mode as 'chat' | 'agent' | 'cowork', sessionId: sessionId ?? 0 });
               } catch (e) {
@@ -267,7 +244,7 @@ export class AgentLoopService {
                 if (requireApproval) {
                   res.write('data: [DONE]\n\n');
                   return finalText;
-                } else {
+            } else {
                   await this.executePlan(planId, providerType, model, systemPrompt, activeTools, providerConfig, signal, res, sessionId);
                   return finalText;
                 }
