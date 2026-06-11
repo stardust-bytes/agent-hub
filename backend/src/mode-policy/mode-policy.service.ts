@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MODE_POLICY, ToolDefinition, SystemPromptStyle } from './mode-policy.config';
+import { MODE_POLICY, ToolDefinition, SystemPromptStyle, PermissionMode } from './mode-policy.config';
 import * as path from 'path';
 
 export interface ToolInfo {
@@ -54,5 +54,9 @@ export class ModePolicyService {
 
   getEnvContext(mode: string): string[] {
     return (MODE_POLICY[mode] ?? MODE_POLICY.agent).envContext;
+  }
+
+  getPermissionMode(mode: string): PermissionMode {
+    return (MODE_POLICY[mode] ?? MODE_POLICY.agent).permissionMode;
   }
 }

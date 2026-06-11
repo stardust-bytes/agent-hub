@@ -9,12 +9,16 @@ export interface ToolDefinition {
 
 export type SystemPromptStyle = 'chat' | 'agent' | 'cowork';
 
+export const PERMISSION_MODES = ['default', 'acceptEdits', 'bypassPermissions', 'dontAsk', 'auto', 'plan'] as const;
+export type PermissionMode = typeof PERMISSION_MODES[number];
+
 export interface ModePolicyEntry {
   enabledTools: '*' | string[];
   deniedTools: string[];
   allowedPaths: string[];
   systemPromptStyle: SystemPromptStyle;
   envContext: string[];
+  permissionMode: PermissionMode;
 }
 
 export const MODE_POLICY: Record<string, ModePolicyEntry> = {
@@ -24,6 +28,7 @@ export const MODE_POLICY: Record<string, ModePolicyEntry> = {
     allowedPaths: [],
     systemPromptStyle: 'chat',
     envContext: [],
+    permissionMode: 'default',
   },
   agent: {
     enabledTools: '*',
@@ -41,6 +46,7 @@ export const MODE_POLICY: Record<string, ModePolicyEntry> = {
     allowedPaths: ['{workspaceRoot}/agent-output'],
     systemPromptStyle: 'agent',
     envContext: ['platform'],
+    permissionMode: 'default',
   },
   cowork: {
     enabledTools: '*',
@@ -55,5 +61,6 @@ export const MODE_POLICY: Record<string, ModePolicyEntry> = {
     allowedPaths: ['{projectPath}'],
     systemPromptStyle: 'cowork',
     envContext: ['platform', 'projectPath'],
+    permissionMode: 'acceptEdits',
   },
 };
