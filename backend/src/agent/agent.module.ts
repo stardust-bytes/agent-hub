@@ -41,9 +41,20 @@ import { WriteExcelExecutor } from '../excel/executors/write-excel.executor';
 import { ExcelAddSheetExecutor } from '../excel/executors/excel-add-sheet.executor';
 import { ListExcelSheetsExecutor } from '../excel/executors/list-excel-sheets.executor';
 import { ExcelChartExecutor } from '../excel/executors/excel-chart.executor';
+import { EmailModule } from '../email/email.module';
+import { EmailListExecutor } from '../email/executors/email-list.executor';
+import { EmailReadExecutor } from '../email/executors/email-read.executor';
+import { EmailSendExecutor } from '../email/executors/email-send.executor';
+import { EmailSearchExecutor } from '../email/executors/email-search.executor';
+import { EmailReplyExecutor } from '../email/executors/email-reply.executor';
+import { CalendarModule } from '../calendar/calendar.module';
+import { CalendarListEventsExecutor } from '../calendar/executors/calendar-list-events.executor';
+import { CalendarCreateEventExecutor } from '../calendar/executors/calendar-create-event.executor';
+import { CalendarUpdateEventExecutor } from '../calendar/executors/calendar-update-event.executor';
+import { CalendarCheckAvailabilityExecutor } from '../calendar/executors/calendar-check-availability.executor';
 
 @Module({
-  imports: [MemoryModule, TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule],
+  imports: [MemoryModule, TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule, EmailModule, CalendarModule],
   controllers: [AgentController],
   providers: [
     AgentService,
@@ -74,6 +85,15 @@ import { ExcelChartExecutor } from '../excel/executors/excel-chart.executor';
     ExcelAddSheetExecutor,
     ListExcelSheetsExecutor,
     ExcelChartExecutor,
+    EmailListExecutor,
+    EmailReadExecutor,
+    EmailSendExecutor,
+    EmailSearchExecutor,
+    EmailReplyExecutor,
+    CalendarListEventsExecutor,
+    CalendarCreateEventExecutor,
+    CalendarUpdateEventExecutor,
+    CalendarCheckAvailabilityExecutor,
   ],
 })
 export class AgentModule {}
