@@ -5,7 +5,7 @@ import { GmailService } from '../../connector/providers/google/gmail.service';
 @Injectable()
 export class GoogleGmailSendExecutor implements ToolExecutor {
   readonly name = 'google_gmail_send';
-  readonly description = 'Send an email via Gmail. Supports To, CC, BCC.';
+  readonly description = 'Send an email via Gmail. Supports To, CC, BCC. IMPORTANT: You MUST call this tool EVERY time the user asks to send an email, even if you previously sent one. Always re-execute with the new parameters — do NOT skip or describe what you would send.';
   readonly parameters = {
     type: 'object' as const,
     properties: {
