@@ -1,6 +1,6 @@
 <template>
   <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
-    <div class="xl:pl-3 pl-8 px-3 h-[3rem] bg-cyber-dark flex items-center justify-between shrink-0">
+    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-cyber-dark flex items-center justify-between shrink-0">
       <span class="text-cyber-accent text-sm tracking-widest font-mono">
         <HiSave class="w-3 h-3 inline" /> {{ t('memory.title') }}
       </span>
@@ -10,7 +10,7 @@
       >{{ t('memory.create') }}</button>
     </div>
 
-    <div class="xl:pl-3 pl-8 px-3 py-1.5 bg-cyber-dark/40 flex items-center gap-2 shrink-0">
+    <div class="xl:pl-3 pl-10 px-3 py-1.5 bg-cyber-dark/40 flex items-center gap-2 shrink-0">
       <span class="text-cyber-muted text-xs font-mono">{{ t('tasks.filter.label') }}</span>
       <button
         v-for="f in TYPE_FILTERS"
@@ -36,7 +36,7 @@
         {{ t('memory.empty') }}
       </div>
       <div v-for="mem in filteredMemories" :key="mem.id"
-        class="border-b border-cyber-code-border xl:pl-3 pl-8 px-3 py-2 hover:bg-cyber-dark/40 transition-colors duration-150">
+        class="border-b border-cyber-code-border xl:pl-3 pl-10 px-3 py-2 hover:bg-cyber-dark/40 transition-colors duration-150">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 min-w-0">
             <span class="text-xs font-mono" :class="typeColor(mem.type)">{{ typeLabel(mem.type) }}</span>
@@ -229,6 +229,7 @@ async function onDeleteConfirmed() {
 
 onMounted(fetchMemories)
 </script>
+
 
 
 

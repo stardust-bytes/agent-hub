@@ -1,6 +1,6 @@
 <template>
   <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
-    <div class="xl:pl-3 pl-8 px-3 h-[3rem] bg-cyber-dark flex items-center shrink-0">
+    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-cyber-dark flex items-center shrink-0">
       <span class="text-cyber-accent text-xs tracking-widest font-mono">
         <HiClipboardList class="w-3 h-3 inline" /> {{ t('plans.header') }}
       </span>
@@ -166,6 +166,7 @@ onUnmounted(() => {
   if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
 })
 </script>
+
 
 
 
