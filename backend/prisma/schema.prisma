@@ -49,6 +49,7 @@ model Session {
   plans      Plan[]
   agentFiles AgentFile[]
   memories   Memory[]
+  usageRecords UsageRecord[]
 }
 
 model ChatMessage {
@@ -139,4 +140,17 @@ model AgentFile {
   sessionId Int
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+}
+
+model UsageRecord {
+  id               Int      @id @default(autoincrement())
+  sessionId        Int?
+  modelName        String
+  providerType     String
+  promptTokens     Int
+  completionTokens Int
+  totalTokens      Int
+  createdAt        DateTime @default(now())
+
+  session          Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
 }
