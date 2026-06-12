@@ -10,7 +10,7 @@
         </div>
       </div>
 
-      <button @click="sidebarOpen = !sidebarOpen" class="fixed top-2 left-2 z-50 xl:hidden w-8 h-8 flex items-center justify-center bg-cyber-dark border border-cyber-code-border rounded text-cyber-muted hover:text-cyber-accent transition-colors duration-150 text-sm font-mono">
+      <button @click="sidebarOpen = !sidebarOpen" class="xl:hidden w-8 h-[3rem] shrink-0 self-stretch flex items-center justify-center bg-cyber-dark border-r border-cyber-code-border text-cyber-muted hover:text-cyber-accent transition-colors duration-150 text-sm font-mono">
         {{ sidebarOpen ? '✕' : '☰' }}
       </button>
 
