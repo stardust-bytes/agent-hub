@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { TasksModule } from './tasks/tasks.module';
 import { NotesModule } from './notes/notes.module';
 import { AgentModule } from './agent/agent.module';
+import { AgentOutputModule } from './agent-output/agent-output.module';
 import { SettingsModule } from './settings/settings.module';
 import { KnowledgeModule } from './knowledge/knowledge.module';
 import { SessionsModule } from './sessions/sessions.module';
@@ -28,6 +29,7 @@ import { UsageModule } from './usage/usage.module';
     TasksModule,
     NotesModule,
     AgentModule,
+    AgentOutputModule,
     SettingsModule,
     KnowledgeModule,
     SessionsModule,
