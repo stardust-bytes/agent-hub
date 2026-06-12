@@ -33,7 +33,7 @@ src/
 ├── main.ts                  — bootstrap, global prefix /api, CORS, ValidationPipe, HttpExceptionFilter
 ├── app.module.ts            — root module (ConfigModule, PrismaModule, TasksModule, NotesModule,
 │                              AgentModule, SettingsModule, KnowledgeModule, SessionsModule,
-│                              ProvidersModule, ToolsModule, PlansModule)
+│                              ProvidersModule, ToolsModule, PlansModule, UsageModule)
 ├── app.controller.ts        — GET /api/health → { status, db, timestamp }
 ├── http-exception.filter.ts — global filter: returns { statusCode, message, timestamp }
 │
@@ -100,6 +100,13 @@ src/
 │   ├── memory.service.spec.ts, memory.controller.spec.ts, memory.gateway.spec.ts, memory-extraction.service.spec.ts
 │   └── dto/ (create-memory.dto.ts, update-memory.dto.ts, search-memory.dto.ts)
 │
+├── usage/
+│   ├── usage.module.ts        — @Global(), provides+exports UsageService
+│   ├── usage.controller.ts    — GET /api/usage, GET /api/usage/sessions
+│   ├── usage.service.ts       — record(), getTotal(), getPerSession()
+│   ├── dto/ (create-usage.dto.ts)
+│   └── *.spec.ts
+│
 └── knowledge/
     ├── knowledge.module.ts
     ├── knowledge.controller.ts — file upload + search + delete under /api/knowledge
@@ -148,6 +155,8 @@ All routes are prefixed with `/api`.
 | `POST` | `/api/knowledge/upload` | Upload file for indexing |
 | `POST` | `/api/knowledge/search` | Search indexed files |
 | `DELETE` | `/api/knowledge/:id` | Delete file |
+| `GET` | `/api/usage` | Get total token usage |
+| `GET` | `/api/usage/sessions` | Get per-session token usage breakdown |
 
 **Agent chat response:** SSE stream (`text/event-stream`)
 ```
@@ -240,6 +249,19 @@ model ProviderModel {
   name       String
   createdAt  DateTime @default(now())
 }
+
+model UsageRecord {
+  id               Int      @id @default(autoincrement())
+  sessionId        Int?
+  modelName        String
+  providerType     String
+  promptTokens     Int
+  completionTokens Int
+  totalTokens      Int
+  createdAt        DateTime @default(now())
+
+  session          Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+}
 ```
 
 Run: `npx prisma migrate dev --name <name>` then `npx prisma generate`.
@@ -259,6 +281,8 @@ Run: `npx prisma migrate dev --name <name>` then `npx prisma generate`.
 **`UpdateProviderDto`**: `PartialType(CreateProviderDto)`.
 
 **`SetProjectDto`**: `path` (required, string).
+
+**`CreateUsageDto`**: `sessionId?` (Int, optional), `modelName` (required, string), `providerType` (required, string), `promptTokens` (required, Int, >=0), `completionTokens` (required, Int, >=0), `totalTokens` (required, Int, >=0).
 
 ---
 
@@ -288,8 +312,9 @@ npm run build && npm run start:prod
 npm run setup
 
 # Tests
-npx jest                    # all (15+ suites)
+npx jest                    # all (17+ suites)
 npx jest src/agent          # specific module
+npx jest src/usage          # usage module tests
 
 # Prisma
 npx prisma studio           # GUI for SQLite
