@@ -20,6 +20,12 @@ const CREDENTIALS: Record<string, { clientId: string; clientSecret: string }> = 
   },
 };
 
+const SCOPE_TO_TYPE: Record<string, string> = {
+  'https://mail.google.com/': 'google_gmail',
+  'https://www.googleapis.com/auth/calendar': 'google_calendar',
+  'https://www.googleapis.com/auth/drive': 'google_drive',
+};
+
 @Controller('connectors')
 export class ConnectorController {
   constructor(
@@ -60,9 +66,10 @@ export class ConnectorController {
   }
 
   @Get('oauth/callback')
-  async oauthCallback(@Query('state') state: string, @Query('code') code: string) {
-    if (!state || !code) return { error: 'missing_params' };
-    const type = state;
+  async oauthCallback(@Query('scope') scope: string, @Query('code') code: string) {
+    if (!scope || !code) return { error: 'missing_params' };
+    const type = SCOPE_TO_TYPE[scope];
+    if (!type) return { error: 'unknown_scope', scope };
     const creds = this.getCreds(type);
     const redirectUri = `${process.env.APP_URL ?? 'http://localhost:17135'}/api/connectors/oauth/callback`;
     const tokens = await this.googleOAuth.handleCallback(code, { ...creds, redirectUri });
