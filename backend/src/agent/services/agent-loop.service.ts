@@ -33,6 +33,7 @@ import { PermissionsService } from './permissions.service';
 import { PlansService } from '../../plans/plans.service';
 import { McpService } from '../mcp/mcp.service';
 import { SubagentService } from '../subagent/subagent.service';
+import { UsageService } from '../../usage/usage.service';
 import { ReadExcelExecutor } from '../../excel/executors/read-excel.executor';
 import { WriteExcelExecutor } from '../../excel/executors/write-excel.executor';
 import { ExcelAddSheetExecutor } from '../../excel/executors/excel-add-sheet.executor';
@@ -82,6 +83,7 @@ export class AgentLoopService {
     excelAddSheet: ExcelAddSheetExecutor,
     listExcelSheets: ListExcelSheetsExecutor,
     excelChart: ExcelChartExecutor,
+    private readonly usageService: UsageService,
   ) {
     this.executorMap = new Map<string, ToolExecutor>([
       [createTask.name, createTask],
@@ -138,9 +140,22 @@ export class AgentLoopService {
       let text: string;
       let toolCalls: Array<{ name: string; arguments: unknown }>;
       try {
-        ({ text, toolCalls } = await this.executeStep(
+        const stepResult = await this.executeStep(
           model, messages, activeTools, signal, providerConfig, res, sessionId, providerType,
-        ));
+        );
+        text = stepResult.text;
+        toolCalls = stepResult.toolCalls;
+
+        if (stepResult.usage && sessionId) {
+          this.usageService.record({
+            sessionId,
+            modelName: model,
+            providerType,
+            promptTokens: stepResult.usage.promptTokens,
+            completionTokens: stepResult.usage.completionTokens,
+            totalTokens: stepResult.usage.totalTokens,
+          }).catch(() => {});
+        }
       } catch {
         break;
       }
@@ -447,10 +462,11 @@ export class AgentLoopService {
     res: WriteStream,
     sessionId?: number,
     providerType: string = 'ollama',
-  ): Promise<{ text: string; toolCalls: Array<{ name: string; arguments: unknown }>; reasoningContent?: string }> {
+  ): Promise<{ text: string; toolCalls: Array<{ name: string; arguments: unknown }>; reasoningContent?: string; usage?: { promptTokens: number; completionTokens: number; totalTokens: number } }> {
     let text = '';
     const toolCalls: Array<{ name: string; arguments: unknown }> = [];
     let reasoningContent = '';
+    let usage: { promptTokens: number; completionTokens: number; totalTokens: number } | undefined;
 
     const stream = this.llmController.stream(
       providerType, model, messages, tools, signal,
@@ -477,11 +493,14 @@ export class AgentLoopService {
           res.write(`data: ${JSON.stringify({ error: chunk.error })}\n\n`);
           throw new Error(chunk.error);
         case 'done':
+          if (chunk.usage) {
+            usage = chunk.usage;
+          }
           break;
       }
     }
 
-    return { text, toolCalls, reasoningContent: reasoningContent || undefined };
+    return { text, toolCalls, reasoningContent: reasoningContent || undefined, usage };
   }
 
   private normalizeArgs(args: unknown): Record<string, unknown> {
