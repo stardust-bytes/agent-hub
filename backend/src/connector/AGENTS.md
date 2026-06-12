@@ -4,7 +4,7 @@ External service connector management. Handles OAuth-based account connections f
 
 ## Responsibility
 
-- `ConnectorService` — CRUD for connector accounts (type, services, config/tokens, enabled state)
+- `ConnectorService` — CRUD for connector accounts (type, config/tokens, enabled state)
 - `GoogleOAuthService` — Google OAuth2 flow: auth URL generation, token exchange, token refresh with auto-persistence
 - `GmailService` — Gmail API wrapper: search, read, send, draft, labels
 - `GoogleCalendarService` — Calendar API wrapper: list, create, update, availability
@@ -38,8 +38,8 @@ Base path: `/api/connectors`
 | `POST` | `/api/connectors` | Upsert connector by type |
 | `PATCH` | `/api/connectors/:id` | Update connector |
 | `DELETE` | `/api/connectors/:id` | Delete connector |
-| `GET` | `/api/connectors/google/auth-url` | Get Google OAuth URL (query: clientId, clientSecret, redirectUri) |
-| `GET` | `/api/connectors/google/callback` | Handle Google OAuth callback (query: code, clientId, clientSecret, redirectUri) |
+| `GET` | `/api/connectors/oauth/auth-url` | Get OAuth URL (query: type, clientId, clientSecret, redirectUri) |
+| `GET` | `/api/connectors/oauth/callback` | Handle OAuth callback (query: type, code, clientId, clientSecret, redirectUri) |
 
 ## Tools Registered
 
@@ -61,9 +61,9 @@ Base path: `/api/connectors`
 
 ## OAuth Scopes
 
-- `https://www.googleapis.com/auth/gmail.modify`
-- `https://www.googleapis.com/auth/calendar.events`
-- `https://www.googleapis.com/auth/drive.readonly`
+- Mail: `https://mail.google.com/`
+- Calendar: `https://www.googleapis.com/auth/calendar`
+- Drive: `https://www.googleapis.com/auth/drive`
 
 ## Data Model
 
@@ -71,7 +71,6 @@ Base path: `/api/connectors`
 model Connector {
   id        String   @id @default(cuid())
   type      String                    // "google", "notion", "slack", "github"
-  services  String   @default("[]")   // JSON: ["google_gmail", "google_calendar", "google_drive"]
   account   String?                   // JSON: { name, email, avatar }
   config    String   @default("{}")   // JSON: { clientId, clientSecret, redirectUri, tokens: {...} }
   enabled   Boolean  @default(false)

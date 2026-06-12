@@ -197,8 +197,8 @@ All routes are prefixed with `/api`.
 | `POST` | `/api/connectors` | Upsert connector |
 | `PATCH` | `/api/connectors/:id` | Update connector |
 | `DELETE` | `/api/connectors/:id` | Delete connector |
-| `GET` | `/api/connectors/google/auth-url` | Get Google OAuth URL |
-| `GET` | `/api/connectors/google/callback` | Handle Google OAuth callback |
+| `GET` | `/api/connectors/oauth/auth-url` | Get OAuth URL (query: type) |
+| `GET` | `/api/connectors/oauth/callback` | Handle OAuth callback (query: type, code) |
 | `GET` | `/api/usage` | Get total token usage |
 | `GET` | `/api/usage/sessions` | Get per-session token usage breakdown |
 | `GET` | `/api/agent-output` | List agent-generated files |
