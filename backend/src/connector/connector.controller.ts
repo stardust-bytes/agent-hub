@@ -1,5 +1,7 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param } from '@nestjs/common';
 import { ConnectorService } from './connector.service';
+import { UpsertConnectorDto } from './dto/upsert-connector.dto';
+import { UpdateConnectorDto } from './dto/update-connector.dto';
 
 @Controller('connectors')
 export class ConnectorController {
@@ -11,12 +13,12 @@ export class ConnectorController {
   }
 
   @Post()
-  async upsert(@Body() body: { type: string; services?: string[]; account?: { email?: string; name?: string }; config: Record<string, unknown>; enabled?: boolean }) {
+  async upsert(@Body() body: UpsertConnectorDto) {
     return this.connector.upsert(body.type, body);
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: { services?: string[]; account?: { email?: string; name?: string }; config?: Record<string, unknown>; enabled?: boolean }) {
+  async update(@Param('id') id: string, @Body() body: UpdateConnectorDto) {
     return this.connector.update(id, body);
   }
 

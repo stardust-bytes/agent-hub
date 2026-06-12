@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { UpsertConnectorDto } from './dto/upsert-connector.dto';
+import { UpdateConnectorDto } from './dto/update-connector.dto';
 
 @Injectable()
 export class ConnectorService {
@@ -17,37 +19,30 @@ export class ConnectorService {
     return this.prisma.connector.findFirst({ where: { type } });
   }
 
-  async upsert(type: string, data: { services?: string[]; account?: { email?: string; name?: string }; config: Record<string, unknown>; enabled?: boolean }) {
+  async upsert(type: string, dto: UpsertConnectorDto) {
     const existing = await this.prisma.connector.findFirst({ where: { type } });
+    const data: Record<string, unknown> = {
+      services: JSON.stringify(dto.services ?? []),
+    };
+    if (dto.config !== undefined) data.config = JSON.stringify(dto.config);
+    if (dto.enabled !== undefined) data.enabled = dto.enabled;
+    if (dto.name) data.account = JSON.stringify({ name: dto.name });
+
     if (existing) {
-      return this.prisma.connector.update({
-        where: { id: existing.id },
-        data: {
-          services: data.services ? JSON.stringify(data.services) : undefined,
-          account: data.account ? JSON.stringify(data.account) : undefined,
-          config: JSON.stringify(data.config),
-          enabled: data.enabled ?? existing.enabled,
-        },
-      });
+      return this.prisma.connector.update({ where: { id: existing.id }, data });
     }
     return this.prisma.connector.create({
-      data: {
-        type,
-        services: data.services ? JSON.stringify(data.services) : '[]',
-        account: data.account ? JSON.stringify(data.account) : null,
-        config: JSON.stringify(data.config),
-        enabled: data.enabled ?? false,
-      },
+      data: { ...data, type } as any,
     });
   }
 
-  async update(id: string, data: { services?: string[]; account?: { email?: string; name?: string }; config?: Record<string, unknown>; enabled?: boolean }) {
-    const updateData: Record<string, unknown> = {};
-    if (data.services !== undefined) updateData.services = JSON.stringify(data.services);
-    if (data.account !== undefined) updateData.account = JSON.stringify(data.account);
-    if (data.config !== undefined) updateData.config = JSON.stringify(data.config);
-    if (data.enabled !== undefined) updateData.enabled = data.enabled;
-    return this.prisma.connector.update({ where: { id }, data: updateData });
+  async update(id: string, dto: UpdateConnectorDto) {
+    const data: Record<string, unknown> = {};
+    if (dto.services !== undefined) data.services = JSON.stringify(dto.services);
+    if (dto.config !== undefined) data.config = JSON.stringify(dto.config);
+    if (dto.enabled !== undefined) data.enabled = dto.enabled;
+    if (dto.name !== undefined) data.account = JSON.stringify({ name: dto.name });
+    return this.prisma.connector.update({ where: { id }, data });
   }
 
   async remove(id: string) {
