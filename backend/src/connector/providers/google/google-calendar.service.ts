@@ -17,7 +17,7 @@ export class GoogleCalendarService {
   constructor(private readonly googleOAuth: GoogleOAuthService) {}
 
   private async getCalendar() {
-    const auth = await this.googleOAuth.getAuthenticatedClient({ clientId: '', clientSecret: '', redirectUri: '' });
+    const auth = await this.googleOAuth.getAuthenticatedClient('google_calendar', { clientId: '', clientSecret: '', redirectUri: '' });
     if (!auth) throw new Error('Google not connected');
     return google.calendar({ version: 'v3', auth: auth as any });
   }

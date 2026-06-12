@@ -34,11 +34,12 @@ export class ConnectorController {
 
   @Get('google/auth-url')
   async googleAuthUrl(
+    @Query('type') type: string,
     @Query('clientId') clientId: string,
     @Query('clientSecret') clientSecret: string,
     @Query('redirectUri') redirectUri: string,
   ) {
-    return { url: this.googleOAuth.getAuthUrl({ clientId, clientSecret, redirectUri }) };
+    return { url: this.googleOAuth.getAuthUrl(type, { clientId, clientSecret, redirectUri }) };
   }
 
   @Get('google/callback')

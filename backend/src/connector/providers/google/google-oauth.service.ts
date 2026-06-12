@@ -8,11 +8,11 @@ export interface GoogleTokens {
   expiry_date?: number;
 }
 
-const SCOPES = [
-  'https://www.googleapis.com/auth/gmail.modify',
-  'https://www.googleapis.com/auth/calendar.events',
-  'https://www.googleapis.com/auth/drive.readonly',
-];
+const SCOPE_MAP: Record<string, string[]> = {
+  google_gmail: ['https://mail.google.com/'],
+  google_calendar: ['https://www.googleapis.com/auth/calendar'],
+  google_drive: ['https://www.googleapis.com/auth/drive'],
+};
 
 @Injectable()
 export class GoogleOAuthService {
@@ -22,11 +22,15 @@ export class GoogleOAuthService {
     return new google.auth.OAuth2(config.clientId, config.clientSecret, config.redirectUri);
   }
 
-  getAuthUrl(config: { clientId: string; clientSecret: string; redirectUri: string }): string {
+  getScopes(type: string): string[] {
+    return SCOPE_MAP[type] ?? [];
+  }
+
+  getAuthUrl(type: string, config: { clientId: string; clientSecret: string; redirectUri: string }): string {
     const client = this.getClient(config);
     return client.generateAuthUrl({
       access_type: 'offline',
-      scope: SCOPES,
+      scope: this.getScopes(type),
       prompt: 'consent',
     });
   }
@@ -37,8 +41,8 @@ export class GoogleOAuthService {
     return tokens as GoogleTokens;
   }
 
-  async getAuthenticatedClient(config: { clientId: string; clientSecret: string; redirectUri: string }) {
-    const connector = await this.connector.findByType('google');
+  async getAuthenticatedClient(type: string, config: { clientId: string; clientSecret: string; redirectUri: string }) {
+    const connector = await this.connector.findByType(type);
     if (!connector) return null;
     const parsed = JSON.parse(connector.config);
     const tokens: GoogleTokens = parsed.tokens;

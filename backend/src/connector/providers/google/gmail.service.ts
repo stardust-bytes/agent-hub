@@ -19,7 +19,7 @@ export class GmailService {
   constructor(private readonly googleOAuth: GoogleOAuthService) {}
 
   private async getGmail() {
-    const auth = await this.googleOAuth.getAuthenticatedClient({
+    const auth = await this.googleOAuth.getAuthenticatedClient('google_gmail', {
       clientId: '',
       clientSecret: '',
       redirectUri: '',
