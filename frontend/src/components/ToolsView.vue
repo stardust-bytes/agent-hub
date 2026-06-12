@@ -1,6 +1,6 @@
 <template>
   <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
-    <div class="px-3 h-[3rem] bg-cyber-dark flex items-center shrink-0">
+    <div class="xl:pl-3 px-3 h-[3rem] bg-cyber-dark flex items-center shrink-0">
       <span class="text-cyber-accent text-sm tracking-widest font-mono">
         ⚡ {{ t('tools.header') }}
       </span>
@@ -95,4 +95,5 @@ async function toggle(name: string) {
 
 onMounted(fetchTools)
 </script>
+
 

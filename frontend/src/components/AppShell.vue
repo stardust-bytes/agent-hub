@@ -14,7 +14,7 @@
         {{ sidebarOpen ? '✕' : '☰' }}
       </button>
 
-      <div class="flex-1 flex overflow-hidden xl:pl-0 pl-8">
+      <div class="flex-1 flex overflow-hidden">
         <CoworkView    v-if="activeView === 'cowork'"   class="flex-1 overflow-hidden" @active-subagents-change="activeSubagents = $event" />
         <ToolsView     v-else-if="activeView === 'tools'"    class="flex-1 overflow-hidden" />
         <SettingsView   v-else-if="activeView === 'settings'"  class="flex-1 overflow-hidden" />
