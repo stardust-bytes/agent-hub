@@ -1,5 +1,5 @@
 <template>
-  <nav class="w-60 bg-cyber-dark hidden md:flex flex-col items-stretch py-3 gap-1 shrink-0">
+  <nav class="w-60 bg-cyber-dark flex flex-col items-stretch py-3 gap-1 shrink-0">
     <div class="flex items-center justify-center gap-2 px-3 py-1 mb-1">
       <img src="/logo.png" class="w-6 h-6 shrink-0" alt="171305" />
       <span class="font-['Press_Start_2P'] text-xl text-cyber-accent">171305</span>
@@ -55,7 +55,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { view: 'chat',        labelKey: 'nav.chat',        icon: HiChatAlt2 },
+  // { view: 'chat',        labelKey: 'nav.chat',        icon: HiChatAlt2 },
   { view: 'cowork',      labelKey: 'nav.cowork',      icon: HiCode },
   { view: 'tasks',       labelKey: 'nav.tasks',       icon: HiClipboardList },
   { view: 'notes',       labelKey: 'nav.notes',       icon: HiDocumentText },
