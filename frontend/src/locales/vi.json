@@ -76,6 +76,7 @@
   "settings.noMcpServers": "Chưa có MCP server nào",
   "settings.mcpOn": "BẬT",
   "settings.mcpOff": "TẮT",
+  "settings.connectors": "Kết nối",
   "settings.oauth": "Google OAuth",
   "settings.oauthClientId": "Client ID",
   "settings.oauthClientSecret": "Client Secret",

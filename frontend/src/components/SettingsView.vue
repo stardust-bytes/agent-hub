@@ -20,6 +20,7 @@
       >{{ t(tab.labelKey) }}</button>
     </div>
 
+    <ConnectorsView v-else-if="activeSettingsTab === 'connectors'" />
     <MemoryView v-if="activeSettingsTab === 'memories'" />
     <UsageView v-else-if="activeSettingsTab === 'usage'" />
     <ProvidersView v-else-if="activeSettingsTab === 'providers'" />
@@ -117,11 +118,13 @@ import PermissionView from './PermissionView.vue'
 import UsageView from './UsageView.vue'
 import ProvidersView from './ProvidersView.vue'
 import ToolsView from './ToolsView.vue'
+import ConnectorsView from './ConnectorsView.vue'
 
 const { t } = useI18n()
 const activeSettingsTab = ref('general')
 const TABS = [
   { key: 'general', labelKey: 'settings.header' },
+  { key: 'connectors', labelKey: 'settings.connectors' },
   { key: 'providers', labelKey: 'providers.header' },
   { key: 'tools', labelKey: 'tools.header' },
   { key: 'memories', labelKey: 'memory.title' },
