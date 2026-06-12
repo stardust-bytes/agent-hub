@@ -10,18 +10,20 @@
         </div>
       </div>
 
-      <button @click="sidebarOpen = !sidebarOpen" class="xl:hidden w-8 h-[3rem] shrink-0 self-stretch flex items-center justify-center bg-cyber-dark border-r border-cyber-code-border text-cyber-muted hover:text-cyber-accent transition-colors duration-150 text-sm font-mono">
+      <button @click="sidebarOpen = !sidebarOpen" class="fixed top-0 left-0 z-50 xl:hidden w-8 h-[3rem] flex items-center justify-center bg-cyber-dark border-r border-b border-cyber-code-border text-cyber-muted hover:text-cyber-accent transition-colors duration-150 text-sm font-mono">
         {{ sidebarOpen ? '✕' : '☰' }}
       </button>
 
-      <CoworkView    v-if="activeView === 'cowork'"   class="flex-1 overflow-hidden" @active-subagents-change="activeSubagents = $event" />
-      <ToolsView     v-else-if="activeView === 'tools'"    class="flex-1 overflow-hidden" />
-      <SettingsView   v-else-if="activeView === 'settings'"  class="flex-1 overflow-hidden" />
-      <TasksView      v-else-if="activeView === 'tasks'"     class="flex-1 overflow-hidden" @ws-status="wsConnected = $event" />
-      <ProvidersView  v-else-if="activeView === 'providers'"    class="flex-1 overflow-hidden" />
-      <NotesView      v-else-if="activeView === 'notes'"        class="flex-1 overflow-hidden" />
-      <AgentOutputView v-else-if="activeView === 'agent-output'" class="flex-1 overflow-hidden" />
-      <ChatPanel      v-else                                  class="flex-1 overflow-hidden" @active-subagents-change="activeSubagents = $event" />
+      <div class="flex-1 flex overflow-hidden xl:ml-0 ml-8">
+        <CoworkView    v-if="activeView === 'cowork'"   class="flex-1 overflow-hidden" @active-subagents-change="activeSubagents = $event" />
+        <ToolsView     v-else-if="activeView === 'tools'"    class="flex-1 overflow-hidden" />
+        <SettingsView   v-else-if="activeView === 'settings'"  class="flex-1 overflow-hidden" />
+        <TasksView      v-else-if="activeView === 'tasks'"     class="flex-1 overflow-hidden" @ws-status="wsConnected = $event" />
+        <ProvidersView  v-else-if="activeView === 'providers'"    class="flex-1 overflow-hidden" />
+        <NotesView      v-else-if="activeView === 'notes'"        class="flex-1 overflow-hidden" />
+        <AgentOutputView v-else-if="activeView === 'agent-output'" class="flex-1 overflow-hidden" />
+        <ChatPanel      v-else                                  class="flex-1 overflow-hidden" @active-subagents-change="activeSubagents = $event" />
+      </div>
     </div>
     <StatusBar
       :db-connected="dbConnected"
