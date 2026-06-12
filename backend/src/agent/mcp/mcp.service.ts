@@ -22,7 +22,7 @@ export class McpService implements OnModuleInit {
   private async startPlaywrightServer(): Promise<void> {
     try {
       const workspaceRoot = path.resolve(this.config.get<string>('WORKSPACE_ROOT', './workspace_data'));
-      const profileDir = path.join(workspaceRoot, 'playwright-profile');
+      const profileDir = path.join(workspaceRoot, 'playwright-profile'); // %LOCALAPPDATA%\Google\Chrome\User Data
       fs.mkdirSync(profileDir, { recursive: true });
 
       const snapshotDir = path.join(workspaceRoot, 'mcp_snapshot');
