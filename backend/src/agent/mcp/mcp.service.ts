@@ -25,10 +25,14 @@ export class McpService implements OnModuleInit {
       const profileDir = path.join(workspaceRoot, 'playwright-profile');
       fs.mkdirSync(profileDir, { recursive: true });
 
+      const snapshotDir = path.join(workspaceRoot, 'mcp_snapshot');
+      fs.mkdirSync(snapshotDir, { recursive: true });
+
       const client = new McpClientService();
       await client.connectStdio('npx', [
         '@playwright/mcp',
         `--user-data-dir=${profileDir}`,
+        `--output-dir=${snapshotDir}`,
       ]);
       this.servers.set('playwright', { id: 'playwright', client });
     } catch (e) {
