@@ -62,6 +62,7 @@ export class OpenAIProvider implements LLMProvider {
     let buf = '';
     const pendingToolCalls: Map<number, { name: string; arguments: string }> = new Map();
     let reasoningContent = '';
+    let lastUsage: { promptTokens: number; completionTokens: number; totalTokens: number } | undefined;
 
     signal.addEventListener('abort', () => reader.cancel(), { once: true });
 
@@ -83,7 +84,7 @@ export class OpenAIProvider implements LLMProvider {
             yield { type: 'tool_call', toolCall: { name: tc.name, arguments: parsedArgs }, reasoningContent };
           }
           pendingToolCalls.clear();
-          yield { type: 'done' };
+          yield { type: 'done', usage: lastUsage };
           return;
         }
 
@@ -132,6 +133,14 @@ export class OpenAIProvider implements LLMProvider {
             }
             pendingToolCalls.clear();
           }
+
+          if (parsed.usage) {
+            lastUsage = {
+              promptTokens: parsed.usage.prompt_tokens,
+              completionTokens: parsed.usage.completion_tokens,
+              totalTokens: parsed.usage.total_tokens,
+            };
+          }
         } catch { /* skip unparseable */ }
       }
     }
@@ -144,6 +153,6 @@ export class OpenAIProvider implements LLMProvider {
       }
       pendingToolCalls.clear();
     }
-    yield { type: 'done' };
+    yield { type: 'done', usage: lastUsage };
   }
 }
