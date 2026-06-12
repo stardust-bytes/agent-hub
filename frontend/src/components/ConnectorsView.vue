@@ -8,7 +8,7 @@
 
         <div v-for="connector in connectors" :key="connector.id" class="flex items-center justify-between px-3 h-[3rem] border border-cyber-code-border mb-2 bg-cyber-dark">
           <div class="flex items-center gap-3 min-w-0">
-            <span class="text-lg shrink-0">{{ connector.icon }}</span>
+            <img :src="connector.icon" :alt="connector.name" class="w-5 h-5 shrink-0" />
             <span class="text-sm text-cyber-text font-mono truncate">{{ connector.name }}</span>
           </div>
           <div class="flex items-center gap-2 shrink-0">
@@ -60,12 +60,12 @@ interface Connector {
 }
 
 const connectors = ref<Connector[]>([
-  { id: 'google', name: 'Google (Gmail, Calendar, Drive)', icon: '🔴', connected: false },
-  { id: 'slack', name: 'Slack', icon: '💬', connected: false },
-  { id: 'jira', name: 'Jira / Linear', icon: '🎯', connected: false },
-  { id: 'github', name: 'GitHub / GitLab', icon: '🐙', connected: false },
-  { id: 'notion', name: 'Notion', icon: '📝', connected: false },
-  { id: 'confluence', name: 'Confluence', icon: '📄', connected: false },
+  { id: 'google', name: 'Google (Gmail, Calendar, Drive)', icon: 'https://cdn.simpleicons.org/google', connected: false },
+  { id: 'slack', name: 'Slack', icon: 'https://cdn.simpleicons.org/slack', connected: false },
+  { id: 'jira', name: 'Jira / Linear', icon: 'https://cdn.simpleicons.org/jira', connected: false },
+  { id: 'github', name: 'GitHub / GitLab', icon: 'https://cdn.simpleicons.org/github', connected: false },
+  { id: 'notion', name: 'Notion', icon: 'https://cdn.simpleicons.org/notion', connected: false },
+  { id: 'confluence', name: 'Confluence', icon: 'https://cdn.simpleicons.org/confluence', connected: false },
 ])
 
 const editingConnectorId = ref('')
