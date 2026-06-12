@@ -22,7 +22,6 @@ export class ConnectorService {
   async upsert(type: string, dto: UpsertConnectorDto) {
     const existing = await this.prisma.connector.findFirst({ where: { type } });
     const data: Record<string, unknown> = {
-      services: JSON.stringify(dto.services ?? []),
     };
     if (dto.config !== undefined) data.config = JSON.stringify(dto.config);
     if (dto.enabled !== undefined) data.enabled = dto.enabled;
@@ -38,7 +37,6 @@ export class ConnectorService {
 
   async update(id: string, dto: UpdateConnectorDto) {
     const data: Record<string, unknown> = {};
-    if (dto.services !== undefined) data.services = JSON.stringify(dto.services);
     if (dto.config !== undefined) data.config = JSON.stringify(dto.config);
     if (dto.enabled !== undefined) data.enabled = dto.enabled;
     if (dto.name !== undefined) data.account = JSON.stringify({ name: dto.name });

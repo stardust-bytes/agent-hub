@@ -52,7 +52,6 @@ export class ConnectorController {
     await this.connector.upsert('google', {
       type: 'google',
       name: 'Google (Gmail, Calendar, Drive)',
-      services: ['google_gmail', 'google_calendar', 'google_drive'],
       config: { clientId, clientSecret, redirectUri, tokens },
       enabled: true,
     });

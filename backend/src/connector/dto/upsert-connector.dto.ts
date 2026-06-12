@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsArray, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsObject } from 'class-validator';
 
 export class UpsertConnectorDto {
   @IsString()
@@ -6,11 +6,6 @@ export class UpsertConnectorDto {
 
   @IsString()
   name: string;
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  services?: string[];
 
   @IsOptional()
   @IsObject()
