@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col h-full bg-cyber-bg font-mono overflow-hidden">
-    <div class="flex items-center justify-between px-4 py-2 border-b border-cyber-code-border bg-cyber-dark shrink-0">
+    <div class="flex items-center justify-between px-4 h-[3rem] border-b border-cyber-code-border bg-cyber-dark shrink-0">
       <h1 class="text-xs text-cyber-accent font-mono tracking-wider">{{ t('agentOutput.header') }}</h1>
       <button
         @click="fetchFiles"

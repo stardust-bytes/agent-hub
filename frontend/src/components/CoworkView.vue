@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col h-full bg-cyber-bg font-mono">
-    <div class="flex items-center gap-2 px-3 py-2 border-b border-cyber-code-border shrink-0 bg-cyber-dark">
+    <div class="flex items-center gap-2 px-3 h-[3rem] border-b border-cyber-code-border shrink-0 bg-cyber-dark">
       <span class="w-2 h-2 rounded-full shrink-0" :class="projectPath ? 'bg-cyber-green' : 'bg-cyber-muted'"></span>
       <div class="relative">
         <button @click="showProjectMenu = !showProjectMenu" class="flex items-center gap-1 text-sm text-cyber-text font-mono truncate max-w-60 hover:text-cyber-accent transition-colors duration-150 border border-cyber-code-border rounded px-2 py-0.5">
