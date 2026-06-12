@@ -18,6 +18,7 @@ import { FilesModule } from './files/files.module';
 import { ModePolicyModule } from './mode-policy/mode-policy.module';
 import { MemoryModule } from './memory/memory.module';
 import { ExcelModule } from './excel/excel.module';
+import { UsageModule } from './usage/usage.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ExcelModule } from './excel/excel.module';
     ModePolicyModule,
     MemoryModule,
     ExcelModule,
+    UsageModule,
   ],
   controllers: [AppController],
 })
