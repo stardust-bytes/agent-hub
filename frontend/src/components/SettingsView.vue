@@ -20,8 +20,8 @@
       >{{ t(tab.labelKey) }}</button>
     </div>
 
-    <ConnectorsView v-else-if="activeSettingsTab === 'connectors'" />
-    <MemoryView v-if="activeSettingsTab === 'memories'" />
+    <ConnectorsView v-if="activeSettingsTab === 'connectors'" />
+    <MemoryView v-else-if="activeSettingsTab === 'memories'" />
     <UsageView v-else-if="activeSettingsTab === 'usage'" />
     <ProvidersView v-else-if="activeSettingsTab === 'providers'" />
     <ToolsView v-else-if="activeSettingsTab === 'tools'" />
