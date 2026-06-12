@@ -39,6 +39,9 @@ import { WriteExcelExecutor } from '../../excel/executors/write-excel.executor';
 import { ExcelAddSheetExecutor } from '../../excel/executors/excel-add-sheet.executor';
 import { ListExcelSheetsExecutor } from '../../excel/executors/list-excel-sheets.executor';
 import { ExcelChartExecutor } from '../../excel/executors/excel-chart.executor';
+import { ReadWordExecutor } from '../../word/executors/read-word.executor';
+import { WriteWordExecutor } from '../../word/executors/write-word.executor';
+import { EditWordExecutor } from '../../word/executors/edit-word.executor';
 
 const MAX_ITERATIONS = 100;
 const KB_NO_RESULTS = 'No relevant information found in knowledge base.';
@@ -83,6 +86,9 @@ export class AgentLoopService {
     excelAddSheet: ExcelAddSheetExecutor,
     listExcelSheets: ListExcelSheetsExecutor,
     excelChart: ExcelChartExecutor,
+    private readonly readWord: ReadWordExecutor,
+    private readonly writeWord: WriteWordExecutor,
+    private readonly editWord: EditWordExecutor,
     private readonly usageService: UsageService,
   ) {
     this.executorMap = new Map<string, ToolExecutor>([
@@ -112,6 +118,9 @@ export class AgentLoopService {
       [excelAddSheet.name, excelAddSheet],
       [listExcelSheets.name, listExcelSheets],
       [excelChart.name, excelChart],
+      [readWord.name, readWord],
+      [writeWord.name, writeWord],
+      [editWord.name, editWord],
     ]);
   }
 
