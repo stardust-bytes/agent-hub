@@ -17,6 +17,7 @@ AppShell.vue              — layout coordinator, owns activeView state
 │   ├── SettingsView.vue      — health check + version info + memories tab (MemoryView)
 │   │   └── MemoryView.vue   — memory CRUD with type filter, search, auto-extracted badge, create/edit modals
 │   └── ProvidersView.vue     — LLM provider CRUD + model management
+├── AgentOutputView.vue  — list + download agent-generated files
 ├── BottomTabBar.vue     — mobile navigation (visible < sm)
 ├── StatusBar.vue         — bottom bar: model name, DB status, WS status, live clock
 
@@ -33,7 +34,7 @@ ProviderFormModal.vue        — create/edit provider form
 
 ## AppShell.vue
 
-**Owns:** `activeView` (`'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans'`), `dbConnected`, `wsConnected`.
+**Owns:** `activeView` (`'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' | 'agent-output'`), `dbConnected`, `wsConnected`.
 
 **Layout:** flex-col h-screen → flex flex-1 (SidebarNav + content) + BottomTabBar + StatusBar.
 
@@ -46,16 +47,17 @@ ProviderFormModal.vue        — create/edit provider form
 - `activeView === 'providers'` → ProvidersView
 - `activeView === 'notes'` → NotesView
 - `activeView === 'plans'` → PlansView
+- `activeView === 'agent-output'` → AgentOutputView
 
 ---
 
 ## SidebarNav.vue
 
-**Props:** `activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans'`
+**Props:** `activeView: 'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' | 'agent-output'`
 
-**Emits:** `navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans']`
+**Emits:** `navigate: [view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' | 'agent-output']`
 
-**Navigation:** Chat (HiChatAlt2), Tasks (HiClipboardList), Notes (HiDocumentText), Plans (📋), Files (HiFolder), Tools (HiLightningBolt), Providers (HiCog), Settings (HiCog — separate button below spacer).
+**Navigation:** Chat (HiChatAlt2), Tasks (HiClipboardList), Notes (HiDocumentText), Plans (📋), AgentOutput (HiDownload), Tools (HiLightningBolt), Providers (HiCog), Settings (HiCog — separate button below spacer).
 
 **Language toggle:** VI/EN (via `useI18n` locale), persists to `localStorage('workspace.lang')`.
 
@@ -65,9 +67,9 @@ Visible on desktop only (`hidden sm:flex`, `w-32`).
 
 ## BottomTabBar.vue
 
-**Props:** `activeView: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans'`
+**Props:** `activeView: 'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' | 'agent-output'`
 
-**Emits:** `navigate: [view: 'chat' | 'tasks' | 'files' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans']`
+**Emits:** `navigate: [view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' | 'agent-output']`
 
 Visible on mobile only (`flex sm:hidden`, `h-[3rem]`). Same navigation items as SidebarNav.
 

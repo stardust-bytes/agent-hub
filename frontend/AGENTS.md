@@ -69,6 +69,7 @@ App.vue
     │   ├── ToolsView.vue        — tool registry
     │   ├── SettingsView.vue     — health check + version info + Memories tab (MemoryView)
 │   │   └── MemoryView.vue   — memory CRUD with type filter, search, auto-extracted badge
+    │   ├── AgentOutputView.vue   — list + download agent-generated files
     │   └── ProvidersView.vue    — LLM provider CRUD + model management
     ├── BottomTabBar.vue     — mobile navigation (visible < sm)
     └── StatusBar.vue        — bottom bar: model, DB, WS status, clock
@@ -113,6 +114,7 @@ src/
     ├── PlansView.vue
     ├── ProvidersView.vue
     ├── ProviderFormModal.vue
+    ├── AgentOutputView.vue
     ├── SessionModal.vue
     ├── ModelSelector.vue
     ├── BaseSelect.vue

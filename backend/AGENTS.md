@@ -32,8 +32,10 @@ REST API server for the AI Workspace. Handles task CRUD, agent chat (Ollama ReAc
 src/
 ├── main.ts                  — bootstrap, global prefix /api, CORS, ValidationPipe, HttpExceptionFilter
 ├── app.module.ts            — root module (ConfigModule, PrismaModule, TasksModule, NotesModule,
-│                              AgentModule, SettingsModule, KnowledgeModule, SessionsModule,
-│                              ProvidersModule, ToolsModule, PlansModule, UsageModule)
+│                              AgentModule, AgentOutputModule, SettingsModule, KnowledgeModule,
+│                              SessionsModule, ProvidersModule, ToolsModule, PlansModule,
+│                              WorkspaceModule, CoworkModule, FilesModule, MemoryModule,
+│                              ExcelModule, WordModule, UsageModule)
 ├── app.controller.ts        — GET /api/health → { status, db, timestamp }
 ├── http-exception.filter.ts — global filter: returns { statusCode, message, timestamp }
 │
@@ -107,6 +109,29 @@ src/
 │   ├── dto/ (create-usage.dto.ts)
 │   └── *.spec.ts
 │
+├── word/
+│   ├── word.module.ts
+│   ├── word.service.ts        — .docx read (mammoth) / write (docx lib) / edit
+│   ├── word.service.spec.ts
+│   └── executors/
+│       ├── read-word.executor.ts   — Agent tool: read .docx → markdown
+│       ├── write-word.executor.ts  — Agent tool: create .docx from markdown
+│       └── edit-word.executor.ts   — Agent tool: modify existing .docx
+│
+├── agent-output/
+│   ├── agent-output.module.ts
+│   ├── agent-output.controller.ts — GET /api/agent-output, GET /api/agent-output/:filename/download
+│   └── agent-output.controller.spec.ts
+│
+├── excel/
+│   ├── excel.module.ts
+│   ├── excel.service.ts        — read/write .xlsx via exceljs
+│   ├── excel.service.spec.ts
+│   └── executors/
+│       ├── read-excel.executor.ts, write-excel.executor.ts
+│       ├── list-excel-sheets.executor.ts, excel-add-sheet.executor.ts
+│       └── excel-chart.executor.ts
+│
 └── knowledge/
     ├── knowledge.module.ts
     ├── knowledge.controller.ts — file upload + search + delete under /api/knowledge
@@ -157,6 +182,8 @@ All routes are prefixed with `/api`.
 | `DELETE` | `/api/knowledge/:id` | Delete file |
 | `GET` | `/api/usage` | Get total token usage |
 | `GET` | `/api/usage/sessions` | Get per-session token usage breakdown |
+| `GET` | `/api/agent-output` | List agent-generated files |
+| `GET` | `/api/agent-output/:filename/download` | Download agent-generated file |
 
 **Agent chat response:** SSE stream (`text/event-stream`)
 ```
