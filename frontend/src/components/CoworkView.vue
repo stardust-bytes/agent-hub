@@ -23,7 +23,6 @@
       </div>
       <div v-if="projectPath" class="flex items-center gap-2 ml-auto">
         <button @click="artifactsVisible = !artifactsVisible" class="text-xs text-cyber-muted font-mono px-2 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-accent hover:border-cyber-accent/40">{{ t('cowork.artifacts') }}</button>
-        <button @click="disconnect" class="text-xs text-cyber-muted font-mono px-2 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-red-400 hover:border-red-400/40">{{ t('cowork.disconnect') }}</button>
       </div>
     </div>
 
