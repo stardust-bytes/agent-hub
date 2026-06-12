@@ -41,20 +41,24 @@ import { WriteExcelExecutor } from '../excel/executors/write-excel.executor';
 import { ExcelAddSheetExecutor } from '../excel/executors/excel-add-sheet.executor';
 import { ListExcelSheetsExecutor } from '../excel/executors/list-excel-sheets.executor';
 import { ExcelChartExecutor } from '../excel/executors/excel-chart.executor';
-import { EmailModule } from '../email/email.module';
-import { EmailListExecutor } from '../email/executors/email-list.executor';
-import { EmailReadExecutor } from '../email/executors/email-read.executor';
-import { EmailSendExecutor } from '../email/executors/email-send.executor';
-import { EmailSearchExecutor } from '../email/executors/email-search.executor';
-import { EmailReplyExecutor } from '../email/executors/email-reply.executor';
-import { CalendarModule } from '../calendar/calendar.module';
-import { CalendarListEventsExecutor } from '../calendar/executors/calendar-list-events.executor';
-import { CalendarCreateEventExecutor } from '../calendar/executors/calendar-create-event.executor';
-import { CalendarUpdateEventExecutor } from '../calendar/executors/calendar-update-event.executor';
-import { CalendarCheckAvailabilityExecutor } from '../calendar/executors/calendar-check-availability.executor';
+import { ConnectorModule } from '../connector/connector.module';
+import { GoogleGmailSearchExecutor } from '../tools/executors/google-gmail-search.executor';
+import { GoogleGmailReadExecutor } from '../tools/executors/google-gmail-read.executor';
+import { GoogleGmailSendExecutor } from '../tools/executors/google-gmail-send.executor';
+import { GoogleGmailDraftExecutor } from '../tools/executors/google-gmail-draft.executor';
+import { GoogleGmailLabelsExecutor } from '../tools/executors/google-gmail-labels.executor';
+import { GoogleCalendarListExecutor } from '../tools/executors/google-calendar-list.executor';
+import { GoogleCalendarCreateExecutor } from '../tools/executors/google-calendar-create.executor';
+import { GoogleCalendarUpdateExecutor } from '../tools/executors/google-calendar-update.executor';
+import { GoogleCalendarAvailabilityExecutor } from '../tools/executors/google-calendar-availability.executor';
+import { GoogleDriveSearchExecutor } from '../tools/executors/google-drive-search.executor';
+import { GoogleDriveReadExecutor } from '../tools/executors/google-drive-read.executor';
+import { GoogleDriveListExecutor } from '../tools/executors/google-drive-list.executor';
+import { GoogleDriveUploadExecutor } from '../tools/executors/google-drive-upload.executor';
+
 
 @Module({
-  imports: [MemoryModule, TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule, EmailModule, CalendarModule],
+  imports: [MemoryModule, TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule, ConnectorModule],
   controllers: [AgentController],
   providers: [
     AgentService,
@@ -85,15 +89,19 @@ import { CalendarCheckAvailabilityExecutor } from '../calendar/executors/calenda
     ExcelAddSheetExecutor,
     ListExcelSheetsExecutor,
     ExcelChartExecutor,
-    EmailListExecutor,
-    EmailReadExecutor,
-    EmailSendExecutor,
-    EmailSearchExecutor,
-    EmailReplyExecutor,
-    CalendarListEventsExecutor,
-    CalendarCreateEventExecutor,
-    CalendarUpdateEventExecutor,
-    CalendarCheckAvailabilityExecutor,
+    GoogleGmailSearchExecutor,
+    GoogleGmailReadExecutor,
+    GoogleGmailSendExecutor,
+    GoogleGmailDraftExecutor,
+    GoogleGmailLabelsExecutor,
+    GoogleCalendarListExecutor,
+    GoogleCalendarCreateExecutor,
+    GoogleCalendarUpdateExecutor,
+    GoogleCalendarAvailabilityExecutor,
+    GoogleDriveSearchExecutor,
+    GoogleDriveReadExecutor,
+    GoogleDriveListExecutor,
+    GoogleDriveUploadExecutor,
   ],
 })
 export class AgentModule {}

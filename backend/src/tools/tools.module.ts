@@ -27,13 +27,25 @@ import { ReadWordExecutor } from '../word/executors/read-word.executor';
 import { WriteWordExecutor } from '../word/executors/write-word.executor';
 import { EditWordExecutor } from '../word/executors/edit-word.executor';
 import { WordModule } from '../word/word.module';
-import { EmailModule } from '../email/email.module';
-import { CalendarModule } from '../calendar/calendar.module';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { NotesModule } from '../notes/notes.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
 import { PlansModule } from '../plans/plans.module';
+import { ConnectorModule } from '../connector/connector.module';
+import { GoogleGmailSearchExecutor } from './executors/google-gmail-search.executor';
+import { GoogleGmailReadExecutor } from './executors/google-gmail-read.executor';
+import { GoogleGmailSendExecutor } from './executors/google-gmail-send.executor';
+import { GoogleGmailDraftExecutor } from './executors/google-gmail-draft.executor';
+import { GoogleGmailLabelsExecutor } from './executors/google-gmail-labels.executor';
+import { GoogleCalendarListExecutor } from './executors/google-calendar-list.executor';
+import { GoogleCalendarCreateExecutor } from './executors/google-calendar-create.executor';
+import { GoogleCalendarUpdateExecutor } from './executors/google-calendar-update.executor';
+import { GoogleCalendarAvailabilityExecutor } from './executors/google-calendar-availability.executor';
+import { GoogleDriveSearchExecutor } from './executors/google-drive-search.executor';
+import { GoogleDriveReadExecutor } from './executors/google-drive-read.executor';
+import { GoogleDriveListExecutor } from './executors/google-drive-list.executor';
+import { GoogleDriveUploadExecutor } from './executors/google-drive-upload.executor';
 
 const EXECUTORS = [
   CreateTaskExecutor,
@@ -61,10 +73,23 @@ const EXECUTORS = [
   ReadWordExecutor,
   WriteWordExecutor,
   EditWordExecutor,
+  GoogleGmailSearchExecutor,
+  GoogleGmailReadExecutor,
+  GoogleGmailSendExecutor,
+  GoogleGmailDraftExecutor,
+  GoogleGmailLabelsExecutor,
+  GoogleCalendarListExecutor,
+  GoogleCalendarCreateExecutor,
+  GoogleCalendarUpdateExecutor,
+  GoogleCalendarAvailabilityExecutor,
+  GoogleDriveSearchExecutor,
+  GoogleDriveReadExecutor,
+  GoogleDriveListExecutor,
+  GoogleDriveUploadExecutor,
 ];
 
 @Module({
-  imports: [TasksModule, KnowledgeModule, NotesModule, WorkspaceModule, PlansModule, WordModule, EmailModule, CalendarModule],
+  imports: [TasksModule, KnowledgeModule, NotesModule, WorkspaceModule, PlansModule, WordModule, ConnectorModule],
   controllers: [ToolsController],
   providers: [ToolsService, ...EXECUTORS],
   exports: [ToolsService, ...EXECUTORS],

@@ -42,15 +42,20 @@ import { ExcelChartExecutor } from '../../excel/executors/excel-chart.executor';
 import { ReadWordExecutor } from '../../word/executors/read-word.executor';
 import { WriteWordExecutor } from '../../word/executors/write-word.executor';
 import { EditWordExecutor } from '../../word/executors/edit-word.executor';
-import { EmailListExecutor } from '../../email/executors/email-list.executor';
-import { EmailReadExecutor } from '../../email/executors/email-read.executor';
-import { EmailSendExecutor } from '../../email/executors/email-send.executor';
-import { EmailSearchExecutor } from '../../email/executors/email-search.executor';
-import { EmailReplyExecutor } from '../../email/executors/email-reply.executor';
-import { CalendarListEventsExecutor } from '../../calendar/executors/calendar-list-events.executor';
-import { CalendarCreateEventExecutor } from '../../calendar/executors/calendar-create-event.executor';
-import { CalendarUpdateEventExecutor } from '../../calendar/executors/calendar-update-event.executor';
-import { CalendarCheckAvailabilityExecutor } from '../../calendar/executors/calendar-check-availability.executor';
+import { GoogleGmailSearchExecutor } from '../../tools/executors/google-gmail-search.executor';
+import { GoogleGmailReadExecutor } from '../../tools/executors/google-gmail-read.executor';
+import { GoogleGmailSendExecutor } from '../../tools/executors/google-gmail-send.executor';
+import { GoogleGmailDraftExecutor } from '../../tools/executors/google-gmail-draft.executor';
+import { GoogleGmailLabelsExecutor } from '../../tools/executors/google-gmail-labels.executor';
+import { GoogleCalendarListExecutor } from '../../tools/executors/google-calendar-list.executor';
+import { GoogleCalendarCreateExecutor } from '../../tools/executors/google-calendar-create.executor';
+import { GoogleCalendarUpdateExecutor } from '../../tools/executors/google-calendar-update.executor';
+import { GoogleCalendarAvailabilityExecutor } from '../../tools/executors/google-calendar-availability.executor';
+import { GoogleDriveSearchExecutor } from '../../tools/executors/google-drive-search.executor';
+import { GoogleDriveReadExecutor } from '../../tools/executors/google-drive-read.executor';
+import { GoogleDriveListExecutor } from '../../tools/executors/google-drive-list.executor';
+import { GoogleDriveUploadExecutor } from '../../tools/executors/google-drive-upload.executor';
+
 
 const MAX_ITERATIONS = 100;
 const KB_NO_RESULTS = 'No relevant information found in knowledge base.';
@@ -98,15 +103,19 @@ export class AgentLoopService {
     private readonly readWord: ReadWordExecutor,
     private readonly writeWord: WriteWordExecutor,
     private readonly editWord: EditWordExecutor,
-    private readonly emailList: EmailListExecutor,
-    private readonly emailRead: EmailReadExecutor,
-    private readonly emailSend: EmailSendExecutor,
-    private readonly emailSearch: EmailSearchExecutor,
-    private readonly emailReply: EmailReplyExecutor,
-    private readonly calendarListEvents: CalendarListEventsExecutor,
-    private readonly calendarCreateEvent: CalendarCreateEventExecutor,
-    private readonly calendarUpdateEvent: CalendarUpdateEventExecutor,
-    private readonly calendarCheckAvailability: CalendarCheckAvailabilityExecutor,
+    private readonly googleGmailSearch: GoogleGmailSearchExecutor,
+    private readonly googleGmailRead: GoogleGmailReadExecutor,
+    private readonly googleGmailSend: GoogleGmailSendExecutor,
+    private readonly googleGmailDraft: GoogleGmailDraftExecutor,
+    private readonly googleGmailLabels: GoogleGmailLabelsExecutor,
+    private readonly googleCalendarList: GoogleCalendarListExecutor,
+    private readonly googleCalendarCreate: GoogleCalendarCreateExecutor,
+    private readonly googleCalendarUpdate: GoogleCalendarUpdateExecutor,
+    private readonly googleCalendarAvailability: GoogleCalendarAvailabilityExecutor,
+    private readonly googleDriveSearch: GoogleDriveSearchExecutor,
+    private readonly googleDriveRead: GoogleDriveReadExecutor,
+    private readonly googleDriveList: GoogleDriveListExecutor,
+    private readonly googleDriveUpload: GoogleDriveUploadExecutor,
     private readonly usageService: UsageService,
   ) {
     this.executorMap = new Map<string, ToolExecutor>([
@@ -139,15 +148,19 @@ export class AgentLoopService {
       [readWord.name, readWord],
       [writeWord.name, writeWord],
       [editWord.name, editWord],
-      [emailList.name, emailList],
-      [emailRead.name, emailRead],
-      [emailSend.name, emailSend],
-      [emailSearch.name, emailSearch],
-      [emailReply.name, emailReply],
-      [calendarListEvents.name, calendarListEvents],
-      [calendarCreateEvent.name, calendarCreateEvent],
-      [calendarUpdateEvent.name, calendarUpdateEvent],
-      [calendarCheckAvailability.name, calendarCheckAvailability],
+      [googleGmailSearch.name, googleGmailSearch],
+      [googleGmailRead.name, googleGmailRead],
+      [googleGmailSend.name, googleGmailSend],
+      [googleGmailDraft.name, googleGmailDraft],
+      [googleGmailLabels.name, googleGmailLabels],
+      [googleCalendarList.name, googleCalendarList],
+      [googleCalendarCreate.name, googleCalendarCreate],
+      [googleCalendarUpdate.name, googleCalendarUpdate],
+      [googleCalendarAvailability.name, googleCalendarAvailability],
+      [googleDriveSearch.name, googleDriveSearch],
+      [googleDriveRead.name, googleDriveRead],
+      [googleDriveList.name, googleDriveList],
+      [googleDriveUpload.name, googleDriveUpload],
     ]);
   }
 
