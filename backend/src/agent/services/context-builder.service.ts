@@ -161,13 +161,22 @@ export class ContextBuilderService {
         'IMPORTANT: When a file is created, the tool result will contain a download link.',
         'You MUST include this download link in your final response text so the user can click it.',
         'Example format: [Download "filename"](api/files/agent/123/download)',
+        '',
+        'CRITICAL: To create a file you MUST call write_file, write_word, or write_excel tool.',
+        'Never claim you created a file in text without calling the tool — only a tool call actually writes the file.',
       );
     }
 
     if (mode === 'cowork' && projectPath) {
       lines.push('',
         `Current working project: ${projectPath}`,
-        'File operations are available in this directory.',
+        '',
+        'FILE CREATION RULES (CRITICAL):',
+        '- To create or write any file, you MUST call the appropriate tool: write_file, write_word, write_excel, etc.',
+        '- NEVER claim you created a file in your text response without calling the tool first.',
+        '- Saying "I have created the file" in text does NOT actually create the file — only a tool call does.',
+        '- After calling a write tool, the result will confirm the file was created.',
+        '- If a tool is not available for the file type you need, use write_file for plain text files.',
       );
     }
 

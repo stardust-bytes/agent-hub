@@ -72,7 +72,7 @@ describe('ContextBuilderService', () => {
     const runState = new AgentRunState(10);
     const context = await service.build(runState, 0, 'cowork');
     expect(context.systemPrompt).toContain('Current working project: /test/project');
-    expect(context.systemPrompt).toContain('File operations are available in this directory.');
+    expect(context.systemPrompt).toContain('FILE CREATION RULES (CRITICAL):');
   });
 
   it('does not include project path in agent mode even when project is set', async () => {
