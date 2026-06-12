@@ -21,9 +21,6 @@ import { MemoryModule } from './memory/memory.module';
 import { ExcelModule } from './excel/excel.module';
 import { WordModule } from './word/word.module';
 import { UsageModule } from './usage/usage.module';
-import { OAuthModule } from './oauth/oauth.module';
-import { EmailModule } from './email/email.module';
-import { CalendarModule } from './calendar/calendar.module';
 import { ConnectorModule } from './connector/connector.module';
 
 @Module({
@@ -49,9 +46,6 @@ import { ConnectorModule } from './connector/connector.module';
     ExcelModule,
     WordModule,
     UsageModule,
-    OAuthModule,
-    EmailModule,
-    CalendarModule,
     ConnectorModule,
   ],
   controllers: [AppController],
