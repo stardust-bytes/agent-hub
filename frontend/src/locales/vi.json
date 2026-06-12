@@ -139,6 +139,10 @@
   "cowork.connect.title": "Kết nối Workspace",
   "cowork.connect.description": "Mở một thư mục dự án để bắt đầu làm việc với AI Agent.",
   "cowork.connect.browse": "Chọn thư mục dự án",
+  "cowork.project.select": "Chọn project...",
+  "cowork.project.saveAs": "Lưu project...",
+  "cowork.project.name": "Tên project",
+  "cowork.project.save": "Lưu",
 
   "sessions.header": "SESSIONS",
   "sessions.new": "+ Mới",

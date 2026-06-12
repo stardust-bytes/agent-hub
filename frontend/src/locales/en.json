@@ -139,6 +139,10 @@
   "cowork.connect.title": "Connect Workspace",
   "cowork.connect.description": "Open a project directory to start working with the AI Agent.",
   "cowork.connect.browse": "Browse project directory",
+  "cowork.project.select": "Select project...",
+  "cowork.project.saveAs": "Save project as...",
+  "cowork.project.name": "Project name",
+  "cowork.project.save": "Save",
 
   "sessions.header": "SESSIONS",
   "sessions.new": "+ New",

@@ -1,24 +1,32 @@
 <template>
   <div class="flex flex-col h-full bg-cyber-bg font-mono">
-    <div v-if="projectPath" class="flex items-center gap-3 px-3 py-2 border-b border-cyber-code-border shrink-0 bg-cyber-dark">
-      <div class="flex items-center gap-2 text-sm">
-        <span class="text-cyber-green">●</span>
-        <span class="text-cyber-text truncate max-w-80">{{ projectPath }}</span>
+    <div class="flex items-center gap-2 px-3 py-2 border-b border-cyber-code-border shrink-0 bg-cyber-dark">
+      <span class="w-2 h-2 rounded-full shrink-0" :class="projectPath ? 'bg-cyber-green' : 'bg-cyber-muted'"></span>
+      <div class="relative">
+        <button @click="showProjectMenu = !showProjectMenu" class="flex items-center gap-1 text-sm text-cyber-text font-mono truncate max-w-60 hover:text-cyber-accent transition-colors duration-150">
+          {{ projectPath ? projectPath : t('cowork.project.select') }}
+          <svg class="w-3 h-3 shrink-0" :class="showProjectMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div v-if="showProjectMenu" class="absolute top-full left-0 mt-1 w-72 bg-cyber-dark border border-cyber-code-border rounded z-50 shadow-lg">
+          <button @click="showDirBrowser = true; showProjectMenu = false" class="w-full text-left px-3 py-2 text-sm text-cyber-text font-mono hover:bg-cyber-accent/10 transition-colors duration-150 flex items-center gap-2 border-b border-cyber-code-border">
+            <span>📁</span> {{ t('cowork.connect.browse') }}
+          </button>
+          <div v-for="project in savedProjects" :key="project.id" class="flex items-center px-3 py-2 text-sm text-cyber-text font-mono hover:bg-cyber-accent/10 transition-colors duration-150 border-b border-cyber-code-border">
+            <button @click="connectProject(project.path); showProjectMenu = false" class="flex-1 text-left truncate">{{ project.name }}</button>
+            <button @click="deleteProject(project.id)" class="text-cyber-muted hover:text-red-400 transition-colors duration-150 shrink-0 ml-2 text-xs">✕</button>
+          </div>
+          <button @click="showSaveModal = true; showProjectMenu = false" class="w-full text-left px-3 py-2 text-sm text-cyber-accent font-mono hover:bg-cyber-accent/10 transition-colors duration-150 flex items-center gap-2">
+            <span>+</span> {{ t('cowork.project.saveAs') }}
+          </button>
+        </div>
       </div>
-      <button @click="browseProject" class="text-sm text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/40 transition-colors duration-150 hover:bg-cyber-accent/10">{{ t('cowork.browse') }}</button>
-      <button @click="disconnect" class="text-sm text-red-400 font-mono px-2 py-0.5 border border-red-400/40 transition-colors duration-150 hover:bg-red-400/10">{{ t('cowork.disconnect') }}</button>
+      <div v-if="projectPath" class="flex items-center gap-2 ml-auto">
+        <button @click="disconnect" class="text-xs text-cyber-muted font-mono px-2 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-red-400 hover:border-red-400/40">{{ t('cowork.disconnect') }}</button>
+      </div>
     </div>
 
-    <div v-else class="flex-1 flex items-center justify-center">
-      <div class="text-center max-w-md">
-        <div class="text-lg text-cyber-accent font-mono mb-2">{{ t('cowork.connect.title') }}</div>
-        <div class="text-sm text-cyber-muted font-mono mb-4">{{ t('cowork.connect.description') }}</div>
-        <button @click="showDirBrowser = true" class="text-sm text-cyber-accent font-mono px-4 py-2 border border-cyber-accent/40 transition-colors duration-150 hover:bg-cyber-accent/10">{{ t('cowork.connect.browse') }}</button>
-      </div>
-    </div>
-
-    <div v-if="projectPath" class="flex flex-1 overflow-hidden">
-      <FileTree
+    <div class="flex flex-1 overflow-hidden">
+      <FileTree v-if="projectPath"
         :project-path="projectPath"
         :refresh-key="fileTreeRefreshKey"
         class="w-60 shrink-0"
@@ -139,6 +147,16 @@
       @created="(id: number) => { currentSessionId = id; loadSession(id) }"
     />
     <DirectoryBrowser v-model="showDirBrowser" @select="onDirSelected" />
+    <div v-if="showSaveModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" @click.self="showSaveModal = false">
+      <div class="bg-cyber-modal-bg border border-cyber-code-border rounded p-4 w-80">
+        <div class="text-sm text-cyber-text font-mono mb-3">{{ t('cowork.project.saveAs') }}</div>
+        <input v-model="saveProjectName" @keyup.enter="saveCurrentProject" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-code-text font-mono mb-3" :placeholder="t('cowork.project.name')" />
+        <div class="flex justify-end gap-2">
+          <button @click="showSaveModal = false" class="text-xs text-cyber-muted font-mono px-3 py-1.5 border border-cyber-code-border rounded transition-colors duration-150 hover:text-cyber-text">{{ t('tasks.form.cancel') }}</button>
+          <button @click="saveCurrentProject" class="text-xs text-white font-mono px-3 py-1.5 bg-cyber-accent rounded transition-colors duration-150 hover:bg-cyber-accent/80">{{ t('cowork.project.save') }}</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -169,6 +187,10 @@ const streaming = ref(false)
 const abortController = ref<AbortController | null>(null)
 const showDirBrowser = ref(false)
 const artifactsVisible = ref(true)
+const showProjectMenu = ref(false)
+const showSaveModal = ref(false)
+const saveProjectName = ref('')
+const savedProjects = ref<Array<{ id: string; name: string; path: string }>>([])
 const previewContent = ref<string | null>(null)
 const previewFileName = ref('')
 const activePlans = ref<PlanData[]>([])
@@ -198,6 +220,39 @@ async function loadProject() {
       const data = await res.json() as { projectPath: string | null }
       projectPath.value = data.projectPath
     }
+  } catch { /* ignore */ }
+  await loadSavedProjects()
+}
+
+async function loadSavedProjects() {
+  try {
+    const res = await fetch('/api/cowork/projects')
+    if (res.ok) savedProjects.value = await res.json()
+  } catch { /* ignore */ }
+}
+
+async function connectProject(p: string) {
+  try {
+    await fetch('/api/cowork/project', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: p }) })
+    projectPath.value = p
+    showDirBrowser.value = false
+  } catch { /* ignore */ }
+}
+
+async function saveCurrentProject() {
+  if (!saveProjectName.value || !projectPath.value) return
+  try {
+    await fetch('/api/cowork/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: saveProjectName.value, path: projectPath.value }) })
+    saveProjectName.value = ''
+    showSaveModal.value = false
+    await loadSavedProjects()
+  } catch { /* ignore */ }
+}
+
+async function deleteProject(id: string) {
+  try {
+    await fetch(`/api/cowork/projects/${id}`, { method: 'DELETE' })
+    await loadSavedProjects()
   } catch { /* ignore */ }
 }
 
@@ -303,20 +358,6 @@ async function browseProject() {
 
 function onDirSelected(dirPath: string) {
   connectProject(dirPath)
-}
-
-async function connectProject(dirPath: string) {
-  try {
-    const res = await fetch('/api/cowork/project', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: dirPath }),
-    })
-    if (res.ok) {
-      projectPath.value = dirPath
-      showDirBrowser.value = false
-    }
-  } catch { /* ignore */ }
 }
 
 async function disconnect() {
