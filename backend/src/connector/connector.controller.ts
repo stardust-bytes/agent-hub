@@ -32,8 +32,8 @@ export class ConnectorController {
     return { ok: true };
   }
 
-  @Get('google/auth-url')
-  async googleAuthUrl(
+  @Get('oauth/auth-url')
+  async oauthAuthUrl(
     @Query('type') type: string,
     @Query('clientId') clientId: string,
     @Query('clientSecret') clientSecret: string,
@@ -42,17 +42,23 @@ export class ConnectorController {
     return { url: this.googleOAuth.getAuthUrl(type, { clientId, clientSecret, redirectUri }) };
   }
 
-  @Get('google/callback')
-  async googleCallback(
+  @Get('oauth/callback')
+  async oauthCallback(
+    @Query('type') type: string,
     @Query('code') code: string,
     @Query('clientId') clientId: string,
     @Query('clientSecret') clientSecret: string,
     @Query('redirectUri') redirectUri: string,
   ) {
     const tokens = await this.googleOAuth.handleCallback(code, { clientId, clientSecret, redirectUri });
-    await this.connector.upsert('google', {
-      type: 'google',
-      name: 'Google (Gmail, Calendar, Drive)',
+    const names: Record<string, string> = {
+      google_gmail: 'Gmail',
+      google_calendar: 'Google Calendar',
+      google_drive: 'Google Drive',
+    };
+    await this.connector.upsert(type, {
+      type,
+      name: names[type] ?? type,
       config: { clientId, clientSecret, redirectUri, tokens },
       enabled: true,
     });
