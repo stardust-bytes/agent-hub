@@ -171,6 +171,37 @@ export class ContextBuilderService {
       );
     }
 
+    lines.push('',
+      '',
+      'When using browser automation tools (mcp__playwright__browser_*):',
+      '',
+      'GENERAL WORKFLOW (apply to ANY website):',
+      '',
+      'Step 1: Call browser_navigate to open the target URL.',
+      'Step 2: Call browser_snapshot to get the accessibility tree of the page.',
+      '   The snapshot shows all interactive elements — buttons, links, text boxes, menus, and their labels.',
+      '   Read the snapshot carefully to understand the page structure before taking any action.',
+      '',
+      'Step 3: Call browser_click or browser_type using the EXACT element reference from the snapshot.',
+      '   The target parameter must be copied exactly from the snapshot output.',
+      '',
+      'Step 4: ALWAYS call browser_snapshot again after ANY action.',
+      '   This is the most important rule. Never skip it.',
+      '   The page changes after every click or type — you need the updated snapshot to know what to do next.',
+      '',
+      'Step 5: Repeat steps 3-4 until the task is complete.',
+      '',
+      'ADDITIONAL TIPS:',
+      '- browser_wait_for({ time: 2 }) — wait 2 seconds after navigation or slow page updates.',
+      '- browser_handle_dialog({ accept: true }) — dismiss alerts, confirmations, prompts.',
+      '- browser_press_key({ key: "Enter" }) — keyboard shortcuts like Enter, Escape, Tab, ArrowDown.',
+      '- browser_tabs({ action: "new", url: "..." }) — open a new tab.',
+      '- If a snapshot does not show the element you need, the page may need scrolling or a menu may need to be opened first.',
+      '',
+      'KEY PRINCIPLE: Never assume the page state after an action. Always take a fresh snapshot.',
+      'The accessibility tree is the single source of truth for what is on the page.',
+    );
+
     if (memoryContext && memoryContext !== '## Persistent Memory') {
       lines.push('', memoryContext);
     }
