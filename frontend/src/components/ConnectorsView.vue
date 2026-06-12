@@ -56,13 +56,10 @@ const connectorTemplates = [
 const displayConnectors = computed(() => {
   return connectorTemplates.map(t => {
     const saved = connectors.value.find(c => c.type === t.type)
-    return saved ?? {
-      id: '',
+    return {
+      ...(saved ?? { id: '', config: '{}', account: null, enabled: false }),
       name: t.name,
       type: t.type,
-      config: '{}',
-      account: null,
-      enabled: false,
     }
   })
 })
