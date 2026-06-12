@@ -11,12 +11,12 @@ export class ConnectorController {
   }
 
   @Post()
-  async upsert(@Body() body: { type: string; name: string; config: Record<string, unknown>; enabled?: boolean }) {
+  async upsert(@Body() body: { type: string; services?: string[]; account?: { email?: string; name?: string }; config: Record<string, unknown>; enabled?: boolean }) {
     return this.connector.upsert(body.type, body);
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: { name?: string; config?: Record<string, unknown>; enabled?: boolean }) {
+  async update(@Param('id') id: string, @Body() body: { services?: string[]; account?: { email?: string; name?: string }; config?: Record<string, unknown>; enabled?: boolean }) {
     return this.connector.update(id, body);
   }
 
