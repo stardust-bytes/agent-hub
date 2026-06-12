@@ -14,7 +14,7 @@
           <!-- Tool call block -->
           <div v-else-if="msg.role === 'tool' && !msg.isResult"
             class="border-l-2 border-cyber-orange/50 pl-3 py-1.5">
-            <div class="text-sm text-cyber-orange font-mono mb-0.5">[⚙] {{ msg.content }}</div>
+            <div class="text-sm text-cyber-orange font-mono mb-0.5 break-all">[⚙] {{ msg.content }}</div>
           </div>
 
           <!-- Tool result block -->
