@@ -33,7 +33,13 @@
         @file-select="onFileSelect"
       />
       <div class="flex-1 flex flex-col overflow-hidden">
-        <div ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 cowork-messages">
+        <div v-if="messages.length === 0" class="flex-1 flex items-center justify-center min-h-0">
+          <div class="text-center">
+            <div class="font-['Press_Start_2P'] text-3xl text-cyber-accent mb-4">171305</div>
+            <div class="text-sm font-mono text-cyber-muted">// {{ t('chat.empty.subtitle') }}</div>
+          </div>
+        </div>
+        <div v-else ref="messagesEl" class="flex-1 overflow-y-auto px-3 py-3 cowork-messages">
           <div class="max-w-60rem mx-auto space-y-4 px-3">
             <div v-for="(msg, i) in messages" :key="i" class="font-mono">
 
