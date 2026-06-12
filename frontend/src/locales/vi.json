@@ -248,5 +248,20 @@
     "completed": "✓ Tác vụ phụ {index}: hoàn thành",
     "failed": "✗ Tác vụ phụ {index}: thất bại",
     "complete": "└ Hoàn thành delegation ({count} tác vụ)"
+  },
+
+  "usage": {
+    "header": "Usage",
+    "total_prompt": "Token đầu vào",
+    "total_completion": "Token đầu ra",
+    "total_all": "Tổng tokens",
+    "total_requests": "Số request",
+    "per_session": "Chi tiết theo session",
+    "empty": "Chưa có dữ liệu usage",
+    "model": "Model",
+    "session": "Session",
+    "prompt": "Prompt",
+    "completion": "Compl",
+    "total": "Tổng"
   }
 }

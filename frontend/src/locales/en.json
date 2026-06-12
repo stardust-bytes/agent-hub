@@ -248,5 +248,20 @@
     "completed": "✓ Sub-task {index}: completed",
     "failed": "✗ Sub-task {index}: failed",
     "complete": "└ Delegate complete ({count} tasks)"
+  },
+
+  "usage": {
+    "header": "Usage",
+    "total_prompt": "Prompt tokens",
+    "total_completion": "Completion tokens",
+    "total_all": "Total tokens",
+    "total_requests": "Requests",
+    "per_session": "Per-session breakdown",
+    "empty": "No usage data yet",
+    "model": "Model",
+    "session": "Session",
+    "prompt": "Prompt",
+    "completion": "Compl",
+    "total": "Total"
   }
 }
