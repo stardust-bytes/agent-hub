@@ -1,29 +1,55 @@
 import { Injectable } from '@nestjs/common';
 import { ToolExecutor, ToolContext } from '../../tools/executors/tool-executor.interface';
 import { ExcelService } from '../excel.service';
-
-const VALID_CHART_TYPES = ['bar', 'line', 'pie', 'column'];
+import { WorkspaceService } from '../../workspace/workspace.service';
+import { PrismaService } from '../../prisma/prisma.service';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class ExcelChartExecutor implements ToolExecutor {
   readonly name = 'excel_chart';
 
-  constructor(private readonly excel: ExcelService) {}
+  constructor(
+    private readonly excel: ExcelService,
+    private readonly workspace: WorkspaceService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async execute(args: Record<string, unknown>, context?: ToolContext): Promise<string> {
-    const filePath = String(args.path ?? '');
-    const sheet = String(args.sheet ?? '');
-    const chartType = String(args.type ?? '');
-    if (!filePath || !sheet || !chartType) return 'Error: "path", "sheet", and "type" are required';
-    if (!VALID_CHART_TYPES.includes(chartType)) return `Error: Invalid chart type "${chartType}". Valid: ${VALID_CHART_TYPES.join(', ')}`;
+    let filePath = String(args.path ?? '');
+    const sheetName = String(args.sheet_name ?? '');
+    const chartType = String(args.chart_type ?? '');
+    if (!filePath || !sheetName || !chartType) return 'Error: "path", "sheet_name", and "chart_type" are required';
 
-    const dataRange = String(args.dataRange ?? '');
-    if (!dataRange) return 'Error: "dataRange" is required';
     try {
       await this.excel.validatePath(filePath);
+
+      if (context?.mode === 'agent') {
+        const filename = filePath.split(/[\\/]/).pop() || 'output.xlsx';
+        const sessionDir = path.join(
+          this.workspace.getWorkspaceRoot(),
+          'agent-output',
+          `session_${context.sessionId}`,
+        );
+        filePath = path.join(sessionDir, filename);
+        fs.mkdirSync(sessionDir, { recursive: true });
+      }
+
       const title = args.title ? String(args.title) : undefined;
-      const categoriesRange = args.categoriesRange ? String(args.categoriesRange) : undefined;
-      return this.excel.addChart(filePath, sheet, chartType, title, dataRange, categoriesRange);
+      const dataRange = String(args.data_range ?? '');
+      const categoriesRange = args.categories_range ? String(args.categories_range) : undefined;
+      const result = await this.excel.addChart(filePath, sheetName, chartType, title, dataRange, categoriesRange);
+
+      if (context?.mode === 'agent') {
+        const filename = filePath.split(/[\\/]/).pop() || 'file.xlsx';
+        const agentFile = await this.prisma.agentFile.create({
+          data: { filename, path: filePath, sessionId: context.sessionId ?? 0 },
+        });
+        return `${result} [Download "${filename}"](api/files/agent/${agentFile.id}/download)`;
+      }
+
+      return result;
     } catch (e) {
       return `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
     }
