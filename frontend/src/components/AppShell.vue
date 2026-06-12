@@ -16,7 +16,6 @@
 
       <div class="flex-1 flex overflow-hidden">
         <CoworkView    v-if="activeView === 'cowork'"   class="flex-1 overflow-hidden" @active-subagents-change="activeSubagents = $event" />
-        <ToolsView     v-else-if="activeView === 'tools'"    class="flex-1 overflow-hidden" />
         <SettingsView   v-else-if="activeView === 'settings'"  class="flex-1 overflow-hidden" />
         <TasksView      v-else-if="activeView === 'tasks'"     class="flex-1 overflow-hidden" @ws-status="wsConnected = $event" />
         <NotesView      v-else-if="activeView === 'notes'"        class="flex-1 overflow-hidden" />
@@ -39,19 +38,18 @@ import SidebarNav from './SidebarNav.vue'
 import ChatPanel from './ChatPanel.vue'
 import TasksView from './TasksView.vue'
 import SettingsView from './SettingsView.vue'
-import ToolsView from './ToolsView.vue'
 import NotesView from './NotesView.vue'
 import CoworkView from './CoworkView.vue'
 import AgentOutputView from './AgentOutputView.vue'
 import StatusBar from './StatusBar.vue'
 
-const activeView = ref<'chat' | 'cowork' | 'tasks' | 'settings' | 'tools' | 'notes' | 'plans' | 'agent-output'>('cowork')
+const activeView = ref<'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output'>('cowork')
 const sidebarOpen = ref(false)
 const dbConnected = ref(true)
 const wsConnected = ref(false)
 const activeSubagents = ref(0)
 
-function onNavigate(view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'tools' | 'notes' | 'plans' | 'agent-output') {
+function onNavigate(view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output') {
   activeView.value = view
   sidebarOpen.value = false
 }
