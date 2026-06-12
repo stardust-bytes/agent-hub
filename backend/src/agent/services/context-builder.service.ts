@@ -86,6 +86,14 @@ export class ContextBuilderService {
       lines.push(`- ${tool.function.name}: ${tool.function.description}`);
     }
 
+    lines.push('',
+      '',
+      'TOOL RE-EXECUTION RULE (CRITICAL):',
+      'You MUST call the appropriate tool EVERY time the user requests an action, even if you previously called the same tool.',
+      'Previous tool calls in this conversation do NOT satisfy new requests with different parameters.',
+      'Never respond with just text describing what you would do — always execute the tool with the actual parameters.',
+    );
+
     if (mode === 'cowork') {
       lines.push('',
         '',

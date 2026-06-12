@@ -5,7 +5,7 @@ import { GmailService } from '../../connector/providers/google/gmail.service';
 @Injectable()
 export class GoogleGmailDraftExecutor implements ToolExecutor {
   readonly name = 'google_gmail_draft';
-  readonly description = 'Create a Gmail email draft (does not send). IMPORTANT: You MUST call this tool EVERY time the user asks to create a draft, even if you previously created one. Always re-execute with the new parameters.';
+  readonly description = 'Create a Gmail email draft (does not send).';
   readonly parameters = {
     type: 'object' as const,
     properties: {
