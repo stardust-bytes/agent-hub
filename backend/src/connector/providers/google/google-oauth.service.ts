@@ -32,6 +32,7 @@ export class GoogleOAuthService {
       access_type: 'offline',
       scope: this.getScopes(type),
       prompt: 'consent',
+      state: type,
     });
   }
 

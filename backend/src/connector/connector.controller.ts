@@ -60,7 +60,9 @@ export class ConnectorController {
   }
 
   @Get('oauth/callback')
-  async oauthCallback(@Query('type') type: string, @Query('code') code: string) {
+  async oauthCallback(@Query('state') state: string, @Query('code') code: string) {
+    if (!state || !code) return { error: 'missing_params' };
+    const type = state;
     const creds = this.getCreds(type);
     const redirectUri = `${process.env.APP_URL ?? 'http://localhost:17135'}/api/connectors/oauth/callback`;
     const tokens = await this.googleOAuth.handleCallback(code, { ...creds, redirectUri });
