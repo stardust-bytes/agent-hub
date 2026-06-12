@@ -142,6 +142,13 @@ model AgentFile {
   createdAt DateTime @default(now())
 }
 
+model Project {
+  id        String   @id @default(cuid())
+  name      String
+  path      String   @unique
+  createdAt DateTime @default(now())
+}
+
 model UsageRecord {
   id               Int      @id @default(autoincrement())
   sessionId        Int?

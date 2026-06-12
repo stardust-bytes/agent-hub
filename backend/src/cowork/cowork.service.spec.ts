@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoworkService } from './cowork.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { SettingsService } from '../settings/settings.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 import * as path from 'path';
@@ -16,6 +17,14 @@ describe('CoworkService', () => {
     addAllowedPath: jest.fn(),
     isPathAllowed: jest.fn().mockReturnValue(true),
   };
+  const mockPrisma = {
+    project: {
+      findMany: jest.fn().mockResolvedValue([]),
+      findUnique: jest.fn().mockResolvedValue(null),
+      create: jest.fn().mockResolvedValue({ id: '1', name: 'test', path: '/test', createdAt: new Date() }),
+      delete: jest.fn().mockResolvedValue(undefined),
+    },
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -24,6 +33,7 @@ describe('CoworkService', () => {
         CoworkService,
         { provide: SettingsService, useValue: mockSettings },
         { provide: WorkspaceService, useValue: mockWorkspace },
+        { provide: PrismaService, useValue: mockPrisma },
       ],
     }).compile();
     service = module.get<CoworkService>(CoworkService);
@@ -36,6 +46,7 @@ describe('CoworkService', () => {
         CoworkService,
         { provide: SettingsService, useValue: savedMock },
         { provide: WorkspaceService, useValue: mockWorkspace },
+        { provide: PrismaService, useValue: mockPrisma },
       ],
     }).compile();
     const svc = mod.get<CoworkService>(CoworkService);

@@ -1,11 +1,11 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { SettingsService } from '../settings/settings.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 
 const PROJECT_KEY = 'cowork_project_path';
-const PROJECTS_LIST_KEY = 'cowork.projects';
 
 export interface SavedProject {
   id: string;
@@ -17,6 +17,7 @@ export interface SavedProject {
 @Injectable()
 export class CoworkService implements OnModuleInit {
   constructor(
+    private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
     private readonly workspace: WorkspaceService,
   ) {}
@@ -48,30 +49,23 @@ export class CoworkService implements OnModuleInit {
   }
 
   async getProjectsList(): Promise<SavedProject[]> {
-    const raw = await this.settings.get(PROJECTS_LIST_KEY, null);
-    return raw ? JSON.parse(raw) : [];
+    const projects = await this.prisma.project.findMany({ orderBy: { createdAt: 'desc' } });
+    return projects.map(p => ({ id: p.id, name: p.name, path: p.path, createdAt: p.createdAt.toISOString() }));
   }
 
   async saveProject(name: string, projectPath: string): Promise<SavedProject> {
-    const projects = await this.getProjectsList();
-    const existing = projects.find(p => p.path === projectPath);
-    if (existing) return existing;
+    const resolved = path.resolve(projectPath);
+    const existing = await this.prisma.project.findUnique({ where: { path: resolved } });
+    if (existing) return { id: existing.id, name: existing.name, path: existing.path, createdAt: existing.createdAt.toISOString() };
 
-    const project: SavedProject = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      name,
-      path: path.resolve(projectPath),
-      createdAt: new Date().toISOString(),
-    };
-    projects.push(project);
-    await this.settings.set(PROJECTS_LIST_KEY, JSON.stringify(projects));
-    return project;
+    const project = await this.prisma.project.create({
+      data: { name, path: resolved },
+    });
+    return { id: project.id, name: project.name, path: project.path, createdAt: project.createdAt.toISOString() };
   }
 
   async deleteProject(id: string): Promise<void> {
-    const projects = await this.getProjectsList();
-    const filtered = projects.filter(p => p.id !== id);
-    await this.settings.set(PROJECTS_LIST_KEY, JSON.stringify(filtered));
+    await this.prisma.project.delete({ where: { id } });
   }
 
   async getDrives(): Promise<string[]> {
