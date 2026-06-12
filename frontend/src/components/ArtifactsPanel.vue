@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-full bg-cyber-bg border-l border-cyber-code-border">
+  <div v-show="visible" class="flex flex-col h-full bg-cyber-bg border-l border-cyber-code-border">
     <div class="flex items-center justify-between px-3 py-2 border-b border-cyber-code-border shrink-0">
       <span class="text-sm text-cyber-accent font-mono">{{ t('cowork.artifacts') }}</span>
       <button @click="emit('close')" class="text-cyber-muted text-sm font-mono hover:text-cyber-accent">✕</button>
