@@ -51,6 +51,13 @@ const DEFAULT_TOOLS = [
 ];
 
 async function main() {
+  const validNames = new Set(DEFAULT_TOOLS.map(t => t.name));
+  const stale = await prisma.tool.findMany({ where: { name: { notIn: [...validNames] } } });
+  if (stale.length > 0) {
+    await prisma.tool.deleteMany({ where: { name: { notIn: [...validNames] } } });
+    console.log(`Removed ${stale.length} stale tools: ${stale.map(t => t.name).join(', ')}`);
+  }
+
   for (const tool of DEFAULT_TOOLS) {
     const data: any = {
       description: tool.description,
