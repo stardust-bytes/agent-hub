@@ -152,7 +152,6 @@ model Project {
 model Connector {
   id        String   @id @default(cuid())
   type      String
-  services  String   @default("[]")
   account   String?
   config    String   @default("{}")
   enabled   Boolean  @default(false)
