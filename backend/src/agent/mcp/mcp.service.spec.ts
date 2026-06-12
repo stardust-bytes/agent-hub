@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { McpService } from './mcp.service';
 
 describe('McpService', () => {
@@ -6,7 +7,10 @@ describe('McpService', () => {
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [McpService],
+      providers: [
+        McpService,
+        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue('./workspace_data') } },
+      ],
     }).compile();
     service = module.get(McpService);
   });

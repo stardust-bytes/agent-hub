@@ -1,5 +1,8 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { McpClientService } from './mcp-client.service';
+import * as path from 'path';
+import * as fs from 'fs';
 
 interface McpServerEntry {
   id: string;
@@ -10,15 +13,22 @@ interface McpServerEntry {
 export class McpService implements OnModuleInit {
   private servers = new Map<string, McpServerEntry>();
 
+  constructor(private readonly config: ConfigService) {}
+
   async onModuleInit(): Promise<void> {
     await this.startPlaywrightServer();
   }
 
   private async startPlaywrightServer(): Promise<void> {
     try {
+      const workspaceRoot = path.resolve(this.config.get<string>('WORKSPACE_ROOT', './workspace_data'));
+      const profileDir = path.join(workspaceRoot, 'playwright-profile');
+      fs.mkdirSync(profileDir, { recursive: true });
+
       const client = new McpClientService();
       await client.connectStdio('npx', [
         '@playwright/mcp',
+        `--user-data-dir=${profileDir}`,
       ]);
       this.servers.set('playwright', { id: 'playwright', client });
     } catch (e) {
