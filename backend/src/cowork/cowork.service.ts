@@ -5,6 +5,14 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 
 const PROJECT_KEY = 'cowork_project_path';
+const PROJECTS_LIST_KEY = 'cowork.projects';
+
+export interface SavedProject {
+  id: string;
+  name: string;
+  path: string;
+  createdAt: string;
+}
 
 @Injectable()
 export class CoworkService implements OnModuleInit {
@@ -37,6 +45,33 @@ export class CoworkService implements OnModuleInit {
   async getStatus(): Promise<{ projectPath: string | null; isActive: boolean }> {
     const projectPath = await this.getProject();
     return { projectPath, isActive: projectPath !== null };
+  }
+
+  async getProjectsList(): Promise<SavedProject[]> {
+    const raw = await this.settings.get(PROJECTS_LIST_KEY, null);
+    return raw ? JSON.parse(raw) : [];
+  }
+
+  async saveProject(name: string, projectPath: string): Promise<SavedProject> {
+    const projects = await this.getProjectsList();
+    const existing = projects.find(p => p.path === projectPath);
+    if (existing) return existing;
+
+    const project: SavedProject = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name,
+      path: path.resolve(projectPath),
+      createdAt: new Date().toISOString(),
+    };
+    projects.push(project);
+    await this.settings.set(PROJECTS_LIST_KEY, JSON.stringify(projects));
+    return project;
+  }
+
+  async deleteProject(id: string): Promise<void> {
+    const projects = await this.getProjectsList();
+    const filtered = projects.filter(p => p.id !== id);
+    await this.settings.set(PROJECTS_LIST_KEY, JSON.stringify(filtered));
   }
 
   async getDrives(): Promise<string[]> {
