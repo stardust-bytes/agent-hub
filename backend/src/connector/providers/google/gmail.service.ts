@@ -69,34 +69,48 @@ export class GmailService {
     };
   }
 
+  private encodeMimeHeader(value: string): string {
+    return /[^\x00-\x7F]/.test(value)
+      ? `=?UTF-8?B?${Buffer.from(value, 'utf-8').toString('base64')}?=`
+      : value;
+  }
+
+  private buildEmail(lines: string[]): string {
+    return lines.filter(Boolean).join('\r\n');
+  }
+
   async send(to: string[], subject: string, body: string, cc?: string[], bcc?: string[]): Promise<{ id: string }> {
     const gmail = await this.getGmail();
-    const email = [
-      `To: ${to.join(', ')}`,
-      cc?.length ? `Cc: ${cc.join(', ')}` : '',
-      bcc?.length ? `Bcc: ${bcc.join(', ')}` : '',
-      `Subject: ${subject}`,
+    const email = this.buildEmail([
+      `To: ${to.map(a => this.encodeMimeHeader(a)).join(', ')}`,
+      cc?.length ? `Cc: ${cc.map(a => this.encodeMimeHeader(a)).join(', ')}` : '',
+      bcc?.length ? `Bcc: ${bcc.map(a => this.encodeMimeHeader(a)).join(', ')}` : '',
+      `Subject: ${this.encodeMimeHeader(subject)}`,
+      'MIME-Version: 1.0',
       'Content-Type: text/plain; charset=utf-8',
+      'Content-Transfer-Encoding: base64',
       '',
-      body,
-    ].filter(Boolean).join('\n');
+      Buffer.from(body, 'utf-8').toString('base64'),
+    ]);
 
-    const encoded = Buffer.from(email).toString('base64url');
+    const encoded = Buffer.from(email, 'utf-8').toString('base64');
     const res = await gmail.users.messages.send({ userId: 'me', requestBody: { raw: encoded } });
     return { id: res.data.id! };
   }
 
   async createDraft(to: string[], subject: string, body: string): Promise<{ id: string }> {
     const gmail = await this.getGmail();
-    const email = [
-      `To: ${to.join(', ')}`,
-      `Subject: ${subject}`,
+    const email = this.buildEmail([
+      `To: ${to.map(a => this.encodeMimeHeader(a)).join(', ')}`,
+      `Subject: ${this.encodeMimeHeader(subject)}`,
+      'MIME-Version: 1.0',
       'Content-Type: text/plain; charset=utf-8',
+      'Content-Transfer-Encoding: base64',
       '',
-      body,
-    ].join('\n');
+      Buffer.from(body, 'utf-8').toString('base64'),
+    ]);
 
-    const encoded = Buffer.from(email).toString('base64url');
+    const encoded = Buffer.from(email, 'utf-8').toString('base64');
     const res = await gmail.users.drafts.create({ userId: 'me', requestBody: { message: { raw: encoded } } });
     return { id: res.data.id! };
   }
