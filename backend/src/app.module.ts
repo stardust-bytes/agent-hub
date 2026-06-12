@@ -21,6 +21,7 @@ import { MemoryModule } from './memory/memory.module';
 import { ExcelModule } from './excel/excel.module';
 import { WordModule } from './word/word.module';
 import { UsageModule } from './usage/usage.module';
+import { OAuthModule } from './oauth/oauth.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { UsageModule } from './usage/usage.module';
     ExcelModule,
     WordModule,
     UsageModule,
+    OAuthModule,
   ],
   controllers: [AppController],
 })
