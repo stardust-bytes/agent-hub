@@ -2,7 +2,7 @@ import { Controller, Get, Param, NotFoundException, StreamableFile, Res } from '
 import { Response } from 'express';
 import { WorkspaceService } from '../workspace/workspace.service';
 import * as fs from 'fs/promises';
-import { existsSync, statSync, createReadStream } from 'fs';
+import { existsSync, statSync, createReadStream, readdirSync } from 'fs';
 import * as path from 'path';
 
 interface AgentOutputFile {
@@ -19,11 +19,22 @@ export class AgentOutputController {
   async listFiles(): Promise<AgentOutputFile[]> {
     const agentOutputDir = path.join(this.workspace.getWorkspaceRoot(), 'agent-output');
     try {
-      const entries = await fs.readdir(agentOutputDir, { withFileTypes: true });
       const files: AgentOutputFile[] = [];
+      const entries = await this.scanAgentOutputDir(agentOutputDir, files);
+      return entries;
+    } catch {
+      return [];
+    }
+  }
+
+  private async scanAgentOutputDir(dir: string, files: AgentOutputFile[]): Promise<AgentOutputFile[]> {
+    try {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
       for (const entry of entries) {
-        if (entry.isFile()) {
-          const fullPath = path.join(agentOutputDir, entry.name);
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory() && entry.name.startsWith('session_')) {
+          await this.scanAgentOutputDir(fullPath, files);
+        } else if (entry.isFile()) {
           const stat = await fs.stat(fullPath);
           files.push({
             filename: entry.name,
@@ -32,23 +43,17 @@ export class AgentOutputController {
           });
         }
       }
-      files.sort((a, b) => new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime());
-      return files;
-    } catch {
-      return [];
-    }
+    } catch { /* skip unreadable dirs */ }
+    files.sort((a, b) => new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime());
+    return files;
   }
 
   @Get(':filename/download')
   download(@Param('filename') filename: string, @Res({ passthrough: true }) res: Response) {
     const agentOutputDir = path.join(this.workspace.getWorkspaceRoot(), 'agent-output');
-    const resolved = path.resolve(path.join(agentOutputDir, filename));
-    if (!resolved.startsWith(path.resolve(agentOutputDir))) {
-      throw new NotFoundException('File not found');
-    }
-    if (!existsSync(resolved)) {
-      throw new NotFoundException('File not found');
-    }
+    const resolved = this.resolveFile(agentOutputDir, filename);
+    if (!resolved) throw new NotFoundException('File not found');
+
     const stat = statSync(resolved);
     res.set({
       'Content-Type': 'application/octet-stream',
@@ -56,5 +61,21 @@ export class AgentOutputController {
       'Content-Length': stat.size,
     });
     return new StreamableFile(createReadStream(resolved));
+  }
+
+  private resolveFile(dir: string, filename: string): string | null {
+    const flatPath = path.resolve(path.join(dir, filename));
+    if (flatPath.startsWith(path.resolve(dir)) && existsSync(flatPath)) return flatPath;
+
+    try {
+      const entries = readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory() && entry.name.startsWith('session_')) {
+          const found = this.resolveFile(path.join(dir, entry.name), filename);
+          if (found) return found;
+        }
+      }
+    } catch { /* skip */ }
+    return null;
   }
 }
