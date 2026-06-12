@@ -1,8 +1,24 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ConnectorService } from './connector.service';
 import { UpsertConnectorDto } from './dto/upsert-connector.dto';
 import { UpdateConnectorDto } from './dto/update-connector.dto';
 import { GoogleOAuthService } from './providers/google/google-oauth.service';
+
+const CREDENTIALS: Record<string, { clientId: string; clientSecret: string }> = {
+  google_gmail: {
+    clientId: process.env.GOOGLE_GMAIL_CLIENT_ID ?? '',
+    clientSecret: process.env.GOOGLE_GMAIL_CLIENT_SECRET ?? '',
+  },
+  google_calendar: {
+    clientId: process.env.GOOGLE_CALENDAR_CLIENT_ID ?? '',
+    clientSecret: process.env.GOOGLE_CALENDAR_CLIENT_SECRET ?? '',
+  },
+  google_drive: {
+    clientId: process.env.GOOGLE_DRIVE_CLIENT_ID ?? '',
+    clientSecret: process.env.GOOGLE_DRIVE_CLIENT_SECRET ?? '',
+  },
+};
 
 @Controller('connectors')
 export class ConnectorController {
@@ -10,6 +26,10 @@ export class ConnectorController {
     private readonly connector: ConnectorService,
     private readonly googleOAuth: GoogleOAuthService,
   ) {}
+
+  private getCreds(type: string) {
+    return CREDENTIALS[type] ?? { clientId: '', clientSecret: '' };
+  }
 
   @Get()
   async findAll() {
@@ -33,24 +53,17 @@ export class ConnectorController {
   }
 
   @Get('oauth/auth-url')
-  async oauthAuthUrl(
-    @Query('type') type: string,
-    @Query('clientId') clientId: string,
-    @Query('clientSecret') clientSecret: string,
-    @Query('redirectUri') redirectUri: string,
-  ) {
-    return { url: this.googleOAuth.getAuthUrl(type, { clientId, clientSecret, redirectUri }) };
+  async oauthAuthUrl(@Query('type') type: string) {
+    const creds = this.getCreds(type);
+    const redirectUri = `${process.env.APP_URL ?? 'http://localhost:17135'}/api/connectors/oauth/callback`;
+    return { url: this.googleOAuth.getAuthUrl(type, { ...creds, redirectUri }) };
   }
 
   @Get('oauth/callback')
-  async oauthCallback(
-    @Query('type') type: string,
-    @Query('code') code: string,
-    @Query('clientId') clientId: string,
-    @Query('clientSecret') clientSecret: string,
-    @Query('redirectUri') redirectUri: string,
-  ) {
-    const tokens = await this.googleOAuth.handleCallback(code, { clientId, clientSecret, redirectUri });
+  async oauthCallback(@Query('type') type: string, @Query('code') code: string) {
+    const creds = this.getCreds(type);
+    const redirectUri = `${process.env.APP_URL ?? 'http://localhost:17135'}/api/connectors/oauth/callback`;
+    const tokens = await this.googleOAuth.handleCallback(code, { ...creds, redirectUri });
     const names: Record<string, string> = {
       google_gmail: 'Gmail',
       google_calendar: 'Google Calendar',
@@ -59,7 +72,7 @@ export class ConnectorController {
     await this.connector.upsert(type, {
       type,
       name: names[type] ?? type,
-      config: { clientId, clientSecret, redirectUri, tokens },
+      config: { ...creds, redirectUri, tokens },
       enabled: true,
     });
     return { ok: true };

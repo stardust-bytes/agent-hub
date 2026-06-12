@@ -79,14 +79,8 @@ async function fetchConnectors() {
 }
 
 async function connect(type: string) {
-  const clientId = prompt('Enter Google Client ID:')
-  if (!clientId) return
-  const clientSecret = prompt('Enter Google Client Secret:')
-  if (!clientSecret) return
-  const redirectUri = window.location.origin + '/api/connectors/oauth/callback'
-
   try {
-    const res = await fetch(`/api/connectors/oauth/auth-url?type=${encodeURIComponent(type)}&clientId=${encodeURIComponent(clientId)}&clientSecret=${encodeURIComponent(clientSecret)}&redirectUri=${encodeURIComponent(redirectUri)}`)
+    const res = await fetch(`/api/connectors/oauth/auth-url?type=${encodeURIComponent(type)}`)
     const data = await res.json()
     if (data.url) {
       window.open(data.url, '_blank')
