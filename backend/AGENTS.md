@@ -35,7 +35,7 @@ src/
 │                              AgentModule, AgentOutputModule, SettingsModule, KnowledgeModule,
 │                              SessionsModule, ProvidersModule, ToolsModule, PlansModule,
 │                              WorkspaceModule, CoworkModule, FilesModule, MemoryModule,
-│                              ExcelModule, WordModule, UsageModule)
+│                              ExcelModule, WordModule, UsageModule, OAuthModule, EmailModule)
 ├── app.controller.ts        — GET /api/health → { status, db, timestamp }
 ├── http-exception.filter.ts — global filter: returns { statusCode, message, timestamp }
 │
@@ -122,6 +122,15 @@ src/
 │   ├── agent-output.module.ts
 │   ├── agent-output.controller.ts — GET /api/agent-output, GET /api/agent-output/:filename/download
 │   └── agent-output.controller.spec.ts
+│
+├── email/
+│   ├── email.module.ts
+│   ├── email.service.ts        — auto-detects Gmail vs IMAP based on OAuth config
+│   ├── email.service.spec.ts
+│   └── providers/
+│       ├── email-provider.interface.ts — EmailMessage, SendEmailOptions, EmailProvider interfaces
+│       ├── gmail.provider.ts          — full Gmail API integration
+│       └── imap.provider.ts           — stub IMAP/SMTP provider
 │
 ├── excel/
 │   ├── excel.module.ts
@@ -339,9 +348,10 @@ npm run build && npm run start:prod
 npm run setup
 
 # Tests
-npx jest                    # all (17+ suites)
+npx jest                    # all (18+ suites)
 npx jest src/agent          # specific module
 npx jest src/usage          # usage module tests
+npx jest src/email          # email module tests
 
 # Prisma
 npx prisma studio           # GUI for SQLite
