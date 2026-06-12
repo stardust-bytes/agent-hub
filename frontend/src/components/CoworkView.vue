@@ -147,21 +147,23 @@
       @created="(id: number) => { currentSessionId = id; loadSession(id) }"
     />
     <DirectoryBrowser v-model="showDirBrowser" @select="onDirSelected" />
-    <div v-if="showSaveModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" @click.self="showSaveModal = false">
-      <div class="bg-cyber-modal-bg border border-cyber-code-border rounded p-4 w-80">
-        <div class="text-sm text-cyber-text font-mono mb-3">{{ t('cowork.project.saveAs') }}</div>
-        <input v-model="saveProjectName" @keyup.enter="saveCurrentProject" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-code-text font-mono mb-3" :placeholder="t('cowork.project.name')" />
+    <BaseModal v-model="showSaveModal" :closable="false">
+      <template #header><span class="text-sm text-cyber-text font-mono">{{ t('cowork.project.saveAs') }}</span></template>
+      <div class="p-3">
+        <input v-model="saveProjectName" @keyup.enter="saveCurrentProject" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-code-text font-mono" :placeholder="t('cowork.project.name')" />
+      </div>
+      <template #footer>
         <div class="flex justify-end gap-2">
           <button @click="showSaveModal = false" class="text-xs text-cyber-muted font-mono px-3 py-1.5 border border-cyber-code-border rounded transition-colors duration-150 hover:text-cyber-text">{{ t('tasks.form.cancel') }}</button>
           <button @click="saveCurrentProject" class="text-xs text-white font-mono px-3 py-1.5 bg-cyber-accent rounded transition-colors duration-150 hover:bg-cyber-accent/80">{{ t('cowork.project.save') }}</button>
         </div>
-      </div>
-    </div>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, triggerRef, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, triggerRef, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiChevronRight } from 'vue-icons-plus/hi'
 import { marked } from 'marked'
@@ -172,6 +174,7 @@ import DirectoryBrowser from './DirectoryBrowser.vue'
 import ModelSelector from './ModelSelector.vue'
 import SessionModal from './SessionModal.vue'
 import FormBlock from './FormBlock.vue'
+import BaseModal from './BaseModal.vue'
 interface PlanStep { id: number; order: number; text: string; status: string }
 interface PlanData { id: number; title: string; status: string; steps: PlanStep[] }
 interface ChatMessage { role: string; content: string; timestamp: string; typing?: boolean; isResult?: boolean; plan?: PlanData; toolName?: string }
@@ -211,6 +214,12 @@ onMounted(async () => {
 
 onUnmounted(() => {
   emit('active-subagents-change', 0)
+})
+
+watch(showSaveModal, (val) => {
+  if (val && projectPath.value) {
+    saveProjectName.value = projectPath.value.replace(/\\/g, '/').split('/').filter(Boolean).pop() || ''
+  }
 })
 
 async function loadProject() {
