@@ -23,6 +23,10 @@ import { GlobExecutor } from './executors/glob.executor';
 import { ResumePlanExecutor } from './executors/resume-plan.executor';
 import { CreatePlanExecutor } from './executors/create-plan.executor';
 import { SpawnSubagentExecutor } from './executors/spawn-subagent.executor';
+import { ReadWordExecutor } from '../word/executors/read-word.executor';
+import { WriteWordExecutor } from '../word/executors/write-word.executor';
+import { EditWordExecutor } from '../word/executors/edit-word.executor';
+import { WordModule } from '../word/word.module';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { NotesModule } from '../notes/notes.module';
@@ -52,10 +56,13 @@ const EXECUTORS = [
   ResumePlanExecutor,
   CreatePlanExecutor,
   SpawnSubagentExecutor,
+  ReadWordExecutor,
+  WriteWordExecutor,
+  EditWordExecutor,
 ];
 
 @Module({
-  imports: [TasksModule, KnowledgeModule, NotesModule, WorkspaceModule, PlansModule],
+  imports: [TasksModule, KnowledgeModule, NotesModule, WorkspaceModule, PlansModule, WordModule],
   controllers: [ToolsController],
   providers: [ToolsService, ...EXECUTORS],
   exports: [ToolsService, ...EXECUTORS],
