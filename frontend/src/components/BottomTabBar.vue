@@ -36,7 +36,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { view: 'chat',        labelKey: 'nav.chat',        icon: HiChatAlt2 },
+  // { view: 'chat',        labelKey: 'nav.chat',        icon: HiChatAlt2 },
   { view: 'cowork',      labelKey: 'nav.cowork',      icon: HiCode },
   { view: 'tasks',       labelKey: 'nav.tasks',       icon: HiClipboardList },
   { view: 'agent-output', labelKey: 'nav.agentOutput', icon: HiDownload },
