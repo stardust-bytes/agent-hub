@@ -22,6 +22,7 @@
 
     <MemoryView v-if="activeSettingsTab === 'memories'" />
     <UsageView v-else-if="activeSettingsTab === 'usage'" />
+    <ProvidersView v-else-if="activeSettingsTab === 'providers'" />
     <PermissionView v-else-if="activeSettingsTab === 'permissions'" />
     <div v-else class="flex-1 overflow-y-auto px-4 py-4">
       <div class="max-w-xl">
@@ -113,11 +114,13 @@ import { HiCog } from 'vue-icons-plus/hi'
 import MemoryView from './MemoryView.vue'
 import PermissionView from './PermissionView.vue'
 import UsageView from './UsageView.vue'
+import ProvidersView from './ProvidersView.vue'
 
 const { t } = useI18n()
 const activeSettingsTab = ref('general')
 const TABS = [
   { key: 'general', labelKey: 'settings.header' },
+  { key: 'providers', labelKey: 'providers.header' },
   { key: 'memories', labelKey: 'memory.title' },
   { key: 'usage', labelKey: 'usage.header' },
   { key: 'permissions', labelKey: 'permissions.header' },
