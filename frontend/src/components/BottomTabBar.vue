@@ -24,13 +24,13 @@ import type { Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiChatAlt2, HiClipboardList, HiCog, HiLightningBolt, HiDocumentText, HiCode, HiDownload } from 'vue-icons-plus/hi'
 
-defineProps<{ activeView: 'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output' }>()
-defineEmits<{ navigate: [view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output'] }>()
+defineProps<{ activeView: 'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output' | 'connectors' }>()
+defineEmits<{ navigate: [view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output' | 'connectors'] }>()
 
 const { t } = useI18n()
 
 interface NavItem {
-  view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output'
+  view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output' | 'connectors'
   labelKey: string
   icon: Component | string
 }
@@ -43,6 +43,7 @@ const navItems: NavItem[] = [
   { view: 'plans',       labelKey: 'nav.plans',       icon: '📋' },
   // { view: 'providers',   labelKey: 'nav.providers',   icon: HiCog },
   { view: 'notes',       labelKey: 'nav.notes',       icon: HiDocumentText },
+  { view: 'connectors',  labelKey: 'nav.connectors',  icon: HiCog },
   { view: 'settings',    labelKey: 'nav.settings',    icon: HiCog },
 ]
 </script>

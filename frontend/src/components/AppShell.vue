@@ -19,6 +19,7 @@
         <SettingsView   v-else-if="activeView === 'settings'"  class="flex-1 overflow-hidden" />
         <TasksView      v-else-if="activeView === 'tasks'"     class="flex-1 overflow-hidden" @ws-status="wsConnected = $event" />
         <NotesView      v-else-if="activeView === 'notes'"        class="flex-1 overflow-hidden" />
+        <ConnectorsView v-else-if="activeView === 'connectors'"  class="flex-1 overflow-hidden" />
         <AgentOutputView v-else-if="activeView === 'agent-output'" class="flex-1 overflow-hidden" />
         <ChatPanel      v-else                                  class="flex-1 overflow-hidden" @active-subagents-change="activeSubagents = $event" />
       </div>
@@ -39,17 +40,18 @@ import ChatPanel from './ChatPanel.vue'
 import TasksView from './TasksView.vue'
 import SettingsView from './SettingsView.vue'
 import NotesView from './NotesView.vue'
+import ConnectorsView from './ConnectorsView.vue'
 import CoworkView from './CoworkView.vue'
 import AgentOutputView from './AgentOutputView.vue'
 import StatusBar from './StatusBar.vue'
 
-const activeView = ref<'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output'>('cowork')
+const activeView = ref<'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output' | 'connectors'>('cowork')
 const sidebarOpen = ref(false)
 const dbConnected = ref(true)
 const wsConnected = ref(false)
 const activeSubagents = ref(0)
 
-function onNavigate(view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output') {
+function onNavigate(view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output' | 'connectors') {
   activeView.value = view
   sidebarOpen.value = false
 }

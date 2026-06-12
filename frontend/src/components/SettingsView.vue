@@ -20,8 +20,7 @@
       >{{ t(tab.labelKey) }}</button>
     </div>
 
-    <ConnectorsView v-if="activeSettingsTab === 'connectors'" />
-    <MemoryView v-else-if="activeSettingsTab === 'memories'" />
+    <MemoryView v-if="activeSettingsTab === 'memories'" />
     <UsageView v-else-if="activeSettingsTab === 'usage'" />
     <ProvidersView v-else-if="activeSettingsTab === 'providers'" />
     <ToolsView v-else-if="activeSettingsTab === 'tools'" />
@@ -78,32 +77,7 @@
           </div>
         </div>
 
-        <div class="border-t border-cyber-accent/10 pt-4 mt-4">
-          <h2 class="text-xs text-cyber-accent font-mono tracking-wider mb-2">{{ t('settings.oauth') }}</h2>
-          <div class="space-y-2">
-            <div>
-              <label class="text-xs text-cyber-muted font-mono">{{ t('settings.oauthClientId') }}</label>
-              <input v-model="oauthClientId" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1 text-xs text-cyber-code-text font-mono" />
-            </div>
-            <div>
-              <label class="text-xs text-cyber-muted font-mono">{{ t('settings.oauthClientSecret') }}</label>
-              <input v-model="oauthClientSecret" type="password" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1 text-xs text-cyber-code-text font-mono" />
-            </div>
-            <div>
-              <label class="text-xs text-cyber-muted font-mono">{{ t('settings.oauthRedirectUri') }}</label>
-              <input v-model="oauthRedirectUri" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1 text-xs text-cyber-code-text font-mono" />
-            </div>
-            <div class="flex gap-2">
-              <button @click="saveOAuthConfig" class="px-3 py-1 text-xs font-mono rounded bg-cyber-accent text-white transition-colors duration-150 hover:bg-cyber-accent/80">
-                {{ t('settings.oauthSave') }}
-              </button>
-              <button v-if="oauthConfigured" @click="authorizeGoogle" class="px-3 py-1 text-xs font-mono rounded border border-cyber-accent text-cyber-accent transition-colors duration-150 hover:bg-cyber-accent/10">
-                {{ t('settings.oauthAuthorize') }}
-              </button>
-            </div>
-            <p v-if="oauthStatus" class="text-xs font-mono" :class="oauthStatus.includes('✓') ? 'text-cyber-green' : 'text-cyber-orange'">{{ oauthStatus }}</p>
-          </div>
-        </div>
+
       </div>
     </div>
   </div>
@@ -118,13 +92,10 @@ import PermissionView from './PermissionView.vue'
 import UsageView from './UsageView.vue'
 import ProvidersView from './ProvidersView.vue'
 import ToolsView from './ToolsView.vue'
-import ConnectorsView from './ConnectorsView.vue'
-
 const { t } = useI18n()
 const activeSettingsTab = ref('general')
 const TABS = [
   { key: 'general', labelKey: 'settings.header' },
-  { key: 'connectors', labelKey: 'settings.connectors' },
   { key: 'providers', labelKey: 'providers.header' },
   { key: 'tools', labelKey: 'tools.header' },
   { key: 'memories', labelKey: 'memory.title' },
@@ -151,11 +122,6 @@ const summaryModelId = ref<string>('')
 const saved = ref(false)
 const fetchError = ref(false)
 const mcpServers = ref<McpServerInfo[]>([])
-const oauthClientId = ref('')
-const oauthClientSecret = ref('')
-const oauthRedirectUri = ref(`${window.location.origin}/api/oauth/callback`)
-const oauthConfigured = ref(false)
-const oauthStatus = ref('')
 
 onMounted(async () => {
   try {
@@ -186,40 +152,7 @@ onMounted(async () => {
       }
     }
   } catch { fetchError.value = true }
-
-  try {
-    const res = await fetch('/api/oauth/config')
-    if (res.ok) {
-      const config = await res.json()
-      if (config) {
-        oauthClientId.value = config.clientId || ''
-        oauthClientSecret.value = config.clientSecret || ''
-        oauthRedirectUri.value = config.redirectUri || `${window.location.origin}/api/oauth/callback`
-        oauthConfigured.value = !!(config.tokens?.access_token)
-        oauthStatus.value = oauthConfigured.value ? '✓ Authorized' : ''
-      }
-    }
-  } catch {}
 })
-
-async function saveOAuthConfig() {
-  try {
-    const res = await fetch('/api/oauth/config', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clientId: oauthClientId.value, clientSecret: oauthClientSecret.value, redirectUri: oauthRedirectUri.value }),
-    })
-    if (res.ok) oauthStatus.value = '✓ Config saved'
-  } catch { oauthStatus.value = '✗ Save failed' }
-}
-
-async function authorizeGoogle() {
-  try {
-    const res = await fetch('/api/oauth/auth-url')
-    const data = await res.json()
-    if (data.url) window.open(data.url, '_blank')
-  } catch { oauthStatus.value = '✗ Authorization failed' }
-}
 
 async function saveSetting(key: string, value: string) {
   saved.value = false
