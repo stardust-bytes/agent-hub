@@ -35,7 +35,7 @@ src/
 │                              AgentModule, AgentOutputModule, SettingsModule, KnowledgeModule,
 │                              SessionsModule, ProvidersModule, ToolsModule, PlansModule,
 │                              WorkspaceModule, CoworkModule, FilesModule, MemoryModule,
-│                              ExcelModule, WordModule, UsageModule, OAuthModule)
+│                              ExcelModule, WordModule, UsageModule, ConnectorModule)
 ├── app.controller.ts        — GET /api/health → { status, db, timestamp }
 ├── http-exception.filter.ts — global filter: returns { statusCode, message, timestamp }
 │
@@ -132,6 +132,19 @@ src/
 │       ├── list-excel-sheets.executor.ts, excel-add-sheet.executor.ts
 │       └── excel-chart.executor.ts
 │
+├── connector/
+│   ├── connector.module.ts          — CRUD + OAuth endpoints
+│   ├── connector.service.ts         — Connector CRUD
+│   ├── dto/
+│   │   ├── upsert-connector.dto.ts
+│   │   └── update-connector.dto.ts
+│   └── providers/
+│       └── google/
+│           ├── google-oauth.service.ts       — OAuth2 URL gen, token exchange, refresh
+│           ├── gmail.service.ts              — Gmail API (search/read/send/draft/labels)
+│           ├── google-calendar.service.ts    — Calendar API (list/create/update/availability)
+│           └── google-drive.service.ts       — Drive API (search/read/list/upload)
+│
 └── knowledge/
     ├── knowledge.module.ts
     ├── knowledge.controller.ts — file upload + search + delete under /api/knowledge
@@ -180,6 +193,12 @@ All routes are prefixed with `/api`.
 | `POST` | `/api/knowledge/upload` | Upload file for indexing |
 | `POST` | `/api/knowledge/search` | Search indexed files |
 | `DELETE` | `/api/knowledge/:id` | Delete file |
+| `GET` | `/api/connectors` | List connector accounts |
+| `POST` | `/api/connectors` | Upsert connector |
+| `PATCH` | `/api/connectors/:id` | Update connector |
+| `DELETE` | `/api/connectors/:id` | Delete connector |
+| `GET` | `/api/connectors/google/auth-url` | Get Google OAuth URL |
+| `GET` | `/api/connectors/google/callback` | Handle Google OAuth callback |
 | `GET` | `/api/usage` | Get total token usage |
 | `GET` | `/api/usage/sessions` | Get per-session token usage breakdown |
 | `GET` | `/api/agent-output` | List agent-generated files |

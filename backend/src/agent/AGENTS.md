@@ -111,7 +111,7 @@ Plan execution is now handled inside the main `/chat` SSE stream. Send messages 
 5. If no tool_calls → **RESPONDING**: LLM decided task is complete, emit final text tokens
 6. **DONE**: emit `[DONE]` SSE event
 
-Tools available: create_task, update_task, list_tasks, get_task, delete_tasks, search_knowledge, web_fetch, web_search, create_note, update_note, list_notes, delete_note, convert_note_to_task, resume_plan, create_plan, spawn_subagent
+Tools available: create_task, update_task, list_tasks, get_task, delete_tasks, search_knowledge, web_fetch, web_search, create_note, update_note, list_notes, delete_note, convert_note_to_task, resume_plan, create_plan, spawn_subagent, google_gmail_search, google_gmail_read, google_gmail_send, google_gmail_draft, google_gmail_labels, google_calendar_list, google_calendar_create, google_calendar_update, google_calendar_availability, google_drive_search, google_drive_read, google_drive_list, google_drive_upload
 
 Permission check: before each tool execution, `PermissionsService.isAllowed(name)` is called. Denied tools emit a `toolResult` denial SSE and continue to next tool call.
 
@@ -132,6 +132,7 @@ Permission check: before each tool execution, `PermissionsService.isAllowed(name
 - ProvidersModule (provider model resolution)
 - ToolsModule (all ToolExecutor implementations)
 - NotesModule (note tool executors — create/update/list/delete/convert)
+- ConnectorModule (Google connector services + OAuth)
 
 
 ## Testing

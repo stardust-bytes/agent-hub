@@ -81,6 +81,19 @@ Base path: `/api/tools`
 | `ResumePlanExecutor` | `resume_plan` | Validate and describe plan status for resumption |
 | `CreatePlanExecutor` | `create_plan` | Create a plan with steps, optional auto-approve |
 | `SpawnSubagentExecutor` | `spawn_subagent` | Registration placeholder — subagent spawning handled by AgentLoopService |
+| `GoogleGmailSearchExecutor` | `google_gmail_search` | Search Gmail emails |
+| `GoogleGmailReadExecutor` | `google_gmail_read` | Read a Gmail email |
+| `GoogleGmailSendExecutor` | `google_gmail_send` | Send email via Gmail |
+| `GoogleGmailDraftExecutor` | `google_gmail_draft` | Create Gmail draft |
+| `GoogleGmailLabelsExecutor` | `google_gmail_labels` | List Gmail labels |
+| `GoogleCalendarListExecutor` | `google_calendar_list` | List calendar events |
+| `GoogleCalendarCreateExecutor` | `google_calendar_create` | Create calendar event |
+| `GoogleCalendarUpdateExecutor` | `google_calendar_update` | Update calendar event |
+| `GoogleCalendarAvailabilityExecutor` | `google_calendar_availability` | Check calendar availability |
+| `GoogleDriveSearchExecutor` | `google_drive_search` | Search Drive files |
+| `GoogleDriveReadExecutor` | `google_drive_read` | Read Drive file |
+| `GoogleDriveListExecutor` | `google_drive_list` | List Drive folder |
+| `GoogleDriveUploadExecutor` | `google_drive_upload` | Upload to Drive |
 
 ## Security
 
@@ -95,6 +108,7 @@ Executors import domain services directly:
 - `KnowledgeModule` → `KnowledgeService` for search knowledge
 - `NotesModule` → `NotesService` for note CRUD executors
 - `PlansModule` → `PlansService` for resume_plan, create_plan executors
+- `ConnectorModule` → `GmailService`, `GoogleCalendarService`, `GoogleDriveService` for Google connector executors
 
 ## Testing
 
