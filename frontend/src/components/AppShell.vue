@@ -37,7 +37,7 @@ import CoworkView from './CoworkView.vue'
 import AgentOutputView from './AgentOutputView.vue'
 import StatusBar from './StatusBar.vue'
 
-const activeView = ref<'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' | 'agent-output'>('chat')
+const activeView = ref<'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' | 'agent-output'>('cowork')
 const dbConnected = ref(true)
 const wsConnected = ref(false)
 const activeSubagents = ref(0)
