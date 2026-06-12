@@ -132,6 +132,7 @@ export class AgentLoopService {
 
     let activeTools = tools;
     let finalText = '';
+    const downloadLinks: string[] = [];
     let messages = this.llmController.buildMessages(systemPrompt, history, userMessage);
 
     while (!signal.aborted) {
@@ -274,6 +275,9 @@ export class AgentLoopService {
 
         messages.push({ role: 'tool', content: result, toolCallId });
 
+        const linkMatch = result.match(/\[Download[^\]]+\]\(([^)]+)\)/);
+        if (linkMatch) downloadLinks.push(linkMatch[1]);
+
         if (name === 'search_knowledge') {
           messages = await this.handleKnowledgeResult(messages, result, res, sessionId);
         }
@@ -282,6 +286,12 @@ export class AgentLoopService {
 
     this.state = AgentState.RESPONDING;
     if (!signal.aborted) {
+      for (const link of downloadLinks) {
+        if (!finalText.includes(link)) {
+          finalText += `\n\n📥 [Tải file xuống](${link})`;
+        }
+      }
+
       if (sessionId) {
         this.eventEmitter.emit('agent.idle', {
           sessionId,

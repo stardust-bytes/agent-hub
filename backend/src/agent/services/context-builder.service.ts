@@ -158,6 +158,9 @@ export class ContextBuilderService {
         'When writing files, use relative paths (e.g., "output.txt").',
         `Files will be saved to: ${agentOutputPath}/session_{sessionId}`,
         'Files written here are automatically downloadable via links returned by write_file.',
+        'IMPORTANT: When a file is created, the tool result will contain a download link.',
+        'You MUST include this download link in your final response text so the user can click it.',
+        'Example format: [Download "filename"](api/files/agent/123/download)',
       );
     }
 
