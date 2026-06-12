@@ -42,6 +42,15 @@ import { ExcelChartExecutor } from '../../excel/executors/excel-chart.executor';
 import { ReadWordExecutor } from '../../word/executors/read-word.executor';
 import { WriteWordExecutor } from '../../word/executors/write-word.executor';
 import { EditWordExecutor } from '../../word/executors/edit-word.executor';
+import { EmailListExecutor } from '../../email/executors/email-list.executor';
+import { EmailReadExecutor } from '../../email/executors/email-read.executor';
+import { EmailSendExecutor } from '../../email/executors/email-send.executor';
+import { EmailSearchExecutor } from '../../email/executors/email-search.executor';
+import { EmailReplyExecutor } from '../../email/executors/email-reply.executor';
+import { CalendarListEventsExecutor } from '../../calendar/executors/calendar-list-events.executor';
+import { CalendarCreateEventExecutor } from '../../calendar/executors/calendar-create-event.executor';
+import { CalendarUpdateEventExecutor } from '../../calendar/executors/calendar-update-event.executor';
+import { CalendarCheckAvailabilityExecutor } from '../../calendar/executors/calendar-check-availability.executor';
 
 const MAX_ITERATIONS = 100;
 const KB_NO_RESULTS = 'No relevant information found in knowledge base.';
@@ -89,6 +98,15 @@ export class AgentLoopService {
     private readonly readWord: ReadWordExecutor,
     private readonly writeWord: WriteWordExecutor,
     private readonly editWord: EditWordExecutor,
+    private readonly emailList: EmailListExecutor,
+    private readonly emailRead: EmailReadExecutor,
+    private readonly emailSend: EmailSendExecutor,
+    private readonly emailSearch: EmailSearchExecutor,
+    private readonly emailReply: EmailReplyExecutor,
+    private readonly calendarListEvents: CalendarListEventsExecutor,
+    private readonly calendarCreateEvent: CalendarCreateEventExecutor,
+    private readonly calendarUpdateEvent: CalendarUpdateEventExecutor,
+    private readonly calendarCheckAvailability: CalendarCheckAvailabilityExecutor,
     private readonly usageService: UsageService,
   ) {
     this.executorMap = new Map<string, ToolExecutor>([
@@ -121,6 +139,15 @@ export class AgentLoopService {
       [readWord.name, readWord],
       [writeWord.name, writeWord],
       [editWord.name, editWord],
+      [emailList.name, emailList],
+      [emailRead.name, emailRead],
+      [emailSend.name, emailSend],
+      [emailSearch.name, emailSearch],
+      [emailReply.name, emailReply],
+      [calendarListEvents.name, calendarListEvents],
+      [calendarCreateEvent.name, calendarCreateEvent],
+      [calendarUpdateEvent.name, calendarUpdateEvent],
+      [calendarCheckAvailability.name, calendarCheckAvailability],
     ]);
   }
 

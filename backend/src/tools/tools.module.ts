@@ -27,6 +27,8 @@ import { ReadWordExecutor } from '../word/executors/read-word.executor';
 import { WriteWordExecutor } from '../word/executors/write-word.executor';
 import { EditWordExecutor } from '../word/executors/edit-word.executor';
 import { WordModule } from '../word/word.module';
+import { EmailModule } from '../email/email.module';
+import { CalendarModule } from '../calendar/calendar.module';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { NotesModule } from '../notes/notes.module';
@@ -62,7 +64,7 @@ const EXECUTORS = [
 ];
 
 @Module({
-  imports: [TasksModule, KnowledgeModule, NotesModule, WorkspaceModule, PlansModule, WordModule],
+  imports: [TasksModule, KnowledgeModule, NotesModule, WorkspaceModule, PlansModule, WordModule, EmailModule, CalendarModule],
   controllers: [ToolsController],
   providers: [ToolsService, ...EXECUTORS],
   exports: [ToolsService, ...EXECUTORS],
