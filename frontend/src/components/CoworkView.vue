@@ -7,7 +7,8 @@
           {{ projectPath ? projectPath.replace(/\\/g, '/').split('/').filter(Boolean).pop() : t('cowork.project.select') }}
           <svg class="w-3 h-3 shrink-0" :class="showProjectMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </button>
-        <div v-if="showProjectMenu" class="absolute top-full left-0 mt-1 w-72 bg-cyber-dark border border-cyber-code-border rounded z-50 shadow-lg">
+        <div v-if="showProjectMenu" class="fixed inset-0 z-40" @click="showProjectMenu = false"></div>
+        <div v-if="showProjectMenu" class="absolute top-full left-0 mt-1 w-72 bg-cyber-dark border border-cyber-code-border rounded z-50">
           <button @click="showDirBrowser = true; showProjectMenu = false" class="w-full text-left px-3 py-2 text-sm text-cyber-text font-mono hover:bg-cyber-accent/10 transition-colors duration-150 flex items-center gap-2 border-b border-cyber-code-border">
             <span>📁</span> {{ t('cowork.connect.browse') }}
           </button>
