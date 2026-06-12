@@ -149,6 +149,16 @@ model Project {
   createdAt DateTime @default(now())
 }
 
+model Connector {
+  id        String   @id @default(cuid())
+  name      String
+  type      String
+  config    String   @default("{}")
+  enabled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model UsageRecord {
   id               Int      @id @default(autoincrement())
   sessionId        Int?

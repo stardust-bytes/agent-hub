@@ -6,36 +6,28 @@
     <div class="flex-1 overflow-y-auto px-4 py-4">
       <div class="max-w-xl">
 
-        <div v-for="connector in connectors" :key="connector.id" class="flex items-center justify-between px-3 h-[3rem] border border-cyber-code-border mb-2 bg-cyber-dark">
+        <div v-for="connector in connectors" :key="connector.type" class="flex items-center justify-between px-3 h-[3rem] border border-cyber-code-border mb-2 bg-cyber-dark">
           <div class="flex items-center gap-3 min-w-0">
-            <img :src="connector.icon" :alt="connector.name" class="w-5 h-5 shrink-0" />
+            <img :src="`https://cdn.simpleicons.org/${connector.type}`" :alt="connector.name" class="w-5 h-5 shrink-0" />
             <span class="text-sm text-cyber-text font-mono truncate">{{ connector.name }}</span>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <span class="text-xs font-mono" :class="connector.connected ? 'text-cyber-green' : 'text-cyber-muted'">{{ connector.connected ? t('connectors.connected') : t('connectors.disconnected') }}</span>
-            <button @click="toggleConnector(connector)" class="text-xs font-mono px-2 py-0.5 border border-cyber-code-border transition-colors duration-150" :class="connector.connected ? 'text-red-400/40 hover:text-red-400' : 'text-cyber-accent/40 hover:text-cyber-accent'">{{ connector.connected ? t('connectors.disconnect') : t('connectors.connect') }}</button>
+            <span class="text-xs font-mono" :class="connector.enabled ? 'text-cyber-green' : 'text-cyber-muted'">{{ connector.enabled ? t('connectors.connected') : t('connectors.disconnected') }}</span>
+            <button @click="toggleConnector(connector)" class="text-xs font-mono px-2 py-0.5 border border-cyber-code-border transition-colors duration-150" :class="connector.enabled ? 'text-red-400/40 hover:text-red-400' : 'text-cyber-accent/40 hover:text-cyber-accent'">{{ connector.enabled ? t('connectors.disconnect') : t('connectors.connect') }}</button>
           </div>
         </div>
 
         <div v-if="editingConnector" class="mt-4 border border-cyber-code-border p-4 bg-cyber-dark">
           <div class="text-sm text-cyber-accent font-mono mb-3">{{ editingConnector.name }}</div>
           <div class="space-y-2">
-            <div>
-              <label class="text-xs text-cyber-muted font-mono">{{ t('connectors.clientId') }}</label>
-              <input v-model="oauthClientId" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-code-text font-mono mt-1" />
-            </div>
-            <div>
-              <label class="text-xs text-cyber-muted font-mono">{{ t('connectors.clientSecret') }}</label>
-              <input v-model="oauthClientSecret" type="password" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-code-text font-mono mt-1" />
-            </div>
-            <div>
-              <label class="text-xs text-cyber-muted font-mono">{{ t('connectors.redirectUri') }}</label>
-              <input v-model="oauthRedirectUri" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-code-text font-mono mt-1" />
+            <div v-for="(field, key) in configFields" :key="key">
+              <label class="text-xs text-cyber-muted font-mono">{{ (field as any).label }}</label>
+              <input v-model="(configValues as any)[key]" :type="(field as any).type || 'text'" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-code-text font-mono mt-1" />
             </div>
             <div class="flex gap-2 pt-1">
-              <button @click="saveOAuthConfig" class="text-xs text-white font-mono px-3 py-1.5 bg-cyber-accent rounded transition-colors duration-150 hover:bg-cyber-accent/80">{{ t('connectors.save') }}</button>
-              <button v-if="oauthConfigured" @click="authorizeGoogle" class="text-xs text-cyber-accent font-mono px-3 py-1.5 border border-cyber-accent rounded transition-colors duration-150 hover:bg-cyber-accent/10">{{ t('connectors.authorize') }}</button>
-              <button @click="editingConnector = null; editingConnectorId = ''" class="text-xs text-cyber-muted font-mono px-3 py-1.5 border border-cyber-code-border rounded transition-colors duration-150 hover:text-cyber-text">{{ t('tasks.form.cancel') }}</button>
+              <button @click="saveConnector" class="text-xs text-white font-mono px-3 py-1.5 bg-cyber-accent rounded transition-colors duration-150 hover:bg-cyber-accent/80">{{ t('connectors.save') }}</button>
+              <button v-if="editingConnector.type === 'google' && oauthConfigured" @click="authorizeGoogle" class="text-xs text-cyber-accent font-mono px-3 py-1.5 border border-cyber-accent rounded transition-colors duration-150 hover:bg-cyber-accent/10">{{ t('connectors.authorize') }}</button>
+              <button @click="editingConnector = null" class="text-xs text-cyber-muted font-mono px-3 py-1.5 border border-cyber-code-border rounded transition-colors duration-150 hover:text-cyber-text">{{ t('tasks.form.cancel') }}</button>
             </div>
             <div v-if="oauthStatus" class="text-xs font-mono" :class="oauthStatus.includes('✓') ? 'text-cyber-green' : 'text-cyber-orange'">{{ oauthStatus }}</div>
           </div>
@@ -47,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -55,68 +47,132 @@ const { t } = useI18n()
 interface Connector {
   id: string
   name: string
-  icon: string
-  connected: boolean
+  type: string
+  config: string
+  enabled: boolean
 }
 
-const connectors = ref<Connector[]>([
-  { id: 'google', name: 'Google (Gmail, Calendar, Drive)', icon: 'https://cdn.simpleicons.org/google', connected: false },
-  { id: 'slack', name: 'Slack', icon: 'https://cdn.simpleicons.org/slack', connected: false },
-  { id: 'jira', name: 'Jira / Linear', icon: 'https://cdn.simpleicons.org/jira', connected: false },
-  { id: 'github', name: 'GitHub / GitLab', icon: 'https://cdn.simpleicons.org/github', connected: false },
-  { id: 'notion', name: 'Notion', icon: 'https://cdn.simpleicons.org/notion', connected: false },
-  { id: 'confluence', name: 'Confluence', icon: 'https://cdn.simpleicons.org/confluence', connected: false },
-])
-
-const editingConnectorId = ref('')
+const connectors = ref<Connector[]>([])
 const editingConnector = ref<Connector | null>(null)
-const oauthClientId = ref('')
-const oauthClientSecret = ref('')
-const oauthRedirectUri = ref(`${window.location.origin}/api/oauth/callback`)
+const configValues = ref<Record<string, string>>({})
 const oauthConfigured = ref(false)
 const oauthStatus = ref('')
 
+const configFields = computed(() => {
+  if (!editingConnector.value) return {}
+  const type = editingConnector.value.type
+  if (type === 'google') {
+    return {
+      clientId: { label: 'Client ID' },
+      clientSecret: { label: 'Client Secret', type: 'password' },
+      redirectUri: { label: 'Redirect URI' },
+    }
+  }
+  if (type === 'slack') {
+    return {
+      botToken: { label: 'Bot Token', type: 'password' },
+      signingSecret: { label: 'Signing Secret', type: 'password' },
+    }
+  }
+  if (type === 'jira') {
+    return {
+      instanceUrl: { label: 'Instance URL' },
+      email: { label: 'Email' },
+      apiToken: { label: 'API Token', type: 'password' },
+    }
+  }
+  if (type === 'github') {
+    return {
+      token: { label: 'Personal Access Token', type: 'password' },
+    }
+  }
+  if (type === 'notion' || type === 'confluence') {
+    return {
+      apiKey: { label: 'API Key', type: 'password' },
+      workspace: { label: 'Workspace' },
+    }
+  }
+  return {}
+})
+
+const connectorTemplates = [
+  { type: 'google', name: 'Google (Gmail, Calendar, Drive)' },
+  { type: 'slack', name: 'Slack' },
+  { type: 'jira', name: 'Jira / Linear' },
+  { type: 'github', name: 'GitHub / GitLab' },
+  { type: 'notion', name: 'Notion' },
+  { type: 'confluence', name: 'Confluence' },
+]
+
+onMounted(async () => {
+  await fetchConnectors()
+})
+
+async function fetchConnectors() {
+  try {
+    const res = await fetch('/api/connectors')
+    if (res.ok) {
+      const data: Connector[] = await res.json()
+      connectors.value = data
+    }
+  } catch {}
+}
+
 async function toggleConnector(connector: Connector) {
-  if (connector.connected) {
-    connector.connected = false
+  if (connector.enabled) {
+    await fetch(`/api/connectors/${connector.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: false }),
+    })
+    connector.enabled = false
     editingConnector.value = null
-    editingConnectorId.value = ''
     return
   }
-  editingConnectorId.value = connector.id
+
+  const template = connectorTemplates.find(t => t.type === connector.type)
   editingConnector.value = connector
   oauthStatus.value = ''
-  if (connector.id === 'google') {
-    try {
-      const res = await fetch('/api/oauth/config')
-      if (res.ok) {
-        const config = await res.json()
-        if (config) {
-          oauthClientId.value = config.clientId || ''
-          oauthClientSecret.value = config.clientSecret || ''
-          oauthRedirectUri.value = config.redirectUri || `${window.location.origin}/api/oauth/callback`
-          oauthConfigured.value = !!(config.tokens?.access_token)
-          connector.connected = oauthConfigured.value
-          oauthStatus.value = oauthConfigured.value ? '✓ Authorized' : ''
-        }
-      }
-    } catch {}
+  oauthConfigured.value = false
+
+  const parsed = connector.config ? JSON.parse(connector.config) : {}
+  configValues.value = {}
+  for (const key of Object.keys(configFields.value)) {
+    configValues.value[key] = parsed[key] || ''
+  }
+
+  if (connector.type === 'google') {
+    oauthConfigured.value = !!(parsed.tokens?.access_token)
+    if (oauthConfigured.value) {
+      connector.enabled = true
+      oauthStatus.value = '✓ Authorized'
+    }
   }
 }
 
-async function saveOAuthConfig() {
+async function saveConnector() {
   if (!editingConnector.value) return
-  try {
-    const res = await fetch('/api/oauth/config', {
+  const config: Record<string, unknown> = {}
+  for (const key of Object.keys(configValues.value)) {
+    config[key] = configValues.value[key]
+  }
+
+  const existing = connectors.value.find(c => c.type === editingConnector.value?.type)
+  if (existing) {
+    await fetch(`/api/connectors/${existing.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ config, enabled: true }),
+    })
+  } else {
+    await fetch('/api/connectors', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clientId: oauthClientId.value, clientSecret: oauthClientSecret.value, redirectUri: oauthRedirectUri.value }),
+      body: JSON.stringify({ type: editingConnector.value.type, name: editingConnector.value.name, config, enabled: true }),
     })
-    if (res.ok) {
-      oauthStatus.value = '✓ Config saved'
-      oauthConfigured.value = true
-    }
-  } catch { oauthStatus.value = '✗ Save failed' }
+  }
+  oauthStatus.value = '✓ Config saved'
+  await fetchConnectors()
 }
 
 async function authorizeGoogle() {
@@ -125,8 +181,9 @@ async function authorizeGoogle() {
     const data = await res.json()
     if (data.url) {
       window.open(data.url, '_blank')
-      const c = connectors.value.find(c => c.id === 'google')
-      if (c) c.connected = true
+      const c = connectors.value.find(c => c.type === 'google')
+      if (c) c.enabled = true
+      oauthConfigured.value = true
     }
   } catch { oauthStatus.value = '✗ Authorization failed' }
 }

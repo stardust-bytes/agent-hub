@@ -24,6 +24,7 @@ import { UsageModule } from './usage/usage.module';
 import { OAuthModule } from './oauth/oauth.module';
 import { EmailModule } from './email/email.module';
 import { CalendarModule } from './calendar/calendar.module';
+import { ConnectorModule } from './connector/connector.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { CalendarModule } from './calendar/calendar.module';
     OAuthModule,
     EmailModule,
     CalendarModule,
+    ConnectorModule,
   ],
   controllers: [AppController],
 })
