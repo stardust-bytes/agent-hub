@@ -76,6 +76,12 @@
   "settings.noMcpServers": "Chưa có MCP server nào",
   "settings.mcpOn": "BẬT",
   "settings.mcpOff": "TẮT",
+  "settings.oauth": "Google OAuth",
+  "settings.oauthClientId": "Client ID",
+  "settings.oauthClientSecret": "Client Secret",
+  "settings.oauthRedirectUri": "Redirect URI",
+  "settings.oauthSave": "Lưu cấu hình",
+  "settings.oauthAuthorize": "Ủy quyền Google",
 
   "files.header": "KIẾN THỨC",
   "files.dropzone": "Thả file hoặc click để upload",

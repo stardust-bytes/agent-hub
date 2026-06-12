@@ -76,6 +76,12 @@
   "settings.noMcpServers": "No MCP servers configured",
   "settings.mcpOn": "ON",
   "settings.mcpOff": "OFF",
+  "settings.oauth": "Google OAuth",
+  "settings.oauthClientId": "Client ID",
+  "settings.oauthClientSecret": "Client Secret",
+  "settings.oauthRedirectUri": "Redirect URI",
+  "settings.oauthSave": "Save Config",
+  "settings.oauthAuthorize": "Authorize Google",
 
   "files.header": "KNOWLEDGE BASE",
   "files.dropzone": "Drop files or click to upload",
