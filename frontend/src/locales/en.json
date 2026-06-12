@@ -177,6 +177,7 @@
   "tools.form.cancel": "Cancel",
   "nav.plans": "Plans",
   "nav.notes": "Notes",
+  "nav.agentOutput": "Outputs",
   "notes.header": "NOTES",
   "notes.empty": "No notes yet",
   "notes.add": "+ add note",
@@ -263,5 +264,17 @@
     "prompt": "Prompt",
     "completion": "Compl",
     "total": "Total"
+  },
+
+  "agentOutput": {
+    "header": "AGENT OUTPUTS",
+    "empty": "No files yet",
+    "download": "Download",
+    "filename": "File",
+    "size": "Size",
+    "modified": "Modified",
+    "bytes": "B",
+    "kb": "KB",
+    "mb": "MB"
   }
 }

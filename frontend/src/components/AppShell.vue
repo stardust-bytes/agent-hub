@@ -6,8 +6,9 @@
       <ToolsView     v-else-if="activeView === 'tools'"    class="flex-1 overflow-hidden" />
       <SettingsView   v-else-if="activeView === 'settings'"  class="flex-1 overflow-hidden" />
       <TasksView      v-else-if="activeView === 'tasks'"     class="flex-1 overflow-hidden" @ws-status="wsConnected = $event" />
-      <ProvidersView  v-else-if="activeView === 'providers'" class="flex-1 overflow-hidden" />
-      <NotesView      v-else-if="activeView === 'notes'"     class="flex-1 overflow-hidden" />
+      <ProvidersView  v-else-if="activeView === 'providers'"    class="flex-1 overflow-hidden" />
+      <NotesView      v-else-if="activeView === 'notes'"        class="flex-1 overflow-hidden" />
+      <AgentOutputView v-else-if="activeView === 'agent-output'" class="flex-1 overflow-hidden" />
       <!-- <PlansView      v-else-if="activeView === 'plans'"     class="flex-1 overflow-hidden" /> -->
       <ChatPanel      v-else                                  class="flex-1 overflow-hidden" @active-subagents-change="activeSubagents = $event" />
     </div>
@@ -33,9 +34,10 @@ import ToolsView from './ToolsView.vue'
 import NotesView from './NotesView.vue'
 import PlansView from './PlansView.vue'
 import CoworkView from './CoworkView.vue'
+import AgentOutputView from './AgentOutputView.vue'
 import StatusBar from './StatusBar.vue'
 
-const activeView = ref<'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans'>('chat')
+const activeView = ref<'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' | 'agent-output'>('chat')
 const dbConnected = ref(true)
 const wsConnected = ref(false)
 const activeSubagents = ref(0)

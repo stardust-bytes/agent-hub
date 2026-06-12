@@ -177,6 +177,7 @@
   "tools.form.cancel": "Huỷ",
   "nav.plans": "Kế hoạch",
   "nav.notes": "Ghi chú",
+  "nav.agentOutput": "Kết quả",
   "notes.header": "GHI CHÚ",
   "notes.empty": "Chưa có ghi chú nào",
   "notes.add": "+ thêm ghi chú",
@@ -263,5 +264,17 @@
     "prompt": "Prompt",
     "completion": "Compl",
     "total": "Tổng"
+  },
+
+  "agentOutput": {
+    "header": "KẾT QUẢ AGENT",
+    "empty": "Chưa có file nào",
+    "download": "Tải",
+    "filename": "Tên file",
+    "size": "Kích thước",
+    "modified": "Sửa lúc",
+    "bytes": "B",
+    "kb": "KB",
+    "mb": "MB"
   }
 }
