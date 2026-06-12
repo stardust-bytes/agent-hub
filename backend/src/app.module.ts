@@ -22,6 +22,8 @@ import { ExcelModule } from './excel/excel.module';
 import { WordModule } from './word/word.module';
 import { UsageModule } from './usage/usage.module';
 import { OAuthModule } from './oauth/oauth.module';
+import { EmailModule } from './email/email.module';
+import { CalendarModule } from './calendar/calendar.module';
 
 @Module({
   imports: [
@@ -47,6 +49,8 @@ import { OAuthModule } from './oauth/oauth.module';
     WordModule,
     UsageModule,
     OAuthModule,
+    EmailModule,
+    CalendarModule,
   ],
   controllers: [AppController],
 })
