@@ -7,10 +7,11 @@ import { ScheduleCronService } from './schedule-cron.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AgentModule } from '../agent/agent.module';
 import { ProvidersModule } from '../providers/providers.module';
+import { SessionsModule } from '../sessions/sessions.module';
 import { CoworkModule } from '../cowork/cowork.module';
 
 @Module({
-  imports: [PrismaModule, AgentModule, ProvidersModule, CoworkModule, ScheduleModule.forRoot()],
+  imports: [PrismaModule, AgentModule, ProvidersModule, SessionsModule, CoworkModule, ScheduleModule.forRoot()],
   controllers: [ScheduleTasksController],
   providers: [ScheduleTasksService, ScheduleRunnerService, ScheduleCronService],
 })

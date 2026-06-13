@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateScheduleTaskDto } from './dto/create-schedule-task.dto';
 import { UpdateScheduleTaskDto } from './dto/update-schedule-task.dto';
+import { toZonedTime } from 'date-fns-tz';
 
 @Injectable()
 export class ScheduleTasksService {
@@ -45,9 +46,10 @@ export class ScheduleTasksService {
       include: { logs: { orderBy: { createdAt: 'desc' }, take: 1 } },
     });
     return tasks.filter(task => {
-      const minute = now.getMinutes();
-      const hour = now.getHours();
-      const day = now.getDay();
+      const zonedNow = task.timezone ? toZonedTime(now, task.timezone) : now;
+      const minute = zonedNow.getMinutes();
+      const hour = zonedNow.getHours();
+      const day = zonedNow.getDay();
       const lastLog = (task as any).logs?.[0];
       const lastRunTime = lastLog?.createdAt ? new Date(lastLog.createdAt).getTime() : 0;
 

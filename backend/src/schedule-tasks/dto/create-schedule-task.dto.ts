@@ -46,4 +46,8 @@ export class CreateScheduleTaskDto {
   @IsOptional()
   @IsString()
   projectPath?: string;
+
+  @IsOptional()
+  @IsString()
+  timezone?: string;
 }

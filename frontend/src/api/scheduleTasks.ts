@@ -12,6 +12,7 @@ export interface ScheduleTask {
   cronDaysOfWeek: string | null
   modelId: number | null
   projectPath: string | null
+  timezone: string | null
   enabled: boolean
   createdAt: string
   updatedAt: string
