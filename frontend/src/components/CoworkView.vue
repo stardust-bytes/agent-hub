@@ -194,6 +194,19 @@ import ModelSelector from './ModelSelector.vue'
 import SessionModal from './SessionModal.vue'
 import FormBlock from './FormBlock.vue'
 import BaseModal from './BaseModal.vue'
+import { useProvidersStore } from '../stores/providers'
+import { getSessionMessages, createSession } from '../api/sessions'
+import { getPlan } from '../api/plans'
+import { requestRaw } from '../api/client'
+import {
+  getProject,
+  listProjects,
+  setProject,
+  saveProject as apiSaveProject,
+  deleteProject as apiDeleteProject,
+  readFile,
+  clearProject,
+} from '../api/cowork'
 interface PlanStep { id: number; order: number; text: string; status: string }
 interface PlanData { id: number; title: string; status: string; steps: PlanStep[] }
 interface ChatMessage { role: string; content: string; timestamp: string; typing?: boolean; isResult?: boolean; plan?: PlanData; toolName?: string }
@@ -243,25 +256,21 @@ watch(showSaveModal, (val) => {
 
 async function loadProject() {
   try {
-    const res = await fetch('/api/cowork/project')
-    if (res.ok) {
-      const data = await res.json() as { projectPath: string | null }
-      projectPath.value = data.projectPath
-    }
+    const data = await getProject()
+    projectPath.value = data.projectPath
   } catch { /* ignore */ }
   await loadSavedProjects()
 }
 
 async function loadSavedProjects() {
   try {
-    const res = await fetch('/api/cowork/projects')
-    if (res.ok) savedProjects.value = await res.json()
+    savedProjects.value = await listProjects()
   } catch { /* ignore */ }
 }
 
 async function connectProject(p: string) {
   try {
-    await fetch('/api/cowork/project', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: p }) })
+    await setProject(p)
     projectPath.value = p
     showDirBrowser.value = false
   } catch { /* ignore */ }
@@ -270,7 +279,7 @@ async function connectProject(p: string) {
 async function saveCurrentProject() {
   if (!saveProjectName.value || !projectPath.value) return
   try {
-    await fetch('/api/cowork/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: saveProjectName.value, path: projectPath.value }) })
+    await apiSaveProject(saveProjectName.value, projectPath.value)
     saveProjectName.value = ''
     showSaveModal.value = false
     await loadSavedProjects()
@@ -279,21 +288,20 @@ async function saveCurrentProject() {
 
 async function deleteProject(id: string) {
   try {
-    await fetch(`/api/cowork/projects/${id}`, { method: 'DELETE' })
+    await apiDeleteProject(id)
     await loadSavedProjects()
   } catch { /* ignore */ }
 }
 
 async function loadModel() {
+  const providersStore = useProvidersStore()
   try {
-    const res = await fetch('/api/providers/models')
-    if (res.ok) {
-      const models = await res.json() as Array<{ id: number; name: string; providerName: string; providerId: number }>
-      availableModels.value = models
-      if (models.length > 0) {
-        const savedId = Number(localStorage.getItem('workspace.modelId'))
-        selectedModelId.value = models.find(m => m.id === savedId)?.id ?? models[0].id
-      }
+    await providersStore.loadModels()
+    const models = providersStore.models
+    availableModels.value = models
+    if (models.length > 0) {
+      const savedId = Number(localStorage.getItem('workspace.modelId'))
+      selectedModelId.value = models.find(m => m.id === savedId)?.id ?? models[0].id
     }
   } catch { /* ignore */ }
 }
@@ -302,61 +310,55 @@ async function loadSession(id: number) {
   currentSessionId.value = id
   messages.value = []
   try {
-    const res = await fetch(`/api/sessions/${id}/messages`)
-    if (res.ok) {
-      const history = await res.json() as Array<{ role: string; content: string; createdAt: string; toolName?: string; isResult?: boolean }>
-      for (const msg of history) {
-        if (msg.toolName != null) {
-          messages.value.push({
-            role: 'tool',
-            content: msg.content,
-            timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-            toolName: msg.toolName,
-            isResult: msg.isResult ?? false,
-          })
-        } else if (msg.role === 'system') {
-          messages.value.push({
-            role: 'system',
-            content: msg.content,
-            timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-          })
-        } else if (msg.role === 'plan') {
+    const history = await getSessionMessages(id)
+    for (const msg of history) {
+      if (msg.toolName != null) {
+        messages.value.push({
+          role: 'tool',
+          content: msg.content,
+          timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+          toolName: msg.toolName,
+          isResult: msg.isResult ?? false,
+        })
+      } else if (msg.role === 'system') {
+        messages.value.push({
+          role: 'system',
+          content: msg.content,
+          timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+        })
+      } else if (msg.role === 'plan') {
+        try {
+          const planData = JSON.parse(msg.content) as PlanData
+          const planForDisplay = { ...planData, steps: planData.steps.map(s => ({ ...s })) }
           try {
-            const planData = JSON.parse(msg.content) as PlanData
-            const planForDisplay = { ...planData, steps: planData.steps.map(s => ({ ...s })) }
-            try {
-              const fres = await fetch(`/api/plans/${planData.id}`)
-              if (fres.ok) {
-                const fresh = await fres.json() as PlanData
-                planForDisplay.status = fresh.status
-                if (fresh.steps) {
-                  for (const fs of fresh.steps) {
-                    const step = planForDisplay.steps.find(s => s.id === fs.id)
-                    if (step) step.status = fs.status
-                  }
-                }
+            const fresh = await getPlan(planData.id)
+            planForDisplay.status = fresh.status
+            if (fresh.steps) {
+              for (const fs of fresh.steps) {
+                const step = planForDisplay.steps.find(s => s.id === fs.id)
+                if (step) step.status = fs.status
               }
-            } catch { /* use saved data */ }
-            if (planForDisplay.status === 'EXECUTING' && planForDisplay.steps.every(s => s.status === 'DONE' || s.status === 'FAILED')) {
-              planForDisplay.status = 'DONE'
             }
-            messages.value.push({
-              role: 'plan',
-              content: '',
-              timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-              plan: planForDisplay,
-            })
-          } catch {
-            messages.value.push({ role: 'system', content: msg.content, timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }) })
+          } catch { /* use saved data */ }
+          if (planForDisplay.status === 'EXECUTING' && planForDisplay.steps.every(s => s.status === 'DONE' || s.status === 'FAILED')) {
+            planForDisplay.status = 'DONE'
           }
-        } else {
-          const mappedRole = msg.role === 'assistant' ? 'agent' : msg.role
           messages.value.push({
-            role: mappedRole as 'user' | 'agent',
-            content: msg.content,
+            role: 'plan',
+            content: '',
             timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+            plan: planForDisplay,
           })
+        } catch {
+          messages.value.push({ role: 'system', content: msg.content, timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }) })
         }
+      } else {
+        const mappedRole = msg.role === 'assistant' ? 'agent' : msg.role
+        messages.value.push({
+          role: mappedRole as 'user' | 'agent',
+          content: msg.content,
+          timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+        })
       }
     }
   } catch { /* ignore */ }
@@ -369,14 +371,10 @@ function onFileSelect(filePath: string) {
 
 async function loadFilePreview(filePath: string) {
   try {
-    const enc = encodeURIComponent(filePath)
-    const res = await fetch(`/api/cowork/read-file?path=${enc}`)
-    if (res.ok) {
-      const data = await res.json() as { content: string; filename: string }
-      previewContent.value = data.content
-      previewFileName.value = data.filename
-      artifactsVisible.value = true
-    }
+    const data = await readFile(filePath)
+    previewContent.value = data.content
+    previewFileName.value = data.filename
+    artifactsVisible.value = true
   } catch { /* ignore */ }
 }
 
@@ -390,7 +388,7 @@ function onDirSelected(dirPath: string) {
 
 async function disconnect() {
   try {
-    await fetch('/api/cowork/project', { method: 'DELETE' })
+    await clearProject()
     projectPath.value = null
     messages.value = []
     previewContent.value = null
@@ -518,13 +516,8 @@ async function submit() {
 
   if (currentSessionId.value === null) {
     try {
-      const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'cowork' }) })
-      if (res.ok) {
-        const session = await res.json() as { id: number }
-        currentSessionId.value = session.id
-      } else {
-        return
-      }
+      const session = await createSession('cowork')
+      currentSessionId.value = session.id
     } catch { return }
   }
 
@@ -559,15 +552,14 @@ async function submit() {
   }
 
   try {
-    const res = await fetch('/api/agent/chat', {
+    const res = await requestRaw('/agent/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+      body: {
         message: text,
         providerModelId: selectedModelId.value,
         sessionId: currentSessionId.value ?? 0,
         mode: 'cowork',
-      }),
+      },
       signal: ctrl.signal,
     })
 

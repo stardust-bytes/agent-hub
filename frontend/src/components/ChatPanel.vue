@@ -174,6 +174,11 @@ import ModelSelector from './ModelSelector.vue'
 import SessionModal from './SessionModal.vue'
 import FormBlock from './FormBlock.vue'
 import PlanBubble from './PlanBubble.vue'
+import { useProvidersStore } from '../stores/providers'
+import { getSessionMessages } from '../api/sessions'
+import { createSession } from '../api/sessions'
+import { getPlan, getNextPlan } from '../api/plans'
+import { requestRaw } from '../api/client'
 interface PlanStep {
   id: number
   order: number
@@ -396,10 +401,10 @@ function toggleToolExpand(msg: Message): void {
 
 onMounted(async () => {
   inputEl.value?.focus()
+  const providersStore = useProvidersStore()
   try {
-    const res = await fetch('/api/providers/models')
-    if (!res.ok) throw new Error('fetch failed')
-    const models = (await res.json()) as ProviderModelFlat[]
+    await providersStore.loadModels()
+    const models = providersStore.models
     availableModels.value = models
     if (models.length > 0) {
       const savedId = Number(localStorage.getItem('workspace.modelId'))
@@ -422,68 +427,62 @@ async function loadSession(id: number) {
   currentSessionId.value = id
   messages.value = []
   try {
-    const res = await fetch(`/api/sessions/${id}/messages`)
-    if (res.ok) {
-      const history = await res.json() as Array<{ role: string; content: string; createdAt: string; toolName?: string; isResult?: boolean }>
-      if (history.length === 0) {
-        messages.value.push({ role: 'system', content: t('chat.system.init'), timestamp: now() })
-      }
-      for (const msg of history) {
-        if (msg.toolName != null) {
+    const history = await getSessionMessages(id)
+    if (history.length === 0) {
+      messages.value.push({ role: 'system', content: t('chat.system.init'), timestamp: now() })
+    }
+    for (const msg of history) {
+      if (msg.toolName != null) {
+        messages.value.push({
+          role: 'tool',
+          content: msg.content,
+          timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+          toolName: msg.toolName,
+          isResult: msg.isResult ?? false,
+        })
+      } else if (msg.role === 'system') {
+        messages.value.push({
+          role: 'system',
+          content: msg.content,
+          timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+        })
+      } else if (msg.role === 'plan') {
+        try {
+          const planData = JSON.parse(msg.content) as PlanData
+          const planForDisplay = { ...planData, steps: planData.steps.map(s => ({ ...s })) }
+          try {
+            const fresh = await getPlan(planData.id)
+            planForDisplay.status = fresh.status
+            if (fresh.steps) {
+              for (const fs of fresh.steps) {
+                const step = planForDisplay.steps.find(s => s.id === fs.id)
+                if (step) step.status = fs.status
+              }
+            }
+          } catch { /* use saved data */ }
+          if (planForDisplay.status === 'EXECUTING' && planForDisplay.steps.every(s => s.status === 'DONE' || s.status === 'FAILED')) {
+            planForDisplay.status = 'DONE'
+          }
           messages.value.push({
-            role: 'tool',
-            content: msg.content,
+            role: 'plan',
+            content: '',
             timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-            toolName: msg.toolName,
-            isResult: msg.isResult ?? false,
+            plan: planForDisplay,
           })
-        } else if (msg.role === 'system') {
+        } catch {
           messages.value.push({
             role: 'system',
             content: msg.content,
             timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
           })
-        } else if (msg.role === 'plan') {
-          try {
-            const planData = JSON.parse(msg.content) as PlanData
-            const planForDisplay = { ...planData, steps: planData.steps.map(s => ({ ...s })) }
-            try {
-              const fres = await fetch(`/api/plans/${planData.id}`)
-              if (fres.ok) {
-                const fresh = await fres.json() as PlanData
-                planForDisplay.status = fresh.status
-                if (fresh.steps) {
-                  for (const fs of fresh.steps) {
-                    const step = planForDisplay.steps.find(s => s.id === fs.id)
-                    if (step) step.status = fs.status
-                  }
-                }
-              }
-            } catch { /* use saved data */ }
-            if (planForDisplay.status === 'EXECUTING' && planForDisplay.steps.every(s => s.status === 'DONE' || s.status === 'FAILED')) {
-              planForDisplay.status = 'DONE'
-            }
-            messages.value.push({
-              role: 'plan',
-              content: '',
-              timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-              plan: planForDisplay,
-            })
-          } catch {
-            messages.value.push({
-              role: 'system',
-              content: msg.content,
-              timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-            })
-          }
-        } else {
-          const mappedRole = msg.role === 'assistant' ? 'agent' : msg.role
-          messages.value.push({
-            role: mappedRole as 'user' | 'agent',
-            content: msg.content,
-            timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-          })
         }
+      } else {
+        const mappedRole = msg.role === 'assistant' ? 'agent' : msg.role
+        messages.value.push({
+          role: mappedRole as 'user' | 'agent',
+          content: msg.content,
+          timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
+        })
       }
     }
   } catch { /* ignore */ }
@@ -534,36 +533,28 @@ async function submit() {
   if (!text || streaming.value || selectedModelId.value === null) return
   if (currentSessionId.value === null) {
     try {
-      const res = await fetch('/api/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'chat' }) })
-      if (res.ok) {
-        const session = await res.json() as { id: number }
-        currentSessionId.value = session.id
-      } else {
-        return
-      }
+      const session = await createSession('chat')
+      currentSessionId.value = session.id
     } catch { return }
   }
   const continuePattern = /^(tiếp\s*tục|tiếp|continue|resume)\b/i
   if (currentSessionId.value !== null && continuePattern.test(text.trim())) {
     input.value = ''
     try {
-      const nextRes = await fetch(`/api/plans/session/${currentSessionId.value}/next`)
-      if (nextRes.ok) {
-        const nextData = await nextRes.json() as { found: boolean; plan?: PlanData; action?: string }
-        if (nextData.found && nextData.plan && nextData.action === 'resume') {
-          await resumePlan(nextData.plan.id)
-          return
-        }
-        if (nextData.found && nextData.plan && nextData.action === 'approve') {
-          messages.value.push({
-            role: 'plan',
-            content: '',
-            timestamp: now(),
-            plan: { ...nextData.plan, steps: nextData.plan.steps.map(s => ({ ...s })) },
-          })
-          await scrollToBottom()
-          return
-        }
+      const nextData = await getNextPlan(currentSessionId.value)
+      if (nextData.found && nextData.plan && nextData.action === 'resume') {
+        await resumePlan(nextData.plan.id)
+        return
+      }
+      if (nextData.found && nextData.plan && nextData.action === 'approve') {
+        messages.value.push({
+          role: 'plan',
+          content: '',
+          timestamp: now(),
+          plan: { ...nextData.plan, steps: nextData.plan.steps.map(s => ({ ...s })) },
+        })
+        await scrollToBottom()
+        return
       }
     } catch { /* fall through to normal chat */ }
   }
@@ -598,10 +589,9 @@ async function submit() {
   }
 
   try {
-    const res = await fetch('/api/agent/chat', {
+    const res = await requestRaw('/agent/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, providerModelId: selectedModelId.value, sessionId: currentSessionId.value, mode: currentMode.value }),
+      body: { message: text, providerModelId: selectedModelId.value, sessionId: currentSessionId.value, mode: currentMode.value },
       signal: ctrl.signal,
     })
 

@@ -52,3 +52,7 @@ export function clearProject() {
 export function browse(path: string, signal?: AbortSignal) {
   return request<BrowseResult>(`/cowork/browse?path=${encodeURIComponent(path)}`, { errorCode: 'cowork.fetch_failed', signal })
 }
+
+export function drives(signal?: AbortSignal) {
+  return request<string[]>('/cowork/drives', { errorCode: 'cowork.fetch_failed', signal })
+}

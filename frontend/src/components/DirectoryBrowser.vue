@@ -42,7 +42,7 @@
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiFolder } from 'vue-icons-plus/hi'
-import { browse } from '../api/cowork'
+import { browse, drives as apiDrives } from '../api/cowork'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [value: boolean]; select: [path: string] }>()
@@ -77,10 +77,8 @@ async function loadDrives() {
   canGoUp.value = false
   pathStack.value = []
   try {
-    const res = await fetch('/api/cowork/drives', { signal: abortController.signal })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const drives = await res.json() as string[]
-    entries.value = drives.map(d => ({ name: d, isDirectory: true }))
+    const driveList = await apiDrives(abortController.signal)
+    entries.value = driveList.map(d => ({ name: d, isDirectory: true }))
   } catch { if (!abortController?.signal.aborted) error.value = true }
   loading.value = false
 }
