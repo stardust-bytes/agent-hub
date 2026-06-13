@@ -371,7 +371,7 @@ async function scrollToBottom() {
 const toolExpanded = ref<Set<Message>>(new Set())
 
 function isToolLong(content: string): boolean {
-  return content.split('\n').length > 5
+  return content.split('\n').length > 5 || content.length > 500
 }
 
 function toolPreview(content: string): string {

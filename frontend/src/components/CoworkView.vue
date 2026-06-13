@@ -412,7 +412,7 @@ function rolePrefix(role: string): string {
 const toolExpanded = ref<Set<ChatMessage>>(new Set())
 
 function isToolLong(content: string): boolean {
-  return content.split('\n').length > 5
+  return content.split('\n').length > 5 || content.length > 500
 }
 
 function toolPreview(content: string): string {
