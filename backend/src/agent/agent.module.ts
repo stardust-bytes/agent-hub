@@ -10,7 +10,6 @@ import { PermissionsService } from './services/permissions.service';
 import { YoloClassifierService } from './services/yolo-classifier.service';
 import { ApprovalManagerService } from './services/approval-manager.service';
 import { MemoryModule } from '../memory/memory.module';
-import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { SessionsModule } from '../sessions/sessions.module';
 import { ProvidersModule } from '../providers/providers.module';
@@ -60,7 +59,7 @@ import { GoogleDriveCreateFolderExecutor } from '../tools/executors/google-drive
 
 
 @Module({
-  imports: [MemoryModule, TasksModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule, ConnectorModule],
+  imports: [MemoryModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule, ConnectorModule],
   controllers: [AgentController],
   providers: [
     AgentService,
