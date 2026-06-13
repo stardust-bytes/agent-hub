@@ -35,14 +35,8 @@
 import { ref, reactive, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from './BaseModal.vue'
-
-interface Tool {
-  name: string
-  description: string
-  configSchema?: string | null
-  config?: string | null
-  enabled: boolean
-}
+import { saveToolConfig } from '../api/tools'
+import type { Tool } from '../api/tools'
 
 const props = defineProps<{
   modelValue: boolean
@@ -77,11 +71,7 @@ watch(() => props.modelValue, (open) => {
 
 async function onSave() {
   if (!props.tool) return
-  await fetch(`/api/tools/${props.tool.name}/config`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ config: { ...formData } }),
-  })
+  await saveToolConfig(props.tool.name, { ...formData })
   emit('saved')
   emit('update:modelValue', false)
 }

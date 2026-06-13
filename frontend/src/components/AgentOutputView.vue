@@ -45,14 +45,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { listOutputs } from '../api/agentOutput'
+import type { AgentOutputFile } from '../api/agentOutput'
 
 const { t } = useI18n()
-
-interface AgentOutputFile {
-  filename: string
-  size: number
-  modifiedAt: string
-}
 
 const files = ref<AgentOutputFile[]>([])
 const loading = ref(true)
@@ -60,10 +56,7 @@ const loading = ref(true)
 async function fetchFiles() {
   loading.value = true
   try {
-    const res = await fetch('/api/agent-output')
-    if (res.ok) {
-      files.value = await res.json()
-    }
+    files.value = await listOutputs()
   } catch {
     // silent
   } finally {

@@ -42,6 +42,7 @@
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiFolder } from 'vue-icons-plus/hi'
+import { browse } from '../api/cowork'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [value: boolean]; select: [path: string] }>()
@@ -67,32 +68,30 @@ function joinPath(parent: string, child: string): string {
   return parent.endsWith('\\') || parent.endsWith('/') ? parent + child : parent + sep + child
 }
 
-async function fetchJson(url: string): Promise<unknown> {
+async function loadDrives() {
   abortController?.abort()
   abortController = new AbortController()
-  const res = await fetch(url, { signal: abortController.signal })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  return res.json()
-}
-
-async function loadDrives() {
   loading.value = true
   error.value = false
   currentPath.value = ''
   canGoUp.value = false
   pathStack.value = []
   try {
-    const drives = await fetchJson('/api/cowork/drives') as string[]
+    const res = await fetch('/api/cowork/drives', { signal: abortController.signal })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const drives = await res.json() as string[]
     entries.value = drives.map(d => ({ name: d, isDirectory: true }))
   } catch { if (!abortController?.signal.aborted) error.value = true }
   loading.value = false
 }
 
 async function loadDirectory(dirPath: string) {
+  abortController?.abort()
+  abortController = new AbortController()
   loading.value = true
   error.value = false
   try {
-    const data = await fetchJson(`/api/cowork/browse?path=${encodeURIComponent(dirPath)}`) as { path: string; entries: DirEntry[] }
+    const data = await browse(dirPath, abortController.signal)
     currentPath.value = data.path
     entries.value = data.entries
   } catch { if (!abortController?.signal.aborted) error.value = true }

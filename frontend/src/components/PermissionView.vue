@@ -47,6 +47,7 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiShieldCheck } from 'vue-icons-plus/hi'
+import { getYoloConfig, setYoloConfig } from '../api/agent'
 
 const { t } = useI18n()
 
@@ -75,11 +76,8 @@ const yoloConfig = ref({
 
 onMounted(async () => {
   try {
-    const res = await fetch('/api/agent/yolo-config')
-    if (res.ok) {
-      const data = await res.json() as { disabledPatterns?: string[]; failClosed?: boolean; safeToolAllowlist?: boolean }
-      yoloConfig.value = { ...yoloConfig.value, ...data }
-    }
+    const data = await getYoloConfig()
+    yoloConfig.value = { ...yoloConfig.value, ...data }
   } catch { /* ignore */ }
 })
 
@@ -92,14 +90,10 @@ function toggleRule(category: string) {
 
 async function saveYoloConfig() {
   try {
-    await fetch('/api/agent/yolo-config', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        disabledPatterns: yoloConfig.value.disabledPatterns,
-        failClosed: yoloConfig.value.failClosed,
-        safeToolAllowlist: yoloConfig.value.safeToolAllowlist,
-      }),
+    await setYoloConfig({
+      disabledPatterns: yoloConfig.value.disabledPatterns,
+      failClosed: yoloConfig.value.failClosed,
+      safeToolAllowlist: yoloConfig.value.safeToolAllowlist,
     })
   } catch { /* ignore */ }
 }

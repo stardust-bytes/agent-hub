@@ -55,17 +55,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiFolder } from 'vue-icons-plus/hi'
-
-interface KnowledgeFile {
-  id: number
-  filename: string
-  size: number
-  mimeType: string
-  status: string
-  chunkCount: number
-  createdAt: string
-  errorMessage?: string
-}
+import { listKnowledge, deleteKnowledge, uploadKnowledge } from '../api/knowledge'
+import type { KnowledgeFile } from '../api/knowledge'
 
 const { t } = useI18n()
 const files = ref<KnowledgeFile[]>([])
@@ -109,24 +100,25 @@ async function uploadFiles(fileList: FileList) {
     const form = new FormData()
     form.append('file', file)
     try {
-      await fetch('/api/knowledge/upload', { method: 'POST', body: form })
-      await loadFiles()
-      startPolling()
+      const res = await uploadKnowledge(form)
+      if (res.ok) {
+        await loadFiles()
+        startPolling()
+      }
     } catch { /* ignore */ }
   }
 }
 
 async function deleteFile(id: number) {
   try {
-    await fetch(`/api/knowledge/${id}`, { method: 'DELETE' })
+    await deleteKnowledge(id)
     files.value = files.value.filter(f => f.id !== id)
   } catch { /* ignore */ }
 }
 
 async function loadFiles() {
   try {
-    const res = await fetch('/api/knowledge')
-    if (res.ok) files.value = await res.json() as KnowledgeFile[]
+    files.value = await listKnowledge()
   } catch { /* ignore */ }
 }
 
@@ -138,8 +130,7 @@ function startPolling() {
     const hasIndexing = files.value.some(f => f.status === 'indexing')
     if (!hasIndexing && pollTimer) { clearInterval(pollTimer); pollTimer = null; return }
     try {
-      const res = await fetch('/api/knowledge')
-      if (res.ok) files.value = await res.json()
+      files.value = await listKnowledge()
     } catch { /* ignore */ }
   }, 2000)
 }

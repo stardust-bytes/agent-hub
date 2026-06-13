@@ -53,14 +53,8 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ToolConfigModal from './ToolConfigModal.vue'
-
-interface Tool {
-  name: string
-  description: string
-  configSchema?: string | null
-  config?: string | null
-  enabled: boolean
-}
+import { listTools, toggleTool } from '../api/tools'
+import type { Tool } from '../api/tools'
 
 const { t } = useI18n()
 const tools = ref<Tool[]>([])
@@ -70,8 +64,7 @@ const showConfigModal = ref(false)
 
 async function fetchTools() {
   try {
-    const res = await fetch('/api/tools')
-    if (res.ok) tools.value = await res.json() as Tool[]
+    tools.value = await listTools()
   } catch { /* ignore */ }
   loading.value = false
 }
@@ -86,7 +79,7 @@ async function toggle(name: string) {
   if (!tool) return
   tool.enabled = !tool.enabled
   try {
-    const res = await fetch(`/api/tools/${name}/toggle`, { method: 'PATCH' })
+    const res = await toggleTool(name)
     if (!res.ok) tool.enabled = !tool.enabled
   } catch {
     tool.enabled = !tool.enabled

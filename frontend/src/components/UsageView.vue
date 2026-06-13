@@ -2,24 +2,10 @@
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { HiOutlineChartBar } from 'vue-icons-plus/hi';
+import { getUsage, getUsageSessions } from '../api/usage';
+import type { UsageTotal, SessionUsage } from '../api/usage';
 
 const { t } = useI18n();
-
-interface UsageTotal {
-  promptTokens: number;
-  completionTokens: number;
-  totalTokens: number;
-  requestCount: number;
-}
-
-interface SessionUsage {
-  sessionId: number;
-  sessionTitle: string;
-  modelName: string;
-  promptTokens: number;
-  completionTokens: number;
-  totalTokens: number;
-}
 
 const total = ref<UsageTotal | null>(null);
 const sessions = ref<SessionUsage[]>([]);
@@ -34,13 +20,12 @@ async function fetchData() {
   loading.value = true;
   error.value = '';
   try {
-    const [totalRes, sessionsRes] = await Promise.all([
-      fetch('/api/usage'),
-      fetch('/api/usage/sessions'),
+    const [totalData, sessionsData] = await Promise.all([
+      getUsage(),
+      getUsageSessions(),
     ]);
-    if (!totalRes.ok || !sessionsRes.ok) throw new Error('fetch_failed');
-    total.value = await totalRes.json() as UsageTotal;
-    sessions.value = await sessionsRes.json() as SessionUsage[];
+    total.value = totalData;
+    sessions.value = sessionsData;
   } catch {
     error.value = t('chat.error.unreachable');
   } finally {

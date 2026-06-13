@@ -28,6 +28,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Locale } from '../i18n'
+import { getHealth } from '../api/health'
 
 const { t, locale } = useI18n()
 
@@ -48,8 +49,8 @@ onMounted(() => {
   }, 1000)
   const checkHealth = async () => {
     try {
-      const res = await fetch('/api/health')
-      backendOnline.value = res.ok
+      await getHealth()
+      backendOnline.value = true
     } catch {
       backendOnline.value = false
     }

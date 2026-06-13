@@ -84,14 +84,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiCog } from 'vue-icons-plus/hi'
+import { storeToRefs } from 'pinia'
 import MemoryView from './MemoryView.vue'
 import PermissionView from './PermissionView.vue'
 import UsageView from './UsageView.vue'
 import ProvidersView from './ProvidersView.vue'
 import ToolsView from './ToolsView.vue'
+import { getHealth } from '../api/health'
+import { listSettings, updateSetting } from '../api/settings'
+import { useProvidersStore } from '../stores/providers'
+
 const { t } = useI18n()
 const activeSettingsTab = ref('general')
 const TABS = [
@@ -104,11 +109,6 @@ const TABS = [
 ]
 const healthy = ref(false)
 
-interface ProviderModelOption {
-  id: number
-  label: string
-}
-
 interface McpServerInfo {
   id: string
   name: string
@@ -116,7 +116,13 @@ interface McpServerInfo {
   enabled: boolean
 }
 
-const providers = ref<ProviderModelOption[]>([])
+const providersStore = useProvidersStore()
+const { models } = storeToRefs(providersStore)
+
+const providers = computed(() =>
+  models.value.map(m => ({ id: m.id, label: `${m.providerName} / ${m.name}` }))
+)
+
 const embedModelId = ref<string>('')
 const summaryModelId = ref<string>('')
 const saved = ref(false)
@@ -125,31 +131,19 @@ const mcpServers = ref<McpServerInfo[]>([])
 
 onMounted(async () => {
   try {
-    const healthRes = await fetch('/api/health')
-    if (healthRes.ok) {
-      const h = await healthRes.json() as { status: string }
-      healthy.value = h.status === 'ok'
-    }
+    const h = await getHealth()
+    healthy.value = h.status === 'ok'
   } catch { /* ignore */ }
 
   try {
-    const [provRes, settingsRes] = await Promise.all([
-      fetch('/api/providers/models'),
-      fetch('/api/settings'),
-    ])
-    if (provRes.ok) {
-      const models = await provRes.json() as Array<{ id: number; name: string; providerName: string }>
-      providers.value = models.map(m => ({ id: m.id, label: `${m.providerName} / ${m.name}` }))
-    }
-    if (settingsRes.ok) {
-      const settingsData = await settingsRes.json() as Record<string, string>
-      embedModelId.value = settingsData['embed_model_id'] ?? ''
-      summaryModelId.value = settingsData['summary_model_id'] ?? ''
-      if (settingsData['mcp.servers']) {
-        try {
-          mcpServers.value = JSON.parse(settingsData['mcp.servers']) as McpServerInfo[]
-        } catch { /* ignore malformed JSON */ }
-      }
+    await providersStore.loadModels()
+    const settingsData = await listSettings()
+    embedModelId.value = settingsData['embed_model_id'] ?? ''
+    summaryModelId.value = settingsData['summary_model_id'] ?? ''
+    if (settingsData['mcp.servers']) {
+      try {
+        mcpServers.value = JSON.parse(settingsData['mcp.servers']) as McpServerInfo[]
+      } catch { /* ignore malformed JSON */ }
     }
   } catch { fetchError.value = true }
 })
@@ -157,11 +151,7 @@ onMounted(async () => {
 async function saveSetting(key: string, value: string) {
   saved.value = false
   try {
-    await fetch(`/api/settings/${key}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value }),
-    })
+    await updateSetting(key, value)
     saved.value = true
     setTimeout(() => { saved.value = false }, 2000)
   } catch { /* ignore */ }

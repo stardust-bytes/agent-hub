@@ -59,19 +59,13 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiClipboardList } from 'vue-icons-plus/hi'
-
-interface PlanStep {
-  id: number
-  order: number
-  text: string
-  status: string
-}
+import { listSessionPlans, executePlan } from '../api/plans'
 
 interface Plan {
   id: number
   title: string
   status: string
-  steps: PlanStep[]
+  steps: { id: number; order: number; text: string; status: string }[]
 }
 
 const { t } = useI18n()
@@ -132,14 +126,11 @@ function progressPercent(plan: Plan): number {
 
 async function execute(planId: number) {
   try {
-    const res = await fetch(`/api/agent/plans/${planId}/execute`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        providerModelId: Number(localStorage.getItem('workspace.modelId')),
-        sessionId: Number(localStorage.getItem('workspace.sessionId')),
-      }),
-    })
+    const res = await executePlan(
+      planId,
+      Number(localStorage.getItem('workspace.modelId')),
+      Number(localStorage.getItem('workspace.sessionId')),
+    )
     if (res.ok) {
       startPolling()
     }
@@ -150,8 +141,7 @@ async function loadPlans() {
   const sessionId = localStorage.getItem('workspace.sessionId')
   if (!sessionId) return
   try {
-    const res = await fetch(`/api/plans/session/${sessionId}`)
-    if (res.ok) plans.value = await res.json() as Plan[]
+    plans.value = await listSessionPlans(Number(sessionId))
   } catch { /* ignore */ }
 }
 

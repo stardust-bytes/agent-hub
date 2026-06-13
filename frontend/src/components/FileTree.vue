@@ -29,6 +29,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { browse } from '../api/cowork'
 
 interface TreeEntry {
   name: string
@@ -101,10 +102,7 @@ async function loadRoot(projectPath: string) {
 }
 
 async function fetchChildren(dirPath: string, depth: number): Promise<TreeEntry[]> {
-  const enc = encodeURIComponent(dirPath)
-  const res = await fetch(`/api/cowork/browse?path=${enc}`)
-  if (!res.ok) throw new Error('fetch failed')
-  const data = await res.json() as { entries: Array<{ name: string; isDirectory: boolean }> }
+  const data = await browse(dirPath)
   return data.entries.map(e => ({
     name: e.name,
     path: dirPath.replace(/\/$/, '') + '/' + e.name,
