@@ -326,6 +326,14 @@
     "total": "Tổng"
   },
 
+  "approval": {
+    "required": "Cần phê duyệt",
+    "tool": "Tool",
+    "args": "Tham số",
+    "allow": "Cho phép",
+    "deny": "Từ chối"
+  },
+
   "agentOutput": {
     "fetch_failed": "Không tải được kết quả agent",
     "header": "KẾT QUẢ AGENT",

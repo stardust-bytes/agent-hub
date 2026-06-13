@@ -24,6 +24,8 @@
           :messages="messages"
           :streaming="streaming"
           @form-submit="onFormSubmit"
+        @tool-approve="approveTool"
+        @tool-deny="denyTool"
         />
         <div v-else class="flex-1 flex items-center justify-center min-h-0">
           <div class="text-center">
@@ -214,6 +216,24 @@ async function disconnect() {
 
 function now(): string {
   return new Date().toLocaleTimeString('vi-VN', { hour12: false })
+}
+
+async function approveTool(id: string) {
+  try {
+    await requestRaw('/agent/approve-tool', {
+      method: 'POST',
+      body: { id, approved: true },
+    })
+  } catch { /* ignore */ }
+}
+
+async function denyTool(id: string) {
+  try {
+    await requestRaw('/agent/approve-tool', {
+      method: 'POST',
+      body: { id, approved: false },
+    })
+  } catch { /* ignore */ }
 }
 
 function onFormSubmit(data: Record<string, string>) {
@@ -409,6 +429,16 @@ async function submitText(text: string) {
           content: '[⏹ Plan execution interrupted. Send "tiếp tục" to resume.]',
           timestamp: now(),
         })
+        scrollToBottom()
+      },
+      onToolApprovalRequired(id, name, args) {
+        const argsStr = Object.entries(args).map(([k, v]) => `${k}=${v}`).join(', ');
+        messages.value.push({
+          role: 'system' as const,
+          content: '',
+          timestamp: now(),
+          approvalRequest: { id, name, args: argsStr },
+        });
         scrollToBottom()
       },
       onDelegateProgress(_index, _subtask, _status) {

@@ -60,6 +60,28 @@
       <div class="text-sm leading-relaxed break-words text-cyber-text" v-html="highlightUserMessage(msg.content)"></div>
     </div>
 
+    <div v-else-if="msg.approvalRequest"
+      class="border-l-2 border-cyber-orange/80 pl-3 py-2">
+      <div class="text-sm text-cyber-orange font-mono mb-1">
+        <HiShieldExclamation class="w-3 h-3 inline" /> {{ t('approval.required') }}
+      </div>
+      <div class="text-xs text-cyber-text font-mono mb-2">
+        <span class="text-cyber-muted">{{ t('approval.tool') }}:</span> {{ msg.approvalRequest.name }}
+        <br>
+        <span class="text-cyber-muted">{{ t('approval.args') }}:</span> {{ msg.approvalRequest.args }}
+      </div>
+      <div class="flex gap-2">
+        <button @click="emit('toolApprove', msg.approvalRequest!.id)"
+          class="text-xs text-white font-mono px-2 py-1 bg-cyber-accent rounded transition-colors duration-150 hover:bg-cyber-accent/80">
+          {{ t('approval.allow') }}
+        </button>
+        <button @click="emit('toolDeny', msg.approvalRequest!.id)"
+          class="text-xs text-cyber-text font-mono px-2 py-1 border border-cyber-code-border rounded transition-colors duration-150 hover:bg-cyber-dark">
+          {{ t('approval.deny') }}
+        </button>
+      </div>
+    </div>
+
     <div v-else-if="msg.role === 'system'"
       class="pl-3 py-0.5">
       <template v-if="isToolLong(msg.content)">
@@ -77,7 +99,7 @@
 import { ref, computed } from 'vue'
 
 import { useI18n } from 'vue-i18n'
-import { HiChevronRight } from 'vue-icons-plus/hi'
+import { HiChevronRight, HiShieldExclamation } from 'vue-icons-plus/hi'
 import FormBlock from '../FormBlock.vue'
 import PlanBubble from '../PlanBubble.vue'
 import { renderMarkdown, parseSegments, highlightUserMessage } from './markdown'
@@ -94,6 +116,8 @@ const emit = defineEmits<{
   reject: [id: number]
   resume: [id: number]
   toggleExpand: [msg: Message]
+  toolApprove: [id: string]
+  toolDeny: [id: string]
 }>()
 
 const { t } = useI18n()

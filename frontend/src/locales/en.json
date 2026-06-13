@@ -326,6 +326,14 @@
     "total": "Total"
   },
 
+  "approval": {
+    "required": "Approval required",
+    "tool": "Tool",
+    "args": "Args",
+    "allow": "Allow",
+    "deny": "Deny"
+  },
+
   "agentOutput": {
     "fetch_failed": "Could not load agent outputs",
     "header": "AGENT OUTPUTS",

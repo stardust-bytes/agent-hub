@@ -20,6 +20,11 @@ export interface Message {
   toolName?: string
   isResult?: boolean
   plan?: PlanData
+  approvalRequest?: {
+    id: string
+    name: string
+    args: string
+  }
 }
 
 export interface ProviderModelFlat {
