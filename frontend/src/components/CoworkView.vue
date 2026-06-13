@@ -51,7 +51,13 @@
 
               <div v-else-if="msg.role === 'tool' && !msg.isResult"
                 class="border-l-2 border-cyber-orange/50 pl-3 py-1.5">
-                <div class="text-sm text-cyber-orange font-mono mb-0.5 break-all">[⚙] {{ msg.content }}</div>
+                <template v-if="isToolLong(msg.content)">
+                  <div v-if="!isToolExpanded(msg)" class="text-sm text-cyber-orange font-mono break-all">[⚙] {{ toolPreview(msg.content) }}</div>
+                  <div v-if="!isToolExpanded(msg)" class="text-xs text-cyber-muted font-mono">...</div>
+                  <div v-if="isToolExpanded(msg)" class="text-sm text-cyber-orange font-mono break-all">[⚙] {{ msg.content }}</div>
+                  <button @click="toggleToolExpand(msg)" class="text-xs font-mono mt-0.5 text-cyber-accent/60 hover:text-cyber-accent transition-colors duration-150">{{ isToolExpanded(msg) ? t('chat.tool.collapse') : t('chat.tool.expand') }}</button>
+                </template>
+                <div v-else class="text-sm text-cyber-orange font-mono break-all">[⚙] {{ msg.content }}</div>
               </div>
 
               <div v-else-if="msg.role === 'tool' && msg.isResult"
@@ -92,7 +98,13 @@
 
               <div v-else-if="msg.role === 'system'"
                 class="pl-3 py-0.5">
-                <div class="text-sm text-cyber-muted font-mono">{{ msg.content }}</div>
+                <template v-if="isToolLong(msg.content)">
+                  <div v-if="!isToolExpanded(msg)" class="text-sm text-cyber-muted font-mono">{{ toolPreview(msg.content) }}</div>
+                  <div v-if="!isToolExpanded(msg)" class="text-xs text-cyber-muted font-mono">...</div>
+                  <div v-if="isToolExpanded(msg)" class="text-sm text-cyber-muted font-mono">{{ msg.content }}</div>
+                  <button @click="toggleToolExpand(msg)" class="text-xs font-mono mt-0.5 text-cyber-accent/60 hover:text-cyber-accent transition-colors duration-150">{{ isToolExpanded(msg) ? t('chat.tool.collapse') : t('chat.tool.expand') }}</button>
+                </template>
+                <div v-else class="text-sm text-cyber-muted font-mono">{{ msg.content }}</div>
               </div>
 
             </div>
