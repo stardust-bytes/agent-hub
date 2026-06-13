@@ -279,6 +279,10 @@
       "failClosed": "Deny on error",
       "safeTools": "Skip safe tools"
     },
+    "requireApproval": {
+      "header": "Tools Requiring Approval",
+      "hint": "These tools will ask for your confirmation before executing"
+    },
     "rules": {
       "header": "Block Rules",
       "interpreters": "Interpreters",

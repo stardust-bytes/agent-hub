@@ -13,3 +13,19 @@ export function getYoloConfig() {
 export function setYoloConfig(body: YoloConfig) {
   return requestRaw('/agent/yolo-config', { method: 'PATCH', body })
 }
+
+export interface PermissionsConfig {
+  defaultPolicy: 'allow' | 'deny'
+  allowedTools: string[]
+  deniedTools: string[]
+  permissionMode: string
+  requireApprovalTools: string[]
+}
+
+export function getPermissions() {
+  return request<PermissionsConfig>('/agent/permissions')
+}
+
+export function updatePermissions(body: Partial<PermissionsConfig>) {
+  return request<PermissionsConfig>('/agent/permissions', { method: 'PATCH', body })
+}

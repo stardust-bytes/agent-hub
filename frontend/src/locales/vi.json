@@ -279,6 +279,10 @@
       "failClosed": "Từ chối khi có lỗi",
       "safeTools": "Bỏ qua tool an toàn"
     },
+    "requireApproval": {
+      "header": "Tool cần phê duyệt",
+      "hint": "Các tool này sẽ yêu cầu bạn xác nhận trước khi thực thi"
+    },
     "rules": {
       "header": "Quy tắc chặn",
       "interpreters": "Trình thông dịch",

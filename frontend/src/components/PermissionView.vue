@@ -15,6 +15,18 @@
         </select>
       </div>
 
+      <div class="mt-4">
+        <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('permissions.requireApproval.header') }}</div>
+        <div class="text-xs text-cyber-muted font-mono mb-2">{{ t('permissions.requireApproval.hint') }}</div>
+        <div class="space-y-1">
+          <div v-for="tool in ALL_TOOLS" :key="tool" class="flex items-center gap-2 py-1">
+            <input type="checkbox" :checked="requireApprovalTools.includes(tool)"
+              @change="toggleApprovalTool(tool)" class="accent-cyber-accent" />
+            <span class="text-cyber-text text-xs font-mono">{{ tool }}</span>
+          </div>
+        </div>
+      </div>
+
       <div v-if="permissionMode === 'auto'">
         <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('permissions.yolo.config') }}</div>
         <div class="space-y-3">
@@ -44,14 +56,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiShieldCheck } from 'vue-icons-plus/hi'
 import { getYoloConfig, setYoloConfig } from '../api/agent'
+import { getPermissions, updatePermissions } from '../api/agent'
 
 const { t } = useI18n()
 
 const PERMISSION_MODES = ['default', 'acceptEdits', 'bypassPermissions', 'dontAsk', 'auto', 'plan']
+
+const ALL_TOOLS = [
+  'run_command', 'write_file', 'delete_task', 'delete_note',
+  'delete_tasks', 'delete_knowledge', 'grep', 'glob',
+]
 
 const BLOCK_RULES = [
   { category: 'interpreters' },
@@ -67,6 +85,7 @@ const BLOCK_RULES = [
 ]
 
 const permissionMode = ref('default')
+const requireApprovalTools = ref<string[]>([])
 
 const yoloConfig = ref({
   failClosed: true,
@@ -78,6 +97,17 @@ onMounted(async () => {
   try {
     const data = await getYoloConfig()
     yoloConfig.value = { ...yoloConfig.value, ...data }
+  } catch { /* ignore */ }
+  try {
+    const config = await getPermissions()
+    permissionMode.value = config.permissionMode ?? 'default'
+    requireApprovalTools.value = config.requireApprovalTools ?? []
+  } catch { /* ignore */ }
+})
+
+watch(permissionMode, async (val) => {
+  try {
+    await updatePermissions({ permissionMode: val })
   } catch { /* ignore */ }
 })
 
@@ -95,6 +125,15 @@ async function saveYoloConfig() {
       failClosed: yoloConfig.value.failClosed,
       safeToolAllowlist: yoloConfig.value.safeToolAllowlist,
     })
+  } catch { /* ignore */ }
+}
+
+async function toggleApprovalTool(tool: string) {
+  const idx = requireApprovalTools.value.indexOf(tool)
+  if (idx >= 0) requireApprovalTools.value.splice(idx, 1)
+  else requireApprovalTools.value.push(tool)
+  try {
+    await updatePermissions({ requireApprovalTools: [...requireApprovalTools.value] })
   } catch { /* ignore */ }
 }
 </script>
