@@ -21,7 +21,6 @@
     <BottomTabBar class="md:hidden" />
     <StatusBar
       :db-connected="ui.dbConnected"
-      :ws-connected="ui.wsConnected"
       :active-subagents="ui.activeSubagents"
     />
   </div>

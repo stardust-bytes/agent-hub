@@ -12,9 +12,6 @@
       </span>
     </div>
     <div class="flex items-center gap-3">
-      <span class="text-sm font-mono" :class="wsConnected ? 'text-cyber-green' : 'text-cyber-muted'">
-        {{ wsConnected ? '●' : '○' }} {{ wsConnected ? t('tasks.ws.connected') : t('tasks.ws.disconnected') }}
-      </span>
       <button
         @click="toggleLang"
         class="text-sm font-mono text-cyber-muted hover:text-cyber-accent transition-colors duration-150"
@@ -34,7 +31,6 @@ const { t, locale } = useI18n()
 
 defineProps<{
   dbConnected?: boolean
-  wsConnected?: boolean
   activeSubagents?: number
 }>()
 
