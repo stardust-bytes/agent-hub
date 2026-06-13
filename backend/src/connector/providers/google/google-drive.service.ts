@@ -90,7 +90,7 @@ export class GoogleDriveService {
       requestBody: { name },
       media: { mimeType, body },
       fields: 'id,name,mimeType,size,modifiedTime,webViewLink',
-    });
+    }, { timeout: 300000 });
     return { id: res.data.id!, name: res.data.name!, mimeType: res.data.mimeType! };
   }
 }
