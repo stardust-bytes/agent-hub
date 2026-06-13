@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import CoworkView from '../components/CoworkView.vue'
-import TasksView from '../components/TasksView.vue'
+import ScheduleTasksView from '../components/ScheduleTasksView.vue'
 import NotesView from '../components/NotesView.vue'
 import ConnectorsView from '../components/ConnectorsView.vue'
 import AgentOutputView from '../components/AgentOutputView.vue'
@@ -11,7 +11,7 @@ import PlansView from '../components/PlansView.vue'
 const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/cowork' },
   { path: '/cowork', name: 'cowork', component: CoworkView },
-  { path: '/tasks', name: 'tasks', component: TasksView },
+  { path: '/tasks', name: 'tasks', component: ScheduleTasksView },
   { path: '/notes', name: 'notes', component: NotesView },
   { path: '/connectors', name: 'connectors', component: ConnectorsView },
   { path: '/agent-output', name: 'agent-output', component: AgentOutputView },
