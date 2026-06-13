@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe } from '@nestjs/common';
 import { ScheduleTasksService } from './schedule-tasks.service';
+import { ScheduleRunnerService } from './schedule-runner.service';
 import { CreateScheduleTaskDto } from './dto/create-schedule-task.dto';
 import { UpdateScheduleTaskDto } from './dto/update-schedule-task.dto';
 
@@ -7,6 +8,7 @@ import { UpdateScheduleTaskDto } from './dto/update-schedule-task.dto';
 export class ScheduleTasksController {
   constructor(
     private readonly service: ScheduleTasksService,
+    private readonly runner: ScheduleRunnerService,
   ) {}
 
   @Get()
@@ -25,4 +27,9 @@ export class ScheduleTasksController {
 
   @Get(':id/logs')
   getLogs(@Param('id', ParseIntPipe) id: number) { return this.service.getLogs(id); }
+
+  @Post(':id/run')
+  runNow(@Param('id', ParseIntPipe) id: number) {
+    return this.runner.runNow(id);
+  }
 }
