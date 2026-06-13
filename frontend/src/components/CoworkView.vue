@@ -416,7 +416,9 @@ function isToolLong(content: string): boolean {
 }
 
 function toolPreview(content: string): string {
-  return content.split('\n').slice(0, 5).join('\n')
+  const lines = content.split('\n')
+  if (lines.length > 5) return lines.slice(0, 5).join('\n')
+  return content.length > 200 ? content.slice(0, 200) + '...' : content
 }
 
 function isToolExpanded(msg: ChatMessage): boolean {
