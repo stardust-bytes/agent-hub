@@ -40,10 +40,11 @@ cd frontend && npm install pinia && npm install -D vitest @vue/test-utils jsdom
 ```
 Expected: `pinia` in `dependencies`; `vitest`, `@vue/test-utils`, `jsdom` in `devDependencies`.
 
-- [ ] **Step 2: Add the test script**
+- [ ] **Step 2: Add the test and type-check scripts**
 
-In `frontend/package.json`, add to `"scripts"`:
+In `frontend/package.json`, add to `"scripts"` (the `type-check` script does not exist yet — the project currently only type-checks via `build`'s `vue-tsc && vite build`; this plan references `npm run type-check` throughout):
 ```json
+    "type-check": "vue-tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
 ```
