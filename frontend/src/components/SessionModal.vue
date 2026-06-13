@@ -61,7 +61,6 @@ interface SessionItem {
 const props = defineProps<{
   modelValue: boolean
   currentSessionId: number | null
-  mode?: string
 }>()
 
 const emit = defineEmits<{

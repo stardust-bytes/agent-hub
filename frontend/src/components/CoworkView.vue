@@ -36,7 +36,6 @@
           :streaming="streaming"
           :models="availableModels"
           :model-id="selectedModelId"
-          mode="agent"
           @update:model-id="selectedModelId = $event"
           @submit="submitText"
           @stop="stopStream"
@@ -58,7 +57,6 @@
     <SessionModal
       v-model="showSessionModal"
       :current-session-id="currentSessionId"
-      mode="cowork"
       @select="loadSession"
       @created="(id: number) => { currentSessionId = id; loadSession(id) }"
     />

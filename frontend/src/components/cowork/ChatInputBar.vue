@@ -56,15 +56,13 @@ defineProps<{
   streaming: boolean
   models: ProviderModelFlat[]
   modelId: number | null
-  mode: 'chat' | 'agent'
 }>()
 
 const emit = defineEmits<{
-  'update:modelId': [v: number | null]
-  'update:mode': [m: 'chat' | 'agent']
-  submit: [text: string]
-  stop: []
-  openSessions: []
+  (e: 'update:modelId', v: number | null): void
+  (e: 'submit', text: string): void
+  (e: 'stop'): void
+  (e: 'openSessions'): void
 }>()
 
 const { t } = useI18n()
