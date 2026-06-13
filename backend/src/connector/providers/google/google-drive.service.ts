@@ -28,7 +28,7 @@ export class GoogleDriveService {
   constructor(private readonly googleOAuth: GoogleOAuthService) {}
 
   private async getDrive() {
-    const auth = await this.googleOAuth.getAuthenticatedClient('google_drive', { clientId: '', clientSecret: '', redirectUri: '' });
+    const auth = await this.googleOAuth.getAuthenticatedClient('google_drive');
     if (!auth) throw new Error('Google not connected');
     return google.drive({ version: 'v3', auth: auth as any });
   }

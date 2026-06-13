@@ -19,11 +19,7 @@ export class GmailService {
   constructor(private readonly googleOAuth: GoogleOAuthService) {}
 
   private async getGmail() {
-    const auth = await this.googleOAuth.getAuthenticatedClient('google_gmail', {
-      clientId: '',
-      clientSecret: '',
-      redirectUri: '',
-    });
+    const auth = await this.googleOAuth.getAuthenticatedClient('google_gmail');
     if (!auth) throw new Error('Google not connected');
     return google.gmail({ version: 'v1', auth: auth as any });
   }

@@ -42,14 +42,14 @@ export class GoogleOAuthService {
     return tokens as GoogleTokens;
   }
 
-  async getAuthenticatedClient(type: string, config: { clientId: string; clientSecret: string; redirectUri: string }) {
+  async getAuthenticatedClient(type: string) {
     const connector = await this.connector.findByType(type);
     if (!connector) return null;
     const parsed = JSON.parse(connector.config);
     const tokens: GoogleTokens = parsed.tokens;
     if (!tokens?.access_token) return null;
 
-    const oauth2 = this.getClient(config);
+    const oauth2 = new google.auth.OAuth2(parsed.clientId, parsed.clientSecret, parsed.redirectUri);
     oauth2.setCredentials(tokens);
     oauth2.on('tokens', async (newTokens) => {
       const current = JSON.parse(connector.config);
