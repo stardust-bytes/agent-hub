@@ -83,11 +83,12 @@ export class GoogleDriveService {
     return { id: res.data.id!, name: res.data.name!, mimeType: res.data.mimeType!, webViewLink: res.data.webViewLink ?? undefined };
   }
 
-  async upload(name: string, content: string, mimeType = 'text/plain'): Promise<DriveFile> {
+  async upload(name: string, contentBase64: string, mimeType = 'text/plain'): Promise<DriveFile> {
     const drive = await this.getDrive();
+    const body = Buffer.from(contentBase64, 'base64');
     const res = await drive.files.create({
       requestBody: { name },
-      media: { mimeType, body: content },
+      media: { mimeType, body },
       fields: 'id,name,mimeType,size,modifiedTime,webViewLink',
     });
     return { id: res.data.id!, name: res.data.name!, mimeType: res.data.mimeType! };
