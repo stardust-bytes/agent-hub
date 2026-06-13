@@ -17,17 +17,24 @@ export class WriteFileExecutor implements ToolExecutor {
     const content = args.content as string | undefined;
     if (content === undefined) return 'Error: path and content are required.';
 
+    const rawPath = (args.path as string) || 'output.txt';
+    const filename = rawPath.split(/[\\/]/).pop() || 'file';
     let filePath: string;
 
-    filePath = args.path as string;
-    if (!filePath) return 'Error: path is required.';
-    if (!this.workspace.isPathAllowed(filePath)) return `Error: path "${filePath}" is not allowed.`;
+    if (context?.projectPath) {
+      filePath = path.join(context.projectPath, filename);
+    } else {
+      const sessionDir = path.join(
+        this.workspace.getWorkspaceRoot(),
+        'agent-output',
+        `session_${context?.sessionId ?? 0}`,
+      );
+      filePath = path.join(sessionDir, filename);
+    }
 
     try {
       const { bytesWritten, resolved } = await this.workspace.writeFile(filePath, content);
-      const filename = resolved.split(/[\\/]/).pop() || 'file';
-      const workspaceRoot = this.workspace.getWorkspaceRoot();
-      if (resolved.startsWith(workspaceRoot)) {
+      if (!context?.projectPath) {
         const agentFile = await this.prisma.agentFile.create({
           data: { filename, path: resolved, sessionId: context?.sessionId ?? 0 },
         });

@@ -21,15 +21,29 @@ export class WriteWordExecutor implements ToolExecutor {
     const content = String(args.content ?? '');
     if (!rawPath || !content) return 'Error: "path" and "content" are required';
 
+    const filename = rawPath.split(/[\\/]/).pop() || 'file.docx';
     let filePath: string;
 
-    filePath = rawPath;
-    if (!this.workspace.isPathAllowed(filePath)) {
-      return `Error: path "${filePath}" is not allowed.`;
+    if (context?.projectPath) {
+      filePath = path.join(context.projectPath, filename);
+    } else {
+      const sessionDir = path.join(
+        this.workspace.getWorkspaceRoot(),
+        'agent-output',
+        `session_${context?.sessionId ?? 0}`,
+      );
+      fs.mkdirSync(sessionDir, { recursive: true });
+      filePath = path.join(sessionDir, filename);
     }
 
     try {
       const result = await this.wordService.write(filePath, content);
+      if (!context?.projectPath) {
+        const agentFile = await this.prisma.agentFile.create({
+          data: { filename, path: filePath, sessionId: context?.sessionId ?? 0 },
+        });
+        return `Done. [Download "${filename}"](api/files/agent/${agentFile.id}/download)`;
+      }
       return result;
     } catch (e) {
       return `Error writing file: ${e instanceof Error ? e.message : 'Unknown error'}`;

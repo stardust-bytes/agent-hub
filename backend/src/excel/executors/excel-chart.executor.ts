@@ -17,10 +17,25 @@ export class ExcelChartExecutor implements ToolExecutor {
   ) {}
 
   async execute(args: Record<string, unknown>, context?: ToolContext): Promise<string> {
-    let filePath = String(args.path ?? '');
+    const rawPath = String(args.path ?? '');
     const sheetName = String(args.sheet_name ?? '');
     const chartType = String(args.chart_type ?? '');
-    if (!filePath || !sheetName || !chartType) return 'Error: "path", "sheet_name", and "chart_type" are required';
+    if (!rawPath || !sheetName || !chartType) return 'Error: "path", "sheet_name", and "chart_type" are required';
+
+    const filename = rawPath.split(/[\\/]/).pop() || 'file.xlsx';
+    let filePath: string;
+
+    if (context?.projectPath) {
+      filePath = path.join(context.projectPath, filename);
+    } else {
+      const sessionDir = path.join(
+        this.workspace.getWorkspaceRoot(),
+        'agent-output',
+        `session_${context?.sessionId ?? 0}`,
+      );
+      fs.mkdirSync(sessionDir, { recursive: true });
+      filePath = path.join(sessionDir, filename);
+    }
 
     try {
       await this.excel.validatePath(filePath);
@@ -30,6 +45,12 @@ export class ExcelChartExecutor implements ToolExecutor {
       const categoriesRange = args.categories_range ? String(args.categories_range) : undefined;
       const result = await this.excel.addChart(filePath, sheetName, chartType, title, dataRange, categoriesRange);
 
+      if (!context?.projectPath) {
+        const agentFile = await this.prisma.agentFile.create({
+          data: { filename, path: filePath, sessionId: context?.sessionId ?? 0 },
+        });
+        return `Done. [Download "${filename}"](api/files/agent/${agentFile.id}/download)`;
+      }
       return result;
     } catch (e) {
       return `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
