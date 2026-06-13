@@ -55,15 +55,15 @@ export class ScheduleTasksService {
 
       switch (task.frequency) {
         case 'hourly':
-          return task.cronMinute === minute && (now.getTime() - lastRunTime > 3600000);
+          return task.cronMinute === minute && (now.getTime() - lastRunTime >= 3600000);
         case 'daily':
-          return task.cronHour === hour && task.cronMinute === minute && (now.getTime() - lastRunTime > 86400000);
+          return task.cronHour === hour && task.cronMinute === minute && (now.getTime() - lastRunTime >= 86400000);
         case 'weekdays':
           return task.cronHour === hour && task.cronMinute === minute
-            && day >= 1 && day <= 5 && (now.getTime() - lastRunTime > 86400000);
+            && day >= 1 && day <= 5 && (now.getTime() - lastRunTime >= 86400000);
         case 'weekly':
           const days = (task.cronDaysOfWeek ?? String(task.cronDayOfWeek ?? '')).split(',').map(Number);
-          return days.includes(day) && task.cronHour === hour && task.cronMinute === minute && (now.getTime() - lastRunTime > 86400000 * 7);
+          return days.includes(day) && task.cronHour === hour && task.cronMinute === minute && (now.getTime() - lastRunTime >= 86400000 * 7);
         default:
           return false;
       }
