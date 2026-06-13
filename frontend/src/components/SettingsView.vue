@@ -30,7 +30,7 @@
         <div class="border-t border-cyber-accent/10 pt-4">
           <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.info') }}</div>
           <div class="text-sm font-mono text-cyber-muted space-y-1">
-            <div>{{ t('settings.version') }}: 0.6.3</div>
+            <div>{{ t('settings.version') }}: 0.10.1</div>
             <div :class="healthy ? 'text-cyber-green' : 'text-red-400'">
               ● {{ healthy ? t('health.ok') : t('health.error') }}
             </div>
