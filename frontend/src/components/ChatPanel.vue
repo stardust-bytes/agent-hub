@@ -49,10 +49,11 @@ import ChatInputBar from './chat/ChatInputBar.vue'
 import type { Message, PlanData, ProviderModelFlat } from './chat/types'
 import { useProvidersStore } from '../stores/providers'
 import { useUiStore } from '../stores/ui'
-import { getSessionMessages, createSession } from '../api/sessions'
+import { createSession, getSessionMessages } from '../api/sessions'
 import { getPlan, getNextPlan } from '../api/plans'
 import { requestRaw } from '../api/client'
 import { parseSseStream, type SseCallbacks } from '../composables/useChatStream'
+import { loadSessionMessages } from '../composables/useSessionMessages'
 
 const { t } = useI18n()
 const ui = useUiStore()
@@ -115,63 +116,10 @@ async function loadSession(id: number) {
   currentSessionId.value = id
   messages.value = []
   try {
-    const history = await getSessionMessages(id)
-    if (history.length === 0) {
+    const loaded = await loadSessionMessages(id, getSessionMessages, getPlan, now)
+    messages.value = loaded
+    if (loaded.length === 0) {
       messages.value.push({ role: 'system', content: t('chat.system.init'), timestamp: now() })
-    }
-    for (const msg of history) {
-      if (msg.toolName != null) {
-        messages.value.push({
-          role: 'tool',
-          content: msg.content,
-          timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-          toolName: msg.toolName,
-          isResult: msg.isResult ?? false,
-        })
-      } else if (msg.role === 'system') {
-        messages.value.push({
-          role: 'system',
-          content: msg.content,
-          timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-        })
-      } else if (msg.role === 'plan') {
-        try {
-          const planData = JSON.parse(msg.content) as PlanData
-          const planForDisplay = { ...planData, steps: planData.steps.map(s => ({ ...s })) }
-          try {
-            const fresh = await getPlan(planData.id)
-            planForDisplay.status = fresh.status
-            if (fresh.steps) {
-              for (const fs of fresh.steps) {
-                const step = planForDisplay.steps.find(s => s.id === fs.id)
-                if (step) step.status = fs.status
-              }
-            }
-          } catch { /* use saved data */ }
-          if (planForDisplay.status === 'EXECUTING' && planForDisplay.steps.every(s => s.status === 'DONE' || s.status === 'FAILED')) {
-            planForDisplay.status = 'DONE'
-          }
-          messages.value.push({
-            role: 'plan',
-            content: '',
-            timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-            plan: planForDisplay,
-          })
-        } catch {
-          messages.value.push({
-            role: 'system',
-            content: msg.content,
-            timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-          })
-        }
-      } else {
-        const mappedRole = msg.role === 'assistant' ? 'agent' : msg.role
-        messages.value.push({
-          role: mappedRole as 'user' | 'agent',
-          content: msg.content,
-          timestamp: new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour12: false }),
-        })
-      }
     }
   } catch { /* ignore */ }
   await scrollToBottom()
