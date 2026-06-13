@@ -60,7 +60,7 @@ export class AgentService {
             step: 0, maxIterations: 10, roomId: String(sessionId),
             steps: [], startTime: Date.now(), currentState: 'PLANNING',
           } as AgentRunState;
-          const context = await this.contextBuilder.build(runState, sessionId, mode);
+          const context = await this.contextBuilder.build(runState, sessionId);
           await this.agentLoop.executePlan(
             planId, providerType, providerModel.name, context.systemPrompt,
             context.tools, providerConfig, signal, res, sessionId,
@@ -80,7 +80,7 @@ export class AgentService {
             step: 0, maxIterations: 10, roomId: String(sessionId),
             steps: [], startTime: Date.now(), currentState: 'PLANNING',
           } as AgentRunState;
-          const context = await this.contextBuilder.build(runState, sessionId, mode);
+          const context = await this.contextBuilder.build(runState, sessionId);
           await this.agentLoop.executePlan(
             planId, providerType, providerModel.name, context.systemPrompt,
             context.tools, providerConfig, signal, res, sessionId,
@@ -112,7 +112,7 @@ export class AgentService {
       step: 0, maxIterations: 10, roomId: String(sessionId),
       steps: [], startTime: Date.now(), currentState: 'PLANNING',
     } as AgentRunState;
-    const context = await this.contextBuilder.build(runState, sessionId, mode);
+    const context = await this.contextBuilder.build(runState, sessionId);
     const history = await this.sessionsService.getHistory(sessionId);
 
     if (!signal.aborted) {

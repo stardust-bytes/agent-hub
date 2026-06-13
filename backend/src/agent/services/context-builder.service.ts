@@ -30,14 +30,13 @@ export class ContextBuilderService {
   async build(
     runState: AgentRunState,
     sessionId: number,
-    mode: string = 'agent',
     systemPromptOverride?: string,
   ): Promise<AgentContext> {
-    const tools = await this.getEnabledTools(mode);
+    const tools = await this.getEnabledTools();
     const project = await this.cowork.getProject();
     const memoryContext = await this.memoryService.getContextMemories();
 
-    const systemPrompt = systemPromptOverride || this.buildSystemPrompt(tools, project, mode, memoryContext);
+    const systemPrompt = systemPromptOverride || this.buildSystemPrompt(tools, project, memoryContext);
 
     const messages = await this.loadChatHistory(sessionId);
 
@@ -63,17 +62,7 @@ export class ContextBuilderService {
       .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
   }
 
-  private buildSystemPrompt(tools: ToolDefinition[], projectPath?: string | null, mode: string = 'agent', memoryContext?: string): string {
-    if (mode === 'chat') {
-      return [
-        'You are a helpful AI assistant.',
-        'Answer user questions using the available tools when needed.',
-        'Use web_search and web_fetch to find current information.',
-        '',
-        'Respond in the same language the user writes in.',
-      ].join('\n');
-    }
-
+  private buildSystemPrompt(tools: ToolDefinition[], projectPath?: string | null, memoryContext?: string): string {
     const now = new Date();
     const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
@@ -99,36 +88,25 @@ export class ContextBuilderService {
       'Native tools are faster, more reliable, and better integrated with connected accounts.',
     );
 
-    if (mode === 'cowork') {
-      lines.push('',
-        '',
-        'When to use create_plan:',
-        '- Call create_plan for complex multi-step tasks that need sequential coordination.',
-        '- Always set requireApproval=false — plans execute automatically.',
-        '- The user trusts you to decide when and how to break down work.',
-        '- Do not ask for approval or confirmation before executing plans.',
-        '- Do NOT use create_plan for single-step tasks — use the appropriate tool directly.',
-      );
-      lines.push('',
-        '',
-        'When handling complex multi-step tasks:',
-        '- Use the delegate tool to run subtasks in parallel workers for independent sub-tasks like reading multiple files, processing separate datasets, or searching different sources.',
-        '- Break the task into self-contained subtasks — each must be completable without seeing other subtask results.',
-        '- Do NOT wait for user approval — delegate automatically.',
-        '- After all subtasks complete, synthesize the results into a coherent answer.',
-        '- Each subtask description should include all context needed (file paths, search queries, instructions).',
-        '- Do NOT use delegate for single-step tasks — use the appropriate tool directly.',
-      );
-    } else {
-      lines.push('',
-        '',
-        'When to use create_plan:',
-        '- Call create_plan for complex multi-step tasks that need sequential coordination.',
-        '- Set requireApproval=true for risky operations (destructive file ops, architecture changes, operations needing user decisions).',
-        '- Set requireApproval=false for safe multi-step work (refactoring, building components, data processing).',
-        '- Do NOT use create_plan for single-step tasks — use the appropriate tool directly.',
-      );
-    }
+    lines.push('',
+      '',
+      'When to use create_plan:',
+      '- Call create_plan for complex multi-step tasks that need sequential coordination.',
+      '- Always set requireApproval=false — plans execute automatically.',
+      '- The user trusts you to decide when and how to break down work.',
+      '- Do not ask for approval or confirmation before executing plans.',
+      '- Do NOT use create_plan for single-step tasks — use the appropriate tool directly.',
+    );
+    lines.push('',
+      '',
+      'When handling complex multi-step tasks:',
+      '- Use the delegate tool to run subtasks in parallel workers for independent sub-tasks like reading multiple files, processing separate datasets, or searching different sources.',
+      '- Break the task into self-contained subtasks — each must be completable without seeing other subtask results.',
+      '- Do NOT wait for user approval — delegate automatically.',
+      '- After all subtasks complete, synthesize the results into a coherent answer.',
+      '- Each subtask description should include all context needed (file paths, search queries, instructions).',
+      '- Do NOT use delegate for single-step tasks — use the appropriate tool directly.',
+    );
 
     lines.push('',
       'When handling knowledge base searches (search_knowledge tool):',
@@ -163,24 +141,7 @@ export class ContextBuilderService {
       `Current time: ${timeStr}`,
     );
 
-    if (mode === 'agent') {
-      const agentPaths = this.modePolicy.resolveAllowedPaths('agent');
-      const agentOutputPath = agentPaths[0] || '{workspaceRoot}/agent-output';
-      lines.push(
-        '',
-        'When writing files, use relative paths (e.g., "output.txt").',
-        `Files will be saved to: ${agentOutputPath}/session_{sessionId}`,
-        'Files written here are automatically downloadable via links returned by write_file.',
-        'IMPORTANT: When a file is created, the tool result will contain a download link.',
-        'You MUST include this download link in your final response text so the user can click it.',
-        'Example format: [Download "filename"](api/files/agent/123/download)',
-        '',
-        'CRITICAL: To create a file you MUST call write_file, write_word, or write_excel tool.',
-        'Never claim you created a file in text without calling the tool — only a tool call actually writes the file.',
-      );
-    }
-
-    if (mode === 'cowork' && projectPath) {
+    if (projectPath) {
       lines.push('',
         `Current working project: ${projectPath}`,
         '',
@@ -240,25 +201,23 @@ export class ContextBuilderService {
     return lines.join('\n');
   }
 
-  private async getEnabledTools(mode: string = 'agent'): Promise<ToolDefinition[]> {
+  private async getEnabledTools(): Promise<ToolDefinition[]> {
     const dbTools = await this.toolsService.findEnabled();
-    const tools = this.modePolicy.getEnabledTools(mode, dbTools);
+    const tools = this.modePolicy.getEnabledTools('cowork', dbTools);
 
-    if (mode === 'cowork') {
-      try {
-        const mcpTools = await this.mcpService.getAllTools();
-        for (const t of mcpTools) {
-          tools.push({
-            type: 'function' as const,
-            function: {
-              name: t.name,
-              description: t.description ?? '',
-              parameters: t.parameters,
-            },
-          });
-        }
-      } catch { /* MCP not available */ }
-    }
+    try {
+      const mcpTools = await this.mcpService.getAllTools();
+      for (const t of mcpTools) {
+        tools.push({
+          type: 'function' as const,
+          function: {
+            name: t.name,
+            description: t.description ?? '',
+            parameters: t.parameters,
+          },
+        });
+      }
+    } catch { /* MCP not available */ }
 
     return tools;
   }
