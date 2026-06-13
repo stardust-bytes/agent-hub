@@ -34,7 +34,7 @@ export class ScheduleRunnerService {
     });
 
     try {
-      const session = await this.sessionsService.create();
+      const session = await this.sessionsService.create(`Task - ${task.name}`);
       const projectPath = task.projectPath ?? undefined;
 
       if (task.projectPath) {

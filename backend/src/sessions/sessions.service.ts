@@ -17,8 +17,8 @@ export class SessionsService {
     });
   }
 
-  async create() {
-    return this.prisma.session.create({ data: { mode: 'cowork' } });
+  async create(title?: string) {
+    return this.prisma.session.create({ data: { mode: 'cowork', title: title ?? 'New Session' } });
   }
 
   async remove(id: number) {

@@ -373,7 +373,7 @@
   "schedules.model": "Model",
   "schedules.timezone": "Timezone",
   "schedules.frequency": "Tần suất",
-  "schedules.runNow": "Chạy ngay",
+  "schedules.runNow": "CHẠY NGAY",
   "schedules.hint.hourly": "Mỗi giờ ở phút {m}",
   "schedules.hint.daily": "Mỗi ngày lúc {time}",
   "schedules.hint.weekdays": "Ngày trong tuần lúc {time}",

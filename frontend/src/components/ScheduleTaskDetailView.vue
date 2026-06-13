@@ -4,7 +4,7 @@
       <button @click="router.push('/tasks')" class="flex items-center gap-1 text-sm text-cyber-muted font-mono hover:text-cyber-accent transition-colors duration-150"><HiArrowLeft class="w-3 h-3" /> {{ t('schedules.detail.back') }}</button>
       <span class="text-sm text-cyber-accent font-mono ml-2 truncate">{{ task?.name || t('schedules.detail.loading') }}</span>
       <div class="ml-auto flex gap-1">
-        <button @click="runNow(task!.id)" class="flex items-center gap-1 text-sm text-cyber-accent/70 font-mono px-2 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-accent"><HiPlay class="w-3 h-3" /> {{ t('schedules.runNow') }}</button>
+        <button @click="runNow(task!.id)" class="text-sm text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/30 transition-colors duration-150 hover:bg-cyber-accent/10">{{ t('schedules.runNow') }}</button>
       </div>
     </div>
 

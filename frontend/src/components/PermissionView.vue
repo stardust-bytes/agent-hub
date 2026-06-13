@@ -67,7 +67,7 @@ const { t } = useI18n()
 const PERMISSION_MODES = ['default', 'acceptEdits', 'bypassPermissions', 'dontAsk', 'auto', 'plan']
 
 const ALL_TOOLS = [
-  'run_command', 'write_file',
+  'run_command',
   'delete_tasks', 'delete_note',
   'delete_knowledge', 'grep', 'glob',
 ]
