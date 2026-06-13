@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ScheduleTasksController } from './schedule-tasks.controller';
 import { ScheduleTasksService } from './schedule-tasks.service';
@@ -11,7 +11,7 @@ import { SessionsModule } from '../sessions/sessions.module';
 import { CoworkModule } from '../cowork/cowork.module';
 
 @Module({
-  imports: [PrismaModule, AgentModule, ProvidersModule, SessionsModule, CoworkModule, ScheduleModule.forRoot()],
+  imports: [PrismaModule, forwardRef(() => AgentModule), ProvidersModule, SessionsModule, CoworkModule, ScheduleModule.forRoot()],
   controllers: [ScheduleTasksController],
   providers: [ScheduleTasksService, ScheduleRunnerService, ScheduleCronService],
   exports: [ScheduleTasksService],

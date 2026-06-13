@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AgentController } from './agent.controller';
 import { AgentService } from './agent.service';
 import { AgentLoopService } from './services/agent-loop.service';
@@ -10,6 +10,7 @@ import { PermissionsService } from './services/permissions.service';
 import { YoloClassifierService } from './services/yolo-classifier.service';
 import { ApprovalManagerService } from './services/approval-manager.service';
 import { MemoryModule } from '../memory/memory.module';
+import { ScheduleTasksModule } from '../schedule-tasks/schedule-tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { SessionsModule } from '../sessions/sessions.module';
 import { ProvidersModule } from '../providers/providers.module';
@@ -59,7 +60,7 @@ import { GoogleDriveCreateFolderExecutor } from '../tools/executors/google-drive
 
 
 @Module({
-  imports: [MemoryModule, KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule, ConnectorModule],
+  imports: [MemoryModule, forwardRef(() => ScheduleTasksModule), KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule, ConnectorModule],
   controllers: [AgentController],
   providers: [
     AgentService,
