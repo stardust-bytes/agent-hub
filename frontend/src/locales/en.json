@@ -27,6 +27,11 @@
   "health.checking": "Checking backend...",
   "health.ok": "Backend: ok · DB: connected",
   "health.error": "Backend unreachable",
+  "health.failed": "Health check failed",
+
+  "tasks.fetch_failed": "Could not load tasks",
+  "tasks.save_failed": "Could not save task",
+  "tasks.delete_failed": "Could not delete task",
 
   "tasks.header": "TASKS",
   "tasks.col.todo": "TODO",
@@ -60,6 +65,8 @@
   "status.db": "db",
   "status.subagents": "sub-agents",
 
+  "settings.fetch_failed": "Could not load settings",
+
   "settings.header": "SETTINGS",
   "settings.ollamaUrl": "Ollama Base URL",
   "settings.defaultModel": "Default Model",
@@ -76,6 +83,10 @@
   "settings.noMcpServers": "No MCP servers configured",
   "settings.mcpOn": "ON",
   "settings.mcpOff": "OFF",
+  "connectors.fetch_failed": "Could not load connectors",
+  "connectors.oauth_failed": "OAuth authentication failed",
+  "connectors.delete_failed": "Could not delete connector",
+
   "connectors.header": "CONNECTORS",
   "connectors.connected": "Connected",
   "connectors.disconnected": "Disconnected",
@@ -93,6 +104,8 @@
   "settings.oauthSave": "Save Config",
   "settings.oauthAuthorize": "Authorize Google",
 
+  "knowledge.fetch_failed": "Could not load knowledge files",
+
   "files.header": "KNOWLEDGE BASE",
   "files.dropzone": "Drop files or click to upload",
   "files.filter": "Filter by name...",
@@ -107,6 +120,10 @@
   "files.watch.btn": "Watch",
   "files.watch.stop": "Stop",
   "files.watch.status": "● watching",
+
+  "memories": {
+    "fetch_failed": "Could not load memories"
+  },
 
   "memory": {
     "title": "Memories",
@@ -129,6 +146,8 @@
       "content": "Content"
     }
   },
+
+  "cowork.fetch_failed": "Could not load workspace data",
 
   "cowork.title": "Workspace",
   "cowork.path": "Directory:",
@@ -154,11 +173,20 @@
   "cowork.project.name": "Project name",
   "cowork.project.save": "Save",
 
+  "sessions.fetch_failed": "Could not load sessions",
+  "sessions.create_failed": "Could not create session",
+  "sessions.delete_failed": "Could not delete session",
+
   "sessions.header": "SESSIONS",
   "sessions.new": "+ New",
   "sessions.empty": "No sessions yet",
   "sessions.messages": "{n} messages",
   "sessions.delete.confirm": "Delete this session?",
+
+  "providers.fetch_failed": "Could not load providers",
+  "providers.save_failed": "Could not save provider",
+  "providers.delete_failed": "Could not delete provider",
+  "providers.sync_failed": "Could not sync provider",
 
   "providers.header": "PROVIDERS",
   "providers.add": "+ add provider",
@@ -180,6 +208,7 @@
   "chat.no_provider": "No provider configured. Add one in ⚡ Providers.",
   "nav.providers": "Providers",
   "nav.tools": "Tools",
+  "tools.fetch_failed": "Could not load tools",
   "tools.header": "TOOL REGISTRY",
   "tools.loading": "Loading tools...",
   "tools.no_tools": "No tools registered",
@@ -199,6 +228,10 @@
   "nav.notes": "Notes",
   "nav.agentOutput": "Outputs",
   "nav.connectors": "Connectors",
+  "notes.fetch_failed": "Could not load notes",
+  "notes.save_failed": "Could not save note",
+  "notes.delete_failed": "Could not delete note",
+
   "notes.header": "NOTES",
   "notes.empty": "No notes yet",
   "notes.add": "+ add note",
@@ -214,6 +247,8 @@
   "slash.resume_plan": "Resume an interrupted plan",
   "slash.help": "Show available commands",
   "slash.clear": "Clear the conversation",
+
+  "plans.fetch_failed": "Could not load plans",
 
   "plans.header": "Execution Plan",
   "plans.empty": "No plans yet",
@@ -272,7 +307,17 @@
     "complete": "└ Delegate complete ({count} tasks)"
   },
 
+  "agent": {
+    "fetch_failed": "Could not load agent info"
+  },
+
+  "errors": {
+    "network": "Network connection lost",
+    "request": "Request failed"
+  },
+
   "usage": {
+    "fetch_failed": "Could not load usage data",
     "header": "Usage",
     "total_prompt": "Prompt tokens",
     "total_completion": "Completion tokens",
@@ -288,6 +333,7 @@
   },
 
   "agentOutput": {
+    "fetch_failed": "Could not load agent outputs",
     "header": "AGENT OUTPUTS",
     "empty": "No files yet",
     "download": "Download",

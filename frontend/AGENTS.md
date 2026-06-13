@@ -22,6 +22,8 @@ Single-page application with a multi-panel IDE layout: icon sidebar + content pa
 | Icons | `vue-icons-plus/hi` (Hero Icons) |
 | Drag & drop | `vue-draggable-plus` (Kanban) |
 | WebSocket | `socket.io-client` (task real-time sync) |
+| State management | Pinia — domain stores in `src/stores/` |
+| Testing | Vitest — unit tests in `src/__tests__/` |
 
 ---
 
@@ -100,6 +102,11 @@ src/
 ├── locales/
 │   ├── vi.json          — Vietnamese (primary, default)
 │   └── en.json          — English (secondary/fallback)
+├── api/                 — typed API call layer; client.ts adds /api prefix and throws AppError(code) mapped to i18n
+│   ├── client.ts        — base request(), AppError class, fallback codes errors.network / errors.request
+│   └── *.ts             — one module per domain (providers, sessions, tasks, notes, …)
+├── stores/              — Pinia domain stores; components read/write data exclusively through these
+│   └── *.ts             — one store per domain, delegates to api/ modules
 └── components/
     ├── AppShell.vue
     ├── SidebarNav.vue

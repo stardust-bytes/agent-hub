@@ -193,6 +193,10 @@ Shows version and health check status (pings `GET /api/health` on mount).
 | Animations | `animate-blink` for cursor only. `transition-colors duration-150` on interactive elements |
 | Icons | `vue-icons-plus/hi` (Hero Icons). No inline SVG |
 
+## Data Access
+
+Components obtain data through Pinia stores (`stores/`) rather than inline `fetch` calls. Stores delegate to the `api/` typed call layer; only `src/api/knowledge.ts` retains a direct `fetch` call for multipart file upload.
+
 ## i18n in Components
 
 All components use `useI18n()`. Never hardcode user-facing strings. Always `t('key')`.

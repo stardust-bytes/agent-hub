@@ -27,6 +27,11 @@
   "health.checking": "Đang kiểm tra...",
   "health.ok": "Backend: hoạt động · DB: đã kết nối",
   "health.error": "Không kết nối được backend",
+  "health.failed": "Kiểm tra trạng thái thất bại",
+
+  "tasks.fetch_failed": "Không tải được danh sách nhiệm vụ",
+  "tasks.save_failed": "Không lưu được nhiệm vụ",
+  "tasks.delete_failed": "Không xóa được nhiệm vụ",
 
   "tasks.header": "NHIỆM VỤ",
   "tasks.col.todo": "CẦN LÀM",
@@ -60,6 +65,8 @@
   "status.db": "db",
   "status.subagents": "sub-agents",
 
+  "settings.fetch_failed": "Không tải được cài đặt",
+
   "settings.header": "CÀI ĐẶT",
   "settings.ollamaUrl": "Ollama Base URL",
   "settings.defaultModel": "Model mặc định",
@@ -76,6 +83,10 @@
   "settings.noMcpServers": "Chưa có MCP server nào",
   "settings.mcpOn": "BẬT",
   "settings.mcpOff": "TẮT",
+  "connectors.fetch_failed": "Không tải được danh sách kết nối",
+  "connectors.oauth_failed": "Xác thực OAuth thất bại",
+  "connectors.delete_failed": "Không xóa được kết nối",
+
   "connectors.header": "KẾT NỐI",
   "connectors.connected": "Đã kết nối",
   "connectors.disconnected": "Chưa kết nối",
@@ -93,6 +104,8 @@
   "settings.oauthSave": "Lưu cấu hình",
   "settings.oauthAuthorize": "Ủy quyền Google",
 
+  "knowledge.fetch_failed": "Không tải được tệp kiến thức",
+
   "files.header": "KIẾN THỨC",
   "files.dropzone": "Thả file hoặc click để upload",
   "files.filter": "Lọc theo tên...",
@@ -107,6 +120,10 @@
   "files.watch.btn": "Theo dõi",
   "files.watch.stop": "Dừng",
   "files.watch.status": "● đang theo dõi",
+
+  "memories": {
+    "fetch_failed": "Không tải được bộ nhớ"
+  },
 
   "memory": {
     "title": "Bộ nhớ",
@@ -129,6 +146,8 @@
       "content": "Nội dung"
     }
   },
+
+  "cowork.fetch_failed": "Không tải được dữ liệu workspace",
 
   "cowork.title": "Workspace",
   "cowork.path": "Đường dẫn:",
@@ -154,11 +173,20 @@
   "cowork.project.name": "Tên project",
   "cowork.project.save": "Lưu",
 
+  "sessions.fetch_failed": "Không tải được danh sách session",
+  "sessions.create_failed": "Không tạo được session",
+  "sessions.delete_failed": "Không xóa được session",
+
   "sessions.header": "SESSIONS",
   "sessions.new": "+ Mới",
   "sessions.empty": "Chưa có session nào",
   "sessions.messages": "{n} tin nhắn",
   "sessions.delete.confirm": "Xóa session này?",
+
+  "providers.fetch_failed": "Không tải được danh sách provider",
+  "providers.save_failed": "Không lưu được provider",
+  "providers.delete_failed": "Không xóa được provider",
+  "providers.sync_failed": "Không đồng bộ được provider",
 
   "providers.header": "PROVIDERS",
   "providers.add": "+ thêm provider",
@@ -180,6 +208,7 @@
   "chat.no_provider": "Chưa có provider. Thêm trong ⚡ Providers.",
   "nav.providers": "Providers",
   "nav.tools": "Tools",
+  "tools.fetch_failed": "Không tải được danh sách tool",
   "tools.header": "TOOL REGISTRY",
   "tools.loading": "Đang tải tools...",
   "tools.no_tools": "Chưa có tool nào",
@@ -199,6 +228,10 @@
   "nav.notes": "Ghi chú",
   "nav.agentOutput": "Kết quả",
   "nav.connectors": "Kết nối",
+  "notes.fetch_failed": "Không tải được ghi chú",
+  "notes.save_failed": "Không lưu được ghi chú",
+  "notes.delete_failed": "Không xóa được ghi chú",
+
   "notes.header": "GHI CHÚ",
   "notes.empty": "Chưa có ghi chú nào",
   "notes.add": "+ thêm ghi chú",
@@ -214,6 +247,8 @@
   "slash.resume_plan": "Tiếp tục kế hoạch đang dở",
   "slash.help": "Hiển thị các lệnh",
   "slash.clear": "Xóa cuộc trò chuyện",
+
+  "plans.fetch_failed": "Không tải được kế hoạch",
 
   "plans.header": "Kế hoạch thực thi",
   "plans.empty": "Chưa có kế hoạch nào",
@@ -272,7 +307,17 @@
     "complete": "└ Hoàn thành delegation ({count} tác vụ)"
   },
 
+  "agent": {
+    "fetch_failed": "Không tải được thông tin agent"
+  },
+
+  "errors": {
+    "network": "Mất kết nối mạng",
+    "request": "Yêu cầu thất bại"
+  },
+
   "usage": {
+    "fetch_failed": "Không tải được dữ liệu usage",
     "header": "Usage",
     "total_prompt": "Token đầu vào",
     "total_completion": "Token đầu ra",
@@ -288,6 +333,7 @@
   },
 
   "agentOutput": {
+    "fetch_failed": "Không tải được kết quả agent",
     "header": "KẾT QUẢ AGENT",
     "empty": "Chưa có file nào",
     "download": "Tải",
