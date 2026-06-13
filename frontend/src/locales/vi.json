@@ -66,6 +66,11 @@
   "settings.oauthSave": "Lưu cấu hình",
   "settings.oauthAuthorize": "Ủy quyền Google",
 
+  "tasks.form.cancel": "Huỷ",
+  "tasks.form.save": "Lưu",
+  "tasks.delete.confirm.btn": "Xoá",
+  "tasks.filter.label": "LỌC:",
+
   "knowledge.fetch_failed": "Không tải được tệp kiến thức",
 
   "files.header": "KIẾN THỨC",

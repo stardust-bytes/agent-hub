@@ -1,6 +1,6 @@
 {
   "nav.cowork": "Cowork",
-  "nav.tasks": "Tasks",
+  "nav.tasks": "Schedule Tasks",
   "nav.files": "Files",
   "nav.settings": "Settings",
   "nav.lang": "EN",
@@ -65,6 +65,11 @@
   "settings.oauthRedirectUri": "Redirect URI",
   "settings.oauthSave": "Save Config",
   "settings.oauthAuthorize": "Authorize Google",
+
+  "tasks.form.cancel": "Cancel",
+  "tasks.form.save": "Save",
+  "tasks.delete.confirm.btn": "Delete",
+  "tasks.filter.label": "FILTER:",
 
   "knowledge.fetch_failed": "Could not load knowledge files",
 
