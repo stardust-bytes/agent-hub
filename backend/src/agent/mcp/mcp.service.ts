@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { McpClientService } from './mcp-client.service';
+import { WorkspaceService } from '../../workspace/workspace.service';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -13,7 +14,10 @@ interface McpServerEntry {
 export class McpService implements OnModuleInit {
   private servers = new Map<string, McpServerEntry>();
 
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly workspace: WorkspaceService,
+  ) {}
 
   async onModuleInit(): Promise<void> {
     await this.startPlaywrightServer();
@@ -21,10 +25,11 @@ export class McpService implements OnModuleInit {
 
   private async startPlaywrightServer(): Promise<void> {
     try {
-      const snapshotDir = path.resolve(this.config.get<string>('WORKSPACE_ROOT', './workspace_data'), 'mcp_data');
+      const root = this.workspace.getWorkspaceRoot();
+      const snapshotDir = path.resolve(root, 'mcp_data');
       fs.mkdirSync(snapshotDir, { recursive: true });
 
-      const profileDir = path.resolve(this.config.get<string>('WORKSPACE_ROOT', './workspace_data'), 'playwright-profile');
+      const profileDir = path.resolve(root, 'playwright-profile');
       fs.mkdirSync(profileDir, { recursive: true });
 
       const client = new McpClientService();
