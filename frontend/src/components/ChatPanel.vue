@@ -730,6 +730,8 @@ async function submit() {
         scrollToBottom()
       },
       onDelegateResult(count) {
+        clearThinking()
+        currentAgentIdx = -1
         messages.value.push({
           role: 'system',
           content: t('delegate.complete', { count }),
