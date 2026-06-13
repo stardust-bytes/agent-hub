@@ -127,7 +127,7 @@ No accounts, no cloud services, no data sharing. Your code and conversations nev
 # Backend
 cd backend
 npm install
-npx prisma generate
+npm run setup
 npm run start:dev          # http://localhost:13596
 
 # Frontend (separate terminal)
