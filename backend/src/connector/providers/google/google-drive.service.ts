@@ -1,6 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
 import { GoogleOAuthService } from './google-oauth.service';
+import * as fs from 'fs';
+import * as path from 'path';
+
+const MIME_MAP: Record<string, string> = {
+  '.txt': 'text/plain', '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
+  '.json': 'application/json', '.xml': 'application/xml', '.csv': 'text/csv',
+  '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.svg': 'image/svg+xml', '.webp': 'image/webp',
+  '.pdf': 'application/pdf', '.doc': 'application/msword', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.xls': 'application/vnd.ms-excel', '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.zip': 'application/zip', '.tar': 'application/x-tar', '.gz': 'application/gzip',
+  '.mp3': 'audio/mpeg', '.mp4': 'video/mp4', '.mov': 'video/quicktime',
+};
 
 export interface DriveFile {
   id: string;
@@ -86,6 +98,20 @@ export class GoogleDriveService {
   async upload(name: string, contentBase64: string, mimeType = 'text/plain'): Promise<DriveFile> {
     const drive = await this.getDrive();
     const body = Buffer.from(contentBase64, 'base64');
+    const res = await drive.files.create({
+      requestBody: { name },
+      media: { mimeType, body },
+      fields: 'id,name,mimeType,size,modifiedTime,webViewLink',
+    }, { timeout: 300000 });
+    return { id: res.data.id!, name: res.data.name!, mimeType: res.data.mimeType! };
+  }
+
+  async uploadFromPath(filePath: string, fileName?: string): Promise<DriveFile> {
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeType = MIME_MAP[ext] ?? 'application/octet-stream';
+    const name = fileName ?? path.basename(filePath);
+    const drive = await this.getDrive();
+    const body = fs.readFileSync(filePath);
     const res = await drive.files.create({
       requestBody: { name },
       media: { mimeType, body },
