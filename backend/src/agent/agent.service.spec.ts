@@ -128,7 +128,7 @@ describe('AgentService', () => {
       const signal = new AbortController().signal;
       const res = { write: jest.fn() } as any;
 
-      await service.streamChat('/plan do something cool', 5, res, signal, 1, 'cowork');
+      await service.streamChat('/plan do something cool', 5, res, signal, 1);
 
       expect(mockAgentLoop.runPlanMode).toHaveBeenCalled();
       expect(mockAgentLoop.run).not.toHaveBeenCalled();
@@ -138,7 +138,7 @@ describe('AgentService', () => {
       const signal = new AbortController().signal;
       const res = { write: jest.fn() } as any;
 
-      await service.streamChat('/plan refactor the auth module', 5, res, signal, 1, 'cowork');
+      await service.streamChat('/plan refactor the auth module', 5, res, signal, 1);
 
       const firstArg = mockAgentLoop.runPlanMode.mock.calls[0][0];
       expect(firstArg).toBe('refactor the auth module');

@@ -16,7 +16,7 @@ export class SubagentService {
     signal: AbortSignal,
     res: WriteStream,
     sessionId?: number,
-    mode: string = 'agent',
+    projectPath?: string,
   ): Promise<string> {
     if (signal.aborted) return 'Aborted';
 
@@ -26,7 +26,7 @@ export class SubagentService {
 
     const promises = tasks.map((task, i) => {
       res.write(`data: ${JSON.stringify({ delegateProgress: { requestId, index: i, subtask: task, status: 'running' } })}\n\n`);
-      return this.spawn(task, providerType, model, providerConfig, tools, signal, res, sessionId, mode)
+      return this.spawn(task, providerType, model, providerConfig, tools, signal, res, sessionId, projectPath)
         .then(result => ({ index: i, task, status: 'completed' as const, summary: result.slice(0, 200) }))
         .catch((err: Error) => ({ index: i, task, status: 'failed' as const, summary: err.message ?? 'Unknown error' }));
     });
@@ -51,7 +51,7 @@ export class SubagentService {
     signal: AbortSignal,
     res: WriteStream,
     sessionId?: number,
-    mode: string = 'agent',
+    projectPath?: string,
   ): Promise<string> {
     const subagentPrompt =
       `You are a sub-agent. Your task: ${task}\n\n` +
@@ -61,7 +61,7 @@ export class SubagentService {
 
     return this.agentLoop.run(
       providerType, model, subagentPrompt, [], task,
-      tools, subRes, signal, sessionId, mode, providerConfig,
+      tools, subRes, signal, sessionId, projectPath, providerConfig,
     );
   }
 

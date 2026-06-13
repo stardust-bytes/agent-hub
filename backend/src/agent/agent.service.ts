@@ -4,6 +4,7 @@ import { ContextBuilderService } from './services/context-builder.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { ProvidersService } from '../providers/providers.service';
 import { PermissionsService } from './services/permissions.service';
+import { CoworkService } from '../cowork/cowork.service';
 import { PlansService } from '../plans/plans.service';
 import { PermissionsConfig } from './dto/permissions-config';
 import { AgentRunState } from './dto/agent-run-state';
@@ -18,6 +19,7 @@ export class AgentService {
     private readonly providersService: ProvidersService,
     private readonly permissionsService: PermissionsService,
     private readonly plansService: PlansService,
+    private readonly cowork: CoworkService,
   ) {}
 
   async streamChat(
@@ -26,7 +28,6 @@ export class AgentService {
     res: WriteStream,
     signal: AbortSignal,
     sessionId: number,
-    mode: string = 'agent',
   ): Promise<void> {
     if (!sessionId || sessionId <= 0) {
       res.write('data: {"error":"Invalid session ID"}\n\n');
@@ -47,7 +48,10 @@ export class AgentService {
     };
     const providerType = providerModel.provider.type ?? 'ollama';
 
-    if (mode === 'cowork' && message.startsWith('/plan ')) {
+    const project = await this.cowork.getProject().catch(() => null);
+    const projectPath = project?.projectPath ?? undefined;
+
+    if (message.startsWith('/plan ')) {
       const approveMatch = message.match(/^\/plan approve (\d+)$/);
       if (approveMatch) {
         const planId = parseInt(approveMatch[1], 10);
@@ -63,7 +67,7 @@ export class AgentService {
           const context = await this.contextBuilder.build(runState, sessionId);
           await this.agentLoop.executePlan(
             planId, providerType, providerModel.name, context.systemPrompt,
-            context.tools, providerConfig, signal, res, sessionId,
+            context.tools, providerConfig, signal, res, sessionId, projectPath,
           );
           return;
         }
@@ -83,7 +87,7 @@ export class AgentService {
           const context = await this.contextBuilder.build(runState, sessionId);
           await this.agentLoop.executePlan(
             planId, providerType, providerModel.name, context.systemPrompt,
-            context.tools, providerConfig, signal, res, sessionId,
+            context.tools, providerConfig, signal, res, sessionId, projectPath,
           );
           return;
         }
@@ -121,7 +125,7 @@ export class AgentService {
 
     const finalText = await this.agentLoop.run(
       providerType, providerModel.name, context.systemPrompt, history,
-      message, context.tools, res, signal, sessionId, mode, providerConfig,
+      message, context.tools, res, signal, sessionId, projectPath, providerConfig,
     );
 
     if (!signal.aborted) {
@@ -149,6 +153,9 @@ export class AgentService {
     };
     const providerType = providerModel.provider.type ?? 'ollama';
 
+    const project = await this.cowork.getProject().catch(() => null);
+    const projectPath = project?.projectPath ?? undefined;
+
     const runState = {
       step: 0, maxIterations: 10, roomId: String(sessionId),
       steps: [], startTime: Date.now(), currentState: 'PLANNING',
@@ -157,7 +164,7 @@ export class AgentService {
 
     await this.agentLoop.executePlan(
       planId, providerType, providerModel.name,
-      context.systemPrompt, context.tools, providerConfig, signal, res, sessionId,
+      context.systemPrompt, context.tools, providerConfig, signal, res, sessionId, projectPath,
     );
   }
 

@@ -177,7 +177,7 @@ export class AgentLoopService {
     res: WriteStream,
     signal: AbortSignal,
     sessionId?: number,
-    mode: string = 'agent',
+    projectPath?: string,
     providerConfig: { baseUrl: string; key?: string } = { baseUrl: 'http://localhost:11434' },
   ): Promise<string> {
     this.state = AgentState.PLANNING;
@@ -256,25 +256,25 @@ export class AgentLoopService {
               result = await this.subagentService.spawn(
                 task, providerType, model, providerConfig,
                 activeTools, signal, res, sessionId,
-                mode as 'chat' | 'agent' | 'cowork',
-              );
-            } catch (e) {
-              result = `Error: Subagent failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
-            }
+              projectPath,
+            );
+          } catch (e) {
+            result = `Error: Subagent failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
           }
-        } else if (name === 'delegate') {
-          const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
-          const tasks = argsObj.tasks;
-          const taskList = Array.isArray(tasks) ? tasks.map(String) : [];
+        }
+      } else if (name === 'delegate') {
+        const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
+        const tasks = argsObj.tasks;
+        const taskList = Array.isArray(tasks) ? tasks.map(String) : [];
 
-          if (taskList.length === 0) {
-            result = 'Error: delegate requires a non-empty "tasks" array';
-          } else {
-            try {
-              result = await this.subagentService.delegate(
-                taskList, providerType, model, providerConfig,
-                activeTools, signal, res, sessionId,
-                mode as 'chat' | 'agent' | 'cowork',
+        if (taskList.length === 0) {
+          result = 'Error: delegate requires a non-empty "tasks" array';
+        } else {
+          try {
+            result = await this.subagentService.delegate(
+              taskList, providerType, model, providerConfig,
+              activeTools, signal, res, sessionId,
+              projectPath,
               );
             } catch (e) {
               result = `Error: Delegate failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
@@ -282,7 +282,7 @@ export class AgentLoopService {
           }
         } else {
           try {
-            result = await this.executeTool(name, args, { sessionId: sessionId ?? 0 });
+            result = await this.executeTool(name, args, { sessionId: sessionId ?? 0, projectPath });
           } catch (e) {
             result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
           }
@@ -314,7 +314,7 @@ export class AgentLoopService {
               res.write('data: [DONE]\n\n');
               return finalText;
             } else {
-              await this.executePlan(planId, providerType, model, systemPrompt, activeTools, providerConfig, signal, res, sessionId);
+              await this.executePlan(planId, providerType, model, systemPrompt, activeTools, providerConfig, signal, res, sessionId, projectPath);
               return finalText;
             }
           }
@@ -368,6 +368,7 @@ export class AgentLoopService {
     signal: AbortSignal,
     res: WriteStream,
     sessionId?: number,
+    projectPath?: string,
   ): Promise<void> {
     const plan = await this.plansService.findOne(planId);
     await this.plansService.updateStatus(planId, 'EXECUTING');
@@ -392,7 +393,7 @@ export class AgentLoopService {
       try {
         const stepSystemPrompt = `${systemPrompt}\n\nYou are executing plan step ${step.order + 1}: "${step.text}". Complete only this step.`;
         const messages = this.llmController.buildMessages(stepSystemPrompt, [], step.text);
-        await this.runForStep(model, messages, tools, providerConfig, res, sessionId, signal, providerType);
+        await this.runForStep(model, messages, tools, providerConfig, res, sessionId, signal, providerType, projectPath);
 
         if (signal.aborted) break;
         await this.plansService.updateStepStatus(step.id, 'DONE');
@@ -647,6 +648,7 @@ export class AgentLoopService {
     sessionId?: number,
     parentSignal?: AbortSignal,
     providerType: string = 'ollama',
+    projectPath?: string,
   ): Promise<void> {
     const signal = parentSignal ?? new AbortController().signal;
     let currentMessages = [...messages];
@@ -690,7 +692,7 @@ export class AgentLoopService {
 
         let result: string;
         try {
-          result = await this.executeTool(name, args, { sessionId: sessionId ?? 0 });
+          result = await this.executeTool(name, args, { sessionId: sessionId ?? 0, projectPath });
         } catch (e) {
           result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
         }

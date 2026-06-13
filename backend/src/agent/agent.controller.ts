@@ -28,7 +28,7 @@ export class AgentController {
     req.on('close', () => ctrl.abort());
 
     try {
-      await this.agentService.streamChat(dto.message, dto.providerModelId, res, ctrl.signal, dto.sessionId, dto.mode ?? 'agent');
+      await this.agentService.streamChat(dto.message, dto.providerModelId, res, ctrl.signal, dto.sessionId);
     } catch (e) {
       console.error('[AgentController] chat error:', e instanceof Error ? e.message : e);
       res.write('data: {"error":"internal_error"}\n\n');
