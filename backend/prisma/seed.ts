@@ -48,6 +48,7 @@ const DEFAULT_TOOLS = [
   { name: 'google_drive_read', description: 'Read file content from Google Drive.', parameters: '{"type":"object","properties":{"id":{"type":"string","description":"File ID"}},"required":["id"]}', enabled: false },
   { name: 'google_drive_list', description: 'List files in a Google Drive folder.', parameters: '{"type":"object","properties":{"folderId":{"type":"string","description":"Folder ID (omit for root)"}}}', enabled: false },
   { name: 'google_drive_upload', description: 'Upload a text file to Google Drive.', parameters: '{"type":"object","properties":{"name":{"type":"string","description":"File name"},"content":{"type":"string","description":"File content"}},"required":["name","content"]}', enabled: false },
+  { name: 'google_drive_create_folder', description: 'Create a new folder in Google Drive.', parameters: '{"type":"object","properties":{"name":{"type":"string","description":"Folder name"},"parentFolderId":{"type":"string","description":"Parent folder ID (omit for root)"}},"required":["name"]}', enabled: false },
 ];
 
 async function main() {

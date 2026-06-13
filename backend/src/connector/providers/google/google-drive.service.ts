@@ -69,6 +69,20 @@ export class GoogleDriveService {
     }));
   }
 
+  async createFolder(name: string, parentFolderId?: string): Promise<DriveFile> {
+    const drive = await this.getDrive();
+    const body: { name: string; mimeType: string; parents?: string[] } = {
+      name,
+      mimeType: 'application/vnd.google-apps.folder',
+    };
+    if (parentFolderId) body.parents = [parentFolderId];
+    const res = await drive.files.create({
+      requestBody: body,
+      fields: 'id,name,mimeType,size,modifiedTime,webViewLink',
+    });
+    return { id: res.data.id!, name: res.data.name!, mimeType: res.data.mimeType!, webViewLink: res.data.webViewLink ?? undefined };
+  }
+
   async upload(name: string, content: string, mimeType = 'text/plain'): Promise<DriveFile> {
     const drive = await this.getDrive();
     const res = await drive.files.create({

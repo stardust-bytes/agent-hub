@@ -46,6 +46,7 @@ import { GoogleDriveSearchExecutor } from './executors/google-drive-search.execu
 import { GoogleDriveReadExecutor } from './executors/google-drive-read.executor';
 import { GoogleDriveListExecutor } from './executors/google-drive-list.executor';
 import { GoogleDriveUploadExecutor } from './executors/google-drive-upload.executor';
+import { GoogleDriveCreateFolderExecutor } from './executors/google-drive-create-folder.executor';
 
 const EXECUTORS = [
   CreateTaskExecutor,
@@ -86,6 +87,7 @@ const EXECUTORS = [
   GoogleDriveReadExecutor,
   GoogleDriveListExecutor,
   GoogleDriveUploadExecutor,
+  GoogleDriveCreateFolderExecutor,
 ];
 
 @Module({

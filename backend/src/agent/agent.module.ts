@@ -55,6 +55,7 @@ import { GoogleDriveSearchExecutor } from '../tools/executors/google-drive-searc
 import { GoogleDriveReadExecutor } from '../tools/executors/google-drive-read.executor';
 import { GoogleDriveListExecutor } from '../tools/executors/google-drive-list.executor';
 import { GoogleDriveUploadExecutor } from '../tools/executors/google-drive-upload.executor';
+import { GoogleDriveCreateFolderExecutor } from '../tools/executors/google-drive-create-folder.executor';
 
 
 @Module({
@@ -102,6 +103,7 @@ import { GoogleDriveUploadExecutor } from '../tools/executors/google-drive-uploa
     GoogleDriveReadExecutor,
     GoogleDriveListExecutor,
     GoogleDriveUploadExecutor,
+    GoogleDriveCreateFolderExecutor,
   ],
 })
 export class AgentModule {}

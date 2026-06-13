@@ -55,6 +55,7 @@ import { GoogleDriveSearchExecutor } from '../../tools/executors/google-drive-se
 import { GoogleDriveReadExecutor } from '../../tools/executors/google-drive-read.executor';
 import { GoogleDriveListExecutor } from '../../tools/executors/google-drive-list.executor';
 import { GoogleDriveUploadExecutor } from '../../tools/executors/google-drive-upload.executor';
+import { GoogleDriveCreateFolderExecutor } from '../../tools/executors/google-drive-create-folder.executor';
 
 
 const MAX_ITERATIONS = 100;
@@ -116,6 +117,7 @@ export class AgentLoopService {
     private readonly googleDriveRead: GoogleDriveReadExecutor,
     private readonly googleDriveList: GoogleDriveListExecutor,
     private readonly googleDriveUpload: GoogleDriveUploadExecutor,
+    private readonly googleDriveCreateFolder: GoogleDriveCreateFolderExecutor,
     private readonly usageService: UsageService,
   ) {
     this.executorMap = new Map<string, ToolExecutor>([
@@ -161,6 +163,7 @@ export class AgentLoopService {
       [googleDriveRead.name, googleDriveRead],
       [googleDriveList.name, googleDriveList],
       [googleDriveUpload.name, googleDriveUpload],
+      [googleDriveCreateFolder.name, googleDriveCreateFolder],
     ]);
   }
 
