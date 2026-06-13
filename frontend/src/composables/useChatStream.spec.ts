@@ -55,4 +55,11 @@ describe('parseSseStream', () => {
     await parseSseStream(readerFrom(['data: {"error":"boom"}\n']), cb)
     expect(cb.onError).toHaveBeenCalledWith('boom')
   })
+
+  it('stops processing after an error event', async () => {
+    const cb = spyCallbacks()
+    await parseSseStream(readerFrom(['data: {"error":"boom"}\n', 'data: {"token":"after"}\n', 'data: [DONE]\n']), cb)
+    expect(cb.onError).toHaveBeenCalledWith('boom')
+    expect(cb.onToken).not.toHaveBeenCalled()
+  })
 })

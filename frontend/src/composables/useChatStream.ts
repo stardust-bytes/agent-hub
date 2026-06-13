@@ -43,7 +43,7 @@ export async function parseSseStream(
       if (payload === '[DONE]') { cb.onDone(); done = true; break }
       try {
         const p = JSON.parse(payload) as Record<string, unknown>
-        if (p.error) cb.onError(String(p.error))
+        if (p.error) { cb.onError(String(p.error)); done = true; break }
         else if (p.subagent) cb.onSubagent(p as unknown as SubagentEvent)
         else if (p.toolCall) { const tc = p.toolCall as { name: string; args: Record<string, unknown> }; cb.onToolCall(tc.name, tc.args) }
         else if (p.toolResult) { const tr = p.toolResult as { name: string; result: string }; cb.onToolResult(tr.name, tr.result) }

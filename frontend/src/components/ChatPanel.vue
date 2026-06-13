@@ -180,6 +180,7 @@ import { getSessionMessages } from '../api/sessions'
 import { createSession } from '../api/sessions'
 import { getPlan, getNextPlan } from '../api/plans'
 import { requestRaw } from '../api/client'
+import { parseSseStream, type SseCallbacks } from '../composables/useChatStream'
 interface PlanStep {
   id: number
   order: number
@@ -597,174 +598,157 @@ async function submit() {
     if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`)
 
     const reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    let buf = ''
-    let done = false
 
-    while (!done) {
-      const { done: streamDone, value } = await reader.read()
-      if (streamDone) break
-
-      buf += decoder.decode(value, { stream: true })
-      const lines = buf.split('\n')
-      buf = lines.pop() ?? ''
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue
-        const payload = line.slice(6)
-        if (payload === '[DONE]') { done = true; break }
-        try {
-          const parsed = JSON.parse(payload) as Record<string, unknown>
-
-          if (parsed.error) {
-            done = true
-            if (currentAgentIdx >= 0) {
-              messages.value[currentAgentIdx].typing = false
-            }
-            messages.value.push({
-              role: 'system',
-              content: `${t('chat.error.unreachable')} (${String(parsed.error)})`,
-              timestamp: now(),
-            })
-            await scrollToBottom()
-          } else if (parsed.subagent) {
-            clearThinking()
-            if (parsed.done) {
-              if (activeSubagentCount.value > 0) {
-                activeSubagentCount.value--
-                ui.activeSubagents = activeSubagentCount.value
-              }
-              // Subagent done — do NOT stop the SSE stream (main agent continues)
-            } else if (parsed.token) {
-              // Subagent streaming text tokens
-              const idx = getOrCreateAgentMsg()
-              messages.value[idx].content += String(parsed.token)
-              if (!done) scrollToBottom()
-            } else if (parsed.toolCall) {
-              currentAgentIdx = -1
-              const tc = parsed.toolCall as { name: string; args: Record<string, unknown> }
-              const argsStr = Object.entries(tc.args).map(([k, v]) => `${k}=${v}`).join(', ')
-              messages.value.push({
-                role: 'tool',
-                content: `[subagent] ${tc.name}(${argsStr})`,
-                timestamp: now(),
-                toolName: tc.name,
-                isResult: false,
-              })
-              await scrollToBottom()
-            } else if (parsed.toolResult) {
-              const tr = parsed.toolResult as { name: string; result: string }
-              messages.value.push({
-                role: 'tool',
-                content: `[subagent] ${tr.name}: ${tr.result}`,
-                timestamp: now(),
-                toolName: tr.name,
-                isResult: true,
-              })
-              await scrollToBottom()
-            } else if (parsed.thinking) {
-              currentAgentIdx = -1
-              messages.value.push({
-                role: 'system',
-                content: `⟳ [subagent] ${String(parsed.thinking)}`,
-                timestamp: now(),
-              })
-              await scrollToBottom()
-            }
-          } else if (parsed.toolCall) {
-            clearThinking()
-            currentAgentIdx = -1
-            const tc = parsed.toolCall as { name: string; args: Record<string, unknown> }
-            const argsStr = Object.entries(tc.args).map(([k, v]) => `${k}=${v}`).join(', ')
-            messages.value.push({
-              role: 'tool',
-              content: `${tc.name}(${argsStr})`,
-              timestamp: now(),
-              toolName: tc.name,
-              isResult: false,
-            })
-            if (tc.name === 'spawn_subagent') {
-              activeSubagentCount.value++
-              ui.activeSubagents = activeSubagentCount.value
-            }
-            await scrollToBottom()
-          } else if (parsed.toolResult) {
-            const tr = parsed.toolResult as { name: string; result: string }
-            messages.value.push({
-              role: 'tool',
-              content: tr.result,
-              timestamp: now(),
-              toolName: tr.name,
-              isResult: true,
-            })
-            await scrollToBottom()
-          } else if (parsed.thinking) {
-            clearThinking()
-            currentAgentIdx = -1
-            const thinkingMsg: Message = { role: 'system', content: `⟳ ${String(parsed.thinking)}`, timestamp: now() }
-            messages.value.push(thinkingMsg)
-            await scrollToBottom()
-          } else if (parsed.plan) {
-            clearThinking()
-            currentAgentIdx = -1
-            const planData = parsed.plan as PlanData
-            messages.value.push({
-              role: 'plan',
-              content: '',
-              timestamp: now(),
-              plan: { ...planData, steps: planData.steps.map(s => ({ ...s })) },
-            })
-            await scrollToBottom()
-          } else if (parsed.planStepUpdate) {
-            const upd = parsed.planStepUpdate as { planId: number; stepId: number; status: string }
-            for (const msg of messages.value) {
-              if (msg.role === 'plan' && msg.plan && msg.plan.id === upd.planId) {
-                const step = msg.plan.steps.find(s => s.id === upd.stepId)
-                if (step) {
-                  step.status = upd.status
-                  msg.plan = { ...msg.plan, steps: [...msg.plan.steps] }
-                }
-                break
-              }
-            }
-          } else if (parsed.planInterrupted) {
-            const interrupt = parsed.planInterrupted as { planId: number; reason: string }
-            messages.value.push({
-              role: 'system',
-              content: '[⏹ Plan execution interrupted. Send "tiếp tục" to resume.]',
-              timestamp: now(),
-            })
-            await scrollToBottom()
-          } else if (parsed.delegateProgress) {
-            const dp = parsed.delegateProgress as { index: number; subtask: string; status: string }
-            clearThinking()
-            currentAgentIdx = -1
-            const key = dp.status === 'running' ? 'delegate.running' : dp.status === 'completed' ? 'delegate.completed' : 'delegate.failed'
-            messages.value.push({
-              role: 'system',
-              content: t(key, { index: dp.index + 1, task: dp.subtask }),
-              timestamp: now(),
-            })
-            await scrollToBottom()
-          } else if (parsed.delegateResult) {
-            const dr = parsed.delegateResult as { count: number }
-            clearThinking()
-            currentAgentIdx = -1
-            messages.value.push({
-              role: 'system',
-              content: t('delegate.complete', { count: dr.count }),
-              timestamp: now(),
-            })
-            await scrollToBottom()
-          } else if (parsed.token) {
-            clearThinking()
-            const idx = getOrCreateAgentMsg()
-            messages.value[idx].content += String(parsed.token)
-            if (!done) scrollToBottom()
+    const callbacks: SseCallbacks = {
+      onError(error) {
+        if (currentAgentIdx >= 0) {
+          messages.value[currentAgentIdx].typing = false
+        }
+        messages.value.push({
+          role: 'system',
+          content: `${t('chat.error.unreachable')} (${error})`,
+          timestamp: now(),
+        })
+        scrollToBottom()
+      },
+      onSubagent(ev) {
+        clearThinking()
+        if (ev.done) {
+          if (activeSubagentCount.value > 0) {
+            activeSubagentCount.value--
+            ui.activeSubagents = activeSubagentCount.value
           }
-        } catch { /* skip malformed SSE line */ }
-      }
+        } else if (ev.token) {
+          const idx = getOrCreateAgentMsg()
+          messages.value[idx].content += String(ev.token)
+          scrollToBottom()
+        } else if (ev.toolCall) {
+          currentAgentIdx = -1
+          const tc = ev.toolCall
+          const argsStr = Object.entries(tc.args).map(([k, v]) => `${k}=${v}`).join(', ')
+          messages.value.push({
+            role: 'tool',
+            content: `[subagent] ${tc.name}(${argsStr})`,
+            timestamp: now(),
+            toolName: tc.name,
+            isResult: false,
+          })
+          scrollToBottom()
+        } else if (ev.toolResult) {
+          const tr = ev.toolResult
+          messages.value.push({
+            role: 'tool',
+            content: `[subagent] ${tr.name}: ${tr.result}`,
+            timestamp: now(),
+            toolName: tr.name,
+            isResult: true,
+          })
+          scrollToBottom()
+        } else if (ev.thinking) {
+          currentAgentIdx = -1
+          messages.value.push({
+            role: 'system',
+            content: `⟳ [subagent] ${String(ev.thinking)}`,
+            timestamp: now(),
+          })
+          scrollToBottom()
+        }
+      },
+      onToolCall(name, args) {
+        clearThinking()
+        currentAgentIdx = -1
+        const argsStr = Object.entries(args).map(([k, v]) => `${k}=${v}`).join(', ')
+        messages.value.push({
+          role: 'tool',
+          content: `${name}(${argsStr})`,
+          timestamp: now(),
+          toolName: name,
+          isResult: false,
+        })
+        if (name === 'spawn_subagent') {
+          activeSubagentCount.value++
+          ui.activeSubagents = activeSubagentCount.value
+        }
+        scrollToBottom()
+      },
+      onToolResult(name, result) {
+        messages.value.push({
+          role: 'tool',
+          content: result,
+          timestamp: now(),
+          toolName: name,
+          isResult: true,
+        })
+        scrollToBottom()
+      },
+      onThinking(text) {
+        clearThinking()
+        currentAgentIdx = -1
+        messages.value.push({ role: 'system', content: `⟳ ${text}`, timestamp: now() })
+        scrollToBottom()
+      },
+      onPlan(plan) {
+        clearThinking()
+        currentAgentIdx = -1
+        messages.value.push({
+          role: 'plan',
+          content: '',
+          timestamp: now(),
+          plan: { ...plan, steps: plan.steps.map(s => ({ ...s })) },
+        })
+        scrollToBottom()
+      },
+      onPlanStepUpdate(planId, stepId, status) {
+        for (const msg of messages.value) {
+          if (msg.role === 'plan' && msg.plan && msg.plan.id === planId) {
+            const step = msg.plan.steps.find(s => s.id === stepId)
+            if (step) {
+              step.status = status
+              msg.plan = { ...msg.plan, steps: [...msg.plan.steps] }
+            }
+            break
+          }
+        }
+      },
+      onPlanInterrupted(_planId, _reason) {
+        messages.value.push({
+          role: 'system',
+          content: '[⏹ Plan execution interrupted. Send "tiếp tục" to resume.]',
+          timestamp: now(),
+        })
+        scrollToBottom()
+      },
+      onDelegateProgress(index, subtask, status) {
+        clearThinking()
+        currentAgentIdx = -1
+        const key = status === 'running' ? 'delegate.running' : status === 'completed' ? 'delegate.completed' : 'delegate.failed'
+        messages.value.push({
+          role: 'system',
+          content: t(key, { index: index + 1, task: subtask }),
+          timestamp: now(),
+        })
+        scrollToBottom()
+      },
+      onDelegateResult(count) {
+        messages.value.push({
+          role: 'system',
+          content: t('delegate.complete', { count }),
+          timestamp: now(),
+        })
+        scrollToBottom()
+      },
+      onToken(token) {
+        clearThinking()
+        const idx = getOrCreateAgentMsg()
+        messages.value[idx].content += token
+        scrollToBottom()
+      },
+      onDone() {
+        // no-op: post-stream cleanup (typing=false) handled below
+      },
     }
+
+    await parseSseStream(reader, callbacks)
 
     const lastAgent = [...messages.value].reverse().find(m => m.role === 'agent')
     if (lastAgent) lastAgent.typing = false
