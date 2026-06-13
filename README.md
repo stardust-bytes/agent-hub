@@ -5,7 +5,7 @@
 <h1 align="center">171305 — AI Workspace</h1>
 
 <p align="center">
-  <strong>Local-first, self-hosted AI agent workspace for developers.</strong>
+  <strong>Local-first, self-hosted AI agent workspace for Office staff, Developers.</strong>
   <br />
   Chat with AI · Manage code · Automate workflows
   <br />
