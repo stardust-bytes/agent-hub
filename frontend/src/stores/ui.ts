@@ -4,7 +4,6 @@ import { getHealth } from '../api/health'
 
 export const useUiStore = defineStore('ui', () => {
   const dbConnected = ref(true)
-  const wsConnected = ref(false)
   const activeSubagents = ref(0)
   const sidebarOpen = ref(false)
 
@@ -17,5 +16,5 @@ export const useUiStore = defineStore('ui', () => {
     }
   }
 
-  return { dbConnected, wsConnected, activeSubagents, sidebarOpen, refreshHealth }
+  return { dbConnected, activeSubagents, sidebarOpen, refreshHealth }
 })

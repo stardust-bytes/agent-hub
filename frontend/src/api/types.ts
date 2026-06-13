@@ -21,13 +21,3 @@ export interface StoredMessage {
   isResult?: boolean
 }
 
-export interface Task {
-  id: number
-  title: string
-  description?: string | null
-  status: 'TODO' | 'PROCESSING' | 'DONE' | 'FAILED'
-  priority: number
-  dueDate?: string | null
-  createdAt: string
-  updatedAt: string
-}
