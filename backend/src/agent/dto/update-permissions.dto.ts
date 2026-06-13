@@ -15,4 +15,13 @@ export class UpdatePermissionsDto {
   @IsArray()
   @IsString({ each: true })
   deniedTools?: string[];
+
+  @IsOptional()
+  @IsString()
+  permissionMode?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  requireApprovalTools?: string[];
 }

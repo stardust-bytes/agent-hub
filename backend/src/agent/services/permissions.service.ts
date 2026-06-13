@@ -62,10 +62,7 @@ export class PermissionsService {
         return { action: 'deny', reason: 'Blocked by dontAsk mode' };
 
       case 'acceptEdits':
-        if (['read_file', 'write_file', 'list_directory', 'grep', 'glob'].includes(toolName)) {
-          return { action: 'allow' };
-        }
-        return { action: 'ask' };
+        return { action: 'allow' };
 
       case 'auto':
         return this.handleAutoMode(toolName, toolInput, transcript, sessionId);

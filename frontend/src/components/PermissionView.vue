@@ -67,8 +67,9 @@ const { t } = useI18n()
 const PERMISSION_MODES = ['default', 'acceptEdits', 'bypassPermissions', 'dontAsk', 'auto', 'plan']
 
 const ALL_TOOLS = [
-  'run_command', 'write_file', 'delete_task', 'delete_note',
-  'delete_tasks', 'delete_knowledge', 'grep', 'glob',
+  'run_command', 'write_file',
+  'delete_tasks', 'delete_note',
+  'delete_knowledge', 'grep', 'glob',
 ]
 
 const BLOCK_RULES = [
