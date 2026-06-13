@@ -12,6 +12,6 @@ export class ChatDto {
 
   @IsString()
   @IsOptional()
-  @IsIn(['agent', 'chat', 'cowork'])
+  @IsIn(['cowork'])
   mode?: string;
 }

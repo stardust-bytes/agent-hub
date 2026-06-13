@@ -101,6 +101,6 @@ export class PermissionsService {
 
   private getPermissionMode(mode: string): string {
     const { MODE_POLICY } = require('../../mode-policy/mode-policy.config');
-    return (MODE_POLICY[mode] ?? MODE_POLICY.agent).permissionMode ?? 'default';
+    return (MODE_POLICY[mode] ?? MODE_POLICY.cowork).permissionMode ?? 'default';
   }
 }

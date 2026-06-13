@@ -18,7 +18,7 @@ export class ModePolicyService {
   }
 
   getEnabledTools(mode: string, dbTools: ToolInfo[]): ToolDefinition[] {
-    const policy = MODE_POLICY[mode] ?? MODE_POLICY.agent;
+    const policy = MODE_POLICY[mode] ?? MODE_POLICY.cowork;
     const filtered = policy.enabledTools === '*'
       ? dbTools.filter(t => !policy.deniedTools.includes(t.name))
       : dbTools.filter(t => (policy.enabledTools as string[]).includes(t.name));
@@ -33,7 +33,7 @@ export class ModePolicyService {
   }
 
   isToolAllowed(mode: string, toolName: string): boolean {
-    const policy = MODE_POLICY[mode] ?? MODE_POLICY.agent;
+    const policy = MODE_POLICY[mode] ?? MODE_POLICY.cowork;
     if (policy.enabledTools !== '*' && !(policy.enabledTools as string[]).includes(toolName)) {
       return false;
     }
@@ -41,7 +41,7 @@ export class ModePolicyService {
   }
 
   resolveAllowedPaths(mode: string, projectPath?: string | null): string[] {
-    const policy = MODE_POLICY[mode] ?? MODE_POLICY.agent;
+    const policy = MODE_POLICY[mode] ?? MODE_POLICY.cowork;
     return policy.allowedPaths.map(p => {
       if (p.includes('{projectPath}') && !projectPath) return '';
       return p.replace('{workspaceRoot}', this.workspaceRoot).replace('{projectPath}', projectPath ?? '');
@@ -49,14 +49,14 @@ export class ModePolicyService {
   }
 
   getSystemPromptStyle(mode: string): SystemPromptStyle {
-    return (MODE_POLICY[mode] ?? MODE_POLICY.agent).systemPromptStyle;
+    return (MODE_POLICY[mode] ?? MODE_POLICY.cowork).systemPromptStyle;
   }
 
   getEnvContext(mode: string): string[] {
-    return (MODE_POLICY[mode] ?? MODE_POLICY.agent).envContext;
+    return (MODE_POLICY[mode] ?? MODE_POLICY.cowork).envContext;
   }
 
   getPermissionMode(mode: string): PermissionMode {
-    return (MODE_POLICY[mode] ?? MODE_POLICY.agent).permissionMode;
+    return (MODE_POLICY[mode] ?? MODE_POLICY.cowork).permissionMode;
   }
 }

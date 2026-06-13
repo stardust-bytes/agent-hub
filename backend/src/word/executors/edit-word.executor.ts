@@ -24,31 +24,13 @@ export class EditWordExecutor implements ToolExecutor {
 
     let filePath: string;
 
-    if (context?.mode === 'agent') {
-      const filename = rawPath.split(/[\\/]/).pop() || 'output.docx';
-      const sessionDir = path.join(
-        this.workspace.getWorkspaceRoot(),
-        'agent-output',
-        `session_${context.sessionId}`,
-      );
-      filePath = path.join(sessionDir, filename);
-      fs.mkdirSync(sessionDir, { recursive: true });
-    } else {
-      filePath = rawPath;
-      if (!this.workspace.isPathAllowed(filePath)) {
-        return `Error: path "${filePath}" is not allowed.`;
-      }
+    filePath = rawPath;
+    if (!this.workspace.isPathAllowed(filePath)) {
+      return `Error: path "${filePath}" is not allowed.`;
     }
 
     try {
       const result = await this.wordService.edit(filePath, ops as WordEditOperation[]);
-      const filename = filePath.split(/[\\/]/).pop() || 'file.docx';
-      if (context?.mode === 'agent') {
-        const agentFile = await this.prisma.agentFile.create({
-          data: { filename, path: filePath, sessionId: context.sessionId ?? 0 },
-        });
-        return `${result} [Download "${filename}"](api/files/agent/${agentFile.id}/download)`;
-      }
       return result;
     } catch (e) {
       return `Error editing file: ${e instanceof Error ? e.message : 'Unknown error'}`;

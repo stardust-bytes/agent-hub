@@ -24,7 +24,7 @@ describe('SpawnSubagentExecutor', () => {
   });
 
   it('should return error if task is missing', async () => {
-    const result = await executor.execute({}, { mode: 'agent', sessionId: 1 });
+    const result = await executor.execute({}, { sessionId: 1 });
     expect(result).toContain('Error');
   });
 });

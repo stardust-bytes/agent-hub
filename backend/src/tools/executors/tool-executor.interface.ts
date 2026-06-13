@@ -1,6 +1,6 @@
 export interface ToolContext {
-  mode: 'chat' | 'agent' | 'cowork';
   sessionId: number;
+  projectPath?: string;
 }
 
 export interface ToolExecutor {

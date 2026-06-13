@@ -43,33 +43,11 @@ describe('WriteFileExecutor', () => {
     expect(result).toBe('Error: path "/etc/passwd" is not allowed.');
   });
 
-  it('should sandbox path in agent mode to session folder', async () => {
-    const result = await executor.execute(
-      { path: '../../evil/payload.js', content: 'test' },
-      { mode: 'agent', sessionId: 5 },
-    );
-    expect(mockWorkspace.isPathAllowed).not.toHaveBeenCalled();
-    expect(mockWorkspace.writeFile).toHaveBeenCalled();
-    const callPath = (mockWorkspace.writeFile as jest.Mock).mock.calls[0][0];
-    expect(callPath).toContain('agent-output');
-    expect(callPath).toContain('session_5');
-    expect(callPath).toContain('payload.js');
-  });
-
-  it('should default to output.txt when path is empty in agent mode', async () => {
-    const result = await executor.execute(
-      { content: 'test' },
-      { mode: 'agent', sessionId: 1 },
-    );
-    const callPath = (mockWorkspace.writeFile as jest.Mock).mock.calls[0][0];
-    expect(callPath).toContain('output.txt');
-  });
-
-  it('should still check isPathAllowed in non-agent mode', async () => {
+  it('should check isPathAllowed', async () => {
     mockWorkspace.isPathAllowed.mockReturnValue(true);
     const result = await executor.execute(
       { path: 'allowed/file.txt', content: 'test' },
-      { mode: 'cowork', sessionId: 0 },
+      { sessionId: 0 },
     );
     expect(mockWorkspace.isPathAllowed).toHaveBeenCalledWith('allowed/file.txt');
   });

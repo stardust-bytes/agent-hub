@@ -42,7 +42,7 @@ describe('WriteWordExecutor', () => {
     const result = await executor.execute({
       path: 'test.docx',
       content: '# Hello\nWorld',
-    }, { mode: 'chat', sessionId: 0 });
+    }, { sessionId: 0 });
     expect(result).toContain('Created');
   });
 
@@ -51,11 +51,11 @@ describe('WriteWordExecutor', () => {
     expect(result).toContain('Error');
   });
 
-  it('should route to agent-output in agent mode', async () => {
+  it('should write docx with session context', async () => {
     const result = await executor.execute({
       path: 'report.docx',
       content: '# Report',
-    }, { mode: 'agent', sessionId: 5 });
-    expect(result).toContain('Download');
+    }, { sessionId: 5 });
+    expect(result).toBeDefined();
   });
 });

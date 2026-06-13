@@ -19,20 +19,9 @@ export class WriteFileExecutor implements ToolExecutor {
 
     let filePath: string;
 
-    if (context?.mode === 'agent') {
-      const rawPath = (args.path as string) || 'output.txt';
-      const filename = rawPath.split(/[\\/]/).pop() || 'output.txt';
-      const sessionDir = path.join(
-        this.workspace.getWorkspaceRoot(),
-        'agent-output',
-        `session_${context.sessionId}`,
-      );
-      filePath = path.join(sessionDir, filename);
-    } else {
-      filePath = args.path as string;
-      if (!filePath) return 'Error: path is required.';
-      if (!this.workspace.isPathAllowed(filePath)) return `Error: path "${filePath}" is not allowed.`;
-    }
+    filePath = args.path as string;
+    if (!filePath) return 'Error: path is required.';
+    if (!this.workspace.isPathAllowed(filePath)) return `Error: path "${filePath}" is not allowed.`;
 
     try {
       const { bytesWritten, resolved } = await this.workspace.writeFile(filePath, content);

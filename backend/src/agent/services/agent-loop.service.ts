@@ -282,7 +282,7 @@ export class AgentLoopService {
           }
         } else {
           try {
-            result = await this.executeTool(name, args, { mode: mode as 'chat' | 'agent' | 'cowork', sessionId: sessionId ?? 0 });
+            result = await this.executeTool(name, args, { sessionId: sessionId ?? 0 });
           } catch (e) {
             result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
           }
@@ -690,7 +690,7 @@ export class AgentLoopService {
 
         let result: string;
         try {
-          result = await this.executeTool(name, args, { mode: 'cowork', sessionId: sessionId ?? 0 });
+          result = await this.executeTool(name, args, { sessionId: sessionId ?? 0 });
         } catch (e) {
           result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
         }

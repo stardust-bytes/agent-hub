@@ -22,40 +22,6 @@ export interface ModePolicyEntry {
 }
 
 export const MODE_POLICY: Record<string, ModePolicyEntry> = {
-  chat: {
-    enabledTools: ['web_search', 'web_fetch'],
-    deniedTools: [],
-    allowedPaths: [],
-    systemPromptStyle: 'chat',
-    envContext: [],
-    permissionMode: 'default',
-  },
-  agent: {
-    enabledTools: '*',
-    deniedTools: [
-      'run_command',
-      'read_file',
-      'list_directory',
-      'grep',
-      'glob',
-      'resume_plan',
-      'create_plan',
-      'spawn_subagent', // Only allow in cowork mode where it can be used for delegation, not direct execution
-      'delegate',
-      // 'read_excel',
-      // 'write_excel',
-      // 'excel_add_sheet',
-      // 'list_excel_sheets',
-      // 'excel_chart',
-      // 'read_word',
-      // 'write_word',
-      // 'edit_word',
-    ],
-    allowedPaths: ['{workspaceRoot}/agent-output'],
-    systemPromptStyle: 'agent',
-    envContext: ['platform'],
-    permissionMode: 'default',
-  },
   cowork: {
     enabledTools: '*',
     deniedTools: [

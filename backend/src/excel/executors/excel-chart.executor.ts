@@ -25,29 +25,10 @@ export class ExcelChartExecutor implements ToolExecutor {
     try {
       await this.excel.validatePath(filePath);
 
-      if (context?.mode === 'agent') {
-        const filename = filePath.split(/[\\/]/).pop() || 'output.xlsx';
-        const sessionDir = path.join(
-          this.workspace.getWorkspaceRoot(),
-          'agent-output',
-          `session_${context.sessionId}`,
-        );
-        filePath = path.join(sessionDir, filename);
-        fs.mkdirSync(sessionDir, { recursive: true });
-      }
-
       const title = args.title ? String(args.title) : undefined;
       const dataRange = String(args.data_range ?? '');
       const categoriesRange = args.categories_range ? String(args.categories_range) : undefined;
       const result = await this.excel.addChart(filePath, sheetName, chartType, title, dataRange, categoriesRange);
-
-      if (context?.mode === 'agent') {
-        const filename = filePath.split(/[\\/]/).pop() || 'file.xlsx';
-        const agentFile = await this.prisma.agentFile.create({
-          data: { filename, path: filePath, sessionId: context.sessionId ?? 0 },
-        });
-        return `${result} [Download "${filename}"](api/files/agent/${agentFile.id}/download)`;
-      }
 
       return result;
     } catch (e) {
