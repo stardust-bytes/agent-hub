@@ -8,7 +8,12 @@ All UI components for the AI Workspace. The layout is a multi-panel IDE: icon si
 AppShell.vue              — layout shell, hosts <router-view>, reads ui state from useUiStore
 ├── SidebarNav.vue        — 60px nav column (desktop), RouterLink items from config/navigation
 ├── [Content area — router-view]
-│   ├── ChatPanel.vue         — SSE streaming agent chat + message history + tool call display
+│   ├── ChatPanel.vue             — coordinator: owns state, SSE streaming, delegates rendering
+│   │   ├── chat/MessageList.vue  — scroll wrapper + v-for MessageItem, forward events
+│   │   ├── chat/MessageItem.vue  — per-message render (thinking/tool/agent/plan/user/system)
+│   │   ├── chat/ChatInputBar.vue — input form + ModelSelector + mode toggle + sessions button
+│   │   ├── chat/types.ts         — shared interfaces (Message, PlanData, ProviderModelFlat, …)
+│   │   └── chat/markdown.ts      — renderMarkdown, parseSegments, highlightUserMessage
 │   ├── TasksView.vue         — priority filter bar + KanbanBoard
 │   ├── KanbanBoard.vue       — drag-and-drop columns (TODO/PROCESSING/DONE/FAILED)
 │   │   ├── TaskCard.vue      — individual task card with priority highlight
@@ -64,29 +69,49 @@ Visible on mobile only (`flex md:hidden`, `h-[3rem]`). Renders `bottomItems` fro
 
 ---
 
-## ChatPanel.vue
+## ChatPanel.vue (coordinator)
 
 **Emits:** none
+
+**Coordination:** Owns `messages`, `streaming`, `selectedModelId`, `currentMode`, `currentSessionId` state. Renders `<MessageList>` + `<ChatInputBar>` + `<SessionModal>`. Wires all events between children.
 
 **SSE streaming:** Uses Fetch API `ReadableStream` reader on `POST /api/agent/chat`. Body includes `{ message, providerModelId, sessionId, mode }`. AbortController for stopping streams. The stream is parsed by `parseSseStream` from `src/composables/useChatStream.ts`; each SSE event type maps to a callback in `SseCallbacks`.
 
 **Model loading:** Fetches from `GET /api/providers/models` on mount. Selects from `localStorage('workspace.modelId')`.
 
-**Message types:**
-| role | Display | Prefix |
-|---|---|---|
-| `user` | Plain text, slate-100 | `$ người dùng` / `$ user` |
-| `agent` | Markdown via renderMarkdown() | `▶ agent` |
-| `tool` (call) | `[⚙] toolName(args)`, orange | — |
-| `tool` (result) | Raw result text, green | — |
-| `system` | Thinking indicator / errors, muted | `[hệ thống]` / `[system]` |
-| `plan` | PlanBubble with step list + approve/reject/resume buttons | `plan` |
-
-**renderMarkdown:** `DOMPurify.sanitize(marked.parse(content))`. Styled via `.markdown-body` CSS.
-
 **Mode toggle:** Agent mode (ReAct loop with tools) vs Chat mode (plain conversation).
 
-**Plan execution SSE:** `planStepUpdate` events update step statuses in-place on PlanBubble. `planInterrupted` pushes a system message. PlanBubble now supports INTERRUPTED status with a "Tiếp tục" resume button.
+**Plan execution SSE:** `planStepUpdate` events update step statuses in-place on PlanBubble. `planInterrupted` pushes a system message.
+
+---
+
+## chat/MessageItem.vue
+
+**Props:** `msg: Message`, `streaming: boolean`
+
+**Emits:** `formSubmit(data)`, `approve(id)`, `reject(id)`, `resume(id)`, `toggleExpand(msg)`
+
+Renders one message block. Handles thinking indicator, tool call/result with expand/collapse, agent answer with markdown+form segments, PlanBubble, user highlight, and system messages. Uses `renderMarkdown`/`parseSegments`/`highlightUserMessage` from `markdown.ts`.
+
+---
+
+## chat/MessageList.vue
+
+**Props:** `messages: Message[]`, `streaming: boolean`
+
+**Emits:** all MessageItem events (formSubmit, approve, reject, resume, toggleExpand)
+
+Scroll wrapper with `messagesEl` ref. Renders `<MessageItem>` per message. Exposes `scrollToBottom()` via `defineExpose`.
+
+---
+
+## chat/ChatInputBar.vue
+
+**Props:** `streaming: boolean`, `models: ProviderModelFlat[]`, `modelId: number | null`, `mode: 'chat' | 'agent'`
+
+**Emits:** `update:modelId`, `update:mode`, `submit(text)`, `stop`, `openSessions`
+
+Owns its own `input` ref and text state. Emits `submit` with trimmed text on form submit. Contains `<ModelSelector>`, mode toggle buttons, sessions button, and streaming dots animation.
 
 ---
 
