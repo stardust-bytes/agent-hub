@@ -21,20 +21,33 @@ The current "Tasks" feature is a Kanban board (TODO/PROCESSING/DONE/FAILED) with
 
 ```prisma
 model ScheduleTask {
-  id           Int      @id @default(autoincrement())
-  name         String
-  description  String?
-  prompt       String
-  frequency    String   @default("manual")   // manual | hourly | daily | weekdays | weekly
-  modelId      Int?                           // optional ProviderModel ID
-  projectPath  String?                        // optional cowork project folder
-  enabled      Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String
+  description   String?
+  prompt        String
+  frequency     String   @default("manual")   // manual | hourly | daily | weekdays | weekly
+  cronMinute    Int?                           // 0-59, for hourly / daily / weekdays / weekly
+  cronHour      Int?                           // 0-23, for daily / weekdays / weekly
+  cronDayOfWeek Int?                           // 0-6 (Sun=0), for weekly only
+  modelId       Int?                           // optional ProviderModel ID
+  projectPath   String?                        // optional cowork project folder
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  logs         ScheduleTaskLog[]
+  logs          ScheduleTaskLog[]
 }
 ```
+
+**Time configuration by frequency:**
+
+| Frequency | Fields used | Example |
+|---|---|---|
+| `manual` | none | User triggers manually via "Run Now" |
+| `hourly` | `cronMinute` (minute of each hour) | `cronMinute: 15` → chạy lúc :15 mỗi giờ |
+| `daily` | `cronHour` + `cronMinute` | `cronHour: 14, cronMinute: 30` → chạy 14:30 mỗi ngày |
+| `weekdays` | `cronHour` + `cronMinute` | `cronHour: 9, cronMinute: 0` → chạy 09:00 thứ 2–6 |
+| `weekly` | `cronDayOfWeek` + `cronHour` + `cronMinute` | `cronDayOfWeek: 1, cronHour: 8` → chạy 08:00 thứ 2 hàng tuần |
 
 ### ScheduleTaskLog (new table)
 
@@ -82,6 +95,9 @@ export class CreateScheduleTaskDto {
   @IsOptional() @IsString() description?: string;
   @IsString() prompt: string;
   @IsOptional() @IsIn(['manual', 'hourly', 'daily', 'weekdays', 'weekly']) frequency?: string;
+  @IsOptional() @IsInt() @Min(0) @Max(59) cronMinute?: number;
+  @IsOptional() @IsInt() @Min(0) @Max(23) cronHour?: number;
+  @IsOptional() @IsInt() @Min(0) @Max(6) cronDayOfWeek?: number;
   @IsOptional() @IsInt() modelId?: number;
   @IsOptional() @IsString() projectPath?: string;
 }
@@ -114,10 +130,10 @@ Injects `CoworkService` to set the project path if the task has one.
 
 ### ScheduleCronService
 
-Uses `@nestjs/schedule` `@Cron` decorator.
+Uses `@nestjs/schedule` `@Cron` decorator. Runs every minute to check all enabled tasks.
 
 ```typescript
-@Cron('0 * * * *') // every minute
+@Cron('0 * * * * *') // every 10 seconds for testing; change to * * * * * for production
 async checkSchedules() {
   const tasks = await this.scheduleTaskService.findEligible(new Date());
   for (const task of tasks) {
@@ -126,12 +142,15 @@ async checkSchedules() {
 }
 ```
 
-`findEligible(now)` logic:
-- `hourly`: `enabled && frequency === 'hourly' && lastRun was more than 1 hour ago`
-- `daily`: `enabled && frequency === 'daily' && lastRun was more than 24 hours ago`
-- `weekdays`: same as daily but only Monday–Friday
-- `weekly`: same as daily but only Monday
-- `manual`: never auto-run
+`findEligible(now)` logic — checks current time against user-configured cron fields:
+
+| Frequency | Eligibility condition |
+|---|---|
+| `manual` | Never (user triggers via API) |
+| `hourly` | `enabled && now.getMinutes() === cronMinute && lastRun was before this hour` |
+| `daily` | `enabled && now.getHours() === cronHour && now.getMinutes() === cronMinute && lastRun was before today` |
+| `weekdays` | Same as `daily` + `now.getDay()` must be 1–5 (Mon–Fri) |
+| `weekly` | Same as `daily` + `now.getDay()` must equal `cronDayOfWeek` |
 
 ### Agent Context for Schedule Mode
 
@@ -180,6 +199,12 @@ Replaces `TasksView.vue` entirely.
 
 **TaskFormModal** (reuse pattern from existing):
 - Fields: name, description, prompt (large textarea), frequency (select), model (ModelSelector), project path (input/browse)
+- Khi chọn frequency, hiển thị time picker tương ứng:
+  - `hourly`: input minute (0–59) — *"Run at minute ___ of each hour"*
+  - `daily`: input hour (0–23) + minute (0–59)
+  - `weekdays`: input hour + minute (same as daily, auto limit to Mon–Fri)
+  - `weekly`: input hour + minute + day of week selector (Mon–Sun)
+  - `manual`: không hiển thị time picker
 - Create and Edit modes
 
 **Log view**: expandable section per task showing past executions (time, status, session link)
