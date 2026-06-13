@@ -181,6 +181,7 @@ model ScheduleTask {
   cronMinute    Int?
   cronHour      Int?
   cronDayOfWeek Int?
+  cronDaysOfWeek String?
   modelId       Int?
   projectPath   String?
   enabled       Boolean  @default(true)

@@ -60,8 +60,8 @@ export class ScheduleTasksService {
           return task.cronHour === hour && task.cronMinute === minute
             && day >= 1 && day <= 5 && (now.getTime() - lastRunTime > 86400000);
         case 'weekly':
-          return task.cronDayOfWeek === day && task.cronHour === hour
-            && task.cronMinute === minute && (now.getTime() - lastRunTime > 86400000 * 7);
+          const days = (task.cronDaysOfWeek ?? String(task.cronDayOfWeek ?? '')).split(',').map(Number);
+          return days.includes(day) && task.cronHour === hour && task.cronMinute === minute && (now.getTime() - lastRunTime > 86400000 * 7);
         default:
           return false;
       }

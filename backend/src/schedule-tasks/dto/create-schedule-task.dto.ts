@@ -35,6 +35,10 @@ export class CreateScheduleTaskDto {
   cronDayOfWeek?: number;
 
   @IsOptional()
+  @IsString()
+  cronDaysOfWeek?: string;
+
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
   modelId?: number;
