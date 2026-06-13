@@ -24,8 +24,6 @@
           :messages="messages"
           :streaming="streaming"
           @form-submit="onFormSubmit"
-        @tool-approve="approveTool"
-        @tool-deny="denyTool"
         />
         <div v-else class="flex-1 flex items-center justify-center min-h-0">
           <div class="text-center">
@@ -33,6 +31,17 @@
             <div class="text-sm font-mono text-cyber-muted">// {{ t('chat.empty.subtitle') }}</div>
           </div>
         </div>
+
+        <ToolApprovalBar
+          v-if="pendingApproval"
+          :id="pendingApproval.id"
+          :name="pendingApproval.name"
+          :args="pendingApproval.args"
+          :remaining="remainingSeconds"
+          :total="30"
+          @approve="approveTool"
+          @deny="denyTool"
+        />
 
         <ChatInputBar
           :streaming="streaming"
@@ -76,6 +85,7 @@ import SessionModal from './SessionModal.vue'
 import MessageList from './cowork/MessageList.vue'
 import ChatInputBar from './cowork/ChatInputBar.vue'
 import ProjectBar from './cowork/ProjectBar.vue'
+import ToolApprovalBar from './ToolApprovalBar.vue'
 import type { Message, PlanData } from './cowork/types'
 import { useProvidersStore } from '../stores/providers'
 import { useUiStore } from '../stores/ui'
@@ -117,6 +127,18 @@ const fileTreeRefreshKey = ref(0)
 const activeSubagentCount = ref(0)
 const messageListRef = ref<{ scrollToBottom: () => Promise<void> } | null>(null)
 
+const pendingApproval = ref<{ id: string; name: string; args: string; expiresAt: number } | null>(null)
+const remainingSeconds = ref(0)
+let approvalTimer: ReturnType<typeof setInterval> | null = null
+
+function clearPendingApproval() {
+  if (approvalTimer) {
+    clearInterval(approvalTimer)
+    approvalTimer = null
+  }
+  pendingApproval.value = null
+}
+
 onMounted(async () => {
   await loadProject()
   await loadModel()
@@ -124,6 +146,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   ui.activeSubagents = 0
+  clearPendingApproval()
 })
 
 async function loadProject() {
@@ -220,20 +243,24 @@ function now(): string {
 
 async function approveTool(id: string) {
   try {
-    await requestRaw('/agent/approve-tool', {
+    await fetch('/api/agent/approve-tool', {
       method: 'POST',
-      body: { id, approved: true },
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, approved: true }),
     })
   } catch { /* ignore */ }
+  clearPendingApproval()
 }
 
 async function denyTool(id: string) {
   try {
-    await requestRaw('/agent/approve-tool', {
+    await fetch('/api/agent/approve-tool', {
       method: 'POST',
-      body: { id, approved: false },
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, approved: false }),
     })
   } catch { /* ignore */ }
+  clearPendingApproval()
 }
 
 function onFormSubmit(data: Record<string, string>) {
@@ -432,14 +459,18 @@ async function submitText(text: string) {
         scrollToBottom()
       },
       onToolApprovalRequired(id, name, args) {
-        const argsStr = Object.entries(args).map(([k, v]) => `${k}=${v}`).join(', ');
-        messages.value.push({
-          role: 'system' as const,
-          content: '',
-          timestamp: now(),
-          approvalRequest: { id, name, args: argsStr },
-        });
-        scrollToBottom()
+        const argsStr = Object.entries(args).map(([k, v]) => `${k}=${v}`).join(', ')
+        pendingApproval.value = { id, name, args: argsStr, expiresAt: Date.now() + 30000 }
+        remainingSeconds.value = 30
+        if (approvalTimer) clearInterval(approvalTimer)
+        approvalTimer = setInterval(() => {
+          if (pendingApproval.value) {
+            remainingSeconds.value = Math.max(0, Math.ceil((pendingApproval.value.expiresAt - Date.now()) / 1000))
+            if (remainingSeconds.value <= 0) {
+              clearPendingApproval()
+            }
+          }
+        }, 200)
       },
       onDelegateProgress(_index, _subtask, _status) {
         /* CoworkView does not render delegate progress */
