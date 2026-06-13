@@ -13,6 +13,7 @@ export interface SseCallbacks {
   onToken: (token: string) => void
   onToolCall: (name: string, args: Record<string, unknown>) => void
   onToolResult: (name: string, result: string) => void
+  onToolApprovalRequired?: (id: string, name: string, args: Record<string, unknown>) => void
   onThinking: (text: string) => void
   onPlan: (plan: PlanData) => void
   onPlanStepUpdate: (planId: number, stepId: number, status: string) => void
@@ -51,6 +52,7 @@ export async function parseSseStream(
         else if (p.plan) cb.onPlan(p.plan as PlanData)
         else if (p.planStepUpdate) { const u = p.planStepUpdate as { planId: number; stepId: number; status: string }; cb.onPlanStepUpdate(u.planId, u.stepId, u.status) }
         else if (p.planInterrupted) { const i = p.planInterrupted as { planId: number; reason: string }; cb.onPlanInterrupted(i.planId, i.reason) }
+        else if (p.toolApprovalRequired) { const { id, name, args } = p.toolApprovalRequired as { id: string; name: string; args: Record<string, unknown> }; cb.onToolApprovalRequired?.(id, name, args) }
         else if (p.delegateProgress) { const d = p.delegateProgress as { index: number; subtask: string; status: string }; cb.onDelegateProgress(d.index, d.subtask, d.status) }
         else if (p.delegateResult) { const d = p.delegateResult as { count: number }; cb.onDelegateResult(d.count) }
         else if (p.token) cb.onToken(String(p.token))
