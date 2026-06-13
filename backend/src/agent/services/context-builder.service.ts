@@ -92,6 +92,11 @@ export class ContextBuilderService {
       'You MUST call the appropriate tool EVERY time the user requests an action, even if you previously called the same tool.',
       'Previous tool calls in this conversation do NOT satisfy new requests with different parameters.',
       'Never respond with just text describing what you would do — always execute the tool with the actual parameters.',
+      '',
+      'TOOL PRIORITY RULE:',
+      'When a task can be done by both a native tool (e.g., google_drive_*, google_gmail_*, google_calendar_*) and an MCP tool (mcp__*), ALWAYS prefer the native tool first.',
+      'Only fall back to MCP tools if the native tool cannot fulfill the request or returns an error.',
+      'Native tools are faster, more reliable, and better integrated with connected accounts.',
     );
 
     if (mode === 'cowork') {
