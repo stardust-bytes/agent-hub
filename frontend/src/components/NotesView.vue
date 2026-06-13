@@ -41,13 +41,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { io, Socket } from 'socket.io-client'
 import NoteModal from './NoteModal.vue'
 import BaseConfirmModal from './BaseConfirmModal.vue'
+import { useNotesStore } from '../stores/notes'
 
 const { t } = useI18n()
+const notesStore = useNotesStore()
 
 interface Note {
   id: number
@@ -57,7 +59,7 @@ interface Note {
   updatedAt: string
 }
 
-const notes = ref<Note[]>([])
+const notes = computed(() => notesStore.notes as Note[])
 const showModal = ref(false)
 const showConfirmModal = ref(false)
 const deletingNoteId = ref<number | null>(null)
@@ -65,13 +67,6 @@ const editingId = ref<number | null>(null)
 const editTitle = ref('')
 const editContent = ref('')
 let socket: Socket | null = null
-
-async function fetchNotes() {
-  try {
-    const res = await fetch('/api/notes')
-    if (res.ok) notes.value = await res.json()
-  } catch { /* ignore */ }
-}
 
 function openAdd() {
   editingId.value = null
@@ -88,22 +83,12 @@ function openEdit(note: Note) {
 }
 
 async function handleSave(title: string, content: string) {
-  const body = { title, content }
   try {
     if (editingId.value) {
-      await fetch(`/api/notes/${editingId.value}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
+      await notesStore.update(editingId.value, { title, content })
     } else {
-      await fetch('/api/notes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
+      await notesStore.create({ title, content })
     }
-    await fetchNotes()
   } catch { /* ignore */ }
 }
 
@@ -115,18 +100,17 @@ async function deleteNote(id: number) {
 async function onDeleteConfirmed() {
   if (deletingNoteId.value === null) return
   try {
-    await fetch(`/api/notes/${deletingNoteId.value}`, { method: 'DELETE' })
-    await fetchNotes()
+    await notesStore.remove(deletingNoteId.value)
   } catch { /* ignore */ }
   deletingNoteId.value = null
 }
 
 onMounted(() => {
-  fetchNotes()
+  notesStore.load()
   socket = io('/notes')
-  socket.on('note:created', () => fetchNotes())
-  socket.on('note:updated', () => fetchNotes())
-  socket.on('note:deleted', () => fetchNotes())
+  socket.on('note:created', () => notesStore.load())
+  socket.on('note:updated', () => notesStore.load())
+  socket.on('note:deleted', () => notesStore.load())
 })
 
 onUnmounted(() => {

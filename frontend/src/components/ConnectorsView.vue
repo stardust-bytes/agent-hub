@@ -31,10 +31,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useConnectorsStore } from '../stores/connectors'
+import { getOAuthUrl } from '../api/connectors'
 
 const { t } = useI18n()
+const connectorsStore = useConnectorsStore()
 
 interface Connector {
   id: string
@@ -45,8 +48,6 @@ interface Connector {
   enabled: boolean
 }
 
-const connectors = ref<Connector[]>([])
-
 const connectorTemplates = [
   { type: 'google_gmail', name: 'Gmail' },
   { type: 'google_calendar', name: 'Google Calendar' },
@@ -54,40 +55,31 @@ const connectorTemplates = [
 ]
 
 const displayConnectors = computed(() => {
-  return connectorTemplates.map(t => {
-    const saved = connectors.value.find(c => c.type === t.type)
+  return connectorTemplates.map(tmpl => {
+    const saved = connectorsStore.connectors.find(c => c.type === tmpl.type) as Connector | undefined
     return {
       ...(saved ?? { id: '', config: '{}', account: null, enabled: false }),
-      name: t.name,
-      type: t.type,
+      name: tmpl.name,
+      type: tmpl.type,
     }
   })
 })
 
 onMounted(async () => {
-  await fetchConnectors()
+  await connectorsStore.load()
 })
-
-async function fetchConnectors() {
-  try {
-    const res = await fetch('/api/connectors')
-    if (res.ok) connectors.value = await res.json()
-  } catch {}
-}
 
 async function connect(type: string) {
   try {
-    const res = await fetch(`/api/connectors/oauth/auth-url?type=${encodeURIComponent(type)}`)
-    const data = await res.json()
+    const data = await getOAuthUrl(type)
     if (data.url) {
       window.open(data.url, '_blank')
-      setTimeout(() => fetchConnectors(), 5000)
+      setTimeout(() => connectorsStore.load(), 5000)
     }
   } catch {}
 }
 
 async function disconnect(connector: Connector) {
-  await fetch(`/api/connectors/${connector.id}`, { method: 'DELETE' })
-  await fetchConnectors()
+  await connectorsStore.remove(connector.id)
 }
 </script>

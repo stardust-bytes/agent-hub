@@ -82,9 +82,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ProviderFormModal from './ProviderFormModal.vue'
+import { useProvidersStore } from '../stores/providers'
+import * as providersApi from '../api/providers'
 
 interface ProviderModel {
   id: number
@@ -101,8 +103,9 @@ interface Provider {
 }
 
 const { t } = useI18n()
+const providersStore = useProvidersStore()
 
-const providers = ref<Provider[]>([])
+const providers = computed(() => providersStore.providers as unknown as Provider[])
 const expanded = ref<Set<number>>(new Set())
 const showModal = ref(false)
 const editingProvider = ref<Provider | null>(null)
@@ -114,17 +117,14 @@ const syncing = ref<number | null>(null)
 async function syncModels(providerId: number) {
   syncing.value = providerId
   try {
-    await fetch(`/api/providers/${providerId}/sync-models`, { method: 'POST' })
+    await providersApi.syncModels(providerId)
     await loadProviders()
   } catch { /* ignore */ }
   syncing.value = null
 }
 
 async function loadProviders() {
-  try {
-    const res = await fetch('/api/providers')
-    if (res.ok) providers.value = await res.json() as Provider[]
-  } catch { /* ignore */ }
+  await providersStore.loadProviders()
 }
 
 function toggleExpand(id: number) {
@@ -148,7 +148,7 @@ function openEditModal(provider: Provider) {
 async function confirmDeleteProvider(provider: Provider) {
   if (!confirm(t('providers.delete.confirm'))) return
   try {
-    await fetch(`/api/providers/${provider.id}`, { method: 'DELETE' })
+    await providersApi.deleteProvider(provider.id)
     await loadProviders()
   } catch { /* ignore */ }
 }
@@ -163,23 +163,17 @@ async function submitAddModel(providerId: number) {
   const name = newModelName.value.trim()
   if (!name) return
   try {
-    const res = await fetch(`/api/providers/${providerId}/models`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
-    })
-    if (res.ok) {
-      await loadProviders()
-      addingModelFor.value = null
-      newModelName.value = ''
-    }
+    await providersApi.addModel(providerId, { name })
+    await loadProviders()
+    addingModelFor.value = null
+    newModelName.value = ''
   } catch { /* ignore */ }
 }
 
 async function deleteModel(providerId: number, modelId: number) {
   if (!confirm(t('providers.models.delete.confirm'))) return
   try {
-    await fetch(`/api/providers/${providerId}/models/${modelId}`, { method: 'DELETE' })
+    await providersApi.deleteModel(providerId, modelId)
     await loadProviders()
   } catch { /* ignore */ }
 }

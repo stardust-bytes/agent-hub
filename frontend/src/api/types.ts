@@ -24,8 +24,10 @@ export interface StoredMessage {
 export interface Task {
   id: number
   title: string
-  description: string | null
+  description?: string | null
   status: 'TODO' | 'PROCESSING' | 'DONE' | 'FAILED'
   priority: number
-  dueDate: string | null
+  dueDate?: string | null
+  createdAt: string
+  updatedAt: string
 }

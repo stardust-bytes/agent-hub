@@ -72,6 +72,7 @@
 import { reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from './BaseModal.vue'
+import { useTasksStore } from '../stores/tasks'
 
 interface Task {
   id: number
@@ -95,6 +96,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const tasksStore = useTasksStore()
 
 const PRIORITY_OPTIONS = [
   { value: 2, labelKey: 'tasks.priority.high', activeClass: 'text-red-400 bg-red-400/15', inactiveClass: 'text-red-400/50 hover:text-red-400' },
@@ -134,17 +136,9 @@ async function onSave() {
   if (form.description) payload.description = form.description
   try {
     if (props.editing) {
-      await fetch(`/api/tasks/${props.editing.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+      await tasksStore.update(props.editing.id, payload)
     } else {
-      await fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+      await tasksStore.create(payload)
     }
     emit('saved')
     emit('update:modelValue', false)

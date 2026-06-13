@@ -67,6 +67,7 @@ import { HiClipboardList } from 'vue-icons-plus/hi'
 import KanbanBoard from './KanbanBoard.vue'
 import TaskFormModal from './TaskFormModal.vue'
 import BaseConfirmModal from './BaseConfirmModal.vue'
+import { useTasksStore } from '../stores/tasks'
 
 interface Task {
   id: number
@@ -80,6 +81,7 @@ interface Task {
 }
 
 const { t } = useI18n()
+const tasksStore = useTasksStore()
 const activeFilters = reactive(new Set<number>())
 
 const emit = defineEmits<{
@@ -138,7 +140,7 @@ function onTaskSaved() {
 async function onDeleteConfirmed() {
   if (deletingTaskId.value === null) return
   try {
-    await fetch(`/api/tasks/${deletingTaskId.value}`, { method: 'DELETE' })
+    await tasksStore.remove(deletingTaskId.value)
     refreshKey.value++
   } catch {
     // silently fail

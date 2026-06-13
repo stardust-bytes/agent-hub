@@ -48,6 +48,8 @@ import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from './BaseModal.vue'
 import BaseConfirmModal from './BaseConfirmModal.vue'
+import { useSessionsStore } from '../stores/sessions'
+import { storeToRefs } from 'pinia'
 
 interface SessionItem {
   id: number
@@ -69,7 +71,9 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const sessions = ref<SessionItem[]>([])
+const sessionsStore = useSessionsStore()
+const { sessions: storeSessions } = storeToRefs(sessionsStore)
+const sessions = computed(() => storeSessions.value as unknown as SessionItem[])
 const showConfirmModal = ref(false)
 const deletingSessionId = ref<number | null>(null)
 const show = computed({
@@ -82,25 +86,14 @@ function onClose() {
 }
 
 async function fetchSessions() {
-  try {
-    const q = props.mode ? `?mode=${props.mode}` : ''
-    const res = await fetch(`/api/sessions${q}`)
-    if (!res.ok) return
-    sessions.value = (await res.json()) as SessionItem[]
-  } catch { /* ignore */ }
+  await sessionsStore.load(props.mode)
 }
 
 async function createSession() {
   try {
-    const res = await fetch('/api/sessions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: props.mode ?? 'chat' }),
-    })
-    if (!res.ok) return
-    const session = (await res.json()) as SessionItem
+    const id = await sessionsStore.create(props.mode ?? 'chat')
     await fetchSessions()
-    emit('created', session.id)
+    emit('created', id)
     show.value = false
   } catch { /* ignore */ }
 }
@@ -114,8 +107,7 @@ async function onDeleteConfirmed() {
   if (deletingSessionId.value === null) return
   const id = deletingSessionId.value
   try {
-    await fetch(`/api/sessions/${id}`, { method: 'DELETE' })
-    await fetchSessions()
+    await sessionsStore.remove(id)
     if (id === props.currentSessionId) {
       const first = sessions.value[0]
       if (first) emit('select', first.id)

@@ -60,6 +60,8 @@ import { VueDraggable } from 'vue-draggable-plus'
 import { io, Socket } from 'socket.io-client'
 import { useI18n } from 'vue-i18n'
 import TaskCard from './TaskCard.vue'
+import { useTasksStore } from '../stores/tasks'
+import type { Task as StoreTask } from '../api/types'
 
 interface Task {
   id: number
@@ -85,6 +87,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const tasksStore = useTasksStore()
 
 const STATUS_KEYS = ['TODO', 'PROCESSING', 'DONE', 'FAILED'] as const
 
@@ -102,7 +105,7 @@ const columnTasks = reactive<Record<string, Task[]>>({
 let socket: Socket | null = null
 
 watch(() => props.refreshKey, () => {
-  fetchTasks()
+  loadTasks()
 })
 
 function shouldShow(task: Task): boolean {
@@ -129,12 +132,7 @@ async function onAdd(evt: { newIndex?: number }, newStatus: string) {
   task.status = newStatus
 
   try {
-    const res = await fetch(`/api/tasks/${task.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus }),
-    })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    await tasksStore.updateStatus(task.id, newStatus as StoreTask['status'])
   } catch {
     task.status = oldStatus
     columnTasks[newStatus] = columnTasks[newStatus].filter(t => t.id !== task.id)
@@ -142,28 +140,25 @@ async function onAdd(evt: { newIndex?: number }, newStatus: string) {
   }
 }
 
-async function fetchTasks() {
-  try {
-    const res = await fetch('/api/tasks')
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    populateColumns(await res.json() as Task[])
-  } catch {
-    // board stays empty
-  }
+async function loadTasks() {
+  await tasksStore.load()
+  populateColumns(tasksStore.tasks as Task[])
 }
 
 onMounted(async () => {
-  await fetchTasks()
+  await loadTasks()
 
   socket = io('/tasks')
   socket.on('connect', () => emit('ws-status', true))
   socket.on('disconnect', () => emit('ws-status', false))
 
   socket.on('task:created', (task: Task) => {
+    tasksStore.upsert(task as StoreTask)
     if (columnTasks[task.status]) columnTasks[task.status].push(task)
   })
 
   socket.on('task:updated', (task: Task) => {
+    tasksStore.upsert(task as StoreTask)
     for (const key of STATUS_KEYS) {
       const idx = columnTasks[key].findIndex(t => t.id === task.id)
       if (idx !== -1) { columnTasks[key].splice(idx, 1); break }
@@ -172,6 +167,7 @@ onMounted(async () => {
   })
 
   socket.on('task:deleted', ({ id }: { id: number }) => {
+    tasksStore.removeLocal(id)
     for (const key of STATUS_KEYS) {
       const idx = columnTasks[key].findIndex(t => t.id === id)
       if (idx !== -1) { columnTasks[key].splice(idx, 1); break }

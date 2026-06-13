@@ -106,6 +106,7 @@ import { HiSave, HiPencil, HiTrash } from 'vue-icons-plus/hi'
 import BaseModal from './BaseModal.vue'
 import BaseConfirmModal from './BaseConfirmModal.vue'
 import BaseSelect from './BaseSelect.vue'
+import { useMemoriesStore } from '../stores/memories'
 
 interface Memory {
   id: string
@@ -118,7 +119,9 @@ interface Memory {
 }
 
 const { t } = useI18n()
-const memories = ref<Memory[]>([])
+const memoriesStore = useMemoriesStore()
+
+const memories = computed(() => memoriesStore.memories as Memory[])
 const loading = ref(true)
 const activeType = ref('')
 const searchQuery = ref('')
@@ -169,10 +172,7 @@ function isAutoExtracted(mem: Memory): boolean {
 
 async function fetchMemories() {
   loading.value = true
-  try {
-    const res = await fetch('/api/memories')
-    if (res.ok) memories.value = await res.json() as Memory[]
-  } catch { /* ignore */ }
+  await memoriesStore.load()
   loading.value = false
 }
 
@@ -201,28 +201,18 @@ async function saveMemory() {
   const body = { type: formType.value, title: formTitle.value, content: formContent.value }
   try {
     if (editing.value) {
-      await fetch(`/api/memories/${editing.value.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
+      await memoriesStore.update(editing.value.id, body)
     } else {
-      await fetch('/api/memories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
+      await memoriesStore.create(body)
     }
     showFormModal.value = false
-    await fetchMemories()
   } catch { /* ignore */ }
 }
 
 async function onDeleteConfirmed() {
   if (!deletingId.value) return
   try {
-    await fetch(`/api/memories/${deletingId.value}`, { method: 'DELETE' })
-    await fetchMemories()
+    await memoriesStore.remove(deletingId.value)
   } catch { /* ignore */ }
   deletingId.value = null
 }

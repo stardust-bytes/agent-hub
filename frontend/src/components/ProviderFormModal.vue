@@ -68,6 +68,7 @@
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from './BaseModal.vue'
+import { createProvider, updateProvider } from '../api/providers'
 
 interface Provider {
   id: number
@@ -128,18 +129,18 @@ async function save() {
   if (!form.value.name.trim()) return
   saving.value = true
   try {
-    const body: Record<string, string> = { name: form.value.name.trim(), type: form.value.type }
+    const body: { name: string; baseUrl?: string; key?: string; type?: string } = {
+      name: form.value.name.trim(),
+      type: form.value.type,
+    }
     if (form.value.baseUrl.trim()) body.baseUrl = form.value.baseUrl.trim()
     if (form.value.key.trim()) body.key = form.value.key.trim()
 
-    const url = props.editing ? `/api/providers/${props.editing.id}` : '/api/providers'
-    const method = props.editing ? 'PATCH' : 'POST'
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    if (props.editing) {
+      await updateProvider(props.editing.id, body)
+    } else {
+      await createProvider(body)
+    }
     emit('saved')
     emit('update:modelValue', false)
   } catch { /* ignore */ }
