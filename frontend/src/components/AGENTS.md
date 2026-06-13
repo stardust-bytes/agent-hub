@@ -220,6 +220,26 @@ Shows version and health check status (pings `GET /api/health` on mount).
 | Gradients | Forbidden |
 | Animations | `animate-blink` for cursor only. `transition-colors duration-150` on interactive elements |
 | Icons | `vue-icons-plus/hi` (Hero Icons). No inline SVG |
+| Buttons | Text labels (not icons) for action buttons. Delete button: `text-red-400 border-red-400/50 hover:bg-red-400/10`. Primary: `text-cyber-accent border-cyber-accent/30 hover:bg-cyber-accent/10` |
+| Cards | Flex column (`flex flex-col`). Action buttons at bottom-right (`mt-auto justify-end`). No `rounded`. |
+| Text size | `text-sm` everywhere. No `text-xs` or `text-2xs`. |
+| Border radius | None. All inputs, buttons, selects, cards are flat (no `rounded`). |
+
+## Header Pattern (standard cho mọi màn hình)
+
+```html
+<div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-cyber-code-border shrink-0 bg-cyber-dark">
+  <Icon class="w-3 h-3 text-cyber-accent" />
+  <span class="text-sm text-cyber-accent font-mono">{{ t('view.header') }}</span>
+  <button class="ml-auto text-sm text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/30 transition-colors duration-150 hover:bg-cyber-accent/10">
+    {{ t('view.action') }}
+  </button>
+</div>
+```
+
+- Chiều cao cố định `h-[3rem]`
+- Icon + title bên trái, action button `ml-auto` bên phải
+- Button style: `text-cyber-accent border-cyber-accent/30 hover:bg-cyber-accent/10`
 
 ## Data Access
 

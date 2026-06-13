@@ -16,7 +16,7 @@
               class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-cyber-accent/10 transition-colors duration-150 text-cyber-accent text-sm font-mono"
               @click="goUp">
               <span>..</span>
-              <span class="text-cyber-muted text-xs">{{ t('cowork.browse.parent') }}</span>
+              <span class="text-cyber-muted text-sm">{{ t('cowork.browse.parent') }}</span>
             </div>
             <div v-for="entry in entries" :key="entry.name"
               class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-cyber-accent/10 transition-colors duration-150 text-cyber-text text-sm font-mono"
@@ -30,7 +30,7 @@
           <button
             :disabled="!currentPath"
             @click="emit('select', currentPath)"
-            class="w-full bg-cyber-accent text-black text-xs font-bold px-3 py-1.5 transition-colors duration-150 hover:bg-cyber-accent/80 disabled:opacity-50 disabled:cursor-not-allowed font-mono"
+            class="w-full bg-cyber-accent text-black text-sm font-bold px-3 py-1.5 transition-colors duration-150 hover:bg-cyber-accent/80 disabled:opacity-50 disabled:cursor-not-allowed font-mono"
           >{{ t('cowork.browse.select') }}</button>
         </div>
       </div>
@@ -117,3 +117,4 @@ watch(() => props.modelValue, (val) => {
   if (val) loadDrives()
 })
 </script>
+

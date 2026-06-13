@@ -25,7 +25,7 @@
               </span>
             </td>
             <td class="py-2 px-2 text-cyber-text font-mono">{{ tool.name }}</td>
-            <td class="py-2 px-2 text-cyber-muted/80 font-mono text-xs">{{ tool.description }}</td>
+            <td class="py-2 px-2 text-cyber-muted/80 font-mono text-sm">{{ tool.description }}</td>
             <td class="py-2 px-2 text-right">
               <button
                 @click="toggle(tool.name)"
@@ -88,6 +88,7 @@ async function toggle(name: string) {
 
 onMounted(fetchTools)
 </script>
+
 
 
 

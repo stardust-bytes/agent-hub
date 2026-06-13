@@ -13,15 +13,16 @@
         </button>
         <div v-for="project in savedProjects" :key="project.id" class="flex items-center px-3 py-2 text-sm text-cyber-text font-mono hover:bg-cyber-accent/10 transition-colors duration-150 border-b border-cyber-code-border">
           <button @click="emit('selectProject', project.path); showProjectMenu = false" class="flex-1 text-left truncate">{{ project.name }}</button>
-          <button @click="emit('deleteProject', project.id)" class="text-cyber-muted hover:text-red-400 transition-colors duration-150 shrink-0 ml-2 text-xs">✕</button>
+          <button @click="emit('deleteProject', project.id)" class="text-cyber-muted hover:text-red-400 transition-colors duration-150 shrink-0 ml-2 text-sm">✕</button>
         </div>
         <button @click="showSaveModal = true; showProjectMenu = false" class="w-full text-left px-3 py-2 text-sm text-cyber-accent font-mono hover:bg-cyber-accent/10 transition-colors duration-150 flex items-center gap-2">
           <span>+</span> {{ t('cowork.project.saveAs') }}
         </button>
       </div>
     </div>
+    <button v-if="projectPath" @click="emit('disconnect')" class="text-sm text-red-400 font-mono px-2 py-0.5 border border-red-400/40 transition-colors duration-150 hover:bg-red-400/10">✕ {{ t('cowork.disconnect') }}</button>
     <div v-if="projectPath" class="flex items-center gap-2 ml-auto">
-      <button @click="emit('toggleArtifacts')" class="text-xs text-cyber-muted font-mono px-2 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-accent hover:border-cyber-accent/40">{{ t('cowork.artifacts') }}</button>
+      <button @click="emit('toggleArtifacts')" class="text-sm text-cyber-muted font-mono px-2 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-accent hover:border-cyber-accent/40">{{ t('cowork.artifacts') }}</button>
     </div>
     <BaseModal v-model="showSaveModal" :closable="false">
       <template #header><span class="text-sm text-cyber-text font-mono">{{ t('cowork.project.saveAs') }}</span></template>
@@ -30,8 +31,8 @@
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <button @click="showSaveModal = false" class="text-xs text-cyber-muted font-mono px-3 py-1.5 border border-cyber-code-border rounded transition-colors duration-150 hover:text-cyber-text">{{ t('tasks.form.cancel') }}</button>
-          <button @click="onSave" class="text-xs text-white font-mono px-3 py-1.5 bg-cyber-accent rounded transition-colors duration-150 hover:bg-cyber-accent/80">{{ t('cowork.project.save') }}</button>
+          <button @click="showSaveModal = false" class="text-sm text-cyber-muted font-mono px-3 py-1.5 border border-cyber-code-border rounded transition-colors duration-150 hover:text-cyber-text">{{ t('tasks.form.cancel') }}</button>
+          <button @click="onSave" class="text-sm text-white font-mono px-3 py-1.5 bg-cyber-accent rounded transition-colors duration-150 hover:bg-cyber-accent/80">{{ t('cowork.project.save') }}</button>
         </div>
       </template>
     </BaseModal>
@@ -60,6 +61,7 @@ const emit = defineEmits<{
   deleteProject: [id: string]
   saveProject: [name: string]
   toggleArtifacts: []
+  disconnect: []
 }>()
 
 const { t } = useI18n()

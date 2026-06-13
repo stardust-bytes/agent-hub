@@ -107,5 +107,9 @@ import { GoogleDriveCreateFolderExecutor } from '../tools/executors/google-drive
     GoogleDriveUploadExecutor,
     GoogleDriveCreateFolderExecutor,
   ],
+  exports: [
+    AgentLoopService,
+    ContextBuilderService,
+  ],
 })
 export class AgentModule {}

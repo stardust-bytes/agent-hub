@@ -41,39 +41,39 @@
           <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.models') }}</div>
           <div class="space-y-3">
             <div>
-              <label class="text-cyber-muted text-xs font-mono block mb-1">{{ t('settings.embedModel') }}</label>
+              <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('settings.embedModel') }}</label>
               <select v-model="embedModelId" @change="saveSetting('embed_model_id', embedModelId)"
-                class="w-full bg-cyber-dark text-cyber-text text-sm font-mono rounded border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent">
+                class="w-full bg-cyber-dark text-cyber-text text-sm font-mono  border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent">
                 <option value="">{{ t('settings.defaultOption') }}</option>
                 <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
               </select>
             </div>
             <div>
-              <label class="text-cyber-muted text-xs font-mono block mb-1">{{ t('settings.summaryModel') }}</label>
+              <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('settings.summaryModel') }}</label>
               <select v-model="summaryModelId" @change="saveSetting('summary_model_id', summaryModelId)"
-                class="w-full bg-cyber-dark text-cyber-text text-sm font-mono rounded border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent">
+                class="w-full bg-cyber-dark text-cyber-text text-sm font-mono  border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent">
                 <option value="">{{ t('settings.defaultOption') }}</option>
                 <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
               </select>
             </div>
-            <div v-if="saved" class="text-cyber-green text-xs font-mono">{{ t('settings.saved') }}</div>
-            <div v-if="fetchError" class="text-red-400 text-xs font-mono mt-2">{{ t('settings.fetchError') }}</div>
+            <div v-if="saved" class="text-cyber-green text-sm font-mono">{{ t('settings.saved') }}</div>
+            <div v-if="fetchError" class="text-red-400 text-sm font-mono mt-2">{{ t('settings.fetchError') }}</div>
           </div>
         </div>
 
         <div class="border-t border-cyber-accent/10 pt-4 mt-4">
           <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.mcpServers') }}</div>
-          <div v-if="mcpServers.length === 0" class="text-cyber-muted/50 text-xs font-mono">
+          <div v-if="mcpServers.length === 0" class="text-cyber-muted/50 text-sm font-mono">
             {{ t('settings.noMcpServers') }}
           </div>
           <div v-for="server in mcpServers" :key="server.id"
-            class="flex items-center justify-between py-1.5 px-2 bg-cyber-dark border border-cyber-code-border rounded mb-1">
+            class="flex items-center justify-between py-1.5 px-2 bg-cyber-dark border border-cyber-code-border  mb-1">
             <div>
-              <div class="text-cyber-text text-xs font-mono">{{ server.name }}</div>
+              <div class="text-cyber-text text-sm font-mono">{{ server.name }}</div>
               <div class="text-cyber-muted/50 text-2xs font-mono">{{ server.type }} &middot; {{ server.id }}</div>
             </div>
             <span :class="server.enabled ? 'text-cyber-green' : 'text-cyber-muted/50'"
-              class="text-xs font-mono">{{ server.enabled ? t('settings.mcpOn') : t('settings.mcpOff') }}</span>
+              class="text-sm font-mono">{{ server.enabled ? t('settings.mcpOn') : t('settings.mcpOff') }}</span>
           </div>
         </div>
 
@@ -174,6 +174,7 @@ async function saveSetting(key: string, value: string) {
   } catch { /* ignore */ }
 }
 </script>
+
 
 
 

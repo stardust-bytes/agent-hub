@@ -347,6 +347,7 @@
   "schedules.add": "+ add schedule",
   "schedules.empty": "No scheduled tasks",
   "schedules.edit": "Edit schedule",
+  "schedules.delete": "Delete",
   "schedules.deleteConfirm": "Delete this schedule?",
   "schedules.frequency.manual": "Manual",
   "schedules.frequency.hourly": "Hourly",
@@ -365,6 +366,8 @@
   "schedules.form.hour": "Hour",
   "schedules.form.atMinute": "at minute",
   "schedules.form.days": "Days of week",
+  "schedules.form.selectModel": "Model",
+  "schedules.form.noProject": "No project",
   "schedules.detail.back": "Tasks",
   "schedules.detail.loading": "Loading...",
   "schedules.model": "Model",
@@ -386,6 +389,10 @@
     "modified": "Modified",
     "bytes": "B",
     "kb": "KB",
-    "mb": "MB"
+    "mb": "MB",
+    "refresh": "Refresh",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this file?",
+    "delete_failed": "Could not delete file"
   }
 }

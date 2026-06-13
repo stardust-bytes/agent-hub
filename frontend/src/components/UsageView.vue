@@ -37,19 +37,19 @@ onMounted(fetchData);
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-4">
-    <div class="flex items-center gap-2 text-cyber-cyan text-sm font-mono mb-2">
-      <HiOutlineChartBar class="w-4 h-4" />
-      <span>{{ t('usage.header') }}</span>
+  <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
+    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-cyber-code-border shrink-0 bg-cyber-dark">
+      <HiOutlineChartBar class="w-3 h-3 text-cyber-accent" />
+      <span class="text-sm text-cyber-accent font-mono">{{ t('usage.header') }}</span>
     </div>
+    <div class="flex-1 overflow-y-auto px-3 py-3 space-y-4">
+    <div v-if="loading" class="text-cyber-muted text-sm font-mono">⟳ {{ t('chat.loading') }}</div>
 
-    <div v-if="loading" class="text-cyber-muted text-xs font-mono">⟳ {{ t('chat.loading') }}</div>
-
-    <div v-else-if="error" class="text-red-500 text-xs font-mono">{{ error }}</div>
+    <div v-else-if="error" class="text-red-500 text-sm font-mono">{{ error }}</div>
 
     <template v-else>
-      <div v-if="total && total.requestCount > 0" class="border border-cyber-code-border rounded p-3">
-        <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
+      <div v-if="total && total.requestCount > 0" class="border border-cyber-code-border  p-3">
+        <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
           <span class="text-cyber-muted font-mono">{{ t('usage.total_prompt') }}:</span>
           <span class="text-cyber-text text-right font-mono">{{ formatNum(total.promptTokens) }}</span>
           <span class="text-cyber-muted font-mono">{{ t('usage.total_completion') }}:</span>
@@ -61,15 +61,15 @@ onMounted(fetchData);
         </div>
       </div>
 
-      <div v-else class="text-cyber-muted text-xs font-mono border border-cyber-code-border rounded p-3">
+      <div v-else class="text-cyber-muted text-sm font-mono border border-cyber-code-border  p-3">
         {{ t('usage.empty') }}
       </div>
 
-      <div v-if="sessions.length > 0" class="border border-cyber-code-border rounded">
-        <div class="text-cyber-muted text-xs font-mono px-3 py-2 border-b border-cyber-code-border">
+      <div v-if="sessions.length > 0" class="border border-cyber-code-border ">
+        <div class="text-cyber-muted text-sm font-mono px-3 py-2 border-b border-cyber-code-border">
           {{ t('usage.per_session') }}
         </div>
-        <table class="w-full text-xs">
+        <table class="w-full text-sm">
           <thead>
             <tr class="text-cyber-muted border-b border-cyber-code-border">
               <th class="text-left px-3 py-1.5 font-mono">{{ t('usage.session') }}</th>
@@ -91,5 +91,7 @@ onMounted(fetchData);
         </table>
       </div>
     </template>
+    </div>
   </div>
 </template>
+

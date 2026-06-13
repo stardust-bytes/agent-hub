@@ -11,15 +11,15 @@
             <span class="text-sm text-cyber-text font-mono truncate">{{ connector.name }}</span>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <span class="text-xs font-mono" :class="connector.enabled ? 'text-cyber-green' : 'text-cyber-muted'">
+            <span class="text-sm font-mono" :class="connector.enabled ? 'text-cyber-green' : 'text-cyber-muted'">
               {{ connector.enabled ? t('connectors.connected') : t('connectors.disconnected') }}
             </span>
             <button v-if="!connector.enabled" @click="connect(connector.type)"
-              class="text-xs font-mono px-2 py-0.5 border border-cyber-code-border text-cyber-accent/40 hover:text-cyber-accent transition-colors duration-150">
+              class="text-sm font-mono px-2 py-0.5 border border-cyber-code-border text-cyber-accent/40 hover:text-cyber-accent transition-colors duration-150">
               {{ t('connectors.connect') }}
             </button>
             <button v-if="connector.enabled" @click="disconnect(connector)"
-              class="text-xs font-mono px-2 py-0.5 border border-cyber-code-border text-red-400/40 hover:text-red-400 transition-colors duration-150">
+              class="text-sm px-1.5 py-0.5 font-mono text-red-400 border border-red-400/50 hover:bg-red-400/10 transition-colors duration-150">
               {{ t('connectors.disconnect') }}
             </button>
           </div>
@@ -83,3 +83,4 @@ async function disconnect(connector: Connector) {
   await connectorsStore.remove(connector.id)
 }
 </script>
+

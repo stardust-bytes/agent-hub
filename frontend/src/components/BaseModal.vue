@@ -4,7 +4,7 @@
       v-if="modelValue"
       class="fixed inset-0 bg-cyber-dark/80 z-50 flex items-center justify-center"
     >
-      <div class="w-100 bg-cyber-modal-bg border-t border-cyber-orange flex flex-col" :style="{ maxHeight, 'max-width': '90vw' }">
+      <div :class="modalClass" :style="{ maxHeight, 'max-width': '90vw' }">
         <div v-if="$slots.header" class="px-3 py-2 bg-cyber-modal-bg flex items-center justify-between shrink-0">
           <slot name="header" />
           <button
@@ -31,7 +31,17 @@ const props = defineProps<{
   modelValue: boolean
   closable?: boolean
   maxHeight?: string
+  size?: 'sm' | 'md' | 'lg' | 'xl'
 }>()
+
+const SIZE_MAP: Record<string, string> = {
+  sm: 'w-96',
+  md: 'w-[32rem]',
+  lg: 'w-[40rem]',
+  xl: 'w-[48rem]',
+}
+
+const modalClass = `bg-cyber-modal-bg border-t border-cyber-orange flex flex-col ${SIZE_MAP[props.size ?? 'md']}`
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]

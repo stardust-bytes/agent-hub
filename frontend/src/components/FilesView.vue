@@ -11,7 +11,7 @@
 
         <!-- Upload zone -->
         <div
-          class="border-2 border-dashed border-cyber-accent/20 rounded p-6 text-center cursor-pointer hover:border-cyber-accent/40 transition-colors duration-150"
+          class="border-2 border-dashed border-cyber-accent/20  p-6 text-center cursor-pointer hover:border-cyber-accent/40 transition-colors duration-150"
           @click="triggerUpload"
           @dragover.prevent
           @drop.prevent="onDrop"
@@ -37,7 +37,7 @@
         >
           <div class="flex-1 min-w-0">
             <div class="text-cyber-text truncate">{{ f.filename }}</div>
-            <div v-if="f.status === 'error' && f.errorMessage" class="text-red-400 text-xs truncate mt-0.5">{{ f.errorMessage }}</div>
+            <div v-if="f.status === 'error' && f.errorMessage" class="text-red-400 text-sm truncate mt-0.5">{{ f.errorMessage }}</div>
           </div>
           <span class="text-cyber-muted shrink-0 w-16 text-right">{{ formatSize(f.size) }}</span>
           <span :class="statusClass(f.status)" class="shrink-0 w-20 text-center">{{ statusLabel(f.status) }}</span>
@@ -144,6 +144,7 @@ onUnmounted(() => {
   if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
 })
 </script>
+
 
 
 

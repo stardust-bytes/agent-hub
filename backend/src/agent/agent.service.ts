@@ -49,7 +49,7 @@ export class AgentService {
     const providerType = providerModel.provider.type ?? 'ollama';
 
     const project = await this.cowork.getProject().catch(() => null);
-    const projectPath = project?.projectPath ?? undefined;
+    const projectPath = project ?? undefined;
 
     if (message.startsWith('/plan ')) {
       const approveMatch = message.match(/^\/plan approve (\d+)$/);
@@ -154,7 +154,7 @@ export class AgentService {
     const providerType = providerModel.provider.type ?? 'ollama';
 
     const project = await this.cowork.getProject().catch(() => null);
-    const projectPath = project?.projectPath ?? undefined;
+    const projectPath = project ?? undefined;
 
     const runState = {
       step: 0, maxIterations: 10, roomId: String(sessionId),

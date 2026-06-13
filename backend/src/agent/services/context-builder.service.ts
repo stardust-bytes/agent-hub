@@ -194,6 +194,15 @@ export class ContextBuilderService {
       'The accessibility tree is the single source of truth for what is on the page.',
     );
 
+    lines.push('',
+      '',
+      'DOWNLOAD LINK RULE (CRITICAL):',
+      'When no project is connected, write_file/write_word/write_excel tool results contain a [Download "file"](...) link.',
+      'If you see a download link in the tool result, you MUST include it in your final response so the user can click it.',
+      'Example: [Download "report.docx"](api/files/agent/123/download)',
+      'If the tool result says "Written to" a path (project connected), just report the file path.',
+    );
+
     if (memoryContext && memoryContext !== '## Persistent Memory') {
       lines.push('', memoryContext);
     }

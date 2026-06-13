@@ -11,73 +11,65 @@
     </div>
 
     <div class="xl:pl-3 pl-10 px-3 py-1.5 bg-cyber-dark/40 flex items-center gap-2 shrink-0">
-      <span class="text-cyber-muted text-xs font-mono">{{ t('tasks.filter.label') }}</span>
+      <span class="text-cyber-muted text-sm font-mono">{{ t('tasks.filter.label') }}</span>
       <button
         v-for="f in TYPE_FILTERS"
         :key="f.value"
         @click="activeType = activeType === f.value ? '' : f.value"
         :class="[
-          'text-xs px-2 py-0.5 font-mono transition-colors duration-150',
+          'text-sm px-2 py-0.5 font-mono transition-colors duration-150',
           activeType === f.value ? 'text-cyber-accent bg-cyber-accent/10' : 'text-cyber-muted/50 hover:text-cyber-accent',
         ]"
       >{{ t(f.labelKey) }}</button>
       <input
         v-model="searchQuery"
         :placeholder="t('memory.searchPlaceholder')"
-        class="ml-auto bg-cyber-dark text-cyber-text text-xs font-mono rounded border border-cyber-code-border px-2 py-1 outline-none focus:border-cyber-accent w-48"
+        class="ml-auto bg-cyber-dark text-cyber-text text-sm font-mono  border border-cyber-code-border px-2 py-1 outline-none focus:border-cyber-accent w-48"
       />
     </div>
 
     <div class="flex-1 overflow-y-auto">
-      <div v-if="loading" class="text-cyber-muted/50 text-xs font-mono text-center py-8">
+      <div v-if="loading" class="text-cyber-muted/50 text-sm font-mono text-center py-8">
         {{ t('chat.thinking') }}
       </div>
-      <div v-else-if="memories.length === 0" class="text-cyber-muted/50 text-xs font-mono text-center py-8">
+      <div v-else-if="memories.length === 0" class="text-cyber-muted/50 text-sm font-mono text-center py-8">
         {{ t('memory.empty') }}
       </div>
       <div v-for="mem in filteredMemories" :key="mem.id"
-        class="border-b border-cyber-code-border xl:pl-3 pl-10 px-3 py-2 hover:bg-cyber-dark/40 transition-colors duration-150">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 min-w-0">
-            <span class="text-xs font-mono" :class="typeColor(mem.type)">{{ typeLabel(mem.type) }}</span>
-            <span class="text-cyber-text text-sm font-mono truncate">{{ mem.title }}</span>
-            <span v-if="isAutoExtracted(mem)" class="text-cyber-muted/40 text-2xs font-mono">{{ t('memory.auto_extracted') }}</span>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <button @click="openEditModal(mem)" class="text-cyber-muted/50 hover:text-cyber-accent transition-colors duration-150">
-              <HiPencil class="w-3 h-3" />
-            </button>
-            <button @click="openDeleteConfirm(mem.id)" class="text-cyber-muted/50 hover:text-red-400 transition-colors duration-150">
-              <HiTrash class="w-3 h-3" />
-            </button>
-          </div>
+        class="border border-cyber-code-border bg-cyber-dark p-3 flex flex-col gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-sm font-mono" :class="typeColor(mem.type)">{{ typeLabel(mem.type) }}</span>
+          <span class="text-cyber-text text-sm font-mono truncate">{{ mem.title }}</span>
+          <span v-if="isAutoExtracted(mem)" class="text-cyber-muted/40 text-2xs font-mono">{{ t('memory.auto_extracted') }}</span>
         </div>
-        <div class="text-cyber-muted/80 text-xs font-mono mt-0.5 line-clamp-2">{{ mem.content }}</div>
+        <div class="text-cyber-muted/80 text-sm font-mono line-clamp-2">{{ mem.content }}</div>
+        <div class="flex justify-end gap-1 mt-auto pt-1">
+          <button @click="openEditModal(mem)" class="text-sm px-1.5 py-0.5 font-mono text-cyber-accent border border-cyber-accent/50 hover:bg-cyber-accent/10 transition-colors duration-150">{{ t('memory.edit') }}</button>
+          <button @click="openDeleteConfirm(mem.id)" class="text-sm px-1.5 py-0.5 font-mono text-red-400 border border-red-400/50 hover:bg-red-400/10 transition-colors duration-150">{{ t('memory.delete') }}</button>
+        </div>
       </div>
     </div>
 
     <BaseModal v-model="showFormModal">
       <template #header>{{ editing ? t('memory.edit') : t('memory.create') }}</template>
-      <template #body>
-        <div class="space-y-3">
+      <div class="p-3 space-y-3">
           <div>
-            <label class="text-cyber-muted text-xs font-mono block mb-1">{{ t('memory.form.type') }}</label>
+            <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('memory.form.type') }}</label>
             <BaseSelect v-model="formType" :options="typeFilterOptions" />
           </div>
           <div>
-            <label class="text-cyber-muted text-xs font-mono block mb-1">{{ t('memory.form.title') }}</label>
+            <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('memory.form.title') }}</label>
             <input v-model="formTitle"
-              class="w-full bg-cyber-dark text-cyber-text text-sm font-mono rounded border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent"
+              class="w-full bg-cyber-dark text-cyber-text text-sm font-mono  border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent"
             />
           </div>
           <div>
-            <label class="text-cyber-muted text-xs font-mono block mb-1">{{ t('memory.form.content') }}</label>
+            <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('memory.form.content') }}</label>
             <textarea v-model="formContent" rows="4"
-              class="w-full bg-cyber-dark text-cyber-text text-sm font-mono rounded border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent resize-none"
+              class="w-full bg-cyber-dark text-cyber-text text-sm font-mono  border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent resize-none"
             ></textarea>
-          </div>
         </div>
-      </template>
+      </div>
       <template #footer>
         <div class="flex justify-end gap-2">
           <button @click="showFormModal = false"
@@ -102,7 +94,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { HiSave, HiPencil, HiTrash } from 'vue-icons-plus/hi'
+import { HiSave } from 'vue-icons-plus/hi'
 import BaseModal from './BaseModal.vue'
 import BaseConfirmModal from './BaseConfirmModal.vue'
 import BaseSelect from './BaseSelect.vue'
@@ -219,6 +211,7 @@ async function onDeleteConfirmed() {
 
 onMounted(fetchMemories)
 </script>
+
 
 
 

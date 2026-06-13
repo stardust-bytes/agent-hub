@@ -42,17 +42,29 @@ export class ScheduleRunnerService {
       }
 
       let providerType = 'ollama';
+      let modelName = '';
       let providerConfig: { baseUrl: string; key?: string } = { baseUrl: 'http://localhost:11434' };
 
       if (task.modelId) {
         const model = await this.providersService.findModelWithProvider(task.modelId);
         if (model) {
           providerType = model.provider.type ?? 'ollama';
+          modelName = model.name;
           providerConfig = {
             baseUrl: model.provider.baseUrl ?? 'http://localhost:11434',
             key: model.provider.key ?? undefined,
           };
         }
+      } else {
+        const models = await this.providersService.findAll();
+        if (models.length > 0 && models[0].models && models[0].models.length > 0) {
+          const first = models[0].models[0];
+          modelName = first.name;
+        }
+      }
+
+      if (!modelName) {
+        throw new Error('No available model found. Please configure a provider first.');
       }
 
       const stream = new CapturingWriteStream();
@@ -64,7 +76,7 @@ export class ScheduleRunnerService {
       const context = await this.contextBuilder.build(runState, session.id);
 
       const finalText = await this.agentLoop.run(
-        providerType, 'default', context.systemPrompt, [],
+        providerType, modelName, context.systemPrompt, [],
         task.prompt, context.tools, stream as any, signal, session.id,
         projectPath ?? undefined, providerConfig,
       );

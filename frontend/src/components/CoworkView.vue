@@ -8,6 +8,7 @@
       @delete-project="deleteProject"
       @save-project="saveCurrentProject"
       @toggle-artifacts="artifactsVisible = !artifactsVisible"
+      @disconnect="disconnect"
     />
 
     <div class="flex flex-1 overflow-hidden">

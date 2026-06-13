@@ -1,7 +1,7 @@
 <template>
   <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
     <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-cyber-dark flex items-center shrink-0">
-      <span class="text-cyber-accent text-xs tracking-widest font-mono">
+      <span class="text-cyber-accent text-sm tracking-widest font-mono">
         <HiClipboardList class="w-3 h-3 inline" /> {{ t('plans.header') }}
       </span>
     </div>
@@ -12,16 +12,16 @@
           {{ t('plans.empty') }}
         </div>
         <div v-for="plan in plans" :key="plan.id"
-          class="bg-cyber-dark border border-cyber-border rounded p-3 space-y-2">
+          class="bg-cyber-dark border border-cyber-border  p-3 space-y-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="text-xs font-mono" :class="statusDot(plan.status)">{{ statusIcon(plan.status) }}</span>
+              <span class="text-sm font-mono" :class="statusDot(plan.status)">{{ statusIcon(plan.status) }}</span>
               <span class="text-cyber-text text-sm font-mono">{{ plan.title }}</span>
             </div>
             <span class="text-cyber-muted text-[10px] font-mono">{{ statusLabel(plan.status) }}</span>
           </div>
 
-          <div class="h-1 bg-cyber-bg rounded overflow-hidden" v-if="plan.steps.length > 0">
+          <div class="h-1 bg-cyber-bg  overflow-hidden" v-if="plan.steps.length > 0">
             <div class="h-full bg-cyber-accent transition-all duration-500" :style="{ width: progressPercent(plan) + '%' }"></div>
           </div>
 
@@ -31,7 +31,7 @@
 
           <div class="space-y-1">
             <div v-for="step in plan.steps" :key="step.id"
-              class="flex items-center gap-2 text-xs font-mono">
+              class="flex items-center gap-2 text-sm font-mono">
               <span :class="stepIconClass(step.status)">{{ stepIcon(step.status) }}</span>
               <span :class="stepTextClass(step.status)">{{ step.text }}</span>
             </div>
@@ -39,13 +39,13 @@
 
           <div v-if="plan.status === 'APPROVED'" class="pt-1">
             <button @click="execute(plan.id)"
-              class="px-3 py-1 text-xs font-mono text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20 transition-colors duration-150">
+              class="px-3 py-1 text-sm font-mono text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20 transition-colors duration-150">
               {{ t('plans.execute') }}
             </button>
           </div>
           <div v-else-if="plan.status === 'INTERRUPTED' || plan.status === 'EXECUTING'" class="pt-1">
             <button @click="execute(plan.id)"
-              class="px-3 py-1 text-xs font-mono text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20 transition-colors duration-150">
+              class="px-3 py-1 text-sm font-mono text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20 transition-colors duration-150">
               {{ t('plans.resume') }}
             </button>
           </div>
@@ -156,6 +156,7 @@ onUnmounted(() => {
   if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
 })
 </script>
+
 
 
 

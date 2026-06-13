@@ -1,13 +1,9 @@
 <template>
   <div class="flex flex-col h-full bg-cyber-bg font-mono overflow-hidden">
-    <div class="flex items-center justify-between xl:pl-3 pl-10 px-3 h-[3rem] border-b border-cyber-code-border bg-cyber-dark shrink-0">
-      <h1 class="text-xs text-cyber-accent font-mono tracking-wider">{{ t('agentOutput.header') }}</h1>
-      <button
-        @click="fetchFiles"
-        class="text-cyber-muted hover:text-cyber-accent transition-colors duration-150 text-xs font-mono"
-      >
-        ⟳
-      </button>
+    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-cyber-code-border shrink-0 bg-cyber-dark">
+      <HiDownload class="w-3 h-3 text-cyber-accent" />
+      <span class="text-sm text-cyber-accent font-mono">{{ t('agentOutput.header') }}</span>
+      <button @click="fetchFiles" class="ml-auto text-sm text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/30 transition-colors duration-150 hover:bg-cyber-accent/10">⟳ {{ t('agentOutput.refresh') }}</button>
     </div>
 
     <div v-if="loading" class="flex-1 flex items-center justify-center text-cyber-muted text-sm font-mono">
@@ -19,39 +15,49 @@
     </div>
 
     <div v-else class="flex-1 overflow-y-auto">
-      <div class="px-4 py-2 text-xs text-cyber-muted font-mono grid grid-cols-[1fr_80px_120px_60px] gap-2 border-b border-cyber-code-border">
-        <span>{{ t('agentOutput.filename') }}</span>
-        <span class="text-right">{{ t('agentOutput.size') }}</span>
-        <span class="text-right">{{ t('agentOutput.modified') }}</span>
-        <span></span>
-      </div>
-
-      <div v-for="file in files" :key="file.filename" class="px-4 py-2 text-xs font-mono grid grid-cols-[1fr_80px_120px_60px] gap-2 items-center border-b border-cyber-code-border hover:bg-cyber-row transition-colors duration-150">
-        <span class="text-cyber-code-text truncate" :title="file.filename">{{ file.filename }}</span>
-        <span class="text-cyber-muted text-right">{{ formatSize(file.size) }}</span>
-        <span class="text-cyber-muted text-right">{{ formatDate(file.modifiedAt) }}</span>
-        <a
-          :href="`/api/agent-output/${encodeURIComponent(file.filename)}/download`"
-          class="text-cyber-accent hover:text-cyber-link transition-colors duration-150 text-center"
-          download
-        >
-          {{ t('agentOutput.download') }}
-        </a>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-3">
+        <div v-for="file in files" :key="file.filename"
+          class="border border-cyber-code-border bg-cyber-dark p-3 flex flex-col gap-2">
+          <div class="text-sm font-mono text-cyber-code-text truncate" :title="file.filename">{{ file.filename }}</div>
+          <div class="text-sm font-mono text-cyber-muted">{{ formatSize(file.size) }} · {{ formatDate(file.modifiedAt) }}</div>
+          <div class="flex justify-end gap-1 mt-auto">
+            <a :href="`/api/agent-output/${encodeURIComponent(file.filename)}/download`"
+              class="text-sm px-1.5 py-0.5 font-mono text-cyber-accent border border-cyber-accent/50 hover:bg-cyber-accent/10 transition-colors duration-150"
+              download>
+              {{ t('agentOutput.download') }}
+            </a>
+            <button @click="deleteFile(file.filename)"
+              class="text-sm px-1.5 py-0.5 font-mono text-red-400 border border-red-400/50 hover:bg-red-400/10 transition-colors duration-150">
+              {{ t('agentOutput.delete') }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
+
+    <BaseConfirmModal
+      v-model="showConfirm"
+      :title="t('agentOutput.deleteConfirm')"
+      :message="t('agentOutput.deleteConfirm')"
+      @confirm="onDeleteConfirmed"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listOutputs } from '../api/agentOutput'
+import { HiDownload } from 'vue-icons-plus/hi'
+import BaseConfirmModal from './BaseConfirmModal.vue'
+import { listOutputs, deleteOutput } from '../api/agentOutput'
 import type { AgentOutputFile } from '../api/agentOutput'
 
 const { t } = useI18n()
 
 const files = ref<AgentOutputFile[]>([])
 const loading = ref(true)
+const showConfirm = ref(false)
+const deletingFilename = ref('')
 
 async function fetchFiles() {
   loading.value = true
@@ -76,5 +82,19 @@ function formatDate(iso: string): string {
 }
 
 onMounted(fetchFiles)
+
+async function deleteFile(filename: string) {
+  deletingFilename.value = filename
+  showConfirm.value = true
+}
+
+async function onDeleteConfirmed() {
+  try {
+    await deleteOutput(deletingFilename.value)
+    files.value = files.value.filter(f => f.filename !== deletingFilename.value)
+  } catch { /* ignore */ }
+  deletingFilename.value = ''
+}
 </script>
+
 

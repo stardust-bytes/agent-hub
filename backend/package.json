@@ -29,6 +29,8 @@
     "chokidar": "^3.6.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "date-fns": "^4.4.0",
+    "date-fns-tz": "^3.2.0",
     "docx": "^9.7.1",
     "exceljs": "^4.4.0",
     "googleapis": "^173.0.0",

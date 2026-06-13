@@ -1,4 +1,4 @@
-import { Controller, Get, Param, NotFoundException, StreamableFile, Res } from '@nestjs/common';
+import { Controller, Get, Delete, Param, NotFoundException, StreamableFile, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { WorkspaceService } from '../workspace/workspace.service';
 import * as fs from 'fs/promises';
@@ -77,5 +77,14 @@ export class AgentOutputController {
       }
     } catch { /* skip */ }
     return null;
+  }
+
+  @Delete(':filename')
+  async remove(@Param('filename') filename: string): Promise<{ success: boolean }> {
+    const agentOutputDir = path.join(this.workspace.getWorkspaceRoot(), 'agent-output');
+    const resolved = this.resolveFile(agentOutputDir, filename);
+    if (!resolved) throw new NotFoundException('File not found');
+    await fs.unlink(resolved);
+    return { success: true };
   }
 }

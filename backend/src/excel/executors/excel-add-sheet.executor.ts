@@ -25,7 +25,7 @@ export class ExcelAddSheetExecutor implements ToolExecutor {
     let filePath: string;
 
     if (context?.projectPath) {
-      filePath = path.join(context.projectPath, filename);
+      filePath = path.isAbsolute(rawPath) ? rawPath : path.join(context.projectPath, rawPath);
     } else {
       const sessionDir = path.join(
         this.workspace.getWorkspaceRoot(),

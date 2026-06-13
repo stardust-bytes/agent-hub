@@ -4,7 +4,7 @@
       <HiClock class="w-3 h-3 text-cyber-accent" />
       <span class="text-sm text-cyber-accent font-mono">{{ t('schedules.header') }}</span>
       <button @click="openAddForm"
-        class="ml-auto text-xs text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/30 transition-colors duration-150 hover:bg-cyber-accent/10">
+        class="ml-auto text-sm text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/30 transition-colors duration-150 hover:bg-cyber-accent/10">
           {{ t('schedules.add') }}
       </button>
     </div>
@@ -15,30 +15,30 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-3 py-3">
-        <div v-for="task in tasks" :key="task.id"
-          class="border border-cyber-code-border bg-cyber-dark p-3 cursor-pointer hover:border-cyber-accent/40 transition-colors duration-150 flex flex-col"
-          @click="router.push(`/tasks/${task.id}`)">
-          <div class="flex items-center gap-2 mb-2">
-            <div class="w-2 h-2 rounded-full shrink-0"
-              :class="task.enabled ? 'bg-cyber-green' : 'bg-cyber-muted'"></div>
-            <div class="text-sm text-cyber-text font-mono truncate flex-1">{{ task.name }}</div>
-          </div>
-          <div class="text-xs text-cyber-muted font-mono mb-2 flex items-center gap-1">
+  <div v-for="task in tasks" :key="task.id"
+    class="border border-cyber-code-border bg-cyber-dark p-3 cursor-pointer hover:border-cyber-accent/40 transition-colors duration-150 flex flex-col"
+    @click="router.push(`/tasks/${task.id}`)">
+    <div class="flex items-center gap-2 mb-2">
+      <div class="w-2 h-2 rounded-full shrink-0"
+        :class="task.enabled ? 'bg-cyber-green' : 'bg-cyber-muted'"></div>
+      <div class="text-sm text-cyber-text font-mono truncate flex-1">{{ task.name }}</div>
+    </div>
+    <div class="text-sm text-cyber-muted font-mono mb-2 flex items-center gap-1">
             <span class="px-1 border border-cyber-code-border text-2xs"
               :class="frequencyClass(task.frequency)">{{ t(`schedules.frequency.${task.frequency}`) }}</span>
             <span>{{ scheduleTime(task) }}</span>
           </div>
-          <div class="text-xs font-mono mb-3">
+          <div class="text-sm font-mono mb-3">
             <span v-if="task.logs?.[0]"
               :class="task.logs[0].status === 'SUCCESS' ? 'text-cyber-green' : task.logs[0].status === 'FAILED' ? 'text-red-400' : 'text-cyber-orange'">
               {{ task.logs[0].status }}
             </span>
             <span v-else class="text-cyber-muted">—</span>
           </div>
-          <div class="flex gap-1 mt-auto" @click.stop>
-            <button @click="runNow(task.id)" class="text-xs text-cyber-accent/70 font-mono px-1.5 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-accent hover:border-cyber-accent/40">&#9654;</button>
-            <button @click="editTask(task)" class="text-xs text-cyber-muted font-mono px-1.5 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-accent">&#9998;</button>
-            <button @click="confirmDelete(task)" class="text-xs text-cyber-muted font-mono px-1.5 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-red-400">&#10005;</button>
+          <div class="flex gap-1 mt-auto justify-end" @click.stop>
+            <button @click="runNow(task.id)" class="text-sm text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/30 transition-colors duration-150 hover:bg-cyber-accent/10">{{ t('schedules.runNow') }}</button>
+            <button @click="editTask(task)" class="text-sm text-cyber-muted font-mono px-2 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-accent">{{ t('schedules.edit') }}</button>
+            <button @click="confirmDelete(task)" class="text-sm px-1.5 py-0.5 font-mono text-red-400 border border-red-400/50 hover:bg-red-400/10 transition-colors duration-150">{{ t('schedules.delete') }}</button>
           </div>
         </div>
       </div>
@@ -49,14 +49,25 @@
         <span class="text-sm text-cyber-text font-mono">{{ editingTask ? t('schedules.edit') : t('schedules.add') }}</span>
       </template>
       <div class="p-3 space-y-3 max-w-xl">
-        <input v-model="form.name" class="w-full bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono" :placeholder="t('schedules.form.name')" />
-        <input v-model="form.description" class="w-full bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono" :placeholder="t('schedules.form.description')" />
-        <textarea v-model="form.prompt" rows="4" class="w-full bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono" :placeholder="t('schedules.form.prompt')"></textarea>
-        <!-- Frequency -->
-        <select v-model="form.frequency"
-          class="w-full bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono">
-          <option v-for="f in FREQUENCIES" :key="f" :value="f">{{ t(`schedules.frequency.${f}`) }}</option>
-        </select>
+        <div>
+          <label class="text-sm text-cyber-muted font-mono block mb-1">{{ t('schedules.form.name') }}</label>
+          <input v-model="form.name" class="w-full bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono" />
+        </div>
+        <div>
+          <label class="text-sm text-cyber-muted font-mono block mb-1">{{ t('schedules.form.description') }}</label>
+          <input v-model="form.description" class="w-full bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono" />
+        </div>
+        <div>
+          <label class="text-sm text-cyber-muted font-mono block mb-1">{{ t('schedules.form.prompt') }}</label>
+          <textarea v-model="form.prompt" rows="4" class="w-full bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono"></textarea>
+        </div>
+        <div>
+          <label class="text-sm text-cyber-muted font-mono block mb-1">{{ t('schedules.frequency') }}</label>
+          <select v-model="form.frequency"
+            class="w-full bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono">
+            <option v-for="f in FREQUENCIES" :key="f" :value="f">{{ t(`schedules.frequency.${f}`) }}</option>
+          </select>
+        </div>
 
         <!-- Time picker for non-manual -->
         <div v-if="form.frequency !== 'manual'" class="space-y-3">
@@ -79,7 +90,7 @@
           </div>
 
           <div v-if="form.frequency === 'hourly'" class="flex items-center gap-2">
-            <span class="text-xs text-cyber-muted font-mono">{{ t('schedules.form.atMinute') }}</span>
+            <span class="text-sm text-cyber-muted font-mono">{{ t('schedules.form.atMinute') }}</span>
             <select v-model.number="form.cronMinute"
               class="bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono">
               <option v-for="m in 60" :key="m-1" :value="m-1">{{ String(m-1).padStart(2,'0') }}</option>
@@ -87,10 +98,10 @@
           </div>
 
           <div v-if="form.frequency === 'weekly'">
-            <div class="text-xs text-cyber-muted font-mono mb-1">{{ t('schedules.form.days') }}</div>
+            <div class="text-sm text-cyber-muted font-mono mb-1">{{ t('schedules.form.days') }}</div>
             <div class="flex flex-wrap gap-2">
               <label v-for="(label, idx) in DAYS" :key="idx"
-                class="flex items-center gap-1 px-2 py-1 border border-cyber-code-border cursor-pointer text-xs font-mono select-none transition-colors duration-150"
+                class="flex items-center gap-1 px-2 py-1 border border-cyber-code-border cursor-pointer text-sm font-mono select-none transition-colors duration-150"
                 :class="selectedDays.includes(idx) ? 'bg-cyber-accent/20 text-cyber-accent border-cyber-accent/40' : 'text-cyber-muted hover:text-cyber-text hover:border-cyber-accent/30'">
                 <input type="checkbox" :value="idx" v-model="selectedDays" class="sr-only" />
                 {{ label }}
@@ -99,23 +110,33 @@
           </div>
         </div>
 
-        <div class="text-xs text-cyber-muted font-mono" v-if="form.frequency !== 'manual'">
+        <div class="text-sm text-cyber-muted font-mono" v-if="form.frequency !== 'manual'">
           {{ scheduleDesc }}
         </div>
 
         <!-- Model selector -->
-        <select v-model.number="form.modelId"
-          class="w-full bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono">
-          <option v-for="m in models" :key="m.id" :value="m.id">{{ m.providerName }} / {{ m.name }}</option>
-        </select>
+        <div>
+          <label class="text-sm text-cyber-muted font-mono block mb-1">{{ t('schedules.form.selectModel') }}</label>
+          <select v-model.number="form.modelId"
+            class="w-full bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono">
+            <option v-for="m in models" :key="m.id" :value="m.id">{{ m.providerName }} / {{ m.name }}</option>
+          </select>
+        </div>
 
         <!-- Project path -->
-        <input v-model="form.projectPath" class="w-full bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono" :placeholder="t('schedules.form.projectPath')" />
+        <div>
+          <label class="text-sm text-cyber-muted font-mono block mb-1">{{ t('schedules.form.projectPath') }}</label>
+          <select v-model="form.projectPath"
+            class="w-full bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono">
+            <option :value="null">{{ t('schedules.form.noProject') }}</option>
+            <option v-for="p in savedProjects" :key="p.id" :value="p.path">{{ p.name }} ({{ p.path }})</option>
+          </select>
+        </div>
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <button @click="showForm = false" class="text-xs text-cyber-muted font-mono px-3 py-1.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-text">{{ t('tasks.form.cancel') }}</button>
-          <button @click="saveTask" class="text-xs text-white font-mono px-3 py-1.5 bg-cyber-accent transition-colors duration-150 hover:bg-cyber-accent/80">{{ t('tasks.form.save') }}</button>
+          <button @click="showForm = false" class="text-sm text-cyber-muted font-mono px-3 py-1.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-text">{{ t('tasks.form.cancel') }}</button>
+          <button @click="saveTask" class="text-sm text-white font-mono px-3 py-1.5 bg-cyber-accent transition-colors duration-150 hover:bg-cyber-accent/80">{{ t('tasks.form.save') }}</button>
         </div>
       </template>
     </BaseModal>
@@ -132,6 +153,7 @@ import { HiClock } from 'vue-icons-plus/hi'
 import BaseModal from './BaseModal.vue'
 import BaseConfirmModal from './BaseConfirmModal.vue'
 import * as api from '../api/scheduleTasks'
+import * as coworkApi from '../api/cowork'
 import type { ScheduleTask } from '../api/scheduleTasks'
 import { useProvidersStore } from '../stores/providers'
 import type { ProviderModelFlat } from '../api/types'
@@ -143,6 +165,7 @@ const DAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 const router = useRouter()
 
 const models = ref<ProviderModelFlat[]>([])
+const savedProjects = ref<{ id: string; name: string; path: string }[]>([])
 
 const tasks = ref<ScheduleTask[]>([])
 const showForm = ref(false)
@@ -183,6 +206,9 @@ function resetForm() {
 function openAddForm() {
   editingTask.value = null
   resetForm()
+  if (models.value.length > 0) {
+    form.value.modelId = models.value[0].id
+  }
   showForm.value = true
 }
 
@@ -228,6 +254,7 @@ function scheduleTime(task: { frequency: string; cronHour: number | null; cronMi
 
 onMounted(async () => {
   try { tasks.value = await api.listTasks() } catch { /* ignore */ }
+  try { savedProjects.value = await coworkApi.listProjects() } catch { /* ignore */ }
   const ps = useProvidersStore()
   try {
     await ps.loadModels()
