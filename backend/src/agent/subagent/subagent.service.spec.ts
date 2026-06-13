@@ -28,7 +28,7 @@ describe('SubagentService', () => {
       [],
       new AbortController().signal,
       mockRes as any,
-      1, 'agent',
+      1,
     );
 
     expect(agentLoop.run).toHaveBeenCalledTimes(1);
@@ -47,7 +47,7 @@ describe('SubagentService', () => {
       [],
       new AbortController().signal,
       { write: jest.fn() } as any,
-      1, 'agent',
+      1,
     );
 
     expect(result).toBe('done: refactored successfully');
@@ -67,7 +67,7 @@ describe('SubagentService', () => {
       [],
       new AbortController().signal,
       { write: writeFn } as any,
-      1, 'agent',
+      1,
     );
 
     expect(writeFn).toHaveBeenCalledWith(

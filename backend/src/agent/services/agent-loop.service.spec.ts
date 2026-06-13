@@ -77,8 +77,6 @@ describe('AgentLoopService', () => {
     { type: 'function' as const, function: { name: 'web_fetch', description: 'Fetch a URL', parameters: {} } },
     { type: 'function' as const, function: { name: 'create_task', description: 'Create a task', parameters: {} } },
   ];
-  const defaultConfig = { baseUrl: 'http://localhost:11434' };
-
   const mockPlansService = {
     create: jest.fn(),
     findOne: jest.fn(),
@@ -165,7 +163,7 @@ describe('AgentLoopService', () => {
       const signal = new AbortController().signal;
       const result = await service.run(
         'ollama', 'llama3', 'You are helpful', [], 'hi',
-        defaultTools, res, signal, undefined, 'agent', defaultConfig,
+        defaultTools, res, signal, undefined,
       );
 
       expect(result).toBe('Hello from AI');
@@ -190,11 +188,11 @@ describe('AgentLoopService', () => {
       const signal = new AbortController().signal;
       const result = await service.run(
         'ollama', 'llama3', 'You are helpful', [], 'search for X',
-        defaultTools, res, signal, undefined, 'agent', defaultConfig,
+        defaultTools, res, signal, undefined,
       );
 
       expect(result).toBe('Here are the search results');
-      expect(webSearch.execute).toHaveBeenCalledWith({ q: 'test query' }, { mode: 'agent', sessionId: 0 });
+      expect(webSearch.execute).toHaveBeenCalledWith({ q: 'test query' }, { sessionId: 0 });
       expect(res.write).toHaveBeenCalledWith(
         'data: ' + JSON.stringify({ toolCall: { name: 'web_search', args: { q: 'test query' } } }) + '\n\n',
       );
@@ -234,7 +232,7 @@ describe('AgentLoopService', () => {
       const signal = new AbortController().signal;
       const result = await service.run(
         'ollama', 'llama3', 'You are helpful', [], 'loop',
-        defaultTools, res, signal, 1, 'agent', defaultConfig,
+        defaultTools, res, signal, 1,
       );
 
       expect(llmController.stream).toHaveBeenCalledTimes(11);
@@ -259,7 +257,7 @@ describe('AgentLoopService', () => {
       const signal = new AbortController().signal;
       const result = await service.run(
         'ollama', 'llama3', 'You are helpful', [], 'fetch URL',
-        defaultTools, res, signal, undefined, 'agent', defaultConfig,
+        defaultTools, res, signal, undefined,
       );
 
       expect(webFetch.execute).not.toHaveBeenCalled();
@@ -341,7 +339,7 @@ describe('AgentLoopService', () => {
       const signal = new AbortController().signal;
       const result = await service.run(
         'ollama', 'llama3', 'You are helpful', [], 'create a plan',
-        defaultTools, res, signal, 1, 'agent', defaultConfig,
+        defaultTools, res, signal, 1,
       );
 
       expect(result).toBe('I will create a plan');
@@ -378,7 +376,7 @@ describe('AgentLoopService', () => {
       const signal = new AbortController().signal;
       const result = await service.run(
         'ollama', 'llama3', 'You are helpful', [], 'auto plan',
-        defaultTools, res, signal, 1, 'agent', defaultConfig,
+        defaultTools, res, signal, 1,
       );
 
       expect(result).toBe('Auto creating plan');

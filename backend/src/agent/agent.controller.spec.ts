@@ -48,11 +48,11 @@ describe('AgentController', () => {
     expect(res.setHeader).toHaveBeenCalledWith('Connection', 'keep-alive');
   });
 
-  it('calls agentService.streamChat with message, providerModelId, sessionId, mode', async () => {
+  it('calls agentService.streamChat with message, providerModelId, sessionId', async () => {
     const { req, res } = makeReqRes();
-    await controller.chatStream({ message: 'hello', providerModelId: 5, sessionId: 1, mode: 'agent' }, req, res);
+    await controller.chatStream({ message: 'hello', providerModelId: 5, sessionId: 1 }, req, res);
     expect(mockStreamChat).toHaveBeenCalledWith(
-      'hello', 5, res, expect.any(Object), 1, 'agent',
+      'hello', 5, res, expect.any(Object), 1,
     );
   });
 
