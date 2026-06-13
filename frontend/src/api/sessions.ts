@@ -6,8 +6,8 @@ export function listSessions(mode?: string) {
   return request<SessionSummary[]>(`/sessions${q}`, { errorCode: 'sessions.fetch_failed' })
 }
 
-export function createSession(mode: string) {
-  return request<{ id: number }>('/sessions', { method: 'POST', body: { mode }, errorCode: 'sessions.create_failed' })
+export function createSession() {
+  return request<{ id: number }>('/sessions', { method: 'POST', errorCode: 'sessions.create_failed' })
 }
 
 export function deleteSession(id: number) {

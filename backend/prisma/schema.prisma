@@ -41,7 +41,7 @@ model KnowledgeFile {
 
 model Session {
   id         Int           @id @default(autoincrement())
-  mode       String        @default("chat")
+  mode       String        @default("cowork")
   title      String        @default("New Session")
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt

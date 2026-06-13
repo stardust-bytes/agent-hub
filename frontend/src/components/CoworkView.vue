@@ -245,7 +245,7 @@ async function submitText(text: string) {
 
   if (currentSessionId.value === null) {
     try {
-      const session = await createSession('cowork')
+      const session = await createSession()
       currentSessionId.value = session.id
     } catch { return }
   }

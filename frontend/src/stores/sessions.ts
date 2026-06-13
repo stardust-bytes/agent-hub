@@ -14,8 +14,8 @@ export const useSessionsStore = defineStore('sessions', () => {
     catch (e) { error.value = errorCode(e) }
   }
 
-  async function create(mode: string) {
-    return (await api.createSession(mode)).id
+  async function create() {
+    return (await api.createSession()).id
   }
 
   async function remove(id: number) {

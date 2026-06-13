@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Param, ParseIntPipe, Query, Body } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, ParseIntPipe } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 
 @Controller('sessions')
@@ -6,13 +6,13 @@ export class SessionsController {
   constructor(private readonly sessionsService: SessionsService) {}
 
   @Get()
-  findAll(@Query('mode') mode?: string) {
-    return this.sessionsService.findAll(mode);
+  findAll() {
+    return this.sessionsService.findAll();
   }
 
   @Post()
-  create(@Body('mode') mode?: string) {
-    return this.sessionsService.create(mode ?? 'chat');
+  create() {
+    return this.sessionsService.create();
   }
 
   @Delete()
