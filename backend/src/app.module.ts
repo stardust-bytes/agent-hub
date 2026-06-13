@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
-import { TasksModule } from './tasks/tasks.module';
 import { NotesModule } from './notes/notes.module';
 import { AgentModule } from './agent/agent.module';
 import { AgentOutputModule } from './agent-output/agent-output.module';
@@ -29,7 +28,6 @@ import { ScheduleTasksModule } from './schedule-tasks/schedule-tasks.module';
     ConfigModule.forRoot({ isGlobal: true }),
     EventEmitterModule.forRoot(),
     PrismaModule,
-    TasksModule,
     NotesModule,
     AgentModule,
     AgentOutputModule,
