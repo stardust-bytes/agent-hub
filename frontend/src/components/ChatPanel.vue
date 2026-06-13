@@ -175,6 +175,7 @@ import SessionModal from './SessionModal.vue'
 import FormBlock from './FormBlock.vue'
 import PlanBubble from './PlanBubble.vue'
 import { useProvidersStore } from '../stores/providers'
+import { useUiStore } from '../stores/ui'
 import { getSessionMessages } from '../api/sessions'
 import { createSession } from '../api/sessions'
 import { getPlan, getNextPlan } from '../api/plans'
@@ -211,6 +212,7 @@ interface ProviderModelFlat {
 }
 
 const { t } = useI18n()
+const ui = useUiStore()
 
 const messages = ref<Message[]>([
   { role: 'system', content: t('chat.system.init'), timestamp: now() },
@@ -225,12 +227,9 @@ const messagesEl = ref<HTMLElement | null>(null)
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
 const currentMode = ref<'chat' | 'agent'>('chat')
-const emit = defineEmits<{
-  'active-subagents-change': [count: number]
-}>()
 const activeSubagentCount = ref(0)
 onUnmounted(() => {
-  emit('active-subagents-change', 0)
+  ui.activeSubagents = 0
 })
 
 interface PlanExecCallbacks {
@@ -633,7 +632,7 @@ async function submit() {
             if (parsed.done) {
               if (activeSubagentCount.value > 0) {
                 activeSubagentCount.value--
-                emit('active-subagents-change', activeSubagentCount.value)
+                ui.activeSubagents = activeSubagentCount.value
               }
               // Subagent done — do NOT stop the SSE stream (main agent continues)
             } else if (parsed.token) {
@@ -686,7 +685,7 @@ async function submit() {
             })
             if (tc.name === 'spawn_subagent') {
               activeSubagentCount.value++
-              emit('active-subagents-change', activeSubagentCount.value)
+              ui.activeSubagents = activeSubagentCount.value
             }
             await scrollToBottom()
           } else if (parsed.toolResult) {

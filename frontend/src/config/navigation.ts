@@ -8,12 +8,20 @@ export interface NavItem {
   icon: Component | string
 }
 
-export const navItems: NavItem[] = [
-  { name: 'cowork', path: '/cowork', labelKey: 'nav.cowork', icon: HiCode },
-  { name: 'tasks', path: '/tasks', labelKey: 'nav.tasks', icon: HiClipboardList },
-  { name: 'notes', path: '/notes', labelKey: 'nav.notes', icon: HiDocumentText },
-  { name: 'connectors', path: '/connectors', labelKey: 'nav.connectors', icon: HiCog },
-  { name: 'agent-output', path: '/agent-output', labelKey: 'nav.agentOutput', icon: HiDownload },
-]
+export const NAV: Record<string, NavItem> = {
+  cowork:          { name: 'cowork',        path: '/cowork',        labelKey: 'nav.cowork',      icon: HiCode },
+  tasks:           { name: 'tasks',         path: '/tasks',         labelKey: 'nav.tasks',       icon: HiClipboardList },
+  notes:           { name: 'notes',         path: '/notes',         labelKey: 'nav.notes',       icon: HiDocumentText },
+  connectors:      { name: 'connectors',    path: '/connectors',    labelKey: 'nav.connectors',  icon: HiCog },
+  'agent-output':  { name: 'agent-output',  path: '/agent-output',  labelKey: 'nav.agentOutput', icon: HiDownload },
+  plans:           { name: 'plans',         path: '/plans',         labelKey: 'nav.plans',       icon: '📋' },
+  settings:        { name: 'settings',      path: '/settings',      labelKey: 'nav.settings',    icon: HiCog },
+}
 
-export const settingsNav: NavItem = { name: 'settings', path: '/settings', labelKey: 'nav.settings', icon: HiCog }
+export function pickNav(names: string[]): NavItem[] {
+  return names.map(n => NAV[n])
+}
+
+export const sidebarItems = pickNav(['cowork', 'tasks', 'notes', 'connectors', 'agent-output'])
+export const settingsNav = NAV.settings
+export const bottomItems = pickNav(['cowork', 'tasks', 'agent-output', 'plans', 'notes', 'connectors', 'settings'])

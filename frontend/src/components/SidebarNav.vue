@@ -5,13 +5,13 @@
       <span class="font-['Press_Start_2P'] text-xl text-cyber-accent">171305</span>
     </div>
 
-    <button
-      v-for="item in navItems"
-      :key="item.view"
-      @click="$emit('navigate', item.view)"
+    <RouterLink
+      v-for="item in sidebarItems"
+      :key="item.name"
+      :to="item.path"
       :class="[
         'w-full px-3 py-2 rounded flex items-center gap-2 transition-colors duration-150',
-        activeView === item.view
+        route.name === item.name
           ? 'bg-cyber-accent/10 text-cyber-accent'
           : 'text-cyber-muted hover:text-cyber-accent'
       ]"
@@ -19,49 +19,31 @@
       <span v-if="typeof item.icon === 'string'" class="w-4 h-4 shrink-0 flex items-center justify-center text-sm">{{ item.icon }}</span>
       <component v-else :is="item.icon" class="w-4 h-4 shrink-0" />
       <span class="text-sm font-mono truncate">{{ t(item.labelKey) }}</span>
-    </button>
+    </RouterLink>
 
     <div class="flex-1" />
 
-    <button
-      @click="$emit('navigate', 'settings')"
+    <RouterLink
+      :to="settingsNav.path"
       :class="[
         'w-full px-3 py-2 rounded flex items-center gap-2 transition-colors duration-150',
-        activeView === 'settings'
+        route.name === 'settings'
           ? 'bg-cyber-accent/10 text-cyber-accent'
           : 'text-cyber-muted hover:text-cyber-accent'
       ]"
     >
       <HiCog class="w-4 h-4 shrink-0" />
       <span class="text-sm font-mono truncate">{{ t('nav.settings') }}</span>
-    </button>
+    </RouterLink>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { HiChatAlt2, HiClipboardList, HiCog, HiLightningBolt, HiDocumentText, HiCode, HiDownload } from 'vue-icons-plus/hi'
-
-defineProps<{ activeView: 'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output' | 'connectors' }>()
-defineEmits<{ navigate: [view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output' | 'connectors'] }>()
+import { useRoute } from 'vue-router'
+import { HiCog } from 'vue-icons-plus/hi'
+import { sidebarItems, settingsNav } from '../config/navigation'
 
 const { t } = useI18n()
-
-interface NavItem {
-  view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'notes' | 'plans' | 'agent-output' | 'connectors'
-  labelKey: string
-  icon: Component | string
-}
-
-const navItems: NavItem[] = [
-  // { view: 'chat',        labelKey: 'nav.chat',        icon: HiChatAlt2 },
-  { view: 'cowork',      labelKey: 'nav.cowork',      icon: HiCode },
-  { view: 'tasks',       labelKey: 'nav.tasks',       icon: HiClipboardList },
-  { view: 'notes',       labelKey: 'nav.notes',       icon: HiDocumentText },
-  { view: 'connectors',  labelKey: 'nav.connectors',  icon: HiCog },
-  { view: 'agent-output', labelKey: 'nav.agentOutput', icon: HiDownload },
-  // { view: 'plans',     labelKey: 'nav.plans',       icon: '📋' },
-  // { view: 'providers',   labelKey: 'nav.providers',   icon: HiCog },
-]
+const route = useRoute()
 </script>

@@ -61,6 +61,7 @@ import { io, Socket } from 'socket.io-client'
 import { useI18n } from 'vue-i18n'
 import TaskCard from './TaskCard.vue'
 import { useTasksStore } from '../stores/tasks'
+import { useUiStore } from '../stores/ui'
 import type { Task as StoreTask } from '../api/types'
 
 interface Task {
@@ -81,13 +82,13 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'ws-status': [connected: boolean]
   edit: [task: Task]
   delete: [id: number]
 }>()
 
 const { t } = useI18n()
 const tasksStore = useTasksStore()
+const ui = useUiStore()
 
 const STATUS_KEYS = ['TODO', 'PROCESSING', 'DONE', 'FAILED'] as const
 
@@ -149,8 +150,8 @@ onMounted(async () => {
   await loadTasks()
 
   socket = io('/tasks')
-  socket.on('connect', () => emit('ws-status', true))
-  socket.on('disconnect', () => emit('ws-status', false))
+  socket.on('connect', () => { ui.wsConnected = true })
+  socket.on('disconnect', () => { ui.wsConnected = false })
 
   socket.on('task:created', (task: Task) => {
     tasksStore.upsert(task as StoreTask)

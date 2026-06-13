@@ -10,7 +10,7 @@
       <button
         v-for="tab in TABS"
         :key="tab.key"
-        @click="activeSettingsTab = tab.key"
+        @click="router.push('/settings/' + tab.key)"
         :class="[
           'text-sm px-3 py-1.5 font-mono transition-colors duration-150',
           activeSettingsTab === tab.key
@@ -84,8 +84,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { HiCog } from 'vue-icons-plus/hi'
 import { storeToRefs } from 'pinia'
 import MemoryView from './MemoryView.vue'
@@ -97,8 +98,11 @@ import { getHealth } from '../api/health'
 import { listSettings, updateSetting } from '../api/settings'
 import { useProvidersStore } from '../stores/providers'
 
+const props = defineProps<{ tab?: string }>()
+
 const { t } = useI18n()
-const activeSettingsTab = ref('general')
+const router = useRouter()
+
 const TABS = [
   { key: 'general', labelKey: 'settings.header' },
   { key: 'providers', labelKey: 'providers.header' },
@@ -107,6 +111,19 @@ const TABS = [
   { key: 'usage', labelKey: 'usage.header' },
   { key: 'permissions', labelKey: 'permissions.header' },
 ]
+
+const TAB_KEYS = new Set(TABS.map(t => t.key))
+
+function resolveTab(tab: string | undefined): string {
+  return tab && TAB_KEYS.has(tab) ? tab : 'general'
+}
+
+const activeSettingsTab = ref(resolveTab(props.tab))
+
+watch(() => props.tab, (val) => {
+  activeSettingsTab.value = resolveTab(val)
+})
+
 const healthy = ref(false)
 
 interface McpServerInfo {

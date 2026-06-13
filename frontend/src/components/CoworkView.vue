@@ -195,6 +195,7 @@ import SessionModal from './SessionModal.vue'
 import FormBlock from './FormBlock.vue'
 import BaseModal from './BaseModal.vue'
 import { useProvidersStore } from '../stores/providers'
+import { useUiStore } from '../stores/ui'
 import { getSessionMessages, createSession } from '../api/sessions'
 import { getPlan } from '../api/plans'
 import { requestRaw } from '../api/client'
@@ -212,6 +213,7 @@ interface PlanData { id: number; title: string; status: string; steps: PlanStep[
 interface ChatMessage { role: string; content: string; timestamp: string; typing?: boolean; isResult?: boolean; plan?: PlanData; toolName?: string }
 
 const { t } = useI18n()
+const ui = useUiStore()
 
 const projectPath = ref<string | null>(null)
 const input = ref('')
@@ -235,9 +237,6 @@ const availableModels = ref<Array<{ id: number; name: string; providerName: stri
 const currentSessionId = ref<number | null>(null)
 const showSessionModal = ref(false)
 const fileTreeRefreshKey = ref(0)
-const emit = defineEmits<{
-  'active-subagents-change': [count: number]
-}>()
 const activeSubagentCount = ref(0)
 onMounted(async () => {
   await loadProject()
@@ -245,7 +244,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  emit('active-subagents-change', 0)
+  ui.activeSubagents = 0
 })
 
 watch(showSaveModal, (val) => {
@@ -599,7 +598,7 @@ async function submit() {
             if (parsed.done) {
               if (activeSubagentCount.value > 0) {
                 activeSubagentCount.value--
-                emit('active-subagents-change', activeSubagentCount.value)
+                ui.activeSubagents = activeSubagentCount.value
               }
               // Subagent done — do NOT stop the SSE stream (main agent continues)
             } else if (parsed.token) {
@@ -652,7 +651,7 @@ async function submit() {
             })
             if (tc.name === 'spawn_subagent') {
               activeSubagentCount.value++
-              emit('active-subagents-change', activeSubagentCount.value)
+              ui.activeSubagents = activeSubagentCount.value
             }
             await scrollToBottom()
           } else if (parsed.toolResult) {

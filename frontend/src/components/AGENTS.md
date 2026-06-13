@@ -5,9 +5,9 @@ All UI components for the AI Workspace. The layout is a multi-panel IDE: icon si
 ## Component Map
 
 ```
-AppShell.vue              — layout coordinator, owns activeView state
-├── SidebarNav.vue        — 32px icon column (desktop), emits navigate events
-├── [Content area]
+AppShell.vue              — layout shell, hosts <router-view>, reads ui state from useUiStore
+├── SidebarNav.vue        — 60px nav column (desktop), RouterLink items from config/navigation
+├── [Content area — router-view]
 │   ├── ChatPanel.vue         — SSE streaming agent chat + message history + tool call display
 │   ├── TasksView.vue         — priority filter bar + KanbanBoard
 │   ├── KanbanBoard.vue       — drag-and-drop columns (TODO/PROCESSING/DONE/FAILED)
@@ -34,44 +34,33 @@ ProviderFormModal.vue        — create/edit provider form
 
 ## AppShell.vue
 
-**Owns:** `activeView` (`'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' | 'agent-output'`), `dbConnected`, `wsConnected`.
+**Owns:** nothing — reads all state from `useUiStore()`.
 
-**Layout:** flex-col h-screen → flex flex-1 (SidebarNav + content) + BottomTabBar + StatusBar.
+**Layout:** flex-col h-screen → flex flex-1 (SidebarNav + `<router-view>`) + BottomTabBar + StatusBar.
 
-**Conditional rendering:**
-- `activeView === 'chat'` → ChatPanel (default)
-- `activeView === 'tasks'` → TasksView
-- `activeView === 'files'` → FilesView
-- `activeView === 'tools'` → ToolsView
-- `activeView === 'settings'` → SettingsView
-- `activeView === 'providers'` → ProvidersView
-- `activeView === 'notes'` → NotesView
-- `activeView === 'plans'` → PlansView
-- `activeView === 'agent-output'` → AgentOutputView
+**Routing:** `<router-view>` renders the active view based on the current URL. `watch(route.fullPath)` closes the mobile sidebar on navigation.
 
 ---
 
 ## SidebarNav.vue
 
-**Props:** `activeView: 'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' | 'agent-output'`
+**Props:** none
 
-**Emits:** `navigate: [view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' | 'agent-output']`
+**Emits:** none
 
-**Navigation:** Chat (HiChatAlt2), Tasks (HiClipboardList), Notes (HiDocumentText), Plans (📋), AgentOutput (HiDownload), Tools (HiLightningBolt), Providers (HiCog), Settings (HiCog — separate button below spacer).
+**Navigation:** Renders `sidebarItems` from `config/navigation.ts` as `<RouterLink>` elements. Active state derived from `useRoute().name`. Settings rendered as a separate `<RouterLink>` at the bottom. Items: cowork, tasks, notes, connectors, agent-output (settings separate).
 
-**Language toggle:** VI/EN (via `useI18n` locale), persists to `localStorage('workspace.lang')`.
-
-Visible on desktop only (`hidden sm:flex`, `w-32`).
+Visible on desktop only (`hidden xl:flex`, `w-60`).
 
 ---
 
 ## BottomTabBar.vue
 
-**Props:** `activeView: 'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' | 'agent-output'`
+**Props:** none
 
-**Emits:** `navigate: [view: 'chat' | 'cowork' | 'tasks' | 'settings' | 'providers' | 'tools' | 'notes' | 'plans' | 'agent-output']`
+**Emits:** none
 
-Visible on mobile only (`flex sm:hidden`, `h-[3rem]`). Same navigation items as SidebarNav.
+Visible on mobile only (`flex md:hidden`, `h-[3rem]`). Renders `bottomItems` from `config/navigation.ts` as `<RouterLink>` elements. Items: cowork, tasks, agent-output, plans, notes, connectors, settings.
 
 ---
 
@@ -105,9 +94,9 @@ Visible on mobile only (`flex sm:hidden`, `h-[3rem]`). Same navigation items as 
 
 **Props:** `activeFilters: Set<number>`
 
-**Emits:** `ws-status: [connected: boolean]`
+**Emits:** `edit: [task]`, `delete: [id]`
 
-**Columns:** TODO, PROCESSING, DONE, FAILED. Drag-and-drop via `vue-draggable-plus`. WebSocket via `socket.io-client` (`/tasks` namespace) for real-time task:created/updated/deleted events.
+**Columns:** TODO, PROCESSING, DONE, FAILED. Drag-and-drop via `vue-draggable-plus`. WebSocket via `socket.io-client` (`/tasks` namespace) for real-time task:created/updated/deleted events. WS connection state written directly to `useUiStore().wsConnected`.
 
 **Optimistic updates:** On drag, updates status optimistically; rolls back on PATCH failure.
 

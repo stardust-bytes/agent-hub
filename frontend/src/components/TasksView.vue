@@ -40,7 +40,6 @@
       :mobile-status="isMobile ? mobileStatus : null"
       :refresh-key="refreshKey"
       class="flex-1 overflow-hidden"
-      @ws-status="emit('ws-status', $event)"
       @edit="openEditModal"
       @delete="openDeleteConfirm"
     />
@@ -83,10 +82,6 @@ interface Task {
 const { t } = useI18n()
 const tasksStore = useTasksStore()
 const activeFilters = reactive(new Set<number>())
-
-const emit = defineEmits<{
-  'ws-status': [connected: boolean]
-}>()
 
 const mobileQuery = window.matchMedia('(max-width: 767px)')
 const isMobile = ref(mobileQuery.matches)
