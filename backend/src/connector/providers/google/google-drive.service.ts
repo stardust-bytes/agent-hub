@@ -35,7 +35,12 @@ export class GoogleDriveService {
 
   async search(query: string, pageSize = 20): Promise<DriveFile[]> {
     const drive = await this.getDrive();
-    const res = await drive.files.list({ q: `name contains '${query.replace(/'/g, "\\'")}'`, pageSize, fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink)' });
+    const escaped = query.replace(/'/g, "\\'").replace(/\\/g, '\\\\');
+    const res = await drive.files.list({
+      q: `name contains '${escaped}'`,
+      pageSize,
+      fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink)',
+    });
     return (res.data.files ?? []).map(f => ({
       id: f.id!,
       name: f.name!,
@@ -69,8 +74,9 @@ export class GoogleDriveService {
 
   async listFiles(folderId?: string, pageSize = 50): Promise<DriveFile[]> {
     const drive = await this.getDrive();
-    const q = folderId ? `'${folderId}' in parents` : '';
-    const res = await drive.files.list({ q, pageSize, fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink)' });
+    const params: Record<string, unknown> = { pageSize, fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink)' };
+    if (folderId) params.q = `'${folderId}' in parents`;
+    const res = await drive.files.list(params);
     return (res.data.files ?? []).map(f => ({
       id: f.id!,
       name: f.name!,
