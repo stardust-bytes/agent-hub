@@ -1,16 +1,19 @@
-import { Controller, Post, Get, Patch, Body, Req, Res, Param, ParseIntPipe } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AgentService } from './agent.service';
+import { ApproveToolDto } from './dto/approve-tool.dto';
 import { ChatDto } from './dto/chat.dto';
 import { UpdatePermissionsDto } from './dto/update-permissions.dto';
 import { PermissionsConfig } from './dto/permissions-config';
 import { YoloClassifierService } from './services/yolo-classifier.service';
 import { UpdateYoloConfigDto } from './dto/yolo-config.dto';
+import { ApprovalManagerService } from './services/approval-manager.service';
 @Controller('agent')
 export class AgentController {
   constructor(
     private readonly agentService: AgentService,
     private readonly yoloClassifier: YoloClassifierService,
+    private readonly approvalManager: ApprovalManagerService,
   ) {}
 
   @Post('chat')
@@ -35,6 +38,12 @@ export class AgentController {
     } finally {
       res.end();
     }
+  }
+
+  @Post('approve-tool')
+  async approveTool(@Body() dto: ApproveToolDto): Promise<{ success: boolean }> {
+    const handled = this.approvalManager.handleResponse(dto.id, dto.approved);
+    return { success: handled };
   }
 
   @Get('permissions')

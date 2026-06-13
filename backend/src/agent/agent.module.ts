@@ -8,6 +8,7 @@ import { OpenAIProvider } from './providers/openai.provider';
 import { ContextBuilderService } from './services/context-builder.service';
 import { PermissionsService } from './services/permissions.service';
 import { YoloClassifierService } from './services/yolo-classifier.service';
+import { ApprovalManagerService } from './services/approval-manager.service';
 import { MemoryModule } from '../memory/memory.module';
 import { TasksModule } from '../tasks/tasks.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
@@ -70,6 +71,7 @@ import { GoogleDriveCreateFolderExecutor } from '../tools/executors/google-drive
     ContextBuilderService,
     PermissionsService,
     YoloClassifierService,
+    ApprovalManagerService,
     SubagentService,
     CreateTaskExecutor,
     UpdateTaskExecutor,
