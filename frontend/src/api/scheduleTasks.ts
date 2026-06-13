@@ -9,6 +9,7 @@ export interface ScheduleTask {
   cronMinute: number | null
   cronHour: number | null
   cronDayOfWeek: number | null
+  cronDaysOfWeek: string | null
   modelId: number | null
   projectPath: string | null
   enabled: boolean

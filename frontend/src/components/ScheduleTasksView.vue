@@ -57,22 +57,57 @@
       <template #header>
         <span class="text-sm text-cyber-text font-mono">{{ editingTask ? t('schedules.edit') : t('schedules.add') }}</span>
       </template>
-      <div class="p-3 space-y-3">
+      <div class="p-3 space-y-3 max-w-xl">
         <input v-model="form.name" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-text font-mono" :placeholder="t('schedules.form.name')" />
         <input v-model="form.description" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-text font-mono" :placeholder="t('schedules.form.description')" />
         <textarea v-model="form.prompt" rows="4" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-text font-mono" :placeholder="t('schedules.form.prompt')"></textarea>
-        <div class="grid grid-cols-2 gap-2">
-          <select v-model="form.frequency" class="bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-text font-mono">
-            <option v-for="f in FREQUENCIES" :key="f" :value="f">{{ t(`schedules.frequency.${f}`) }}</option>
-          </select>
-          <input v-if="form.frequency !== 'manual'" v-model.number="form.cronMinute" type="number" min="0" max="59"
-            class="bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-text font-mono text-center" :placeholder="t('schedules.form.minute')" />
-          <input v-if="['daily','weekdays','weekly'].includes(form.frequency)" v-model.number="form.cronHour" type="number" min="0" max="23"
-            class="bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-text font-mono text-center" :placeholder="t('schedules.form.hour')" />
-          <select v-if="form.frequency === 'weekly'" v-model.number="form.cronDayOfWeek" class="bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-text font-mono">
-            <option v-for="(label, idx) in DAYS" :key="idx" :value="idx">{{ label }}</option>
-          </select>
+        <!-- Frequency -->
+        <select v-model="form.frequency"
+          class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-text font-mono">
+          <option v-for="f in FREQUENCIES" :key="f" :value="f">{{ t(`schedules.frequency.${f}`) }}</option>
+        </select>
+
+        <!-- Time picker for non-manual -->
+        <div v-if="form.frequency !== 'manual'" class="space-y-3">
+          <div v-if="['daily','weekdays','weekly'].includes(form.frequency)" class="flex items-center gap-2">
+            <div class="flex items-center gap-1">
+              <span class="text-2xs text-cyber-muted font-mono">HH</span>
+              <select v-model.number="form.cronHour"
+                class="bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-text font-mono">
+                <option v-for="h in 24" :key="h-1" :value="h-1">{{ String(h-1).padStart(2,'0') }}</option>
+              </select>
+            </div>
+            <span class="text-cyber-muted font-mono">:</span>
+            <div class="flex items-center gap-1">
+              <select v-model.number="form.cronMinute"
+                class="bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-text font-mono">
+                <option v-for="m in 60" :key="m-1" :value="m-1">{{ String(m-1).padStart(2,'0') }}</option>
+              </select>
+              <span class="text-2xs text-cyber-muted font-mono">MM</span>
+            </div>
+          </div>
+
+          <div v-if="form.frequency === 'hourly'" class="flex items-center gap-2">
+            <span class="text-xs text-cyber-muted font-mono">{{ t('schedules.form.atMinute') }}</span>
+            <select v-model.number="form.cronMinute"
+              class="bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-text font-mono">
+              <option v-for="m in 60" :key="m-1" :value="m-1">{{ String(m-1).padStart(2,'0') }}</option>
+            </select>
+          </div>
+
+          <div v-if="form.frequency === 'weekly'">
+            <div class="text-xs text-cyber-muted font-mono mb-1">{{ t('schedules.form.days') }}</div>
+            <div class="flex flex-wrap gap-2">
+              <label v-for="(label, idx) in DAYS" :key="idx"
+                class="flex items-center gap-1 px-2 py-1 border border-cyber-code-border rounded cursor-pointer text-xs font-mono select-none transition-colors duration-150"
+                :class="selectedDays.includes(idx) ? 'bg-cyber-accent/20 text-cyber-accent border-cyber-accent/40' : 'text-cyber-muted hover:text-cyber-text hover:border-cyber-accent/30'">
+                <input type="checkbox" :value="idx" v-model="selectedDays" class="sr-only" />
+                {{ label }}
+              </label>
+            </div>
+          </div>
         </div>
+
         <div class="text-xs text-cyber-muted font-mono" v-if="form.frequency !== 'manual'">
           {{ scheduleDesc }}
         </div>
@@ -90,7 +125,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HiClock } from 'vue-icons-plus/hi'
 import BaseModal from './BaseModal.vue'
@@ -118,10 +153,22 @@ const form = ref({
   cronMinute: 0,
   cronHour: 0,
   cronDayOfWeek: 0,
+  cronDaysOfWeek: '',
+})
+
+const selectedDays = ref<number[]>([])
+
+watch(selectedDays, (days) => {
+  if (days.length > 0) {
+    form.value.cronDaysOfWeek = days.sort((a, b) => a - b).join(',')
+  } else {
+    form.value.cronDaysOfWeek = ''
+  }
 })
 
 function resetForm() {
-  form.value = { name: '', description: '', prompt: '', frequency: 'manual', cronMinute: 0, cronHour: 0, cronDayOfWeek: 0 }
+  form.value = { name: '', description: '', prompt: '', frequency: 'manual', cronMinute: 0, cronHour: 0, cronDayOfWeek: 0, cronDaysOfWeek: '' }
+  selectedDays.value = []
 }
 
 function openAddForm() {
@@ -135,9 +182,15 @@ const scheduleDesc = computed(() => {
   const mm = String(form.value.cronMinute).padStart(2, '0')
   const hh = String(form.value.cronHour).padStart(2, '0')
   if (f === 'hourly') return t('schedules.hint.hourly', { m: mm })
-  if (f === 'daily') return t('schedules.hint.daily', { time: `${hh}:${mm}` })
-  if (f === 'weekdays') return t('schedules.hint.weekdays', { time: `${hh}:${mm}` })
-  if (f === 'weekly') return t('schedules.hint.weekly', { day: DAYS[form.value.cronDayOfWeek] || 'CN', time: `${hh}:${mm}` })
+  const time = `${hh}:${mm}`
+  if (f === 'daily') return t('schedules.hint.daily', { time })
+  if (f === 'weekdays') return t('schedules.hint.weekdays', { time })
+  if (f === 'weekly') {
+    const days = selectedDays.value.length > 0
+      ? selectedDays.value.map(d => DAYS[d]).join(', ')
+      : DAYS[form.value.cronDayOfWeek || 0]
+    return t('schedules.hint.weekly', { day: days, time })
+  }
   return ''
 })
 
@@ -167,6 +220,14 @@ function editTask(task: ScheduleTask) {
     cronMinute: task.cronMinute ?? 0,
     cronHour: task.cronHour ?? 0,
     cronDayOfWeek: task.cronDayOfWeek ?? 0,
+    cronDaysOfWeek: task.cronDaysOfWeek ?? '',
+  }
+  if (task.cronDaysOfWeek) {
+    selectedDays.value = task.cronDaysOfWeek.split(',').map(Number)
+  } else if (task.cronDayOfWeek != null) {
+    selectedDays.value = [task.cronDayOfWeek]
+  } else {
+    selectedDays.value = []
   }
   showForm.value = true
 }
