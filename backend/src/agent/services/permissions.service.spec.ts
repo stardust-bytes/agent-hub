@@ -120,4 +120,42 @@ describe('PermissionsService', () => {
       expect(result.defaultPolicy).toBe('allow');
     });
   });
+
+  describe('decide', () => {
+    it('returns ask for tools in requireApprovalTools', async () => {
+      settingsService.get.mockResolvedValue(JSON.stringify({
+        defaultPolicy: 'allow',
+        allowedTools: [],
+        deniedTools: [],
+        permissionMode: 'default',
+        requireApprovalTools: ['run_command'],
+      }));
+      const result = await service.decide('run_command', '{}', 'user: hello');
+      expect(result).toEqual({ action: 'ask' });
+    });
+
+    it('returns ask when args contain destructive patterns', async () => {
+      settingsService.get.mockResolvedValue(JSON.stringify({
+        defaultPolicy: 'allow',
+        allowedTools: [],
+        deniedTools: [],
+        permissionMode: 'default',
+        requireApprovalTools: [],
+      }));
+      const result = await service.decide('write_file', '{"content":"delete everything"}', 'user: hi');
+      expect(result).toEqual({ action: 'ask' });
+    });
+
+    it('returns deny for tools in deniedTools', async () => {
+      settingsService.get.mockResolvedValue(JSON.stringify({
+        defaultPolicy: 'deny',
+        allowedTools: [],
+        deniedTools: ['write_file'],
+        permissionMode: 'default',
+        requireApprovalTools: [],
+      }));
+      const result = await service.decide('write_file', '{}', 'user: hi');
+      expect(result).toEqual({ action: 'deny', reason: 'Tool denied by configuration' });
+    });
+  });
 });
