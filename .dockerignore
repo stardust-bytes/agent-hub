@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.git
+.env
+*.log
+workspace_data/
+coverage/
+.superpowers/
+.playwright-mcp/

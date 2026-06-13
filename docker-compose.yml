@@ -24,6 +24,7 @@ services:
     restart: unless-stopped
 
   workspace-frontend:
+    restart: on-failure
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -33,4 +34,3 @@ services:
     depends_on:
       workspace-backend:
         condition: service_healthy
-    restart: unless-stopped
