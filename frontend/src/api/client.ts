@@ -32,6 +32,14 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   return (await res.json()) as T
 }
 
+export function errorCode(e: unknown): string {
+  if (e instanceof AppError) return e.code
+  if (e !== null && typeof e === 'object' && 'code' in e && typeof (e as Record<string, unknown>).code === 'string') {
+    return (e as Record<string, unknown>).code as string
+  }
+  return 'errors.request'
+}
+
 export async function requestRaw(path: string, options: RequestOptions = {}): Promise<Response> {
   const { method = 'GET', body, signal } = options
   const init: RequestInit = { method, signal }
