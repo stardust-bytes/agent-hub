@@ -42,7 +42,6 @@ export class PermissionsService {
   }
 
   async decide(
-    mode: string,
     toolName: string,
     toolInput: string,
     transcript: string,
@@ -53,7 +52,7 @@ export class PermissionsService {
       return { action: 'deny', reason: 'Tool denied by configuration' };
     }
 
-    const permissionMode = this.getPermissionMode(mode);
+    const permissionMode = await this.decidePermissionMode(toolName, toolInput);
 
     switch (permissionMode) {
       case 'bypassPermissions':
@@ -80,6 +79,9 @@ export class PermissionsService {
         }
         return { action: 'ask' };
 
+      case 'requireApproval':
+        return { action: 'ask' };
+
       default:
         return { action: 'ask' };
     }
@@ -99,8 +101,15 @@ export class PermissionsService {
     };
   }
 
-  private getPermissionMode(mode: string): string {
-    const { MODE_POLICY } = require('../../mode-policy/mode-policy.config');
-    return (MODE_POLICY[mode] ?? MODE_POLICY.cowork).permissionMode ?? 'default';
+  private hasDestructivePatterns(name: string, input: string): boolean {
+    const patterns = ['delete', 'remove', 'drop', 'truncate', 'rm ', 'rmdir', 'del '];
+    return patterns.some(p => input.toLowerCase().includes(p));
+  }
+
+  private async decidePermissionMode(toolName: string, toolInput: string): Promise<string> {
+    const config = await this.getConfig();
+    if (config.requireApprovalTools.includes(toolName)) return 'requireApproval';
+    if (this.hasDestructivePatterns(toolName, toolInput)) return 'requireApproval';
+    return config.permissionMode;
   }
 }

@@ -24,7 +24,13 @@ describe('PermissionsService', () => {
     it('returns default config when setting is empty', async () => {
       settingsService.get.mockResolvedValue('');
       const config = await service.getConfig();
-      expect(config).toEqual({ defaultPolicy: 'allow', allowedTools: [], deniedTools: [] });
+      expect(config).toEqual({
+        defaultPolicy: 'allow',
+        allowedTools: [],
+        deniedTools: [],
+        permissionMode: 'default',
+        requireApprovalTools: ['run_command'],
+      });
     });
 
     it('returns stored config when setting exists', async () => {
@@ -37,7 +43,13 @@ describe('PermissionsService', () => {
     it('returns default config when stored JSON is invalid', async () => {
       settingsService.get.mockResolvedValue('not-valid-json');
       const config = await service.getConfig();
-      expect(config).toEqual({ defaultPolicy: 'allow', allowedTools: [], deniedTools: [] });
+      expect(config).toEqual({
+        defaultPolicy: 'allow',
+        allowedTools: [],
+        deniedTools: [],
+        permissionMode: 'default',
+        requireApprovalTools: ['run_command'],
+      });
     });
   });
 
@@ -80,10 +92,22 @@ describe('PermissionsService', () => {
       settingsService.get.mockResolvedValue('');
       settingsService.upsert.mockResolvedValue(undefined);
       const result = await service.updateConfig({ defaultPolicy: 'deny' });
-      expect(result).toEqual({ defaultPolicy: 'deny', allowedTools: [], deniedTools: [] });
+      expect(result).toEqual({
+        defaultPolicy: 'deny',
+        allowedTools: [],
+        deniedTools: [],
+        permissionMode: 'default',
+        requireApprovalTools: ['run_command'],
+      });
       expect(settingsService.upsert).toHaveBeenCalledWith(
         'agent.permissions',
-        JSON.stringify({ defaultPolicy: 'deny', allowedTools: [], deniedTools: [] }),
+        JSON.stringify({
+          defaultPolicy: 'deny',
+          allowedTools: [],
+          deniedTools: [],
+          permissionMode: 'default',
+          requireApprovalTools: ['run_command'],
+        }),
       );
     });
 
