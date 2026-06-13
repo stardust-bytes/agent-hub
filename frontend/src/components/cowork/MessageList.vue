@@ -10,8 +10,6 @@
         @approve="(id: number) => emit('approve', id)"
         @reject="(id: number) => emit('reject', id)"
         @resume="(id: number) => emit('resume', id)"
-        @tool-approve="(id: string) => emit('toolApprove', id)"
-        @tool-deny="(id: string) => emit('toolDeny', id)"
         @toggle-expand="(msg: Message) => emit('toggleExpand', msg)"
       />
     </div>
@@ -33,8 +31,6 @@ const emit = defineEmits<{
   approve: [id: number]
   reject: [id: number]
   resume: [id: number]
-  toolApprove: [id: string]
-  toolDeny: [id: string]
   toggleExpand: [msg: Message]
 }>()
 
