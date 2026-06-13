@@ -22,6 +22,7 @@ import { ExcelModule } from './excel/excel.module';
 import { WordModule } from './word/word.module';
 import { UsageModule } from './usage/usage.module';
 import { ConnectorModule } from './connector/connector.module';
+import { ScheduleTasksModule } from './schedule-tasks/schedule-tasks.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { ConnectorModule } from './connector/connector.module';
     WordModule,
     UsageModule,
     ConnectorModule,
+    ScheduleTasksModule,
   ],
   controllers: [AppController],
 })
