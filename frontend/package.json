@@ -19,7 +19,8 @@
     "vue": "^3.3.0",
     "vue-draggable-plus": "^0.6.1",
     "vue-i18n": "^9.0.0",
-    "vue-icons-plus": "^0.1.9"
+    "vue-icons-plus": "^0.1.9",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@types/dompurify": "^3.0.0",
