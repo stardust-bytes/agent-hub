@@ -1,4 +1,4 @@
-import type { Message, PlanData, PlanStep } from '../components/chat/types'
+import type { Message, PlanData, PlanStep } from '../components/cowork/types'
 
 export interface StoredMessage {
   role: string

@@ -86,12 +86,12 @@ function onClose() {
 }
 
 async function fetchSessions() {
-  await sessionsStore.load(props.mode)
+  await sessionsStore.load()
 }
 
 async function createSession() {
   try {
-    const id = await sessionsStore.create(props.mode ?? 'chat')
+    const id = await sessionsStore.create()
     await fetchSessions()
     emit('created', id)
     show.value = false

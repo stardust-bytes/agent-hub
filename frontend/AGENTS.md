@@ -63,13 +63,11 @@ App.vue
 └── AppShell.vue
     ├── SidebarNav.vue       — 32px/52px icon column (desktop), navigation + VI/EN toggle
     ├── [Content area]
-    │   ├── ChatPanel.vue        — coordinator: state + SSE + plan, uses chat/ subcomponents
-    │   │   ├── chat/MessageList.vue
-    │   │   ├── chat/MessageItem.vue
-    │   │   └── chat/ChatInputBar.vue
-    │   ├── CoworkView.vue       — coordinator: project + chat + artifacts, shares chat/ + cowork/
-    │   │   ├── cowork/ProjectBar.vue
-    │   │   └── [reuses chat/ MessageList, ChatInputBar]
+    │   ├── CoworkView.vue       — coordinator: project + chat + artifacts, uses cowork/ subcomponents
+    │   │   ├── cowork/MessageList.vue
+    │   │   ├── cowork/MessageItem.vue
+    │   │   ├── cowork/ChatInputBar.vue
+    │   │   └── cowork/ProjectBar.vue
     │   ├── TasksView.vue        — priority filter bar + KanbanBoard
     │   ├── NotesView.vue        — markdown notes CRUD
     │   ├── PlansView.vue        — execution plan management
@@ -120,11 +118,20 @@ src/
     ├── AppShell.vue
     ├── SidebarNav.vue
     ├── BottomTabBar.vue
-    ├── ChatPanel.vue
     ├── TasksView.vue
     ├── KanbanBoard.vue
     ├── TaskCard.vue
     ├── TaskCardMenu.vue
+    ├── CoworkView.vue
+    │   ├── cowork/MessageList.vue
+    │   ├── cowork/MessageItem.vue
+    │   ├── cowork/ChatInputBar.vue
+    │   ├── cowork/markdown.ts
+    │   ├── cowork/types.ts
+    │   └── cowork/ProjectBar.vue
+    ├── ArtifactsPanel.vue
+    ├── DirectoryBrowser.vue
+    ├── FileTree.vue
     ├── FilesView.vue
     ├── SettingsView.vue
     ├── PlansView.vue
@@ -140,7 +147,7 @@ src/
 
 ---
 
-## ChatPanel.vue — SSE Event Handling
+## CoworkView.vue — SSE Event Handling
 
 The chat panel reads an SSE stream from `POST /api/agent/chat` using the Fetch API `ReadableStream` reader and handles these event types:
 

@@ -5,13 +5,12 @@ import NotesView from '../components/NotesView.vue'
 import ConnectorsView from '../components/ConnectorsView.vue'
 import AgentOutputView from '../components/AgentOutputView.vue'
 import SettingsView from '../components/SettingsView.vue'
-import ChatPanel from '../components/ChatPanel.vue'
+
 import PlansView from '../components/PlansView.vue'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/cowork' },
   { path: '/cowork', name: 'cowork', component: CoworkView },
-  { path: '/chat', name: 'chat', component: ChatPanel },
   { path: '/tasks', name: 'tasks', component: TasksView },
   { path: '/notes', name: 'notes', component: NotesView },
   { path: '/connectors', name: 'connectors', component: ConnectorsView },

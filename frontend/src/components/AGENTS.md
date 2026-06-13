@@ -8,14 +8,12 @@ All UI components for the AI Workspace. The layout is a multi-panel IDE: icon si
 AppShell.vue              — layout shell, hosts <router-view>, reads ui state from useUiStore
 ├── SidebarNav.vue        — 60px nav column (desktop), RouterLink items from config/navigation
 ├── [Content area — router-view]
-│   ├── ChatPanel.vue             — coordinator: owns state, SSE streaming, delegates rendering
-│   │   ├── chat/MessageList.vue  — scroll wrapper + v-for MessageItem, forward events
-│   │   ├── chat/MessageItem.vue  — per-message render (thinking/tool/agent/plan/user/system)
-│   │   ├── chat/ChatInputBar.vue — input form + ModelSelector + mode toggle + sessions button
-│   │   ├── chat/types.ts         — shared interfaces (Message, PlanData, ProviderModelFlat, …)
-│   │   └── chat/markdown.ts      — renderMarkdown, parseSegments, highlightUserMessage
 │   ├── CoworkView.vue            — coordinator: project + chat + artifacts
-│   │   ├── [reuses chat/MessageList, chat/ChatInputBar, chat/types, chat/markdown]
+│   │   ├── cowork/MessageList.vue  — scroll wrapper + v-for MessageItem, forward events
+│   │   ├── cowork/MessageItem.vue  — per-message render (thinking/tool/agent/plan/user/system)
+│   │   ├── cowork/ChatInputBar.vue — input form + ModelSelector + mode toggle + sessions button
+│   │   ├── cowork/types.ts         — shared interfaces (Message, PlanData, ProviderModelFlat, …)
+│   │   ├── cowork/markdown.ts      — renderMarkdown, parseSegments, highlightUserMessage
 │   │   ├── cowork/ProjectBar.vue — project path + connect/save/delete menu
 │   │   └── ArtifactsPanel.vue    — file preview + plan steps + tool results pane
 │   ├── TasksView.vue         — priority filter bar + KanbanBoard
@@ -73,24 +71,6 @@ Visible on mobile only (`flex md:hidden`, `h-[3rem]`). Renders `bottomItems` fro
 
 ---
 
-## ChatPanel.vue (coordinator)
-
-**Emits:** none
-
-**Coordination:** Owns `messages`, `streaming`, `selectedModelId`, `currentMode`, `currentSessionId` state. Renders `<MessageList>` + `<ChatInputBar>` + `<SessionModal>`. Wires all events between children.
-
-**SSE streaming:** Uses Fetch API `ReadableStream` reader on `POST /api/agent/chat`. Body includes `{ message, providerModelId, sessionId, mode }`. AbortController for stopping streams. The stream is parsed by `parseSseStream` from `src/composables/useChatStream.ts`; each SSE event type maps to a callback in `SseCallbacks`.
-
-**Model loading:** Fetches from `GET /api/providers/models` on mount. Selects from `localStorage('workspace.modelId')`.
-
-**Mode toggle:** Agent mode (ReAct loop with tools) vs Chat mode (plain conversation).
-
-**Plan execution SSE:** `planStepUpdate` events update step statuses in-place on PlanBubble. `planInterrupted` pushes a system message.
-
-**Session history:** Uses `loadSessionMessages` from `src/composables/useSessionMessages.ts`.
-
----
-
 ## CoworkView.vue (coordinator)
 
 **Emits:** none
@@ -119,9 +99,7 @@ Owns its own dropdown state (`showProjectMenu`, `showSaveModal`, `saveProjectNam
 
 ---
 
-## chat/MessageItem.vue
-
-## chat/MessageItem.vue
+## cowork/MessageItem.vue
 
 **Props:** `msg: Message`, `streaming: boolean`
 
@@ -131,7 +109,7 @@ Renders one message block. Handles thinking indicator, tool call/result with exp
 
 ---
 
-## chat/MessageList.vue
+## cowork/MessageList.vue
 
 **Props:** `messages: Message[]`, `streaming: boolean`
 
@@ -141,7 +119,7 @@ Scroll wrapper with `messagesEl` ref. Renders `<MessageItem>` per message. Expos
 
 ---
 
-## chat/ChatInputBar.vue
+## cowork/ChatInputBar.vue
 
 **Props:** `streaming: boolean`, `models: ProviderModelFlat[]`, `modelId: number | null`, `mode: 'chat' | 'agent'`
 

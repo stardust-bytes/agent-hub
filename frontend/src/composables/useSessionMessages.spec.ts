@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { loadSessionMessages, type StoredMessage } from './useSessionMessages'
-import type { PlanData } from '../components/chat/types'
+import type { PlanData } from '../components/cowork/types'
 
 describe('loadSessionMessages', () => {
   const now = () => '12:00:00'
