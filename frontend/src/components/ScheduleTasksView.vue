@@ -14,41 +14,31 @@
         <div class="text-sm text-cyber-muted font-mono">{{ t('schedules.empty') }}</div>
       </div>
 
-      <div v-for="task in tasks" :key="task.id" class="border border-cyber-code-border mb-2 bg-cyber-dark">
-        <div class="flex items-center gap-3 px-3 py-2">
-          <div class="w-2 h-2 rounded-full shrink-0"
-            :class="task.enabled ? 'bg-cyber-green' : 'bg-cyber-muted'"></div>
-          <div class="flex-1 min-w-0">
-            <div class="text-sm text-cyber-text font-mono truncate">{{ task.name }}</div>
-            <div class="text-xs text-cyber-muted font-mono flex items-center gap-2 mt-0.5">
-              <span class="px-1 border border-cyber-code-border text-2xs"
-                :class="frequencyClass(task.frequency)">{{ t(`schedules.frequency.${task.frequency}`) }}</span>
-              <span v-if="task.modelId">· {{ t('schedules.hasModel') }}</span>
-              <span v-if="task.projectPath">· {{ task.projectPath.replace(/\\/g, '/').split('/').pop() }}</span>
-              <span v-if="task.timezone">· {{ task.timezone }}</span>
-            </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-3 py-3">
+        <div v-for="task in tasks" :key="task.id"
+          class="border border-cyber-code-border bg-cyber-dark p-3 cursor-pointer hover:border-cyber-accent/40 transition-colors duration-150 flex flex-col"
+          @click="router.push(`/tasks/${task.id}`)">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-2 h-2 rounded-full shrink-0"
+              :class="task.enabled ? 'bg-cyber-green' : 'bg-cyber-muted'"></div>
+            <div class="text-sm text-cyber-text font-mono truncate flex-1">{{ task.name }}</div>
           </div>
-          <div class="text-xs text-cyber-muted font-mono shrink-0">
+          <div class="text-xs text-cyber-muted font-mono mb-2 flex items-center gap-1">
+            <span class="px-1 border border-cyber-code-border text-2xs"
+              :class="frequencyClass(task.frequency)">{{ t(`schedules.frequency.${task.frequency}`) }}</span>
+            <span>{{ scheduleTime(task) }}</span>
+          </div>
+          <div class="text-xs font-mono mb-3">
             <span v-if="task.logs?.[0]"
               :class="task.logs[0].status === 'SUCCESS' ? 'text-cyber-green' : task.logs[0].status === 'FAILED' ? 'text-red-400' : 'text-cyber-orange'">
               {{ task.logs[0].status }}
             </span>
+            <span v-else class="text-cyber-muted">—</span>
           </div>
-          <div class="flex gap-1 shrink-0">
+          <div class="flex gap-1 mt-auto" @click.stop>
             <button @click="runNow(task.id)" class="text-xs text-cyber-accent/70 font-mono px-1.5 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-accent hover:border-cyber-accent/40">&#9654;</button>
             <button @click="editTask(task)" class="text-xs text-cyber-muted font-mono px-1.5 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-accent">&#9998;</button>
             <button @click="confirmDelete(task)" class="text-xs text-cyber-muted font-mono px-1.5 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-red-400">&#10005;</button>
-          </div>
-        </div>
-        <div @click="toggleLogs(task.id)" class="border-t border-cyber-code-border px-3 py-1 cursor-pointer hover:bg-cyber-bg/30">
-          <span class="text-2xs text-cyber-muted font-mono">{{ t('schedules.logs.header') }}</span>
-        </div>
-        <div v-if="expandedLogs === task.id" class="border-t border-cyber-code-border px-3 py-2 max-h-48 overflow-y-auto">
-          <div v-if="!task.logs || task.logs.length === 0" class="text-xs text-cyber-muted font-mono">{{ t('schedules.logs.empty') }}</div>
-          <div v-for="log in (task.logs || [])" :key="log.id" class="text-xs text-cyber-text font-mono py-1 border-b border-cyber-code-border last:border-0">
-            <span class="text-cyber-muted">{{ log.createdAt ? new Date(log.createdAt).toLocaleString('vi-VN') : '' }}</span>
-            <span :class="log.status === 'SUCCESS' ? 'text-cyber-green' : log.status === 'FAILED' ? 'text-red-400' : 'text-cyber-orange'"> {{ log.status }}</span>
-            <div v-if="log.output" class="text-2xs text-cyber-muted mt-0.5 whitespace-pre-wrap truncate">{{ log.output }}</div>
           </div>
         </div>
       </div>
@@ -116,7 +106,6 @@
         <!-- Model selector -->
         <select v-model.number="form.modelId"
           class="w-full bg-cyber-bg border border-cyber-code-border px-2 py-1.5 text-sm text-cyber-text font-mono">
-          <option :value="null">{{ t('schedules.form.defaultModel') }}</option>
           <option v-for="m in models" :key="m.id" :value="m.id">{{ m.providerName }} / {{ m.name }}</option>
         </select>
 
@@ -137,6 +126,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { HiClock } from 'vue-icons-plus/hi'
 import BaseModal from './BaseModal.vue'
@@ -150,6 +140,7 @@ const { t } = useI18n()
 
 const FREQUENCIES = ['manual', 'hourly', 'daily', 'weekdays', 'weekly']
 const DAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+const router = useRouter()
 
 const models = ref<ProviderModelFlat[]>([])
 
@@ -220,12 +211,30 @@ function frequencyClass(f: string) {
   return 'text-cyber-accent'
 }
 
+function scheduleTime(task: { frequency: string; cronHour: number | null; cronMinute: number | null; cronDayOfWeek: number | null; cronDaysOfWeek: string | null; timezone: string | null }): string {
+  const mm = String(task.cronMinute ?? 0).padStart(2, '0')
+  const hh = String(task.cronHour ?? 0).padStart(2, '0')
+  if (task.frequency === 'hourly') return `:${mm}`
+  if (task.frequency === 'daily') return `${hh}:${mm}`
+  if (task.frequency === 'weekdays') return `${hh}:${mm}`
+  if (task.frequency === 'weekly') {
+    const days = task.cronDaysOfWeek
+      ? task.cronDaysOfWeek.split(',').map(Number).map(d => DAYS[d]).join(',')
+      : DAYS[task.cronDayOfWeek ?? 0]
+    return `${days} ${hh}:${mm}`
+  }
+  return ''
+}
+
 onMounted(async () => {
   try { tasks.value = await api.listTasks() } catch { /* ignore */ }
   const ps = useProvidersStore()
   try {
     await ps.loadModels()
     models.value = ps.models
+    if (models.value.length > 0 && form.value.modelId === null) {
+      form.value.modelId = models.value[0].id
+    }
   } catch { /* ignore */ }
 })
 
