@@ -7,11 +7,13 @@ import AgentOutputView from '../components/AgentOutputView.vue'
 import SettingsView from '../components/SettingsView.vue'
 
 import PlansView from '../components/PlansView.vue'
+import ScheduleTaskDetailView from '../components/ScheduleTaskDetailView.vue'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/cowork' },
   { path: '/cowork', name: 'cowork', component: CoworkView },
   { path: '/tasks', name: 'tasks', component: ScheduleTasksView },
+  { path: '/tasks/:id', name: 'task-detail', component: ScheduleTaskDetailView, props: true },
   { path: '/notes', name: 'notes', component: NotesView },
   { path: '/connectors', name: 'connectors', component: ConnectorsView },
   { path: '/agent-output', name: 'agent-output', component: AgentOutputView },
