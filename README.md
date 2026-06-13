@@ -5,9 +5,9 @@
 <h1 align="center">171305 — AI Workspace</h1>
 
 <p align="center">
-  <strong>Local-first, self-hosted AI agent workspace for Office staff, Developers.</strong>
+  <strong>Local-first AI workspace for Office staff — developers and power users welcome.</strong>
   <br />
-  Chat with AI · Manage code · Automate workflows
+  Chat with AI · Manage files · Automate tasks
   <br />
   All local — no cloud dependency.
 </p>
@@ -19,21 +19,21 @@
   <img src="https://img.shields.io/badge/AI-Ollama-000000?logo=ollama" alt="Ollama" />
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="MIT" />
   <img src="https://img.shields.io/badge/Local_First-Privacy_First-22C55E" alt="Local First" />
-  <img src="https://img.shields.io/badge/Cowork_AI-Agent_Pair_Programming-3B82F6" alt="Cowork AI" />
+  <img src="https://img.shields.io/badge/Cowork_AI-AI_Assistant-3B82F6" alt="Cowork AI" />
 </p>
 
 ---
 
 ## What's Inside
 
-### 🤝 Cowork — AI Pair Programming
+### 🤝 Cowork — AI Assistant
 
-Connect any local project directory and work alongside an AI agent that understands your codebase. Cowork mode provides:
+Work alongside an AI agent that understands your documents and office data. Cowork mode provides:
 
-- **File Tree** — Browse project files, preview code, markdown, and images inline
+- **File Management** — Browse, preview, and search documents (PDF, DOCX, XLSX), images, and markdown files inline
 - **SSE Streaming** — Real-time agent responses with markdown rendering, tool calls, and plan execution
-- **Code-aware Context** — Agent reads your files, runs commands, edits code directly in your workspace
-- **Multi-step Plans** — Agent autonomously plans and executes complex tasks, shows progress, resumes after interruption
+- **Context-aware Assistance** — Agent reads your documents, understands your data, and performs office tasks directly
+- **Multi-step Plans** — Agent autonomously plans and executes complex workflows, shows progress, resumes after interruption
 
 ### 📝 Notes
 
