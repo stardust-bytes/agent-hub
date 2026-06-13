@@ -14,5 +14,6 @@ import { CoworkModule } from '../cowork/cowork.module';
   imports: [PrismaModule, AgentModule, ProvidersModule, SessionsModule, CoworkModule, ScheduleModule.forRoot()],
   controllers: [ScheduleTasksController],
   providers: [ScheduleTasksService, ScheduleRunnerService, ScheduleCronService],
+  exports: [ScheduleTasksService],
 })
 export class ScheduleTasksModule {}
