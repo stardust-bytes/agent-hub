@@ -63,7 +63,13 @@ App.vue
 └── AppShell.vue
     ├── SidebarNav.vue       — 32px/52px icon column (desktop), navigation + VI/EN toggle
     ├── [Content area]
-    │   ├── ChatPanel.vue        — message history + SSE streaming + input (default view)
+    │   ├── ChatPanel.vue        — coordinator: state + SSE + plan, uses chat/ subcomponents
+    │   │   ├── chat/MessageList.vue
+    │   │   ├── chat/MessageItem.vue
+    │   │   └── chat/ChatInputBar.vue
+    │   ├── CoworkView.vue       — coordinator: project + chat + artifacts, shares chat/ + cowork/
+    │   │   ├── cowork/ProjectBar.vue
+    │   │   └── [reuses chat/ MessageList, ChatInputBar]
     │   ├── TasksView.vue        — priority filter bar + KanbanBoard
     │   ├── NotesView.vue        — markdown notes CRUD
     │   ├── PlansView.vue        — execution plan management
@@ -107,6 +113,9 @@ src/
 │   └── *.ts             — one module per domain (providers, sessions, tasks, notes, …)
 ├── stores/              — Pinia domain stores; components read/write data exclusively through these
 │   └── *.ts             — one store per domain, delegates to api/ modules
+├── composables/         — shared composables extracted from components
+│   ├── useChatStream.ts        — SSE stream parser (parseSseStream) + SseCallbacks interface
+│   └── useSessionMessages.ts   — session history loader (loadSessionMessages)
 └── components/
     ├── AppShell.vue
     ├── SidebarNav.vue

@@ -14,6 +14,10 @@ AppShell.vue              — layout shell, hosts <router-view>, reads ui state 
 │   │   ├── chat/ChatInputBar.vue — input form + ModelSelector + mode toggle + sessions button
 │   │   ├── chat/types.ts         — shared interfaces (Message, PlanData, ProviderModelFlat, …)
 │   │   └── chat/markdown.ts      — renderMarkdown, parseSegments, highlightUserMessage
+│   ├── CoworkView.vue            — coordinator: project + chat + artifacts
+│   │   ├── [reuses chat/MessageList, chat/ChatInputBar, chat/types, chat/markdown]
+│   │   ├── cowork/ProjectBar.vue — project path + connect/save/delete menu
+│   │   └── ArtifactsPanel.vue    — file preview + plan steps + tool results pane
 │   ├── TasksView.vue         — priority filter bar + KanbanBoard
 │   ├── KanbanBoard.vue       — drag-and-drop columns (TODO/PROCESSING/DONE/FAILED)
 │   │   ├── TaskCard.vue      — individual task card with priority highlight
@@ -83,7 +87,39 @@ Visible on mobile only (`flex md:hidden`, `h-[3rem]`). Renders `bottomItems` fro
 
 **Plan execution SSE:** `planStepUpdate` events update step statuses in-place on PlanBubble. `planInterrupted` pushes a system message.
 
+**Session history:** Uses `loadSessionMessages` from `src/composables/useSessionMessages.ts`.
+
 ---
+
+## CoworkView.vue (coordinator)
+
+**Emits:** none
+
+**Coordination:** Owns project state, messages, SSE streaming, file preview, plan tracking. Renders `<ProjectBar>` + `<MessageList>` + `<ChatInputBar>` + `<ArtifactsPanel>` + `<FileTree>` + `<SessionModal>` + `<DirectoryBrowser>`. Wires all events between children.
+
+**SSE streaming:** Uses `parseSseStream` from `src/composables/useChatStream.ts`. Plan events populate `activePlans` ref and push step-update system messages with emoji icons (✅ ⟳ ✗). `toolResult` events populate both messages and `recentToolResults`. `mode: 'cowork'` sent as the agent mode.
+
+**Model loading:** Reads from `providersStore.models` via `useProvidersStore().loadModels()`.
+
+**Session history:** Uses `loadSessionMessages` from `src/composables/useSessionMessages.ts`.
+
+**File tree:** Refreshed via `fileTreeRefreshKey` counter incremented on stream complete.
+
+**Artifacts:** File preview via `readFile` API call; tool results fed to `ArtifactsPanel`.
+
+---
+
+## cowork/ProjectBar.vue
+
+**Props:** `projectPath: string | null`, `savedProjects: SavedProject[]`
+
+**Emits:** `browse-directory`, `select-project(path)`, `delete-project(id)`, `save-project(name)`, `toggle-artifacts`
+
+Owns its own dropdown state (`showProjectMenu`, `showSaveModal`, `saveProjectName`). Renders the project path bar with a connected indicator dot, dropdown menu for saved projects, and save/delete/browse actions.
+
+---
+
+## chat/MessageItem.vue
 
 ## chat/MessageItem.vue
 
