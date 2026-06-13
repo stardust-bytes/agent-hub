@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WriteStream } from '../dto/write-stream.interface';
@@ -30,6 +31,7 @@ import { GlobExecutor } from '../../tools/executors/glob.executor';
 import { ResumePlanExecutor } from '../../tools/executors/resume-plan.executor';
 import { CreatePlanExecutor } from '../../tools/executors/create-plan.executor';
 import { PermissionsService } from './permissions.service';
+import { ApprovalManagerService } from './approval-manager.service';
 import { PlansService } from '../../plans/plans.service';
 import { McpService } from '../mcp/mcp.service';
 import { SubagentService } from '../subagent/subagent.service';
@@ -71,6 +73,7 @@ export class AgentLoopService {
     private readonly sessionsService: SessionsService,
     private readonly knowledgeService: KnowledgeService,
     private readonly permissionsService: PermissionsService,
+    private readonly approvalManager: ApprovalManagerService,
     private readonly plansService: PlansService,
     private readonly mcpService: McpService,
     @Inject(forwardRef(() => SubagentService)) private readonly subagentService: SubagentService,
@@ -235,15 +238,36 @@ export class AgentLoopService {
           await this.sessionsService.saveMessage(sessionId, 'tool', `${name}(${JSON.stringify(args)})`, name, false);
         }
 
-        const allowed = await this.permissionsService.isAllowed(name);
-        if (!allowed) {
-          const denyMsg = `Tool "${name}" is not permitted by workspace policy.`;
-          res.write(`data: ${JSON.stringify({ toolResult: { name, result: denyMsg } })}\n\n`);
+        const toolInput = JSON.stringify(args);
+        const transcript = this.buildTranscript(messages);
+        const decision = await this.permissionsService.decide(name, toolInput, transcript, sessionId);
+
+        if (decision.action === 'allow') {
+          // execute tool — fall through to executeTool below
+        } else if (decision.action === 'deny') {
+          const denialResult = `Tool '${name}' is not permitted by workspace policy.${decision.reason ? ' ' + decision.reason : ''}`;
+          res.write(`data: ${JSON.stringify({ toolResult: { name, result: denialResult } })}\n\n`);
           if (sessionId) {
-            await this.sessionsService.saveMessage(sessionId, 'tool', denyMsg, name, true);
+            await this.sessionsService.saveMessage(sessionId, 'tool', denialResult, name, true);
           }
-          messages.push({ role: 'tool', content: denyMsg, toolCallId });
+          messages.push({ role: 'tool', content: denialResult, toolCallId });
           continue;
+        } else if (decision.action === 'ask') {
+          const approvalId = crypto.randomUUID();
+          res.write(`data: ${JSON.stringify({ toolApprovalRequired: { id: approvalId, name, args } })}\n\n`);
+
+          const approved = await this.approvalManager.requestApproval(approvalId, name, args, sessionId ?? 0);
+
+          if (approved) {
+            // execute tool — fall through to executeTool below
+          } else {
+            res.write(`data: ${JSON.stringify({ toolResult: { name, result: 'Tool execution denied by user' } })}\n\n`);
+            if (sessionId) {
+              await this.sessionsService.saveMessage(sessionId, 'tool', 'Tool execution denied by user', name, true);
+            }
+            messages.push({ role: 'tool', content: 'Tool execution denied by user', toolCallId });
+            continue;
+          }
         }
 
         let result: string;
@@ -639,6 +663,10 @@ export class AgentLoopService {
     return `Error: Unknown tool: ${name}`;
   }
 
+  private buildTranscript(messages: OllamaMessage[]): string {
+    return messages.map(m => `${m.role}: ${m.content}`).join('\n');
+  }
+
   private async runForStep(
     model: string,
     messages: OllamaMessage[],
@@ -679,15 +707,36 @@ export class AgentLoopService {
           await this.sessionsService.saveMessage(sessionId, 'tool', `${name}(${JSON.stringify(args)})`, name, false);
         }
 
-        const allowed = await this.permissionsService.isAllowed(name);
-        if (!allowed) {
-          const denyMsg = `Tool "${name}" is not permitted by workspace policy.`;
-          res.write(`data: ${JSON.stringify({ toolResult: { name, result: denyMsg } })}\n\n`);
+        const toolInput = JSON.stringify(args);
+        const transcript = this.buildTranscript(currentMessages);
+        const decision = await this.permissionsService.decide(name, toolInput, transcript, sessionId);
+
+        if (decision.action === 'allow') {
+          // execute tool — fall through to executeTool below
+        } else if (decision.action === 'deny') {
+          const denialResult = `Tool '${name}' is not permitted by workspace policy.${decision.reason ? ' ' + decision.reason : ''}`;
+          res.write(`data: ${JSON.stringify({ toolResult: { name, result: denialResult } })}\n\n`);
           if (sessionId) {
-            await this.sessionsService.saveMessage(sessionId, 'tool', denyMsg, name, true);
+            await this.sessionsService.saveMessage(sessionId, 'tool', denialResult, name, true);
           }
-          currentMessages.push({ role: 'tool', content: denyMsg, toolCallId });
+          currentMessages.push({ role: 'tool', content: denialResult, toolCallId });
           continue;
+        } else if (decision.action === 'ask') {
+          const approvalId = crypto.randomUUID();
+          res.write(`data: ${JSON.stringify({ toolApprovalRequired: { id: approvalId, name, args } })}\n\n`);
+
+          const approved = await this.approvalManager.requestApproval(approvalId, name, args, sessionId ?? 0);
+
+          if (approved) {
+            // execute tool — fall through to executeTool below
+          } else {
+            res.write(`data: ${JSON.stringify({ toolResult: { name, result: 'Tool execution denied by user' } })}\n\n`);
+            if (sessionId) {
+              await this.sessionsService.saveMessage(sessionId, 'tool', 'Tool execution denied by user', name, true);
+            }
+            currentMessages.push({ role: 'tool', content: 'Tool execution denied by user', toolCallId });
+            continue;
+          }
         }
 
         let result: string;
