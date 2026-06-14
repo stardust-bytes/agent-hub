@@ -75,7 +75,6 @@ async function connect(type: string) {
     const data = await getOAuthUrl(type)
     if (data.url) {
       window.open(data.url, '_blank')
-      setTimeout(() => connectorsStore.load(), 5000)
     }
   } catch {}
 }
