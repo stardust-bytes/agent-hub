@@ -48,6 +48,14 @@ import { GoogleDriveReadExecutor } from './executors/google-drive-read.executor'
 import { GoogleDriveListExecutor } from './executors/google-drive-list.executor';
 import { GoogleDriveUploadExecutor } from './executors/google-drive-upload.executor';
 import { GoogleDriveCreateFolderExecutor } from './executors/google-drive-create-folder.executor';
+import { GoogleSheetsReadExecutor } from './executors/google-sheets-read.executor';
+import { GoogleSheetsListTabsExecutor } from './executors/google-sheets-list-tabs.executor';
+import { GoogleSheetsUpdateExecutor } from './executors/google-sheets-update.executor';
+import { GoogleSheetsAppendExecutor } from './executors/google-sheets-append.executor';
+import { GoogleSheetsCreateExecutor } from './executors/google-sheets-create.executor';
+import { GoogleSheetsAddTabExecutor } from './executors/google-sheets-add-tab.executor';
+import { GoogleSheetsFormatExecutor } from './executors/google-sheets-format.executor';
+import { GoogleSheetsChartExecutor } from './executors/google-sheets-chart.executor';
 
 const EXECUTORS = [
   CreateTaskExecutor,
@@ -89,6 +97,14 @@ const EXECUTORS = [
   GoogleDriveListExecutor,
   GoogleDriveUploadExecutor,
   GoogleDriveCreateFolderExecutor,
+  GoogleSheetsReadExecutor,
+  GoogleSheetsListTabsExecutor,
+  GoogleSheetsUpdateExecutor,
+  GoogleSheetsAppendExecutor,
+  GoogleSheetsCreateExecutor,
+  GoogleSheetsAddTabExecutor,
+  GoogleSheetsFormatExecutor,
+  GoogleSheetsChartExecutor,
 ];
 
 @Module({
