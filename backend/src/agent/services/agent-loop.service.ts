@@ -58,7 +58,14 @@ import { GoogleDriveReadExecutor } from '../../tools/executors/google-drive-read
 import { GoogleDriveListExecutor } from '../../tools/executors/google-drive-list.executor';
 import { GoogleDriveUploadExecutor } from '../../tools/executors/google-drive-upload.executor';
 import { GoogleDriveCreateFolderExecutor } from '../../tools/executors/google-drive-create-folder.executor';
-
+import { GoogleSheetsReadExecutor } from '../../tools/executors/google-sheets-read.executor';
+import { GoogleSheetsListTabsExecutor } from '../../tools/executors/google-sheets-list-tabs.executor';
+import { GoogleSheetsUpdateExecutor } from '../../tools/executors/google-sheets-update.executor';
+import { GoogleSheetsAppendExecutor } from '../../tools/executors/google-sheets-append.executor';
+import { GoogleSheetsCreateExecutor } from '../../tools/executors/google-sheets-create.executor';
+import { GoogleSheetsAddTabExecutor } from '../../tools/executors/google-sheets-add-tab.executor';
+import { GoogleSheetsFormatExecutor } from '../../tools/executors/google-sheets-format.executor';
+import { GoogleSheetsChartExecutor } from '../../tools/executors/google-sheets-chart.executor';
 
 const MAX_ITERATIONS = 100;
 const KB_NO_RESULTS = 'No relevant information found in knowledge base.';
@@ -121,6 +128,14 @@ export class AgentLoopService {
     private readonly googleDriveList: GoogleDriveListExecutor,
     private readonly googleDriveUpload: GoogleDriveUploadExecutor,
     private readonly googleDriveCreateFolder: GoogleDriveCreateFolderExecutor,
+    private readonly googleSheetsRead: GoogleSheetsReadExecutor,
+    private readonly googleSheetsListTabs: GoogleSheetsListTabsExecutor,
+    private readonly googleSheetsUpdate: GoogleSheetsUpdateExecutor,
+    private readonly googleSheetsAppend: GoogleSheetsAppendExecutor,
+    private readonly googleSheetsCreate: GoogleSheetsCreateExecutor,
+    private readonly googleSheetsAddTab: GoogleSheetsAddTabExecutor,
+    private readonly googleSheetsFormat: GoogleSheetsFormatExecutor,
+    private readonly googleSheetsChart: GoogleSheetsChartExecutor,
     private readonly usageService: UsageService,
   ) {
     this.executorMap = new Map<string, ToolExecutor>([
@@ -167,6 +182,14 @@ export class AgentLoopService {
       [googleDriveList.name, googleDriveList],
       [googleDriveUpload.name, googleDriveUpload],
       [googleDriveCreateFolder.name, googleDriveCreateFolder],
+      [googleSheetsRead.name, googleSheetsRead],
+      [googleSheetsListTabs.name, googleSheetsListTabs],
+      [googleSheetsUpdate.name, googleSheetsUpdate],
+      [googleSheetsAppend.name, googleSheetsAppend],
+      [googleSheetsCreate.name, googleSheetsCreate],
+      [googleSheetsAddTab.name, googleSheetsAddTab],
+      [googleSheetsFormat.name, googleSheetsFormat],
+      [googleSheetsChart.name, googleSheetsChart],
     ]);
   }
 

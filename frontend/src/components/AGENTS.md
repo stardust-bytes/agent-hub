@@ -35,6 +35,7 @@ ModelSelector.vue            — model dropdown
 ├── BaseSelect.vue           — reusable styled select
 ProviderFormModal.vue        — create/edit provider form
 ├── BaseModal.vue
+OAuthCallbackPage.vue        — OAuth redirect handler (state+code from URL, calls confirmOAuth)
 ```
 
 ---

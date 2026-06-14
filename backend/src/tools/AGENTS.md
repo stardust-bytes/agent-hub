@@ -94,6 +94,14 @@ Base path: `/api/tools`
 | `GoogleDriveReadExecutor` | `google_drive_read` | Read Drive file |
 | `GoogleDriveListExecutor` | `google_drive_list` | List Drive folder |
 | `GoogleDriveUploadExecutor` | `google_drive_upload` | Upload to Drive |
+| `GoogleSheetsReadExecutor` | `google_sheets_read` | Read a Sheets range → markdown table |
+| `GoogleSheetsListTabsExecutor` | `google_sheets_list_tabs` | List tabs in a spreadsheet |
+| `GoogleSheetsUpdateExecutor` | `google_sheets_update` | Overwrite values in a range |
+| `GoogleSheetsAppendExecutor` | `google_sheets_append` | Append rows to a tab |
+| `GoogleSheetsCreateExecutor` | `google_sheets_create` | Create a new spreadsheet |
+| `GoogleSheetsAddTabExecutor` | `google_sheets_add_tab` | Add a tab to a spreadsheet |
+| `GoogleSheetsFormatExecutor` | `google_sheets_format` | Format a cell range |
+| `GoogleSheetsChartExecutor` | `google_sheets_chart` | Add a chart to a tab |
 
 ## Security
 

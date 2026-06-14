@@ -143,7 +143,8 @@ src/
 │           ├── google-oauth.service.ts       — OAuth2 URL gen, token exchange, refresh
 │           ├── gmail.service.ts              — Gmail API (search/read/send/draft/labels)
 │           ├── google-calendar.service.ts    — Calendar API (list/create/update/availability)
-│           └── google-drive.service.ts       — Drive API (search/read/list/upload)
+│           ├── google-drive.service.ts       — Drive API (search/read/list/upload)
+│           └── google-sheets.service.ts      — Sheets API (read/update/append/create/format/chart)
 │
 └── knowledge/
     ├── knowledge.module.ts
@@ -198,7 +199,7 @@ All routes are prefixed with `/api`.
 | `PATCH` | `/api/connectors/:id` | Update connector |
 | `DELETE` | `/api/connectors/:id` | Delete connector |
 | `GET` | `/api/connectors/oauth/auth-url` | Get OAuth URL (query: type) |
-| `GET` | `/api/connectors/oauth/callback` | Handle OAuth callback (query: type, code) |
+| `POST` | `/api/connectors/oauth/confirm` | Confirm OAuth (body: state, code) |
 | `GET` | `/api/usage` | Get total token usage |
 | `GET` | `/api/usage/sessions` | Get per-session token usage breakdown |
 | `GET` | `/api/agent-output` | List agent-generated files |

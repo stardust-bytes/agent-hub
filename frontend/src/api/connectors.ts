@@ -14,6 +14,14 @@ export function getOAuthUrl(type: string) {
   return request<{ url: string }>(`/connectors/oauth/auth-url?type=${encodeURIComponent(type)}`, { errorCode: 'connectors.oauth_failed' })
 }
 
+export function confirmOAuth(state: string, code: string) {
+  return request<{ ok: boolean }>('/connectors/oauth/confirm', {
+    method: 'POST',
+    body: { state, code },
+    errorCode: 'connectors.oauth_confirm_failed',
+  })
+}
+
 export function deleteConnector(id: string) {
   return request<void>(`/connectors/${id}`, { method: 'DELETE', errorCode: 'connectors.delete_failed' })
 }

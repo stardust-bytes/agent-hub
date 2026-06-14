@@ -3,6 +3,7 @@ import CoworkView from '../components/CoworkView.vue'
 import ScheduleTasksView from '../components/ScheduleTasksView.vue'
 import NotesView from '../components/NotesView.vue'
 import ConnectorsView from '../components/ConnectorsView.vue'
+import OAuthCallbackPage from '../components/OAuthCallbackPage.vue'
 import AgentOutputView from '../components/AgentOutputView.vue'
 import SettingsView from '../components/SettingsView.vue'
 
@@ -18,6 +19,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/connectors', name: 'connectors', component: ConnectorsView },
   { path: '/agent-output', name: 'agent-output', component: AgentOutputView },
   { path: '/plans', name: 'plans', component: PlansView },
+  { path: '/oauth/callback', name: 'oauth-callback', component: OAuthCallbackPage },
   { path: '/settings', redirect: '/settings/general' },
   { path: '/settings/:tab', name: 'settings', component: SettingsView, props: true },
   { path: '/:pathMatch(.*)*', redirect: '/cowork' },
