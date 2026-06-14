@@ -143,7 +143,8 @@ src/
 │           ├── google-oauth.service.ts       — OAuth2 URL gen, token exchange, refresh
 │           ├── gmail.service.ts              — Gmail API (search/read/send/draft/labels)
 │           ├── google-calendar.service.ts    — Calendar API (list/create/update/availability)
-│           └── google-drive.service.ts       — Drive API (search/read/list/upload)
+│           ├── google-drive.service.ts       — Drive API (search/read/list/upload)
+│           └── google-sheets.service.ts      — Sheets API (read/update/append/create/format/chart)
 │
 └── knowledge/
     ├── knowledge.module.ts
