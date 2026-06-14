@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const DEFAULT_TOOLS = [
@@ -15,8 +14,7 @@ const DEFAULT_TOOLS = [
   { name: 'convert_note_to_task', description: 'Convert a note to a scheduled task. Only use when the user explicitly asks to convert a note.', parameters: '{"type":"object","properties":{"noteId":{"type":"number"},"modelId":{"type":"number"}},"required":["noteId"]}' },
   { name: 'search_knowledge', description: 'Search the knowledge base for relevant information', parameters: '{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}' },
   { name: 'web_fetch', description: 'Fetch content from a URL', parameters: '{"type":"object","properties":{"url":{"type":"string"}},"required":["url"]}', enabled: false },
-  { name: 'web_search', description: 'Search the web for information', parameters: '{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}', enabled: false,
-    configSchema: '{"type":"object","properties":{"apiKey":{"type":"string","title":"Exa AI API Key","format":"password"}},"required":["apiKey"]}' },
+  { name: 'web_search', description: 'Search the web for information', parameters: '{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}', enabled: false, configSchema: '{"type":"object","properties":{"apiKey":{"type":"string","title":"Exa AI API Key","format":"password"}},"required":["apiKey"]}' },
   { name: 'write_file', description: 'Write content to a file at a given path', parameters: '{"type":"object","properties":{"path":{"type":"string","description":"File path to write to"},"content":{"type":"string","description":"Content to write"}},"required":["path","content"]}' },
   { name: 'read_file', description: 'Read content from a file at a given path', parameters: '{"type":"object","properties":{"path":{"type":"string","description":"File path to read from"}},"required":["path"]}' },
   { name: 'list_directory', description: 'List files and directories in a given path', parameters: '{"type":"object","properties":{"path":{"type":"string","description":"Directory path to list"}},"required":["path"]}' },
@@ -49,14 +47,14 @@ const DEFAULT_TOOLS = [
   { name: 'google_drive_list', description: 'List files in a Google Drive folder.', parameters: '{"type":"object","properties":{"folderId":{"type":"string","description":"Folder ID (omit for root)"}}}', enabled: false },
   { name: 'google_drive_upload', description: 'Upload a file to Google Drive. Supports local file path or base64 content.', parameters: '{"type":"object","properties":{"filePath":{"type":"string","description":"Local file path (alternative to name+contentBase64)"},"name":{"type":"string","description":"File name"},"contentBase64":{"type":"string","description":"File content as base64"},"mimeType":{"type":"string","description":"MIME type"}}}', enabled: false },
   { name: 'google_drive_create_folder', description: 'Create a new folder in Google Drive.', parameters: '{"type":"object","properties":{"name":{"type":"string","description":"Folder name"},"parentFolderId":{"type":"string","description":"Parent folder ID (omit for root)"}},"required":["name"]}', enabled: false },
-  { name: 'google_sheets_read', description: 'Read data from a Google Sheets range and return a markdown table. Parameters: spreadsheet (ID or name, required), range (e.g. "A1:D10", required), tab (sheet name, default: "Sheet1").', parameters: '{"type":"object","properties":{"spreadsheet":{"type":"string","description":"Spreadsheet ID or name"},"range":{"type":"string","description":"Cell range e.g. A1:D10"},"tab":{"type":"string","description":"Tab/sheet name (default: Sheet1)"}},"required":["spreadsheet","range"]}', enabled: false },
+  { name: 'google_sheets_read', description: 'Read data from a Google Sheets range and return a markdown table.', parameters: '{"type":"object","properties":{"spreadsheet":{"type":"string","description":"Spreadsheet ID or name"},"range":{"type":"string","description":"Cell range e.g. A1:D10"},"tab":{"type":"string","description":"Tab/sheet name (default: Sheet1)"}},"required":["spreadsheet","range"]}', enabled: false },
   { name: 'google_sheets_list_tabs', description: 'List all tabs/sheets in a Google Sheets spreadsheet with their row and column counts.', parameters: '{"type":"object","properties":{"spreadsheet":{"type":"string","description":"Spreadsheet ID or name"}},"required":["spreadsheet"]}', enabled: false },
-  { name: 'google_sheets_update', description: 'Overwrite values in a Google Sheets range. values is a 2D array (array of rows). Parameters: spreadsheet (ID or name), range (e.g. "A1:C3"), values (2D array), tab (default: "Sheet1").', parameters: '{"type":"object","properties":{"spreadsheet":{"type":"string"},"range":{"type":"string"},"values":{"type":"array","items":{"type":"array"}},"tab":{"type":"string"}},"required":["spreadsheet","range","values"]}', enabled: false },
-  { name: 'google_sheets_append', description: 'Append rows to the end of a Google Sheets tab. values is a 2D array of rows to add. Parameters: spreadsheet (ID or name), values (2D array), tab (default: "Sheet1").', parameters: '{"type":"object","properties":{"spreadsheet":{"type":"string"},"values":{"type":"array","items":{"type":"array"}},"tab":{"type":"string"}},"required":["spreadsheet","values"]}', enabled: false },
-  { name: 'google_sheets_create', description: 'Create a new Google Sheets spreadsheet. Parameters: title (required), initialTab (optional name for the first tab), parentFolderId (optional Drive folder ID).', parameters: '{"type":"object","properties":{"title":{"type":"string","description":"Spreadsheet title"},"initialTab":{"type":"string","description":"Name for the first tab (optional)"},"parentFolderId":{"type":"string","description":"Drive folder ID to create in (optional)"}},"required":["title"]}', enabled: false },
-  { name: 'google_sheets_add_tab', description: 'Add a new tab/sheet to an existing Google Sheets spreadsheet. Parameters: spreadsheet (ID or name), tabName (name of the new tab).', parameters: '{"type":"object","properties":{"spreadsheet":{"type":"string"},"tabName":{"type":"string"}},"required":["spreadsheet","tabName"]}', enabled: false },
-  { name: 'google_sheets_format', description: 'Apply formatting to a Google Sheets cell range. format object supports: bold, italic, fontSize, fontColor (hex), fillColor (hex), numberFormat (pattern like "#,##0.00"), border. Parameters: spreadsheet, range, format (object), tab (default: "Sheet1").', parameters: '{"type":"object","properties":{"spreadsheet":{"type":"string"},"range":{"type":"string"},"tab":{"type":"string"},"format":{"type":"object","properties":{"bold":{"type":"boolean"},"italic":{"type":"boolean"},"fontSize":{"type":"number"},"fontColor":{"type":"string"},"fillColor":{"type":"string"},"numberFormat":{"type":"string"},"border":{"type":"boolean"}}}},"required":["spreadsheet","range","format"]}', enabled: false },
-  { name: 'google_sheets_chart', description: 'Add a chart to a Google Sheets tab. type: BAR, LINE, PIE, COLUMN. dataRange: source data (e.g. "B2:D5"). categoriesRange: labels column (e.g. "A2:A5", optional). Parameters: spreadsheet, tab, type, dataRange, categoriesRange (optional), title (optional).', parameters: '{"type":"object","properties":{"spreadsheet":{"type":"string"},"tab":{"type":"string"},"type":{"type":"string","enum":["BAR","LINE","PIE","COLUMN"]},"dataRange":{"type":"string"},"categoriesRange":{"type":"string"},"title":{"type":"string"}},"required":["spreadsheet","tab","type","dataRange"]}', enabled: false },
+  { name: 'google_sheets_update', description: 'Overwrite values in a Google Sheets range.', parameters: '{"type":"object","properties":{"spreadsheet":{"type":"string"},"range":{"type":"string"},"values":{"type":"array","items":{"type":"array"}},"tab":{"type":"string"}},"required":["spreadsheet","range","values"]}', enabled: false },
+  { name: 'google_sheets_append', description: 'Append rows to the end of a Google Sheets tab.', parameters: '{"type":"object","properties":{"spreadsheet":{"type":"string"},"values":{"type":"array","items":{"type":"array"}},"tab":{"type":"string"}},"required":["spreadsheet","values"]}', enabled: false },
+  { name: 'google_sheets_create', description: 'Create a new Google Sheets spreadsheet.', parameters: '{"type":"object","properties":{"title":{"type":"string","description":"Spreadsheet title"},"initialTab":{"type":"string","description":"Name for the first tab (optional)"},"parentFolderId":{"type":"string","description":"Drive folder ID to create in (optional)"}},"required":["title"]}', enabled: false },
+  { name: 'google_sheets_add_tab', description: 'Add a new tab/sheet to an existing Google Sheets spreadsheet.', parameters: '{"type":"object","properties":{"spreadsheet":{"type":"string"},"tabName":{"type":"string"}},"required":["spreadsheet","tabName"]}', enabled: false },
+  { name: 'google_sheets_format', description: 'Apply formatting to a Google Sheets cell range.', parameters: '{"type":"object","properties":{"spreadsheet":{"type":"string"},"range":{"type":"string"},"tab":{"type":"string"},"format":{"type":"object","properties":{"bold":{"type":"boolean"},"italic":{"type":"boolean"},"fontSize":{"type":"number"},"fontColor":{"type":"string"},"fillColor":{"type":"string"},"numberFormat":{"type":"string"},"border":{"type":"boolean"}}}},"required":["spreadsheet","range","format"]}', enabled: false },
+  { name: 'google_sheets_chart', description: 'Add a chart to a Google Sheets tab.', parameters: '{"type":"object","properties":{"spreadsheet":{"type":"string"},"tab":{"type":"string"},"type":{"type":"string","enum":["BAR","LINE","PIE","COLUMN"]},"dataRange":{"type":"string"},"categoriesRange":{"type":"string"},"title":{"type":"string"}},"required":["spreadsheet","tab","type","dataRange"]}', enabled: false },
 ];
 
 async function main() {
@@ -68,11 +66,10 @@ async function main() {
   }
 
   for (const tool of DEFAULT_TOOLS) {
-    const data: any = {
-      description: tool.description,
-      parameters: tool.parameters,
-      ...(tool.configSchema !== undefined ? { configSchema: tool.configSchema } : {}),
-    };
+    const data = { description: tool.description, parameters: tool.parameters };
+    if (tool.configSchema !== undefined) {
+      data.configSchema = tool.configSchema;
+    }
     await prisma.tool.upsert({
       where: { name: tool.name },
       update: data,
@@ -87,18 +84,31 @@ async function main() {
       data: {
         key: 'mcp.servers',
         value: JSON.stringify([
-          {
-            id: 'playwright',
-            name: 'Playwright Browser',
-            type: 'stdio',
-            command: 'npx',
-            args: ['@playwright/mcp'],
-            enabled: true,
-          },
+          { id: 'playwright', name: 'Playwright Browser', type: 'stdio', command: 'npx', args: ['@playwright/mcp'], enabled: true },
         ]),
       },
     });
     console.log('Seeded default MCP server: playwright');
+  }
+
+  const existingProvider = await prisma.provider.findFirst({ where: { type: 'ollama' } });
+  if (!existingProvider) {
+    await prisma.provider.create({
+      data: {
+        name: 'Local Ollama',
+        type: 'ollama',
+        baseUrl: process.env.OLLAMA_URL || 'http://localhost:11434',
+        models: {
+          create: [
+            { name: process.env.SUMMARY_MODEL || 'llama3.2' },
+            { name: process.env.EMBED_MODEL || 'nomic-embed-text' },
+          ],
+        },
+      },
+    });
+    console.log('Seeded default Ollama provider with models: ' +
+      (process.env.SUMMARY_MODEL || 'llama3.2') + ', ' +
+      (process.env.EMBED_MODEL || 'nomic-embed-text'));
   }
 }
 
