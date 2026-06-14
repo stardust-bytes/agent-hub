@@ -346,7 +346,7 @@
   "schedules.model": "Model",
   "schedules.timezone": "Timezone",
   "schedules.frequency": "Frequency",
-  "schedules.runNow": "Run now",
+  "schedules.runNow": "RUN NOW",
   "schedules.hint.hourly": "Every hour at minute {m}",
   "schedules.hint.daily": "Every day at {time}",
   "schedules.hint.weekdays": "Weekdays at {time}",
