@@ -1,6 +1,6 @@
 {
   "name": "@thanhdp1305/cowork-171305",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": false,
   "bin": {
     "workspace-hub": "./bin/workspace-cli.js"
@@ -42,6 +42,7 @@
     "@lancedb/lancedb": "^0.30.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@nestjs/mapped-types": "^2.0.0",
+    "@nestjs/platform-socket.io": "^10.4.22",
     "@nestjs/websockets": "^10.0.0",
     "@playwright/mcp": "^0.0.76",
     "imap": "^0.8.19",
