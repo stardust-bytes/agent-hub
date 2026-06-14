@@ -47,6 +47,16 @@
   "settings.mcpOff": "OFF",
   "connectors.fetch_failed": "Could not load connectors",
   "connectors.oauth_failed": "OAuth authentication failed",
+  "connectors.oauth_confirm_failed": "OAuth confirmation failed",
+
+  "oauth.callback.loading": "⟳ authenticating...",
+  "oauth.callback.success": "✔ Connected!",
+  "oauth.callback.error": "[error] {msg}",
+  "oauth.callback.missing_params": "Missing authentication parameters. Please try again.",
+  "oauth.callback.no_opener": "Connected!",
+  "oauth.callback.close": "Close",
+  "oauth.callback.back": "Go to Connectors",
+
   "connectors.delete_failed": "Could not delete connector",
 
   "connectors.header": "CONNECTORS",

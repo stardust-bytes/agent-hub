@@ -47,6 +47,16 @@
   "settings.mcpOff": "TẮT",
   "connectors.fetch_failed": "Không tải được danh sách kết nối",
   "connectors.oauth_failed": "Xác thực OAuth thất bại",
+  "connectors.oauth_confirm_failed": "Xác thực OAuth thất bại",
+
+  "oauth.callback.loading": "⟳ đang xác thực...",
+  "oauth.callback.success": "✔ Đã kết nối!",
+  "oauth.callback.error": "[lỗi] {msg}",
+  "oauth.callback.missing_params": "Thiếu thông tin xác thực. Vui lòng thử lại.",
+  "oauth.callback.no_opener": "Đã kết nối!",
+  "oauth.callback.close": "Đóng",
+  "oauth.callback.back": "Về trang Kết nối",
+
   "connectors.delete_failed": "Không xóa được kết nối",
 
   "connectors.header": "KẾT NỐI",
