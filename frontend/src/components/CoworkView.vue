@@ -40,19 +40,22 @@
           :args="pendingApproval.args"
           :remaining="remainingSeconds"
           :total="30"
+          :max-expand-height="maxExpandHeight"
           @approve="approveTool"
           @deny="denyTool"
         />
 
-        <ChatInputBar
-          :streaming="streaming"
-          :models="availableModels"
-          :model-id="selectedModelId"
-          @update:model-id="selectedModelId = $event"
-          @submit="submitText"
-          @stop="stopStream"
-          @open-sessions="showSessionModal = true"
-        />
+        <div ref="chatInputWrapperRef">
+          <ChatInputBar
+            :streaming="streaming"
+            :models="availableModels"
+            :model-id="selectedModelId"
+            @update:model-id="selectedModelId = $event"
+            @submit="submitText"
+            @stop="stopStream"
+            @open-sessions="showSessionModal = true"
+          />
+        </div>
       </div>
 
       <ArtifactsPanel
@@ -77,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, triggerRef, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, triggerRef, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FileTree from './FileTree.vue'
 import ArtifactsPanel from './ArtifactsPanel.vue'
@@ -128,6 +131,11 @@ const fileTreeRefreshKey = ref(0)
 const activeSubagentCount = ref(0)
 const messageListRef = ref<{ scrollToBottom: () => Promise<void> } | null>(null)
 
+const chatInputWrapperRef = ref<HTMLElement | null>(null)
+const chatInputBarHeight = ref(0)
+const statusBarHeight = 28
+const maxExpandHeight = computed(() => window.innerHeight - statusBarHeight - chatInputBarHeight.value)
+
 const pendingApproval = ref<{ id: string; name: string; args: string; expiresAt: number } | null>(null)
 const remainingSeconds = ref(0)
 let approvalTimer: ReturnType<typeof setInterval> | null = null
@@ -149,6 +157,25 @@ onUnmounted(() => {
   ui.activeSubagents = 0
   clearPendingApproval()
 })
+
+let chatInputRo: ResizeObserver | null = null
+
+onMounted(() => {
+  chatInputRo = new ResizeObserver(() => {
+    chatInputBarHeight.value = chatInputWrapperRef.value?.offsetHeight ?? 0
+  })
+  if (chatInputWrapperRef.value) chatInputRo.observe(chatInputWrapperRef.value)
+  window.addEventListener('resize', onViewportResize)
+})
+
+onUnmounted(() => {
+  chatInputRo?.disconnect()
+  window.removeEventListener('resize', onViewportResize)
+})
+
+function onViewportResize() {
+  chatInputBarHeight.value = chatInputWrapperRef.value?.offsetHeight ?? 0
+}
 
 async function loadProject() {
   try {
