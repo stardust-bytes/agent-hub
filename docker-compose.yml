@@ -11,6 +11,12 @@ services:
     environment:
       DATABASE_URL: file:/app/data/dev.db
       PORT: 13596
+      OLLAMA_URL: http://host.docker.internal:11434
+      ACTIVE_PROVIDER: ollama
+      EMBED_MODEL: nomic-embed-text
+      SUMMARY_MODEL: llama3.2
+      UPLOAD_DIR: /app/data/uploads
+      APP_URL: http://localhost:17135
     volumes:
       - ./workspace_data:/app/data
     extra_hosts:
