@@ -62,7 +62,7 @@ if (!dbReady) {
 
 const server = spawn(
   'node',
-  [path.join(ROOT, 'backend', 'dist', 'src', 'main.js')],
+  [path.join(ROOT, 'backend', 'dist', 'main.js')],
   {
     stdio: 'inherit',
     env: {
