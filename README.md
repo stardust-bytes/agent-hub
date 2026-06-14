@@ -22,6 +22,10 @@
   <img src="https://img.shields.io/badge/Cowork_AI-AI_Assistant-3B82F6" alt="Cowork AI" />
 </p>
 
+<p align="center">
+  <img src="/app-screenshot.png" alt="171305 AI Workspace — terminal-style local-first AI agent interface" width="100%" />
+</p>
+
 ---
 
 ## What's Inside
