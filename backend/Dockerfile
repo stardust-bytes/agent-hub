@@ -19,4 +19,4 @@ COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 COPY prisma ./prisma
 RUN mkdir -p /app/data
 EXPOSE 13596
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && node dist/main"]
