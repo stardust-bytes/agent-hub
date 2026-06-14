@@ -11,6 +11,7 @@ export class GoogleSheetsCreateExecutor implements ToolExecutor {
     properties: {
       title: { type: 'string', description: 'Spreadsheet title' },
       initialTab: { type: 'string', description: 'Name for the first tab (optional, defaults to "Sheet1")' },
+      parentFolderId: { type: 'string', description: 'Drive folder ID to create the spreadsheet in (optional, defaults to root)' },
     },
     required: ['title'] as string[],
   };
@@ -19,7 +20,11 @@ export class GoogleSheetsCreateExecutor implements ToolExecutor {
 
   async execute(args: Record<string, unknown>): Promise<string> {
     try {
-      return await this.sheets.create(args.title as string, args.initialTab as string | undefined);
+      return await this.sheets.create(
+        args.title as string,
+        args.initialTab as string | undefined,
+        args.parentFolderId as string | undefined,
+      );
     } catch (e: unknown) {
       return `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
     }
