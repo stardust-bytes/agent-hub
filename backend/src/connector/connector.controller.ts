@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, BadRequestException } from '@nestjs/common';
 import { ConnectorService } from './connector.service';
 import { UpsertConnectorDto } from './dto/upsert-connector.dto';
 import { UpdateConnectorDto } from './dto/update-connector.dto';
 import { OAuthConfirmDto } from './dto/oauth-confirm.dto';
-import { GoogleOAuthService } from './providers/google/google-oauth.service';
+import { GoogleOAuthService, GoogleTokens } from './providers/google/google-oauth.service';
 
 @Controller('connectors')
 export class ConnectorController {
@@ -11,6 +11,10 @@ export class ConnectorController {
     private readonly connector: ConnectorService,
     private readonly googleOAuth: GoogleOAuthService,
   ) {}
+
+  private getRedirectUri() {
+    return `${process.env.APP_URL ?? 'http://localhost:17135'}/oauth/callback`;
+  }
 
   private getCreds(type: string) {
     const map: Record<string, { clientId: string; clientSecret: string }> = {
@@ -59,8 +63,7 @@ export class ConnectorController {
   async oauthAuthUrl(@Query('type') type: string) {
     const creds = this.getCreds(type);
     if (!creds) return { error: 'unknown_type', type };
-    const redirectUri = `${process.env.APP_URL ?? 'http://localhost:17135'}/oauth/callback`;
-    return { url: this.googleOAuth.getAuthUrl(type, { ...creds, redirectUri }) };
+    return { url: this.googleOAuth.getAuthUrl(type, { ...creds, redirectUri: this.getRedirectUri() }) };
   }
 
   @Post('oauth/confirm')
@@ -72,8 +75,13 @@ export class ConnectorController {
     if (!creds.clientId || !creds.clientSecret) {
       return { error: 'missing_credentials', type };
     }
-    const redirectUri = `${process.env.APP_URL ?? 'http://localhost:17135'}/oauth/callback`;
-    const tokens = await this.googleOAuth.handleCallback(code, { ...creds, redirectUri });
+    const redirectUri = this.getRedirectUri();
+    let tokens: GoogleTokens;
+    try {
+      tokens = await this.googleOAuth.handleCallback(code, { ...creds, redirectUri });
+    } catch {
+      throw new BadRequestException('oauth_failed');
+    }
     const names: Record<string, string> = {
       google_gmail: 'Gmail',
       google_calendar: 'Google Calendar',
