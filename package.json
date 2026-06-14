@@ -1,7 +1,7 @@
 {
-  "name": "171305-workspace-hub",
+  "name": "@thanhdp1305/171305",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "bin": {
     "workspace-hub": "./bin/workspace-cli.js"
   },
@@ -9,6 +9,7 @@
     "bin/",
     "backend/dist/",
     "backend/prisma/",
+    "backend/.env.example",
     "frontend/dist/"
   ],
   "scripts": {
