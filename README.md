@@ -9,7 +9,7 @@
   <br />
   Chat with AI · Manage files · Automate tasks
   <br />
-  All local — no cloud dependency.
+  Run local with Ollama or connect to the cloud — your choice.
 </p>
 
 <p align="center">
@@ -17,6 +17,8 @@
   <img src="https://img.shields.io/badge/Backend-NestJS-E0234E?logo=nestjs" alt="NestJS" />
   <img src="https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite" alt="SQLite" />
   <img src="https://img.shields.io/badge/AI-Ollama-000000?logo=ollama" alt="Ollama" />
+  <img src="https://img.shields.io/badge/AI-OpenAI-412991?logo=openai" alt="OpenAI" />
+  <img src="https://img.shields.io/badge/AI-DeepSeek-4D6BFE" alt="DeepSeek" />
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="MIT" />
   <img src="https://img.shields.io/badge/Local_First-Privacy_First-22C55E" alt="Local First" />
   <img src="https://img.shields.io/badge/Cowork_AI-AI_Assistant-3B82F6" alt="Cowork AI" />
@@ -50,6 +52,7 @@ Connect external services via OAuth:
 - **Gmail** — Search, read, send, draft emails
 - **Google Calendar** — List, create, update, check availability
 - **Google Drive** — Search, read, list, upload files
+- **Google Sheets** — Read, update, append, create spreadsheets, format cells, add charts
 
 ### 🧰 Tools Registry
 
@@ -102,19 +105,25 @@ Granular tool permission system:
 
 ---
 
-## 🔒 100% Local First
+## 🔒 Your Data, Your Choice
 
-Everything stays on your machine:
+Your files, chat history, and documents never leave your machine:
 
 | Component | Data Store |
 |---|---|
 | **Chat History** | SQLite via Prisma |
 | **Vector Index** | LanceDB (local file) |
-| **AI Inference** | Ollama (localhost:11434) |
 | **File Storage** | Local workspace directory |
 | **Telemetry** | None — zero data leaves your machine |
 
-No accounts, no cloud services, no data sharing. Your code and conversations never leave your network.
+AI inference runs wherever you prefer:
+
+| Provider | Where It Runs |
+|---|---|
+| **Ollama** | Fully local — your GPU, your data |
+| **OpenAI** | Cloud — requires API key |
+| **DeepSeek** | Cloud — requires API key |
+| **Any OpenAI-compatible API** | Local or cloud — custom `baseUrl` |
 
 ---
 
