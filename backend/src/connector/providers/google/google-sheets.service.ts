@@ -103,11 +103,29 @@ export class GoogleSheetsService {
     return `Appended ${rows} rows.`;
   }
 
-  async create(title: string, initialTab?: string): Promise<string> {
+  async create(title: string, initialTab?: string, parentFolderId?: string): Promise<string> {
+    if (parentFolderId) {
+      const drive = await this.getDrive();
+      const res = await drive.files.create({
+        requestBody: { name: title, mimeType: 'application/vnd.google-apps.spreadsheet', parents: [parentFolderId] },
+        fields: 'id,name',
+      });
+      const spreadsheetId = res.data.id!;
+      if (initialTab) {
+        const sheets = await this.getSheets();
+        const sheetRes = await sheets.spreadsheets.get({ spreadsheetId });
+        const sheetId = sheetRes.data.sheets?.[0]?.properties?.sheetId ?? 0;
+        await sheets.spreadsheets.batchUpdate({
+          spreadsheetId,
+          requestBody: {
+            requests: [{ updateSheetProperties: { properties: { sheetId, title: initialTab }, fields: 'title' } }],
+          },
+        });
+      }
+      return `Created spreadsheet: ${res.data.name!} (id: ${spreadsheetId})`;
+    }
     const sheets = await this.getSheets();
-    const requestBody: { properties: { title: string }; sheets?: { properties: { title: string } }[] } = {
-      properties: { title },
-    };
+    const requestBody: Record<string, unknown> = { properties: { title } };
     if (initialTab) requestBody.sheets = [{ properties: { title: initialTab } }];
     const res = await sheets.spreadsheets.create({ requestBody });
     return `Created spreadsheet: ${res.data.properties!.title} (id: ${res.data.spreadsheetId})`;

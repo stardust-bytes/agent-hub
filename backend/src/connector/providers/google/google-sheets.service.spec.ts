@@ -15,7 +15,7 @@ const mockSheetsClient = {
 };
 
 const mockDriveClient = {
-  files: { list: jest.fn() },
+  files: { list: jest.fn(), create: jest.fn() },
 };
 
 jest.mock('googleapis', () => ({
@@ -141,6 +141,49 @@ describe('GoogleSheetsService', () => {
       });
       const result = await service.create('My Sheet');
       expect(result).toBe('Created spreadsheet: My Sheet (id: newId123456789012345)');
+    });
+
+    it('creates in folder when parentFolderId is provided', async () => {
+      oauthService.getAuthenticatedClient.mockResolvedValue({} as any);
+      mockDriveClient.files.create.mockResolvedValue({
+        data: { id: 'newId123456789012345', name: 'My Sheet' },
+      });
+      const result = await service.create('My Sheet', undefined, 'folderId123');
+      expect(mockDriveClient.files.create).toHaveBeenCalledWith({
+        requestBody: { name: 'My Sheet', mimeType: 'application/vnd.google-apps.spreadsheet', parents: ['folderId123'] },
+        fields: 'id,name',
+      });
+      expect(result).toBe('Created spreadsheet: My Sheet (id: newId123456789012345)');
+    });
+
+    it('creates in folder and renames initial tab', async () => {
+      oauthService.getAuthenticatedClient.mockResolvedValue({} as any);
+      mockDriveClient.files.create.mockResolvedValue({
+        data: { id: 'newId123456789012345', name: 'My Sheet' },
+      });
+      mockSheetsClient.spreadsheets.get.mockResolvedValue({
+        data: { sheets: [{ properties: { sheetId: 0, title: 'Sheet1' } }] },
+      });
+      mockSheetsClient.spreadsheets.batchUpdate.mockResolvedValue({});
+      const result = await service.create('My Sheet', 'Data', 'folderId123');
+      expect(mockDriveClient.files.create).toHaveBeenCalled();
+      expect(mockSheetsClient.spreadsheets.batchUpdate).toHaveBeenCalledWith({
+        spreadsheetId: 'newId123456789012345',
+        requestBody: {
+          requests: [{ updateSheetProperties: { properties: { sheetId: 0, title: 'Data' }, fields: 'title' } }],
+        },
+      });
+      expect(result).toBe('Created spreadsheet: My Sheet (id: newId123456789012345)');
+    });
+
+    it('still works without parentFolderId using sheets API', async () => {
+      oauthService.getAuthenticatedClient.mockResolvedValue({} as any);
+      mockSheetsClient.spreadsheets.create.mockResolvedValue({
+        data: { spreadsheetId: 'sheetsId123456789012345', properties: { title: 'Legacy' } },
+      });
+      const result = await service.create('Legacy');
+      expect(mockSheetsClient.spreadsheets.create).toHaveBeenCalled();
+      expect(result).toBe('Created spreadsheet: Legacy (id: sheetsId123456789012345)');
     });
   });
 
