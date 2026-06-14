@@ -1,5 +1,4 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { ConnectorService } from './connector.service';
 import { UpsertConnectorDto } from './dto/upsert-connector.dto';
 import { UpdateConnectorDto } from './dto/update-connector.dto';
@@ -18,12 +17,10 @@ const CREDENTIALS: Record<string, { clientId: string; clientSecret: string }> = 
     clientId: process.env.GOOGLE_DRIVE_CLIENT_ID ?? '',
     clientSecret: process.env.GOOGLE_DRIVE_CLIENT_SECRET ?? '',
   },
-};
-
-const SCOPE_TO_TYPE: Record<string, string> = {
-  'https://mail.google.com/': 'google_gmail',
-  'https://www.googleapis.com/auth/calendar': 'google_calendar',
-  'https://www.googleapis.com/auth/drive': 'google_drive',
+  google_sheets: {
+    clientId: process.env.GOOGLE_SHEETS_CLIENT_ID ?? '',
+    clientSecret: process.env.GOOGLE_SHEETS_CLIENT_SECRET ?? '',
+  },
 };
 
 @Controller('connectors')
@@ -66,10 +63,10 @@ export class ConnectorController {
   }
 
   @Get('oauth/callback')
-  async oauthCallback(@Query('scope') scope: string, @Query('code') code: string) {
-    if (!scope || !code) return { error: 'missing_params' };
-    const type = SCOPE_TO_TYPE[scope];
-    if (!type) return { error: 'unknown_scope', scope };
+  async oauthCallback(@Query('state') state: string, @Query('code') code: string) {
+    if (!state || !code) return { error: 'missing_params' };
+    const type = state;
+    if (!CREDENTIALS[type]) return { error: 'unknown_type', state };
     const creds = this.getCreds(type);
     const redirectUri = `${process.env.APP_URL ?? 'http://localhost:17135'}/api/connectors/oauth/callback`;
     const tokens = await this.googleOAuth.handleCallback(code, { ...creds, redirectUri });
@@ -77,6 +74,7 @@ export class ConnectorController {
       google_gmail: 'Gmail',
       google_calendar: 'Google Calendar',
       google_drive: 'Google Drive',
+      google_sheets: 'Google Sheets',
     };
     await this.connector.upsert(type, {
       type,
