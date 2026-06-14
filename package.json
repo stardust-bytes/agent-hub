@@ -1,6 +1,6 @@
 {
   "name": "@thanhdp1305/cowork-171305",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "private": false,
   "bin": {
     "workspace-hub": "./bin/workspace-cli.js"
