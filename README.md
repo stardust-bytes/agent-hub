@@ -134,7 +134,15 @@ AI inference runs wherever you prefer:
 - **Node.js 20+** — [nodejs.org](https://nodejs.org)
 - **Ollama** (optional, for local AI) — [ollama.ai](https://ollama.ai)
 
-### Option 1: npm (development)
+### Option 1: npm (one-command)
+
+```bash
+npx @thanhdp1305/cowork-171305
+```
+
+Opens at **http://localhost:17135**. First run auto-creates `workspace_data/` (SQLite DB), `.env`, runs migrations and seeds default data. Requires Ollama running on `localhost:11434` for local AI.
+
+### Option 2: npm (development)
 
 ```bash
 # Backend
@@ -149,7 +157,7 @@ npm install
 npm run dev                # http://localhost:17135
 ```
 
-### Option 2: Single command (Windows)
+### Option 3: Single command (Windows)
 
 ```powershell
 .\run.ps1
@@ -157,7 +165,7 @@ npm run dev                # http://localhost:17135
 
 Opens both backend and frontend automatically. Add `-Docker` flag to use Docker instead.
 
-### Option 3: Docker (recommended for production)
+### Option 4: Docker (recommended for production)
 
 ```bash
 docker compose up --build
