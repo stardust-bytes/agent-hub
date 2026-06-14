@@ -52,6 +52,7 @@ const connectorTemplates = [
   { type: 'google_gmail', name: 'Gmail' },
   { type: 'google_calendar', name: 'Google Calendar' },
   { type: 'google_drive', name: 'Google Drive' },
+  { type: 'google_sheets', name: 'Google Sheets' },
 ]
 
 const displayConnectors = computed(() => {
