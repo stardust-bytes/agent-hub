@@ -308,7 +308,10 @@
     "tool": "Tool",
     "args": "Args",
     "allow": "Allow",
-    "deny": "Deny"
+    "deny": "Deny",
+    "show_more": "↓ Show more",
+    "show_less": "↑ Collapse",
+    "keyboard_hint": "↵ · Esc"
   },
 
   "schedules.fetch_failed": "Could not load schedules",

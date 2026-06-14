@@ -308,7 +308,10 @@
     "tool": "Tool",
     "args": "Tham số",
     "allow": "Cho phép",
-    "deny": "Từ chối"
+    "deny": "Từ chối",
+    "show_more": "↓ Xem thêm",
+    "show_less": "↑ Thu gọn",
+    "keyboard_hint": "↵ · Esc"
   },
 
   "schedules.fetch_failed": "Không tải được lịch",
