@@ -12,6 +12,10 @@ const SCOPE_MAP: Record<string, string[]> = {
   google_gmail: ['https://mail.google.com/'],
   google_calendar: ['https://www.googleapis.com/auth/calendar'],
   google_drive: ['https://www.googleapis.com/auth/drive'],
+  google_sheets: [
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive.readonly',
+  ],
 };
 
 @Injectable()
