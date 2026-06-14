@@ -2,26 +2,8 @@ import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestj
 import { ConnectorService } from './connector.service';
 import { UpsertConnectorDto } from './dto/upsert-connector.dto';
 import { UpdateConnectorDto } from './dto/update-connector.dto';
+import { OAuthConfirmDto } from './dto/oauth-confirm.dto';
 import { GoogleOAuthService } from './providers/google/google-oauth.service';
-
-const CREDENTIALS: Record<string, { clientId: string; clientSecret: string }> = {
-  google_gmail: {
-    clientId: process.env.GOOGLE_GMAIL_CLIENT_ID ?? '',
-    clientSecret: process.env.GOOGLE_GMAIL_CLIENT_SECRET ?? '',
-  },
-  google_calendar: {
-    clientId: process.env.GOOGLE_CALENDAR_CLIENT_ID ?? '',
-    clientSecret: process.env.GOOGLE_CALENDAR_CLIENT_SECRET ?? '',
-  },
-  google_drive: {
-    clientId: process.env.GOOGLE_DRIVE_CLIENT_ID ?? '',
-    clientSecret: process.env.GOOGLE_DRIVE_CLIENT_SECRET ?? '',
-  },
-  google_sheets: {
-    clientId: process.env.GOOGLE_SHEETS_CLIENT_ID ?? '',
-    clientSecret: process.env.GOOGLE_SHEETS_CLIENT_SECRET ?? '',
-  },
-};
 
 @Controller('connectors')
 export class ConnectorController {
@@ -31,7 +13,25 @@ export class ConnectorController {
   ) {}
 
   private getCreds(type: string) {
-    return CREDENTIALS[type] ?? { clientId: '', clientSecret: '' };
+    const map: Record<string, { clientId: string; clientSecret: string }> = {
+      google_gmail: {
+        clientId: process.env.GOOGLE_GMAIL_CLIENT_ID ?? '',
+        clientSecret: process.env.GOOGLE_GMAIL_CLIENT_SECRET ?? '',
+      },
+      google_calendar: {
+        clientId: process.env.GOOGLE_CALENDAR_CLIENT_ID ?? '',
+        clientSecret: process.env.GOOGLE_CALENDAR_CLIENT_SECRET ?? '',
+      },
+      google_drive: {
+        clientId: process.env.GOOGLE_DRIVE_CLIENT_ID ?? '',
+        clientSecret: process.env.GOOGLE_DRIVE_CLIENT_SECRET ?? '',
+      },
+      google_sheets: {
+        clientId: process.env.GOOGLE_SHEETS_CLIENT_ID ?? '',
+        clientSecret: process.env.GOOGLE_SHEETS_CLIENT_SECRET ?? '',
+      },
+    };
+    return map[type] ?? null;
   }
 
   @Get()
@@ -58,17 +58,21 @@ export class ConnectorController {
   @Get('oauth/auth-url')
   async oauthAuthUrl(@Query('type') type: string) {
     const creds = this.getCreds(type);
-    const redirectUri = `${process.env.APP_URL ?? 'http://localhost:17135'}/api/connectors/oauth/callback`;
+    if (!creds) return { error: 'unknown_type', type };
+    const redirectUri = `${process.env.APP_URL ?? 'http://localhost:17135'}/oauth/callback`;
     return { url: this.googleOAuth.getAuthUrl(type, { ...creds, redirectUri }) };
   }
 
-  @Get('oauth/callback')
-  async oauthCallback(@Query('state') state: string, @Query('code') code: string) {
-    if (!state || !code) return { error: 'missing_params' };
+  @Post('oauth/confirm')
+  async oauthConfirm(@Body() body: OAuthConfirmDto) {
+    const { state, code } = body;
     const type = state;
-    if (!CREDENTIALS[type]) return { error: 'unknown_type', state };
     const creds = this.getCreds(type);
-    const redirectUri = `${process.env.APP_URL ?? 'http://localhost:17135'}/api/connectors/oauth/callback`;
+    if (!creds) return { error: 'unknown_type', state };
+    if (!creds.clientId || !creds.clientSecret) {
+      return { error: 'missing_credentials', type };
+    }
+    const redirectUri = `${process.env.APP_URL ?? 'http://localhost:17135'}/oauth/callback`;
     const tokens = await this.googleOAuth.handleCallback(code, { ...creds, redirectUri });
     const names: Record<string, string> = {
       google_gmail: 'Gmail',
