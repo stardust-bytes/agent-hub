@@ -1,5 +1,5 @@
 {
-  "name": "@thanhdp1305/171305",
+  "name": "@thanhdp1305/cowork-171305",
   "version": "0.1.0",
   "private": false,
   "bin": {
@@ -10,6 +10,7 @@
     "backend/dist/",
     "backend/prisma/",
     "backend/.env.example",
+    "backend/package.json",
     "frontend/dist/"
   ],
   "scripts": {
