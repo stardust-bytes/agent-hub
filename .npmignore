@@ -1,0 +1,10 @@
+frontend/src/
+frontend/node_modules/
+backend/src/
+backend/node_modules/
+backend/test/
+scripts/
+docs/
+workspace_data/
+*.md
+.*
