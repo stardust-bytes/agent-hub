@@ -19,7 +19,8 @@ connector/
 ├── connector.service.ts          — CRUD for Connector model
 ├── dto/
 │   ├── upsert-connector.dto.ts   — @IsString, @IsOptional, @IsBoolean, @IsArray, @IsObject
-│   └── update-connector.dto.ts   — PartialType(UpsertConnectorDto)
+│   ├── update-connector.dto.ts   — PartialType(UpsertConnectorDto)
+│   └── oauth-confirm.dto.ts      — @IsString state, code
 └── providers/
     └── google/
         ├── google-oauth.service.ts       — OAuth2 URL gen, token exchange, refresh
@@ -39,8 +40,8 @@ Base path: `/api/connectors`
 | `POST` | `/api/connectors` | Upsert connector by type |
 | `PATCH` | `/api/connectors/:id` | Update connector |
 | `DELETE` | `/api/connectors/:id` | Delete connector |
-| `GET` | `/api/connectors/oauth/auth-url` | Get OAuth URL (query: type, clientId, clientSecret, redirectUri) |
-| `GET` | `/api/connectors/oauth/callback` | Handle OAuth callback (query: type, code, clientId, clientSecret, redirectUri) |
+| `GET` | `/api/connectors/oauth/auth-url` | Get OAuth URL (query: type) |
+| `POST` | `/api/connectors/oauth/confirm` | Confirm OAuth (body: state, code) |
 
 ## Tools Registered
 
