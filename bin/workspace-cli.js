@@ -50,14 +50,12 @@ execSync(`npx prisma migrate deploy --schema="${path.join(ROOT, 'backend', 'pris
   env: { ...process.env, DATABASE_URL: `file:${DB_PATH}` },
 });
 
-if (!fs.existsSync(DB_PATH)) {
-  console.log('[workspace] Seeding database...');
-  execSync('npx prisma db seed', {
-    cwd: path.join(ROOT, 'backend'),
-    stdio: 'inherit',
-    env: { ...process.env, DATABASE_URL: `file:${DB_PATH}` },
-  });
-}
+console.log('[workspace] Seeding database...');
+execSync('npx prisma db seed', {
+  cwd: path.join(ROOT, 'backend'),
+  stdio: 'inherit',
+  env: { ...process.env, DATABASE_URL: `file:${DB_PATH}` },
+});
 
 const server = spawn(
   'node',
