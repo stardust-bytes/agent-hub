@@ -43,15 +43,14 @@ if (!fs.existsSync(envPath)) {
   }
 }
 
-const dbReady = fs.existsSync(DB_PATH);
-if (!dbReady) {
-  console.log('[workspace] First run — initializing database...');
-  execSync(`npx prisma migrate deploy --schema="${path.join(ROOT, 'backend', 'prisma', 'schema.prisma')}"`, {
-    cwd: path.join(ROOT, 'backend'),
-    stdio: 'inherit',
-    env: { ...process.env, DATABASE_URL: `file:${DB_PATH}` },
-  });
+console.log('[workspace] Applying database migrations...');
+execSync(`npx prisma migrate deploy --schema="${path.join(ROOT, 'backend', 'prisma', 'schema.prisma')}"`, {
+  cwd: path.join(ROOT, 'backend'),
+  stdio: 'inherit',
+  env: { ...process.env, DATABASE_URL: `file:${DB_PATH}` },
+});
 
+if (!fs.existsSync(DB_PATH)) {
   console.log('[workspace] Seeding database...');
   execSync('npx prisma db seed', {
     cwd: path.join(ROOT, 'backend'),
