@@ -25,7 +25,8 @@ connector/
         ├── google-oauth.service.ts       — OAuth2 URL gen, token exchange, refresh
         ├── gmail.service.ts              — Gmail API (search/read/send/draft/labels)
         ├── google-calendar.service.ts    — Calendar API (list/create/update/availability)
-        └── google-drive.service.ts       — Drive API (search/read/list/upload)
+        ├── google-drive.service.ts       — Drive API (search/read/list/upload)
+        └── google-sheets.service.ts     — Sheets API v4: read/listTabs/update/append/create/addTab/format/chart + resolveSpreadsheetId
 ```
 
 ## API Endpoints
@@ -58,12 +59,22 @@ Base path: `/api/connectors`
 | `google_drive_read` | `GoogleDriveReadExecutor` | GoogleDriveService |
 | `google_drive_list` | `GoogleDriveListExecutor` | GoogleDriveService |
 | `google_drive_upload` | `GoogleDriveUploadExecutor` | GoogleDriveService |
+| `google_sheets_read` | `GoogleSheetsReadExecutor` | GoogleSheetsService |
+| `google_sheets_list_tabs` | `GoogleSheetsListTabsExecutor` | GoogleSheetsService |
+| `google_sheets_update` | `GoogleSheetsUpdateExecutor` | GoogleSheetsService |
+| `google_sheets_append` | `GoogleSheetsAppendExecutor` | GoogleSheetsService |
+| `google_sheets_create` | `GoogleSheetsCreateExecutor` | GoogleSheetsService |
+| `google_sheets_add_tab` | `GoogleSheetsAddTabExecutor` | GoogleSheetsService |
+| `google_sheets_format` | `GoogleSheetsFormatExecutor` | GoogleSheetsService |
+| `google_sheets_chart` | `GoogleSheetsChartExecutor` | GoogleSheetsService |
 
 ## OAuth Scopes
 
 - Mail: `https://mail.google.com/`
 - Calendar: `https://www.googleapis.com/auth/calendar`
 - Drive: `https://www.googleapis.com/auth/drive`
+- Sheets: `https://www.googleapis.com/auth/spreadsheets`
+- Sheets (Drive search): `https://www.googleapis.com/auth/drive.readonly`
 
 ## Data Model
 
