@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="/logo.png" alt="171305" width="80" />
-</p>
-
 <h1 align="center">171305 — AI Workspace</h1>
 
 <p align="center">
@@ -25,7 +21,7 @@
 </p>
 
 <p align="center">
-  <img src="/app-screenshot.png" alt="171305 AI Workspace — terminal-style local-first AI agent interface" width="100%" />
+  <img src="https://lh3.googleusercontent.com/rd-d/ALs6j_ERbYkYAaa97hzU0AOEUDBamDRkWf9U-MgRbmUNwl8PHvqpSDETHaXJrCLUow5Vw0MMPimtDaldHGK2o25MGL18mk20_fli1R-OXW466BXNFUoVw6mWLaDSPvpSGW4QxuFEfNmHM4wlcrdotEm364SBzWwCkkabIw_CUuFBvpjJwTDp0LwhGtzp6qmsGsHk0275YbsoeeYP3bWiS9E1q_A1UZHu_p7eNq-4PK9D1_38C-7ov6rgkiYD8LhFaXY7ruTPENHdqgEC7hunFGKS_b5-yoD7hVZDx7PGIGWrTGsAOX9a_sPhnWlgSxImy0GBloVoaEPBX201pE2OWSZGhzgNkw6Rvh0xgiVoSQXklu7VnIx_ATJLjqX15bfUK5uECNA7BNiG5dOgv3cEWNmg81ZbuSK500AqRmOYsbXxigTvr5wVjs7OyiEv-psO4yqe0g1ErWd0R1RWAnqhMiPdnxMv08aJkR85H5uOTqYWx-P4yJGKQweuTgP1NKS6xWGXW_znD8ikhW2QOFKGyKOiTxZvyNwYUsndpm8gE6hGO-GaOr1iRnG9AzCz_irF1Ocx2W3ZYpiH4UxJjndnOEUWAQQihVKlMRrO7Ryt9KhM840xDrl1KGEmd2ZLFyJAUfNfYHRqY2zc8Oe2w02JVQlmqfL4SSV5KzzopMOoyeIwQhEPQL8YTfgwrhMfBiimR8FWWmjIRNOvpp3_svvu1_A-3WQlUTjpVC5nT_v4jbBgDCvgRsFzOnCIk_jE6yJPlDto98vPKYmtXGWv96gtNkvDPxFYtng-rLFCdpHwdjPbHfo2JB-lrLTJERWjBlKXxoAjNpeda1tlcy1i6swcUnnvfV7fkc2P1T0Uk1lvvoiipnbUpSoNcAQKmOEzf7C-dhgydaR9PqZGVIwmbD_7p9uv8IjbqcCd-vfYsusiLVpIgDUPv2jIjSoxUrWc1d67gezm3muXAvTGxS5-r-4fTBT5mDeLuaE9FdkdoVV5TXQCW4aVcUayK7N9ESv8gYbxiBp2qPHgKrd_S32Dsj1-b_sv_o10pfiTYkFcxmTT4agoxd1CwdM6k_xRJFXCzH0Kx54uBrHcqq3Kg5NIRUee-LYr3SGytb0AmTlTipLHDEFSm_GTmWteKLjCMAP2FmRsiMPfxXew=w1920-h911?auditContext=prefetch" alt="171305 AI Workspace — terminal-style local-first AI agent interface" width="100%" />
 </p>
 
 ---
