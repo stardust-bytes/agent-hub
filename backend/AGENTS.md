@@ -35,7 +35,8 @@ src/
 │                              AgentModule, AgentOutputModule, SettingsModule, KnowledgeModule,
 │                              SessionsModule, ProvidersModule, ToolsModule, PlansModule,
 │                              WorkspaceModule, CoworkModule, FilesModule, ModePolicyModule, MemoryModule,
-│                              ExcelModule, WordModule, UsageModule, ConnectorModule, ScheduleTasksModule)
+│                              ExcelModule, WordModule, UsageModule, ConnectorModule, ScheduleTasksModule,
+│                              AgentProfilesModule)
 ├── app.controller.ts        — GET /api/health → { status, db, timestamp }
 ├── http-exception.filter.ts — global filter: returns { statusCode, message, timestamp }
 │
@@ -100,6 +101,12 @@ src/
 │   ├── mcp/ (mcp.module.ts, mcp.service.ts, mcp-client.service.ts)
 │   ├── subagent/ (subagent.service.ts)
 │   └── *.spec.ts
+│
+├── agent-profiles/
+│   ├── agent-profiles.module.ts
+│   ├── agent-profiles.controller.ts — CRUD under /api/agent-profiles
+│   ├── agent-profiles.service.ts    — AgentProfile CRUD (remove() rejects builtin)
+│   └── dto/ (create-agent-profile.dto.ts, update-agent-profile.dto.ts)
 │
 ├── plans/
 │   ├── plans.module.ts
@@ -202,6 +209,10 @@ All routes are prefixed with `/api`.
 | `PATCH` | `/api/agent/permissions` | Update tool permissions config |
 | `GET` | `/api/agent/yolo-config` | Get YOLO classifier config |
 | `PATCH` | `/api/agent/yolo-config` | Update YOLO classifier config |
+| `GET` | `/api/agent-profiles` | List agent profiles |
+| `POST` | `/api/agent-profiles` | Create an agent profile |
+| `PATCH` | `/api/agent-profiles/:id` | Update an agent profile |
+| `DELETE` | `/api/agent-profiles/:id` | Delete an agent profile (builtin rejected) |
 | `GET` | `/api/sessions` | List sessions |
 | `POST` | `/api/sessions` | Create session |
 | `DELETE` | `/api/sessions` | Delete all sessions |
