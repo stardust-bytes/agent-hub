@@ -73,9 +73,9 @@ This section reflects the implemented system. Each module keeps its own `AGENTS.
 ### Repository Structure
 
 ```
-171305-cowork/
+agent-hub/
 ├── docker-compose.yml      — 2 services: workspace-backend (13596), workspace-frontend (17135)
-├── package.json            — root npm package (@thanhdp1305/171305-cowork), publishes the CLI
+├── package.json            — root npm package (agent-hub), publishes the CLI
 ├── bin/workspace-cli.js    — `workspace-hub` CLI (npx one-command install/run)
 ├── scripts/                — build/setup orchestration (build.mjs, …)
 ├── backend/                — NestJS API (see backend/AGENTS.md)

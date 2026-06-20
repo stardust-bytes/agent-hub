@@ -1,9 +1,9 @@
-<h1 align="center">171305 — AI Workspace</h1>
+<h1 align="center">Agent Hub</h1>
 
 <p align="center">
-  <strong>Local-first AI workspace for Office staff — developers and power users welcome.</strong>
+  <strong>Local-first AI Agent Workspace — for developers, office staff, and power users.</strong>
   <br />
-  Chat with AI · Manage files · Automate tasks
+  Chat with AI agents · Manage files · Automate tasks
   <br />
   Run local with Ollama or connect to the cloud — your choice.
 </p>
@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-  <img src="./app-screenshot.png" alt="171305 AI Workspace — terminal-style local-first AI agent interface" width="100%" />
+  <img src="./media/app-screenshot.png" alt="Agent Hub — terminal-style local-first AI agent workspace" width="100%" />
 </p>
 
 ---
