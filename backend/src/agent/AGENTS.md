@@ -54,7 +54,9 @@ agent/
 │   └── yolo-classifier.service.spec.ts
 ├── subagent/
 │   ├── subagent.service.ts         — spawns sub-agents + delegate() parallel orchestration with SSE progress
-│   └── subagent.service.spec.ts
+│   ├── subagent.service.spec.ts
+│   ├── subagent-tools.util.ts      — filterSubagentTools (strips dispatch tools + applies allowedTools) + runWithConcurrency
+│   └── subagent-tools.util.spec.ts
 ├── mcp/
 │   ├── mcp.module.ts               — MCP integration module
 │   ├── mcp.service.ts              — manages configured MCP servers + exposes their tools to the loop
