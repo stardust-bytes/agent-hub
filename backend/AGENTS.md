@@ -467,6 +467,20 @@ model ScheduleTaskLog {
   completedAt DateTime?
   createdAt   DateTime     @default(now())
 }
+
+model AgentProfile {
+  id           Int      @id @default(autoincrement())
+  slug         String   @unique
+  name         String
+  description  String?
+  systemPrompt String
+  allowedTools String   @default("*")
+  modelId      Int?
+  enabled      Boolean  @default(true)
+  builtin      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
 ```
 
 Run: `npx prisma migrate dev --name <name>` then `npx prisma generate`.
