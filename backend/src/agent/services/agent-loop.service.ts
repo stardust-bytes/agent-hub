@@ -35,6 +35,8 @@ import { ApprovalManagerService } from './approval-manager.service';
 import { PlansService } from '../../plans/plans.service';
 import { McpService } from '../mcp/mcp.service';
 import { SubagentService } from '../subagent/subagent.service';
+import { filterSubagentTools } from '../subagent/subagent-tools.util';
+import { AgentProfilesService } from '../../agent-profiles/agent-profiles.service';
 import { UsageService } from '../../usage/usage.service';
 import { ReadExcelExecutor } from '../../excel/executors/read-excel.executor';
 import { WriteExcelExecutor } from '../../excel/executors/write-excel.executor';
@@ -84,6 +86,7 @@ export class AgentLoopService {
     private readonly plansService: PlansService,
     private readonly mcpService: McpService,
     @Inject(forwardRef(() => SubagentService)) private readonly subagentService: SubagentService,
+    private readonly agentProfilesService: AgentProfilesService,
     private readonly eventEmitter: EventEmitter2,
     createTask: CreateTaskExecutor,
     updateTask: UpdateTaskExecutor,
@@ -293,38 +296,67 @@ export class AgentLoopService {
           }
         }
 
-        let result: string;
+        let result: string | undefined;
         if (name === 'spawn_subagent') {
-          const task = typeof args === 'object' && args !== null ? String((args as any).task ?? '') : '';
+          const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
+          const task = String(argsObj.task ?? '');
+          const profileSlug = argsObj.profile ? String(argsObj.profile) : undefined;
           if (!task) {
             result = 'Error: spawn_subagent requires a "task" parameter';
           } else {
-            try {
-              result = await this.subagentService.spawn(
-                task, providerType, model, providerConfig,
-                activeTools, signal, res, sessionId,
-              projectPath,
-            );
-          } catch (e) {
-            result = `Error: Subagent failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+            let promptOverride: string | undefined;
+            let allowedTools: string | undefined;
+            if (profileSlug) {
+              const profile = await this.agentProfilesService.findBySlug(profileSlug);
+              if (!profile || !profile.enabled) {
+                result = `Error: unknown agent profile "${profileSlug}"`;
+              } else {
+                promptOverride = profile.systemPrompt;
+                allowedTools = profile.allowedTools;
+              }
+            }
+            if (result === undefined) {
+              const subTools = filterSubagentTools(activeTools, allowedTools);
+              try {
+                result = await this.subagentService.spawn(
+                  task, providerType, model, providerConfig, subTools, signal, res, sessionId,
+                  projectPath, promptOverride,
+                );
+              } catch (e) {
+                result = `Error: Subagent failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+              }
+            }
           }
-        }
-      } else if (name === 'delegate') {
-        const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
-        const tasks = argsObj.tasks;
-        const taskList = Array.isArray(tasks) ? tasks.map(String) : [];
+        } else if (name === 'delegate') {
+          const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
+          const tasks = argsObj.tasks;
+          const taskList = Array.isArray(tasks) ? tasks.map(String) : [];
+          const profileSlug = argsObj.profile ? String(argsObj.profile) : undefined;
 
-        if (taskList.length === 0) {
-          result = 'Error: delegate requires a non-empty "tasks" array';
-        } else {
-          try {
-            result = await this.subagentService.delegate(
-              taskList, providerType, model, providerConfig,
-              activeTools, signal, res, sessionId,
-              projectPath,
-              );
-            } catch (e) {
-              result = `Error: Delegate failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+          if (taskList.length === 0) {
+            result = 'Error: delegate requires a non-empty "tasks" array';
+          } else {
+            let promptOverride: string | undefined;
+            let allowedTools: string | undefined;
+            if (profileSlug) {
+              const profile = await this.agentProfilesService.findBySlug(profileSlug);
+              if (!profile || !profile.enabled) {
+                result = `Error: unknown agent profile "${profileSlug}"`;
+              } else {
+                promptOverride = profile.systemPrompt;
+                allowedTools = profile.allowedTools;
+              }
+            }
+            if (result === undefined) {
+              const subTools = filterSubagentTools(activeTools, allowedTools);
+              try {
+                result = await this.subagentService.delegate(
+                  taskList, providerType, model, providerConfig, subTools, signal, res, sessionId,
+                  projectPath, promptOverride,
+                );
+              } catch (e) {
+                result = `Error: Delegate failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+              }
             }
           }
         } else {

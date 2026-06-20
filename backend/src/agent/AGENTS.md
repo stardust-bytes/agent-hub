@@ -14,7 +14,7 @@ AI agent integration module. Implements State Machine orchestrator with Planning
 - `ContextBuilderService` — builds system prompt with tool definitions (filtered via `ModePolicyService`) + agent output path info + OS environment info (platform, cwd, user home), loads chat history from Prisma.
 - `PermissionsService` — manages tool permission config stored in `Setting` table under key `agent.permissions`. Exposes `getConfig`, `updateConfig`, and `isAllowed(toolName)`.
 - `YoloClassifierService` — 2-stage security classifier: fast-path allowlist, pattern matching (danger-patterns), Stage 1 LLM gate, Stage 2 LLM detailed analysis. Integrates `DenialTracker` to prevent abuse loops. Configurable via `YoloConfig`.
-- `SubagentService` — spawns sub-agents by delegating to `AgentLoopService.run` with a sub-agent system prompt. Prefixes all SSE events with `subagent:true` marker and converts `[DONE]` to a JSON event to prevent premature stream termination.
+- `SubagentService` — spawns sub-agents by delegating to `AgentLoopService.run` with a sub-agent system prompt. Prefixes all SSE events with `subagent:true` marker and converts `[DONE]` to a JSON event to prevent premature stream termination. `spawn_subagent`/`delegate` accept an optional `profile` slug: the loop resolves it via `AgentProfilesService.findBySlug`, applying the profile's system prompt + scoped tools (`filterSubagentTools`); dispatch tools are always stripped from sub-agents (→ depth 1). An unknown/disabled slug yields a `Error: unknown agent profile "<slug>"` tool result without throwing.
 
 ## Files
 
@@ -159,6 +159,7 @@ Permission check: before each tool execution, `PermissionsService.isAllowed(name
 - CoworkModule (active project path resolution)
 - WorkspaceModule (file-op path validation)
 - ExcelModule (excel tool executors)
+- AgentProfilesModule (resolves `profile` slug → system prompt + scoped tools for spawn_subagent/delegate)
 
 
 ## Testing

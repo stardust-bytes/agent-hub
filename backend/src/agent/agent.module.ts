@@ -43,6 +43,7 @@ import { ExcelAddSheetExecutor } from '../excel/executors/excel-add-sheet.execut
 import { ListExcelSheetsExecutor } from '../excel/executors/list-excel-sheets.executor';
 import { ExcelChartExecutor } from '../excel/executors/excel-chart.executor';
 import { ConnectorModule } from '../connector/connector.module';
+import { AgentProfilesModule } from '../agent-profiles/agent-profiles.module';
 import { GoogleGmailSearchExecutor } from '../tools/executors/google-gmail-search.executor';
 import { GoogleGmailReadExecutor } from '../tools/executors/google-gmail-read.executor';
 import { GoogleGmailSendExecutor } from '../tools/executors/google-gmail-send.executor';
@@ -60,7 +61,7 @@ import { GoogleDriveCreateFolderExecutor } from '../tools/executors/google-drive
 
 
 @Module({
-  imports: [MemoryModule, forwardRef(() => ScheduleTasksModule), KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule, ConnectorModule],
+  imports: [MemoryModule, forwardRef(() => ScheduleTasksModule), KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule, ConnectorModule, AgentProfilesModule],
   controllers: [AgentController],
   providers: [
     AgentService,

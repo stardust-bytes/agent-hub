@@ -29,11 +29,39 @@ import { WriteExcelExecutor } from '../../excel/executors/write-excel.executor';
 import { ExcelAddSheetExecutor } from '../../excel/executors/excel-add-sheet.executor';
 import { ListExcelSheetsExecutor } from '../../excel/executors/list-excel-sheets.executor';
 import { ExcelChartExecutor } from '../../excel/executors/excel-chart.executor';
+import { ReadWordExecutor } from '../../word/executors/read-word.executor';
+import { WriteWordExecutor } from '../../word/executors/write-word.executor';
+import { EditWordExecutor } from '../../word/executors/edit-word.executor';
+import { GoogleGmailSearchExecutor } from '../../tools/executors/google-gmail-search.executor';
+import { GoogleGmailReadExecutor } from '../../tools/executors/google-gmail-read.executor';
+import { GoogleGmailSendExecutor } from '../../tools/executors/google-gmail-send.executor';
+import { GoogleGmailDraftExecutor } from '../../tools/executors/google-gmail-draft.executor';
+import { GoogleGmailLabelsExecutor } from '../../tools/executors/google-gmail-labels.executor';
+import { GoogleCalendarListExecutor } from '../../tools/executors/google-calendar-list.executor';
+import { GoogleCalendarCreateExecutor } from '../../tools/executors/google-calendar-create.executor';
+import { GoogleCalendarUpdateExecutor } from '../../tools/executors/google-calendar-update.executor';
+import { GoogleCalendarAvailabilityExecutor } from '../../tools/executors/google-calendar-availability.executor';
+import { GoogleDriveSearchExecutor } from '../../tools/executors/google-drive-search.executor';
+import { GoogleDriveReadExecutor } from '../../tools/executors/google-drive-read.executor';
+import { GoogleDriveListExecutor } from '../../tools/executors/google-drive-list.executor';
+import { GoogleDriveUploadExecutor } from '../../tools/executors/google-drive-upload.executor';
+import { GoogleDriveCreateFolderExecutor } from '../../tools/executors/google-drive-create-folder.executor';
+import { GoogleSheetsReadExecutor } from '../../tools/executors/google-sheets-read.executor';
+import { GoogleSheetsListTabsExecutor } from '../../tools/executors/google-sheets-list-tabs.executor';
+import { GoogleSheetsUpdateExecutor } from '../../tools/executors/google-sheets-update.executor';
+import { GoogleSheetsAppendExecutor } from '../../tools/executors/google-sheets-append.executor';
+import { GoogleSheetsCreateExecutor } from '../../tools/executors/google-sheets-create.executor';
+import { GoogleSheetsAddTabExecutor } from '../../tools/executors/google-sheets-add-tab.executor';
+import { GoogleSheetsFormatExecutor } from '../../tools/executors/google-sheets-format.executor';
+import { GoogleSheetsChartExecutor } from '../../tools/executors/google-sheets-chart.executor';
+import { UsageService } from '../../usage/usage.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PermissionsService } from './permissions.service';
+import { ApprovalManagerService } from './approval-manager.service';
 import { PlansService } from '../../plans/plans.service';
 import { McpService } from '../mcp/mcp.service';
 import { SubagentService } from '../subagent/subagent.service';
+import { AgentProfilesService } from '../../agent-profiles/agent-profiles.service';
 import { StreamChunk } from '../providers/llm-provider.interface';
 import { Response } from 'express';
 
@@ -68,9 +96,10 @@ describe('AgentLoopService', () => {
   let webFetch: WebFetchExecutor;
   let webSearch: WebSearchExecutor;
   let createTask: CreateTaskExecutor;
-  let permissionsService: { isAllowed: jest.Mock };
+  let permissionsService: { decide: jest.Mock };
   let plansService: typeof mockPlansService;
   let createPlanExec: { name: string; execute: jest.Mock };
+  let agentProfilesService: { findBySlug: jest.Mock };
 
   const defaultTools = [
     { type: 'function' as const, function: { name: 'web_search', description: 'Search the web', parameters: {} } },
@@ -129,10 +158,38 @@ describe('AgentLoopService', () => {
         { provide: ExcelAddSheetExecutor, useValue: { name: 'excel_add_sheet', execute: jest.fn() } },
         { provide: ListExcelSheetsExecutor, useValue: { name: 'list_excel_sheets', execute: jest.fn() } },
         { provide: ExcelChartExecutor, useValue: { name: 'excel_chart', execute: jest.fn() } },
-        { provide: PermissionsService, useValue: { isAllowed: jest.fn().mockResolvedValue(true) } },
+        { provide: PermissionsService, useValue: { decide: jest.fn().mockResolvedValue({ action: 'allow' }) } },
+        { provide: ApprovalManagerService, useValue: { requestApproval: jest.fn().mockResolvedValue(true) } },
         { provide: PlansService, useValue: mockPlansService },
         { provide: McpService, useValue: { tryExecute: jest.fn().mockResolvedValue(null) } },
-        { provide: SubagentService, useValue: { spawn: jest.fn().mockResolvedValue('subagent result') } },
+        { provide: SubagentService, useValue: { spawn: jest.fn().mockResolvedValue('subagent result'), delegate: jest.fn().mockResolvedValue('delegate result') } },
+        { provide: AgentProfilesService, useValue: { findBySlug: jest.fn().mockResolvedValue(null) } },
+        { provide: ReadWordExecutor, useValue: { name: 'read_word', execute: jest.fn() } },
+        { provide: WriteWordExecutor, useValue: { name: 'write_word', execute: jest.fn() } },
+        { provide: EditWordExecutor, useValue: { name: 'edit_word', execute: jest.fn() } },
+        { provide: GoogleGmailSearchExecutor, useValue: { name: 'google_gmail_search', execute: jest.fn() } },
+        { provide: GoogleGmailReadExecutor, useValue: { name: 'google_gmail_read', execute: jest.fn() } },
+        { provide: GoogleGmailSendExecutor, useValue: { name: 'google_gmail_send', execute: jest.fn() } },
+        { provide: GoogleGmailDraftExecutor, useValue: { name: 'google_gmail_draft', execute: jest.fn() } },
+        { provide: GoogleGmailLabelsExecutor, useValue: { name: 'google_gmail_labels', execute: jest.fn() } },
+        { provide: GoogleCalendarListExecutor, useValue: { name: 'google_calendar_list', execute: jest.fn() } },
+        { provide: GoogleCalendarCreateExecutor, useValue: { name: 'google_calendar_create', execute: jest.fn() } },
+        { provide: GoogleCalendarUpdateExecutor, useValue: { name: 'google_calendar_update', execute: jest.fn() } },
+        { provide: GoogleCalendarAvailabilityExecutor, useValue: { name: 'google_calendar_availability', execute: jest.fn() } },
+        { provide: GoogleDriveSearchExecutor, useValue: { name: 'google_drive_search', execute: jest.fn() } },
+        { provide: GoogleDriveReadExecutor, useValue: { name: 'google_drive_read', execute: jest.fn() } },
+        { provide: GoogleDriveListExecutor, useValue: { name: 'google_drive_list', execute: jest.fn() } },
+        { provide: GoogleDriveUploadExecutor, useValue: { name: 'google_drive_upload', execute: jest.fn() } },
+        { provide: GoogleDriveCreateFolderExecutor, useValue: { name: 'google_drive_create_folder', execute: jest.fn() } },
+        { provide: GoogleSheetsReadExecutor, useValue: { name: 'google_sheets_read', execute: jest.fn() } },
+        { provide: GoogleSheetsListTabsExecutor, useValue: { name: 'google_sheets_list_tabs', execute: jest.fn() } },
+        { provide: GoogleSheetsUpdateExecutor, useValue: { name: 'google_sheets_update', execute: jest.fn() } },
+        { provide: GoogleSheetsAppendExecutor, useValue: { name: 'google_sheets_append', execute: jest.fn() } },
+        { provide: GoogleSheetsCreateExecutor, useValue: { name: 'google_sheets_create', execute: jest.fn() } },
+        { provide: GoogleSheetsAddTabExecutor, useValue: { name: 'google_sheets_add_tab', execute: jest.fn() } },
+        { provide: GoogleSheetsFormatExecutor, useValue: { name: 'google_sheets_format', execute: jest.fn() } },
+        { provide: GoogleSheetsChartExecutor, useValue: { name: 'google_sheets_chart', execute: jest.fn() } },
+        { provide: UsageService, useValue: { record: jest.fn().mockResolvedValue(undefined) } },
         { provide: EventEmitter2, useValue: { emit: jest.fn() } },
       ],
     }).compile();
@@ -146,6 +203,7 @@ describe('AgentLoopService', () => {
     permissionsService = module.get(PermissionsService);
     plansService = module.get(PlansService);
     createPlanExec = module.get(CreatePlanExecutor);
+    agentProfilesService = module.get(AgentProfilesService);
     jest.clearAllMocks();
   });
 
@@ -251,7 +309,9 @@ describe('AgentLoopService', () => {
         [toolCall, DONE],
         [{ type: 'token', token: 'I cannot fetch that URL' }, DONE],
       );
-      permissionsService.isAllowed.mockImplementation(async (name: string) => name !== 'web_fetch');
+      permissionsService.decide.mockImplementation(async (name: string) =>
+        name === 'web_fetch' ? { action: 'deny' } : { action: 'allow' },
+      );
 
       const res = mockRes();
       const signal = new AbortController().signal;
@@ -262,9 +322,35 @@ describe('AgentLoopService', () => {
 
       expect(webFetch.execute).not.toHaveBeenCalled();
       expect(res.write).toHaveBeenCalledWith(
-        'data: ' + JSON.stringify({ toolResult: { name: 'web_fetch', result: 'Tool "web_fetch" is not permitted by workspace policy.' } }) + '\n\n',
+        'data: ' + JSON.stringify({ toolResult: { name: 'web_fetch', result: "Tool 'web_fetch' is not permitted by workspace policy." } }) + '\n\n',
       );
       expect(result).toBe('I cannot fetch that URL');
+    });
+  });
+
+  describe('Agent profile dispatch', () => {
+    it('returns an error tool result for an unknown agent profile slug', async () => {
+      const toolCall: StreamChunk = {
+        type: 'tool_call',
+        toolCall: { name: 'spawn_subagent', arguments: { task: 'do something', profile: 'nope' } },
+      };
+      llmController.stream = buildStreamMock(
+        [toolCall, DONE],
+        [{ type: 'token', token: 'Done' }, DONE],
+      );
+      agentProfilesService.findBySlug.mockResolvedValue(null);
+
+      const res = mockRes();
+      const signal = new AbortController().signal;
+      await service.run(
+        'ollama', 'llama3', 'You are helpful', [], 'spawn with bad profile',
+        defaultTools, res, signal, undefined,
+      );
+
+      expect(agentProfilesService.findBySlug).toHaveBeenCalledWith('nope');
+      expect(res.write).toHaveBeenCalledWith(
+        expect.stringContaining('unknown agent profile'),
+      );
     });
   });
 
