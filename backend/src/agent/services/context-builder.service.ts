@@ -230,7 +230,10 @@ export class ContextBuilderService {
       }
     } catch { /* MCP not available */ }
 
-    const autoDispatch = (await this.settings.get('agent.autoDispatch', 'true')) !== 'false';
+    let autoDispatch = true;
+    try {
+      autoDispatch = (await this.settings.get('agent.autoDispatch', 'true')) !== 'false';
+    } catch { /* settings unavailable: default to autoDispatch on */ }
     if (!autoDispatch) {
       return tools.filter(t => t.function.name !== 'spawn_subagent' && t.function.name !== 'delegate');
     }

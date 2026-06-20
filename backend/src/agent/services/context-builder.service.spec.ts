@@ -113,6 +113,26 @@ describe('ContextBuilderService', () => {
       expect(names).toContain('delegate');
     });
 
+    it('keeps spawn_subagent and delegate when agent.autoDispatch is explicitly "true"', async () => {
+      mockToolsService.findEnabled.mockResolvedValue(dispatchTools);
+      mockSettings.get.mockImplementation((key: string, fallback: string) =>
+        Promise.resolve(key === 'agent.autoDispatch' ? 'true' : fallback),
+      );
+      const context = await service.build(new AgentRunState(10), 0);
+      const names = context.tools.map(t => t.function.name);
+      expect(names).toContain('spawn_subagent');
+      expect(names).toContain('delegate');
+    });
+
+    it('keeps dispatch tools (default-on) when the settings lookup throws', async () => {
+      mockToolsService.findEnabled.mockResolvedValue(dispatchTools);
+      mockSettings.get.mockRejectedValue(new Error('settings unavailable'));
+      const context = await service.build(new AgentRunState(10), 0);
+      const names = context.tools.map(t => t.function.name);
+      expect(names).toContain('spawn_subagent');
+      expect(names).toContain('delegate');
+    });
+
     it('removes spawn_subagent and delegate when agent.autoDispatch is "false"', async () => {
       mockToolsService.findEnabled.mockResolvedValue(dispatchTools);
       mockSettings.get.mockImplementation((key: string, fallback: string) =>
