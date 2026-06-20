@@ -220,10 +220,9 @@
   "notes.delete.confirm": "Delete this note?",
   "notes.edit": "Edit",
 
-  "slash.plan": "Create a plan from your request",
-  "slash.resume_plan": "Resume an interrupted plan",
   "slash.help": "Show available commands",
   "slash.clear": "Clear the conversation",
+  "slash.agent": "Run via an agent profile",
 
   "agents.header": "Agents",
   "agents.add": "Add agent",

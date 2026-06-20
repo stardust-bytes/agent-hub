@@ -6,24 +6,26 @@
 
     <div v-else-if="msg.role === 'tool' && !msg.isResult"
       class="border-l-2 border-cyber-orange/50 pl-3 py-1.5">
-      <template v-if="isToolLong(msg.content)">
-        <div v-if="!isToolExpanded" class="text-sm text-cyber-orange font-mono break-all">[⚙] {{ toolPreview(msg.content) }}</div>
+      <div v-if="subagentBadge" class="text-xs text-cyber-cyan font-mono mb-0.5">{{ subagentBadge }}</div>
+      <template v-if="isToolLong(toolContent)">
+        <div v-if="!isToolExpanded" class="text-sm text-cyber-orange font-mono break-all">[⚙] {{ toolPreview(toolContent) }}</div>
         <div v-if="!isToolExpanded" class="text-sm text-cyber-muted font-mono">...</div>
-        <div v-if="isToolExpanded" class="text-sm text-cyber-orange font-mono break-all">[⚙] {{ msg.content }}</div>
+        <div v-if="isToolExpanded" class="text-sm text-cyber-orange font-mono break-all">[⚙] {{ toolContent }}</div>
         <button @click="toggleToolExpand" class="text-sm font-mono mt-0.5 text-cyber-accent/60 hover:text-cyber-accent transition-colors duration-150">{{ isToolExpanded ? t('chat.tool.collapse') : t('chat.tool.expand') }}</button>
       </template>
-      <div v-else class="text-sm text-cyber-orange font-mono break-all">[⚙] {{ msg.content }}</div>
+      <div v-else class="text-sm text-cyber-orange font-mono break-all">[⚙] {{ toolContent }}</div>
     </div>
 
     <div v-else-if="msg.role === 'tool' && msg.isResult"
       class="border-l-2 border-cyber-green/50 pl-3 py-1.5">
-      <template v-if="isToolLong(msg.content)">
-        <div v-if="!isToolExpanded" class="text-sm text-cyber-green font-mono whitespace-pre-wrap break-all">{{ toolPreview(msg.content) }}</div>
+      <div v-if="subagentBadge" class="text-xs text-cyber-cyan font-mono mb-0.5">{{ subagentBadge }}</div>
+      <template v-if="isToolLong(toolContent)">
+        <div v-if="!isToolExpanded" class="text-sm text-cyber-green font-mono whitespace-pre-wrap break-all">{{ toolPreview(toolContent) }}</div>
         <div v-if="!isToolExpanded" class="text-sm text-cyber-muted font-mono mt-0.5">...</div>
-        <div v-if="isToolExpanded" class="text-sm text-cyber-green font-mono whitespace-pre-wrap break-all">{{ msg.content }}</div>
+        <div v-if="isToolExpanded" class="text-sm text-cyber-green font-mono whitespace-pre-wrap break-all">{{ toolContent }}</div>
         <button @click="toggleToolExpand" class="text-sm font-mono mt-0.5 transition-colors duration-150 text-cyber-accent/60 hover:text-cyber-accent">{{ isToolExpanded ? t('chat.tool.collapse') : t('chat.tool.expand') }}</button>
       </template>
-      <div v-else class="text-sm text-cyber-green font-mono whitespace-pre-wrap break-all">{{ msg.content }}</div>
+      <div v-else class="text-sm text-cyber-green font-mono whitespace-pre-wrap break-all">{{ toolContent }}</div>
     </div>
 
     <div v-else-if="msg.role === 'agent'"
@@ -97,6 +99,20 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+const subagentPattern = /^\[subagent:([^\]]+)\]\s*(.*)$/
+
+const toolContent = computed(() => {
+  if (props.msg.role !== 'tool') return props.msg.content
+  const m = props.msg.content.match(subagentPattern)
+  return m ? m[2] : props.msg.content
+})
+
+const subagentBadge = computed(() => {
+  if (props.msg.role !== 'tool') return null
+  const m = props.msg.content.match(subagentPattern)
+  return m ? `◈ ${m[1]}` : null
+})
 
 const isThinking = computed(() =>
   props.msg.role === 'system' && (props.msg.content === '⟳ thinking...' || props.msg.content === '⟳ đang nghĩ...')

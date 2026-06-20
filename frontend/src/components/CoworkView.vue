@@ -217,7 +217,7 @@ async function deleteProject(id: string) {
 async function loadModel() {
   const providersStore = useProvidersStore()
   try {
-    await providersStore.loadModels()
+    await providersStore.loadModels(true)
     const models = providersStore.models
     availableModels.value = models
     if (models.length > 0) {
@@ -314,7 +314,27 @@ function stopStream() {
 }
 
 async function submitText(text: string) {
-  if (!text || streaming.value || !selectedModelId.value) return
+  if (!text || streaming.value) return
+
+  if (text === '/clear') {
+    messages.value = []
+    activePlans.value = []
+    recentToolResults.value = []
+    return
+  }
+
+  if (text === '/help') {
+    const cmds = [
+      '/agent <slug> <nhiệm vụ> — ' + t('slash.agent'),
+      '/help — ' + t('slash.help'),
+      '/clear — ' + t('slash.clear'),
+    ]
+    messages.value.push({ role: 'system', content: cmds.join('\n'), timestamp: now() })
+    await scrollToBottom()
+    return
+  }
+
+  if (!selectedModelId.value) return
 
   if (currentSessionId.value === null) {
     try {
@@ -382,11 +402,15 @@ async function submitText(text: string) {
       },
       onSubagent(ev) {
         clearThinking()
+        const saLabel = ev.subagentName ? `[subagent:${ev.subagentName}]` : '[subagent]'
         if (ev.done) {
           if (activeSubagentCount.value > 0) {
             activeSubagentCount.value--
             ui.activeSubagents = activeSubagentCount.value
           }
+        } else if (ev.toolApprovalRequired) {
+          const { id, name, args } = ev.toolApprovalRequired
+          callbacks.onToolApprovalRequired?.(id, name, args)
         } else if (ev.token) {
           const idx = getOrCreateAgentMsg()
           messages.value[idx].content += String(ev.token)
@@ -397,7 +421,7 @@ async function submitText(text: string) {
           const argsStr = Object.entries(tc.args).map(([k, v]) => `${k}=${v}`).join(', ')
           messages.value.push({
             role: 'tool',
-            content: `[subagent] ${tc.name}(${argsStr})`,
+            content: `${saLabel} ${tc.name}(${argsStr})`,
             timestamp: now(),
             toolName: tc.name,
             isResult: false,
@@ -407,7 +431,7 @@ async function submitText(text: string) {
           const tr = ev.toolResult
           messages.value.push({
             role: 'tool',
-            content: `[subagent] ${tr.name}: ${tr.result}`,
+            content: `${saLabel} ${tr.result}`,
             timestamp: now(),
             toolName: tr.name,
             isResult: true,
@@ -417,7 +441,7 @@ async function submitText(text: string) {
           currentAgentIdx = -1
           messages.value.push({
             role: 'system',
-            content: `⟳ [subagent] ${String(ev.thinking)}`,
+            content: `⟳ ${saLabel} ${String(ev.thinking)}`,
             timestamp: now(),
           })
           scrollToBottom()

@@ -220,10 +220,9 @@
   "notes.delete.confirm": "Xóa ghi chú này?",
   "notes.edit": "Sửa",
 
-  "slash.plan": "Tạo kế hoạch từ yêu cầu",
-  "slash.resume_plan": "Tiếp tục kế hoạch đang dở",
   "slash.help": "Hiển thị các lệnh",
   "slash.clear": "Xóa cuộc trò chuyện",
+  "slash.agent": "Chạy qua một agent profile",
 
   "agents.header": "Agents",
   "agents.add": "Thêm agent",

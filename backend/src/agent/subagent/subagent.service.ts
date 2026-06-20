@@ -21,6 +21,7 @@ export class SubagentService {
     sessionId?: number,
     projectPath?: string,
     systemPromptOverride?: string,
+    subagentName?: string,
   ): Promise<string> {
     if (signal.aborted) return 'Aborted';
 
@@ -31,7 +32,7 @@ export class SubagentService {
     const results = await runWithConcurrency(tasks, SubagentService.MAX_PARALLEL, async (task, i) => {
       res.write(`data: ${JSON.stringify({ delegateProgress: { requestId, index: i, subtask: task, status: 'running' } })}\n\n`);
       try {
-        const summary = await this.spawn(task, providerType, model, providerConfig, tools, signal, res, sessionId, projectPath, systemPromptOverride);
+        const summary = await this.spawn(task, providerType, model, providerConfig, tools, signal, res, sessionId, projectPath, systemPromptOverride, subagentName);
         return { index: i, task, status: 'completed' as const, summary: summary.slice(0, 200) };
       } catch (err) {
         return { index: i, task, status: 'failed' as const, summary: (err as Error).message ?? 'Unknown error' };
@@ -54,20 +55,21 @@ export class SubagentService {
     sessionId?: number,
     projectPath?: string,
     systemPromptOverride?: string,
+    subagentName?: string,
   ): Promise<string> {
     const subagentPrompt = systemPromptOverride ??
       (`You are a sub-agent. Your task: ${task}\n\n` +
        'You have access to the same workspace tools. Complete the task and report back concisely.');
 
-    const subRes = this.createPrefixedResponse(res);
+    const subRes = this.createPrefixedResponse(res, subagentName);
 
     return this.agentLoop.run(
       providerType, model, subagentPrompt, [], task,
-      tools, subRes, signal, sessionId, projectPath, providerConfig,
+      tools, subRes, signal, sessionId, projectPath, providerConfig, subagentName,
     );
   }
 
-  private createPrefixedResponse(res: WriteStream): WriteStream {
+  private createPrefixedResponse(res: WriteStream, subagentName?: string): WriteStream {
     const originalWrite = res.write.bind(res);
     return {
       write(data: string): boolean {
@@ -80,6 +82,7 @@ export class SubagentService {
             try {
               const parsed = JSON.parse(json);
               parsed.subagent = true;
+              if (subagentName) parsed.subagentName = subagentName;
               return `${prefix}${JSON.stringify(parsed)}${suffix}`;
             } catch {
               return _match;

@@ -93,6 +93,8 @@ Visible on mobile only (`flex md:hidden`, `h-[3rem]`). Renders `bottomItems` fro
 
 **SSE streaming:** Uses `parseSseStream` from `src/composables/useChatStream.ts`. Plan events populate `activePlans` ref and push step-update system messages with emoji icons (✅ ⟳ ✗). `toolResult` events populate both messages and `recentToolResults`. `mode: 'cowork'` sent as the agent mode.
 
+**Frontend slash commands:** `/clear` clears messages locally; `/help` renders available commands as a system message. `/agent` and `/plan` commands are forwarded to the backend for processing.
+
 **Model loading:** Reads from `providersStore.models` via `useProvidersStore().loadModels()`.
 
 **Session history:** Uses `loadSessionMessages` from `src/composables/useSessionMessages.ts`.
@@ -135,11 +137,11 @@ Scroll wrapper with `messagesEl` ref. Renders `<MessageItem>` per message. Expos
 
 ## cowork/ChatInputBar.vue
 
-**Props:** `streaming: boolean`, `models: ProviderModelFlat[]`, `modelId: number | null`, `mode: 'chat' | 'agent'`
+**Props:** `streaming: boolean`, `models: ProviderModelFlat[]`, `modelId: number | null`
 
-**Emits:** `update:modelId`, `update:mode`, `submit(text)`, `stop`, `openSessions`
+**Emits:** `update:modelId`, `submit(text)`, `stop`, `openSessions`
 
-Owns its own `input` ref and text state. Emits `submit` with trimmed text on form submit. Contains `<ModelSelector>`, mode toggle buttons, sessions button, and streaming dots animation.
+Owns its own `input` ref and text state. Emits `submit` with trimmed text on form submit. Contains `<SlashMenu>` with full keyboard navigation (ArrowUp/Down/Enter/Escape). Computes `slashCommands` from static entries (`/plan`, `/resume-plan`, `/help`, `/clear`) plus dynamic `/agent <slug>` per enabled profile (loaded from `useAgentProfilesStore`). Filters commands by current input prefix. Contains `<ModelSelector>`, sessions button, and streaming dots animation.
 
 ---
 
@@ -233,7 +235,7 @@ File upload zone (drag-and-drop + click), filter input, file list with status po
 
 ## SlashMenu.vue
 
-Slash-command autocomplete. Static entries (`/plan`, `/resume-plan`, `/help`, `/clear`) plus a dynamic `/agent <slug>` entry per enabled profile (loaded via `useAgentProfilesStore`), filtered by the current input.
+Slash-command autocomplete dropdown. Purely presentational — receives `commands` as a prop from `ChatInputBar.vue`, which provides static entries (`/plan`, `/resume-plan`, `/help`, `/clear`) plus dynamic `/agent <slug>` entries per enabled profile. Keyboard navigation handled by parent.
 
 ---
 

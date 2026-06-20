@@ -7,11 +7,19 @@
             <input
               ref="inputEl"
               v-model="input"
+              @keydown="onKeydown"
               class="flex-1 bg-transparent text-cyber-text text-sm outline-none font-mono placeholder-cyber-muted/40 caret-white w-full"
               :placeholder="t('chat.placeholder')"
               :disabled="streaming"
               autocomplete="off"
               spellcheck="false"
+            />
+            <SlashMenu
+              :visible="slashVisible"
+              :commands="slashCommands"
+              :selected-index="slashIndex"
+              @select="applyCommand"
+              @highlight="(i: number) => (slashIndex = i)"
             />
           </div>
           <button
@@ -47,12 +55,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ModelSelector from '../ModelSelector.vue'
+import SlashMenu, { type SlashCommand } from '../SlashMenu.vue'
+import { useAgentProfilesStore } from '../../stores/agentProfiles'
 import type { ProviderModelFlat } from './types'
 
-defineProps<{
+const props = defineProps<{
   streaming: boolean
   models: ProviderModelFlat[]
   modelId: number | null
@@ -68,15 +78,78 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const inputEl = ref<HTMLInputElement | null>(null)
 const input = ref('')
+const slashVisible = ref(false)
+const slashIndex = ref(0)
+
+const profilesStore = useAgentProfilesStore()
+
+const staticSlashCommands = computed<SlashCommand[]>(() => [
+  { command: '/help', description: t('slash.help') },
+  { command: '/clear', description: t('slash.clear') },
+])
+
+const slashCommands = computed<SlashCommand[]>(() => {
+  const raw = input.value
+  const prefix = raw.startsWith('/') ? raw : ''
+
+  const fromProfiles: SlashCommand[] = profilesStore.profiles
+    .filter(p => p.enabled)
+    .map(p => ({
+      command: `/agent ${p.slug}`,
+      description: `${t('slash.agent')} — ${p.name}`,
+    }))
+
+  const all = [...staticSlashCommands.value, ...fromProfiles]
+
+  if (!prefix) return all
+  return all.filter(c => c.command.startsWith(prefix))
+})
+
+watch(input, () => {
+  if (input.value.startsWith('/')) {
+    slashVisible.value = true
+    slashIndex.value = 0
+  } else {
+    slashVisible.value = false
+  }
+})
+
+function onKeydown(e: KeyboardEvent) {
+  if (!slashVisible.value) return
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    slashIndex.value = (slashIndex.value + 1) % slashCommands.value.length
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    slashIndex.value = (slashIndex.value - 1 + slashCommands.value.length) % slashCommands.value.length
+  } else if (e.key === 'Enter' && slashCommands.value.length > 0) {
+    e.preventDefault()
+    applyCommand(slashCommands.value[slashIndex.value].command)
+  } else if (e.key === 'Escape') {
+    e.preventDefault()
+    slashVisible.value = false
+  }
+}
+
+function applyCommand(cmd: string) {
+  input.value = cmd + ' '
+  slashVisible.value = false
+  nextTick(() => {
+    inputEl.value?.focus()
+  })
+}
 
 onMounted(() => {
   inputEl.value?.focus()
+  profilesStore.load()
 })
 
 function onSubmit() {
   const text = input.value.trim()
   if (!text) return
   input.value = ''
+  slashVisible.value = false
   emit('submit', text)
 }
 </script>

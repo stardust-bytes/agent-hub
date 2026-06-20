@@ -54,7 +54,7 @@ agent/
 │   ├── yolo-classifier.service.ts       — 2-stage LLM classifier (YoloResult/YoloConfig)
 │   └── yolo-classifier.service.spec.ts
 ├── subagent/
-│   ├── subagent.service.ts         — spawns sub-agents + delegate() parallel orchestration with SSE progress
+│   ├── subagent.service.ts         — spawns sub-agents + delegate() parallel orchestration with SSE progress; adds `subagentName` to SSE events and prefixes saved messages with `[subagent:<name>]` for persistence
 │   ├── subagent.service.spec.ts
 │   ├── subagent-tools.util.ts      — filterSubagentTools (strips dispatch tools + applies allowedTools) + runWithConcurrency
 │   └── subagent-tools.util.spec.ts
@@ -116,6 +116,7 @@ Plan execution is now handled inside the main `/chat` SSE stream. Send messages 
 | `toolResult` | `{toolResult: {name, result}}` | Tool execution completed |
 | `thinking` | `{thinking: string}` | Synthesis/processing indicator |
 | `[DONE]` | plain text | Stream complete |
+| `(subagentName)` | `"researcher"` | Optional string added to any SSE event emitted from a sub-agent run; identifies the active sub-agent profile |
 | `error` | `{error: string}` | Error occurred |
 | `plan` | `{id, title, status, steps:[{id,order,text,status}]}` | LLM proposes a plan (runPlanMode or create_plan tool) |
 | `planStepUpdate` | `{planId, stepId, status}` | Step changes state during plan execution |
