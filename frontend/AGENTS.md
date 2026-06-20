@@ -73,6 +73,7 @@ App.vue
     │   ├── OAuthCallbackPage.vue — /oauth/callback: OAuth redirect handler
     │   └── SettingsView.vue     — /settings/:tab: tabbed host
     │       ├── ProvidersView.vue — LLM provider CRUD + model management
+    │       ├── AgentsView.vue    — agent profile CRUD (system prompt + scoped tools)
     │       ├── ToolsView.vue     — tool registry toggle + config
     │       ├── UsageView.vue     — token usage totals + per-session
     │       ├── MemoryView.vue    — memory CRUD with type filter, search
@@ -113,7 +114,7 @@ src/
 │   ├── client.ts        — base request(), AppError class, fallback codes errors.network / errors.request
 │   └── *.ts             — one module per domain (providers, sessions, scheduleTasks, notes, connectors, …)
 ├── stores/              — Pinia domain stores; components read/write data exclusively through these
-│   └── *.ts             — connectors, memories, notes, providers, sessions, ui
+│   └── *.ts             — agentProfiles, connectors, memories, notes, providers, sessions, ui
 ├── composables/         — shared composables extracted from components
 │   ├── useChatStream.ts        — SSE stream parser (parseSseStream) + SseCallbacks interface
 │   └── useSessionMessages.ts   — session history loader (loadSessionMessages)

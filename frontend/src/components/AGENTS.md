@@ -32,6 +32,7 @@ AppShell.vue              — layout shell, hosts <router-view>, reads ui state 
 │   ├── OAuthCallbackPage.vue   — /oauth/callback: OAuth redirect handler (state+code → confirmOAuth)
 │   └── SettingsView.vue        — /settings/:tab: tabbed settings host
 │       ├── ProvidersView.vue   — LLM provider CRUD + model management (uses ProviderFormModal)
+│       ├── AgentsView.vue      — agent profile CRUD (uses ModelSelector + BaseConfirmModal)
 │       ├── ToolsView.vue       — tool registry toggle + config (uses ToolConfigModal)
 │       ├── UsageView.vue       — token usage totals + per-session breakdown
 │       ├── MemoryView.vue      — memory CRUD with type filter, search, auto-extracted badge
@@ -210,7 +211,19 @@ File upload zone (drag-and-drop + click), filter input, file list with status po
 
 ## SettingsView.vue
 
-`/settings/:tab` route. Tabbed host that renders one of `ProvidersView`, `ToolsView`, `UsageView`, `MemoryView`, `PermissionView` based on the `:tab` param, plus a general tab with version and health check status (pings `GET /api/health`).
+`/settings/:tab` route. Tabbed host that renders one of `ProvidersView`, `AgentsView`, `ToolsView`, `UsageView`, `MemoryView`, `PermissionView` based on the `:tab` param, plus a general tab with version and health check status (pings `GET /api/health`) and an `agent.autoDispatch` toggle (persisted via `PATCH /api/settings/agent.autoDispatch`).
+
+---
+
+## AgentsView.vue
+
+`agents` settings tab. Lists agent profiles from `useAgentProfilesStore` (`GET /api/agent-profiles`); create/edit form (name, slug, description, systemPrompt, allowedTools as comma list ↔ JSON array string or `*`, model via `ModelSelector`, enabled). Toggle enable/disable inline; delete non-builtin profiles via `BaseConfirmModal` (builtin profiles are read-only — no delete, slug locked on edit).
+
+---
+
+## SlashMenu.vue
+
+Slash-command autocomplete. Static entries (`/plan`, `/resume-plan`, `/help`, `/clear`) plus a dynamic `/agent <slug>` entry per enabled profile (loaded via `useAgentProfilesStore`), filtered by the current input.
 
 ---
 

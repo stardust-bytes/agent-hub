@@ -18,8 +18,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAgentProfilesStore } from '../stores/agentProfiles'
 
 const props = defineProps<{
   visible: boolean
@@ -33,12 +34,20 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const agentProfiles = useAgentProfilesStore()
+
+onMounted(() => {
+  if (!agentProfiles.profiles.length) agentProfiles.load()
+})
 
 const commands = computed(() => [
   { command: '/plan', description: t('slash.plan') },
   { command: '/resume-plan', description: t('slash.resume_plan') },
   { command: '/help', description: t('slash.help') },
   { command: '/clear', description: t('slash.clear') },
+  ...agentProfiles.profiles
+    .filter(p => p.enabled)
+    .map(p => ({ command: `/agent ${p.slug}`, description: p.name })),
 ])
 
 const filteredCommands = computed(() =>
