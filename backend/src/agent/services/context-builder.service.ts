@@ -7,6 +7,7 @@ import { McpService } from '../mcp/mcp.service';
 import { CoworkService } from '../../cowork/cowork.service';
 import { ModePolicyService } from '../../mode-policy/mode-policy.service';
 import { MemoryService } from '../../memory/memory.service';
+import { SettingsService } from '../../settings/settings.service';
 import { ToolDefinition } from '../../mode-policy/mode-policy.config';
 export { ToolDefinition };
 
@@ -25,6 +26,7 @@ export class ContextBuilderService {
     private readonly cowork: CoworkService,
     private readonly modePolicy: ModePolicyService,
     private readonly memoryService: MemoryService,
+    private readonly settings: SettingsService,
   ) {}
 
   async build(
@@ -227,6 +229,11 @@ export class ContextBuilderService {
         });
       }
     } catch { /* MCP not available */ }
+
+    const autoDispatch = (await this.settings.get('agent.autoDispatch', 'true')) !== 'false';
+    if (!autoDispatch) {
+      return tools.filter(t => t.function.name !== 'spawn_subagent' && t.function.name !== 'delegate');
+    }
 
     return tools;
   }

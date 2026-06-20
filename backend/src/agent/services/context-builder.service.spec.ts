@@ -6,6 +6,7 @@ import { McpService } from '../mcp/mcp.service';
 import { CoworkService } from '../../cowork/cowork.service';
 import { ModePolicyService } from '../../mode-policy/mode-policy.service';
 import { MemoryService } from '../../memory/memory.service';
+import { SettingsService } from '../../settings/settings.service';
 import { AgentRunState } from '../dto/agent-run-state';
 
 describe('ContextBuilderService', () => {
@@ -44,6 +45,10 @@ describe('ContextBuilderService', () => {
     getContextMemories: jest.fn().mockResolvedValue('## Persistent Memory'),
   };
 
+  const mockSettings = {
+    get: jest.fn().mockImplementation((_key: string, fallback: string) => Promise.resolve(fallback)),
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -54,9 +59,11 @@ describe('ContextBuilderService', () => {
         { provide: CoworkService, useValue: mockCowork },
         { provide: ModePolicyService, useValue: mockModePolicy },
         { provide: MemoryService, useValue: mockMemoryService },
+        { provide: SettingsService, useValue: mockSettings },
       ],
     }).compile();
     service = module.get(ContextBuilderService);
+    mockSettings.get.mockImplementation((_key: string, fallback: string) => Promise.resolve(fallback));
   });
 
   it('system prompt contains KB guidance for empty results', async () => {
@@ -89,5 +96,33 @@ describe('ContextBuilderService', () => {
     expect(context.systemPrompt).toContain('access to the following tools');
     expect(context.systemPrompt).toContain('Current working project: /test/project');
     expect(context.systemPrompt).toContain('System Environment:');
+  });
+
+  describe('agent.autoDispatch toggle', () => {
+    const dispatchTools = [
+      { name: 'spawn_subagent', description: 'spawn', parameters: '{}' },
+      { name: 'delegate', description: 'delegate', parameters: '{}' },
+      { name: 'web_search', description: 'search', parameters: '{}' },
+    ];
+
+    it('keeps spawn_subagent and delegate when the setting is unset (default true)', async () => {
+      mockToolsService.findEnabled.mockResolvedValue(dispatchTools);
+      const context = await service.build(new AgentRunState(10), 0);
+      const names = context.tools.map(t => t.function.name);
+      expect(names).toContain('spawn_subagent');
+      expect(names).toContain('delegate');
+    });
+
+    it('removes spawn_subagent and delegate when agent.autoDispatch is "false"', async () => {
+      mockToolsService.findEnabled.mockResolvedValue(dispatchTools);
+      mockSettings.get.mockImplementation((key: string, fallback: string) =>
+        Promise.resolve(key === 'agent.autoDispatch' ? 'false' : fallback),
+      );
+      const context = await service.build(new AgentRunState(10), 0);
+      const names = context.tools.map(t => t.function.name);
+      expect(names).not.toContain('spawn_subagent');
+      expect(names).not.toContain('delegate');
+      expect(names).toContain('web_search');
+    });
   });
 });
