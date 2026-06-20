@@ -74,4 +74,14 @@ describe('SubagentService', () => {
       expect.stringContaining('"subagent":true'),
     );
   });
+
+  it('uses the profile system prompt override when provided', async () => {
+    const agentLoop = { run: jest.fn().mockResolvedValue('done') } as any;
+    const service = new (require('./subagent.service').SubagentService)(agentLoop);
+    const res = { write: jest.fn() };
+    const tools: any[] = [];
+    await service.spawn('do x', 'ollama', 'm', { baseUrl: 'u' }, tools, new AbortController().signal, res, 1, undefined, 'CUSTOM PROMPT');
+    const promptArg = agentLoop.run.mock.calls[0][2];
+    expect(promptArg).toBe('CUSTOM PROMPT');
+  });
 });
