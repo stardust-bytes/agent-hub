@@ -8,11 +8,14 @@ We are building a local-first, self-hosted AI Agent Workspace tailored primarily
 - **Core Strategy:** Local-first data privacy. Heavy usage of embedded/zero-config components. No complex multi-server databases installation required for the user.
 
 ### 2. Tech Stack Requirements
-- **Frontend:** Vue.js (or Nuxt.js) + TailwindCSS.
-- **Backend:** NestJS (Node.js framework) acting as the main orchestrator.
-- **AI Core:** Integration with OpenCode agent philosophy, communicating with a local Ollama instance (port 11434) or external APIs (OpenAI/DeepSeek spec).
-- **Primary Database:** SQLite via Prisma or TypeORM (embedded as a single file inside a Docker volume).
-- **Vector Database:** LanceDB (or ChromaDB embedded) for local RAG (Resource/Codebase indexing).
+
+> As-built (the "or X" alternatives below were resolved during implementation):
+
+- **Frontend:** Vue 3 (Composition API, `<script setup>`) + Vite + Vue Router + Pinia + TailwindCSS.
+- **Backend:** NestJS 10 (Node.js framework) acting as the main orchestrator.
+- **AI Core:** Custom agent loop (state machine) communicating with a local Ollama instance (port 11434) or external OpenAI-compatible APIs (OpenAI/DeepSeek spec); external tools via MCP (`@modelcontextprotocol/sdk`).
+- **Primary Database:** SQLite via **Prisma** (embedded as a single file inside a Docker volume).
+- **Vector Database:** **LanceDB** (`@lancedb/lancedb`) for local RAG (Resource/Codebase indexing).
 - **Web Server / Reverse Proxy:** Nginx (embedded in frontend docker) to serve UI and proxy API requests to NestJS.
 
 ---
@@ -34,10 +37,11 @@ The interface must look and feel like an advanced developer environment (IDE/CLI
 - **Developer Context:** Ability to watch a designated local directory (project source code), split the code into chunks (handling programming language syntax), generate embeddings via local Ollama or API, and save them into LanceDB.
 - **Office Context:** A virtual `/knowledge` folder where users can drag-and-drop `.docx`, `.xlsx`, `.pdf` files. The system processes and indexes them cross-referenceable by the AI Agent.
 
-#### B. Agentic Task Management (Kanban & Automation)
-- **Database Schema:** A SQLite table `tasks` with fields: `id`, `title`, `description`, `status` (TODO, PROCESSING, DONE, FAILED), `priority`, `due_date`, and `context_metadata`.
-- **Agent Integration:** Expose custom tools/functions to the OpenCode Agent core so it can perform CRUD operations on the SQLite `tasks` table.
-- **Real-time Synchronization:** Use `@nestjs/websockets` (Socket.io) to stream agent execution logs and task states directly to the web UI in real time.
+#### B. Agentic Task Management (Scheduled Tasks & Automation)
+> As-built: the original Kanban `tasks` table was replaced by **scheduled tasks**. Notes are a separate lightweight CRUD entity.
+- **Database Schema:** SQLite `ScheduleTask` (named agent prompt + cron schedule) with `ScheduleTaskLog` per run. See `backend/AGENTS.md` for the full Prisma schema. (There is no standalone `Task` model.)
+- **Agent Integration:** Custom tools (`create_task`, `convert_note_to_task`) let the agent create `ScheduleTask` rows; the agent loop runs a task's prompt and records a `ScheduleTaskLog`.
+- **Real-time Synchronization:** Use `@nestjs/websockets` (Socket.io) to stream events to the web UI in real time — notes (`/notes`) and memories (`/memories`) namespaces; agent chat streams over SSE.
 
 ---
 
@@ -45,7 +49,7 @@ The interface must look and feel like an advanced developer environment (IDE/CLI
 The project must run smoothly via a single `docker-compose.yml`. 
 
 **Required Services:**
-1. `workspace-frontend`: Nginx container serving the built Vue.js files, proxying `/api` and `/socket.io` to the backend. Exposes port `3000`.
+1. `workspace-frontend`: Nginx container serving the built Vue.js files, proxying `/api` and `/socket.io` to the backend. Exposes port `17135` (mapped `17135:80`).
 2. `workspace-backend`: NestJS application container running the agent logic, containing the SQLite DB file and LanceDB files.
 3. **Volume Mapping:** Map a local folder `./workspace_data` into the backend container to persist the SQLite file (`dev.db`), indexed vector files, and user documents.
 4. **Host Connectivity:** Enable `extra_hosts: - "host.docker.internal:host-gateway"` so the NestJS backend container can communicate effortlessly with Ollama running natively on the host machine (with GPU acceleration).
@@ -57,8 +61,53 @@ Dear Claude, please act as a Senior Full-stack Architect and Lead UI/UX Engineer
 1. Provide the structural directory layout for a monorepo setup (or split frontend/backend folders).
 2. Generate the initialized `docker-compose.yml` meeting the specs above.
 3. Write the NestJS configurations for SQLite (Prisma/TypeORM setup) and a sample Agent Module.
-4. Provide the Nginx configuration file (`nginx.conf`) to glue the Frontend and Backend into port `3000`.
+4. Provide the Nginx configuration file (`nginx.conf`) to glue the Frontend and Backend into port `17135`.
 5. Create a basic Vue.js layout template implementing the requested **Terminal/IDE aesthetic** using TailwindCSS (with sample custom configuration for monospace fonts and custom border colors).
+
+---
+
+## System Architecture (As-Built)
+
+This section reflects the implemented system. Each module keeps its own `AGENTS.md` with details — start there, then drill down.
+
+### Repository Structure
+
+```
+171305-cowork/
+├── docker-compose.yml      — 2 services: workspace-backend (13596), workspace-frontend (17135)
+├── package.json            — root npm package (@thanhdp1305/171305-cowork), publishes the CLI
+├── bin/workspace-cli.js    — `workspace-hub` CLI (npx one-command install/run)
+├── scripts/                — build/setup orchestration (build.mjs, …)
+├── backend/                — NestJS API (see backend/AGENTS.md)
+│   ├── prisma/schema.prisma — single source of truth for the DB schema
+│   └── src/<module>/AGENTS.md — per-module docs
+├── frontend/               — Vue 3 + Vite SPA (see frontend/AGENTS.md)
+│   └── src/components/AGENTS.md
+├── docs/superpowers/       — specs/ (design) + plans/ (implementation) — committed
+└── workspace_data/         — runtime volume: dev.db, lancedb/, uploads/, agent-output/ (git-ignored)
+```
+
+### Port Reference
+
+| Service | Port | Notes |
+|---|---|---|
+| Frontend / Nginx | `17135` | UI + reverse proxy (`/api`, `/socket.io`) — the only URL users open |
+| Backend (NestJS) | `13596` | internal API; `PORT` env (falls back to `17135` if unset) |
+| Ollama (host) | `11434` | reached via `host.docker.internal` from the backend container |
+
+### Agent Subsystem
+
+- **Agent loop** (`backend/src/agent/`) — state-machine ReAct loop, SSE streaming, native tool calling. Providers: Ollama + OpenAI-compatible. Sub-agents and MCP servers supported.
+- **Tools** (`backend/src/tools/`) — tool registry (`Tool` table, enable/config) + executor classes. Office executors live in `excel/` and `word/`; Google executors back the connectors.
+- **Mode policy** (`backend/src/mode-policy/`) — filters available tools/paths and sets the permission mode per agent mode.
+- **Permissions / YOLO** (`backend/src/agent/services/`) — per-tool approval, danger-pattern blocking, 2-stage LLM safety classifier with denial tracking.
+- **RAG** — `knowledge/` (uploaded docs → LanceDB) and `workspace/` (watched codebase → LanceDB) with Ollama embeddings.
+- **Connectors** (`backend/src/connector/`) — Google OAuth (Gmail / Calendar / Drive / Sheets) exposed as agent tools.
+- **Scheduling** (`backend/src/schedule-tasks/`) — cron-driven agent runs (the "tasks" feature).
+
+### Distribution
+
+The repo is a publishable npm package; end users can run it with one command via `npx` (the `workspace-hub` CLI), or via `docker-compose up`. See `README.md`.
 
 ---
 
