@@ -32,73 +32,11 @@ export class SomeService {
 
 ## Current Prisma Schema
 
-```prisma
-model Setting {
-  key   String @id
-  value String
-}
+The authoritative schema lives at `backend/prisma/schema.prisma`; `backend/AGENTS.md` reproduces it in full. To avoid drift, only the model inventory is kept here:
 
-model KnowledgeFile {
-  id         Int      @id @default(autoincrement())
-  filename   String
-  filepath   String
-  size       Int
-  mimeType   String
-  status     String   @default("indexing")
-  chunkCount Int      @default(0)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
+`Memory`, `Setting`, `KnowledgeFile`, `Session`, `ChatMessage`, `Note`, `Provider`, `ProviderModel`, `Tool`, `Plan`, `PlanStep`, `AgentFile`, `Project`, `Connector`, `UsageRecord`, `ScheduleTask`, `ScheduleTaskLog`.
 
-model Session {
-  id        Int           @id @default(autoincrement())
-  title     String        @default("New Session")
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  messages  ChatMessage[]
-}
-
-model ChatMessage {
-  id        Int      @id @default(autoincrement())
-  sessionId Int
-  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  role      String
-  content   String
-  toolName  String?
-  isResult  Boolean  @default(false)
-  createdAt DateTime @default(now())
-}
-
-model Task {
-  id          Int       @id @default(autoincrement())
-  title       String
-  description String?
-  status      String    @default("TODO")
-  priority    Int       @default(0)
-  dueDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-model Provider {
-  id        Int             @id @default(autoincrement())
-  name      String
-  type      String          @default("ollama")
-  baseUrl   String?
-  key       String?
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  models    ProviderModel[]
-}
-
-model ProviderModel {
-  id         Int      @id @default(autoincrement())
-  providerId Int
-  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  name       String
-  createdAt  DateTime @default(now())
-}
-```
+There is **no** `Task` model — scheduled jobs use `ScheduleTask` (see `schedule-tasks/AGENTS.md`).
 
 ## Adding a New Model
 
@@ -110,7 +48,7 @@ model ProviderModel {
 ## Rules
 
 - **Never** instantiate `PrismaClient` directly inside a service. Always inject `PrismaService`.
-- **No raw SQL** except the health-check ping in `app.controller.ts` (`$queryRaw\`SELECT 1\``). Use typed client methods everywhere else: `prisma.task.findMany()`, `prisma.task.create()`, etc.
+- **No raw SQL** except the health-check ping in `app.controller.ts` (`$queryRaw\`SELECT 1\``). Use typed client methods everywhere else: `prisma.note.findMany()`, `prisma.scheduleTask.create()`, etc.
 - The `DATABASE_URL` env var points to `file:../workspace_data/dev.db` in production (Docker volume) and a local path in dev.
 
 ## Commands

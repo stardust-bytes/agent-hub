@@ -1,41 +1,53 @@
 # components/ — Agent Context
 
-All UI components for the AI Workspace. The layout is a multi-panel IDE: icon sidebar (desktop) + content column + bottom tab bar (mobile). Additional full-width views for tasks, settings, files, and providers.
+All UI components for the AI Workspace. The layout is a multi-panel IDE: icon sidebar (desktop) + router-view content column + bottom tab bar (mobile). Routing is handled by `vue-router` (`src/router/index.ts`); settings sub-screens (providers, tools, usage, memories, permissions) are tabs inside `SettingsView`.
 
 ## Component Map
 
 ```
 AppShell.vue              — layout shell, hosts <router-view>, reads ui state from useUiStore
-├── SidebarNav.vue        — 60px nav column (desktop), RouterLink items from config/navigation
-├── [Content area — router-view]
-│   ├── CoworkView.vue            — coordinator: project + chat + artifacts
+├── SidebarNav.vue        — desktop nav column, RouterLink items from config/navigation
+├── [Content area — router-view, see router/index.ts]
+│   ├── CoworkView.vue            — /cowork: coordinator (project + chat + artifacts)
 │   │   ├── cowork/MessageList.vue  — scroll wrapper + v-for MessageItem, forward events
 │   │   ├── cowork/MessageItem.vue  — per-message render (thinking/tool/agent/plan/user/system)
 │   │   ├── cowork/ChatInputBar.vue — input form + ModelSelector + mode toggle + sessions button
+│   │   ├── cowork/ProjectBar.vue   — project path + connect/save/delete menu
 │   │   ├── cowork/types.ts         — shared interfaces (Message, PlanData, ProviderModelFlat, …)
 │   │   ├── cowork/markdown.ts      — renderMarkdown, parseSegments, highlightUserMessage
-│   │   ├── cowork/ProjectBar.vue — project path + connect/save/delete menu
-│   │   └── ArtifactsPanel.vue    — file preview + plan steps + tool results pane
-│   ├── TasksView.vue         — priority filter bar + KanbanBoard
-│   ├── KanbanBoard.vue       — drag-and-drop columns (TODO/PROCESSING/DONE/FAILED)
-│   │   ├── TaskCard.vue      — individual task card with priority highlight
-│   │   │   └── TaskCardMenu.vue — priority picker + delete action
-│   ├── FilesView.vue         — knowledge base upload + codebase watcher
-│   ├── SettingsView.vue      — health check + version info + memories tab (MemoryView)
-│   │   └── MemoryView.vue   — memory CRUD with type filter, search, auto-extracted badge, create/edit modals
-│   └── ProvidersView.vue     — LLM provider CRUD + model management
-├── AgentOutputView.vue  — list + download agent-generated files
-├── BottomTabBar.vue     — mobile navigation (visible < sm)
-├── StatusBar.vue         — bottom bar: model name, DB status, WS status, live clock
+│   │   ├── ArtifactsPanel.vue      — file preview + plan steps + tool results pane
+│   │   ├── FileTree.vue            — project file tree
+│   │   ├── FilesView.vue           — knowledge base upload + codebase watcher
+│   │   ├── ToolApprovalBar.vue     — pending tool-call approve/deny bar
+│   │   ├── SlashMenu.vue           — slash-command autocomplete
+│   │   ├── PlanBubble.vue          — plan steps bubble in chat
+│   │   ├── SessionModal.vue        — session list/CRUD modal
+│   │   └── DirectoryBrowser.vue    — backend-driven filesystem tree modal
+│   ├── ScheduleTasksView.vue   — /tasks: scheduled task list + create
+│   ├── ScheduleTaskDetailView.vue — /tasks/:id: task detail + run logs
+│   ├── NotesView.vue           — /notes: markdown notes CRUD (uses NoteModal)
+│   ├── ConnectorsView.vue      — /connectors: Google connector accounts + OAuth
+│   ├── AgentOutputView.vue     — /agent-output: list + download agent files
+│   ├── PlansView.vue           — /plans: execution plan list
+│   ├── OAuthCallbackPage.vue   — /oauth/callback: OAuth redirect handler (state+code → confirmOAuth)
+│   └── SettingsView.vue        — /settings/:tab: tabbed settings host
+│       ├── ProvidersView.vue   — LLM provider CRUD + model management (uses ProviderFormModal)
+│       ├── ToolsView.vue       — tool registry toggle + config (uses ToolConfigModal)
+│       ├── UsageView.vue       — token usage totals + per-session breakdown
+│       ├── MemoryView.vue      — memory CRUD with type filter, search, auto-extracted badge
+│       └── PermissionView.vue  — tool permission / YOLO config
+├── BottomTabBar.vue     — mobile navigation (visible < md)
+└── StatusBar.vue        — bottom bar: model name, DB status, WS status, live clock
 
-DirectoryBrowser.vue         — backend-driven filesystem tree modal for cowork project selection (Teleport to body)
-SessionModal.vue             — session list modal (teleported to body, session CRUD)
-├── BaseModal.vue            — reusable modal shell
-ModelSelector.vue            — model dropdown
-├── BaseSelect.vue           — reusable styled select
+Shared/reusable:
+ModelSelector.vue            — model dropdown (uses BaseSelect)
+BaseModal.vue                — reusable modal shell (Teleport)
+BaseConfirmModal.vue         — confirm dialog (uses BaseModal)
+BaseSelect.vue               — reusable styled select
+FormBlock.vue                — agent-rendered form segment
+NoteModal.vue                — create/edit note modal
 ProviderFormModal.vue        — create/edit provider form
-├── BaseModal.vue
-OAuthCallbackPage.vue        — OAuth redirect handler (state+code from URL, calls confirmOAuth)
+ToolConfigModal.vue          — per-tool config editor
 ```
 
 ---
@@ -130,35 +142,27 @@ Owns its own `input` ref and text state. Emits `submit` with trimmed text on for
 
 ---
 
-## KanbanBoard.vue
+## ScheduleTasksView.vue
 
-**Props:** `activeFilters: Set<number>`
-
-**Emits:** `edit: [task]`, `delete: [id]`
-
-**Columns:** TODO, PROCESSING, DONE, FAILED. Drag-and-drop via `vue-draggable-plus`. WebSocket via `socket.io-client` (`/tasks` namespace) for real-time task:created/updated/deleted events. WS connection state written directly to `useUiStore().wsConnected`.
-
-**Optimistic updates:** On drag, updates status optimistically; rolls back on PATCH failure.
+`/tasks` route. Lists scheduled tasks from `GET /api/schedule-tasks`, create new, toggle enabled, run-now, navigate to detail. Frequency shown as manual/hourly/daily/weekdays/weekly.
 
 ---
 
-## TaskCard.vue
+## ScheduleTaskDetailView.vue
 
-**Props:** `task: Task`
-
-**Emits:** `delete: [id]`, `update-priority: [id, priority]`
-
-Renders title, description (truncated), priority label, due date. Priority determines left border color (red=high, orange=medium, transparent=low).
+`/tasks/:id` route (`props: true`). Shows a single scheduled task and its run logs (`GET /api/schedule-tasks/:id/logs`). Supports edit, delete, run-now.
 
 ---
 
-## TaskCardMenu.vue (absolute-positioned dropdown)
+## NotesView.vue
 
-**Props:** `taskId: number`, `currentPriority: number`
+`/notes` route. Markdown notes CRUD against `/api/notes`; create/edit via `NoteModal`. Real-time updates via the `/notes` Socket.io namespace.
 
-**Emits:** `delete`, `update-priority: [id, priority]`
+---
 
-Three priority buttons (HIGH/MED/LOW) + delete action with confirmation.
+## ConnectorsView.vue
+
+`/connectors` route. Lists connector accounts, starts Google OAuth (`GET /api/connectors/oauth/auth-url`), enables/disables and deletes connectors.
 
 ---
 
@@ -206,7 +210,7 @@ File upload zone (drag-and-drop + click), filter input, file list with status po
 
 ## SettingsView.vue
 
-Shows version and health check status (pings `GET /api/health` on mount).
+`/settings/:tab` route. Tabbed host that renders one of `ProvidersView`, `ToolsView`, `UsageView`, `MemoryView`, `PermissionView` based on the `:tab` param, plus a general tab with version and health check status (pings `GET /api/health`).
 
 ---
 

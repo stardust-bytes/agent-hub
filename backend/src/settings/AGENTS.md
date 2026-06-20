@@ -5,7 +5,7 @@ Global key-value settings store. Uses the `Setting` SQLite table. `@Global()` mo
 ## Responsibility
 
 - `SettingsController` — REST endpoints under `/api/settings`.
-- `SettingsService` — key-value `findAll()`, `get(key, fallback)`, `upsert(key, value)`. Used by KnowledgeService for embed/summary model configuration and by other modules for runtime config.
+- `SettingsService` — key-value `findAll()`, `get(key, fallback)`, `set(key, value)`, `upsert(key, value)`, `delete(key)`. Used by KnowledgeService for embed/summary model configuration and by CoworkService for the active project path, among others.
 
 ## Files
 

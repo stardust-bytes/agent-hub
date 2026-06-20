@@ -1,10 +1,10 @@
 # mode-policy/ — Agent Context
 
-Mode-aware permission gate. Centralized policy config that defines which tools, paths, and environment context each mode (chat/agent/cowork) can access.
+Mode-aware permission gate. Centralized policy config that defines which tools, paths, environment context, and permission mode each agent mode can access. Currently a single `cowork` mode is defined in `MODE_POLICY`.
 
 ## Responsibility
 
-- `ModePolicyConfig` — static `MODE_POLICY` record with tool allow/deny lists, allowed paths (with `{workspaceRoot}`/`{projectPath}` placeholders), system prompt style selection, and env context injection per mode
+- `ModePolicyConfig` — static `MODE_POLICY` record with tool allow/deny lists, allowed paths (with `{workspaceRoot}`/`{projectPath}` placeholders), system prompt style, env context, and `permissionMode` per mode. Also exports `PERMISSION_MODES` (`default`, `acceptEdits`, `bypassPermissions`, `dontAsk`, `auto`, `plan`).
 - `ModePolicyService` — resolves placeholders to absolute paths, filters `ToolDefinition[]` per mode policy, provides `isToolAllowed()` quick checks
 
 ## Files
@@ -26,25 +26,16 @@ mode-policy/
 - ConfigService (WORKSPACE_ROOT resolution)
 - ContextBuilderService (imports ToolDefinition type)
 
-## Agent Mode Policy
+## Cowork Mode Policy (current `MODE_POLICY.cowork`)
 
 | Aspect | Setting |
 |---|---|
 | Enabled tools | `*` (all) |
-| Denied tools | `run_command`, `read_file`, `list_directory`, `grep`, `glob`, `resume_plan` |
-| Allowed paths | `{workspaceRoot}/agent-output` |
-| System prompt | Full agent prompt with KB guidance |
-| Env context | `platform` |
-
-## Cowork Mode Policy
-
-| Aspect | Setting |
-|---|---|
-| Enabled tools | `*` (all) |
-| Denied tools | `create_task`, `update_task`, `delete_tasks`, `convert_note_to_task`, `search_knowledge` |
-| Allowed paths | `{projectPath}`, `{workspaceRoot}` |
-| System prompt | Full agent prompt + project path |
+| Denied tools | `search_knowledge` |
+| Allowed paths | `{projectPath}` |
+| System prompt | `cowork` style (project path) |
 | Env context | `platform`, `projectPath` |
+| Permission mode | `acceptEdits` |
 
 ## Testing
 

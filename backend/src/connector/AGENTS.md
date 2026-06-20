@@ -60,6 +60,7 @@ Base path: `/api/connectors`
 | `google_drive_read` | `GoogleDriveReadExecutor` | GoogleDriveService |
 | `google_drive_list` | `GoogleDriveListExecutor` | GoogleDriveService |
 | `google_drive_upload` | `GoogleDriveUploadExecutor` | GoogleDriveService |
+| `google_drive_create_folder` | `GoogleDriveCreateFolderExecutor` | GoogleDriveService |
 | `google_sheets_read` | `GoogleSheetsReadExecutor` | GoogleSheetsService |
 | `google_sheets_list_tabs` | `GoogleSheetsListTabsExecutor` | GoogleSheetsService |
 | `google_sheets_update` | `GoogleSheetsUpdateExecutor` | GoogleSheetsService |

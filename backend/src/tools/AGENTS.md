@@ -6,7 +6,7 @@ Tool execution framework. Manages tool definitions, enable/disable toggling, and
 
 - `ToolsController` — REST endpoints under `/api/tools`. List tools, toggle enable/disable, update config.
 - `ToolsService` — Prisma queries for `Tool` entity. Returns enabled tools for agent context building.
-- `ToolExecutors` — Individual executor classes implementing tool logic. Injected into `OllamaProvider` for the ReAct loop.
+- `ToolExecutors` — Individual executor classes implementing tool logic. Registered as providers in `AgentModule` and injected into `AgentLoopService` for the agent loop.
 
 ## Files
 
@@ -41,10 +41,17 @@ tools/
 │   ├── resume-plan.executor.ts
 │   ├── resume-plan.executor.spec.ts
 │   ├── create-plan.executor.ts
-│   └── create-plan.executor.spec.ts
+│   ├── create-plan.executor.spec.ts
 │   ├── spawn-subagent.executor.ts
-│   └── spawn-subagent.executor.spec.ts
+│   ├── spawn-subagent.executor.spec.ts
+│   ├── run-command.executor.ts
+│   ├── google-gmail-{search,read,send,draft,labels}.executor.ts
+│   ├── google-calendar-{list,create,update,availability}.executor.ts
+│   ├── google-drive-{search,read,list,upload,create-folder}.executor.ts
+│   └── google-sheets-{read,list-tabs,update,append,create,add-tab,format,chart}.executor.ts
 ```
+
+Note: Excel and Word tool executors live in `excel/executors/` and `word/executors/`, not here. All executors are registered as providers in `AgentModule`.
 
 ## API Endpoints
 
@@ -112,11 +119,12 @@ Base path: `/api/tools`
 ## Dependency Injection
 
 Executors import domain services directly:
-- `TasksModule` → `TasksService` for task CRUD executors
+- `ScheduleTasksModule` → `ScheduleTasksService` (+ `ProvidersService`) for `create_task` / `convert_note_to_task`
 - `KnowledgeModule` → `KnowledgeService` for search knowledge
 - `NotesModule` → `NotesService` for note CRUD executors
 - `PlansModule` → `PlansService` for resume_plan, create_plan executors
-- `ConnectorModule` → `GmailService`, `GoogleCalendarService`, `GoogleDriveService` for Google connector executors
+- `WorkspaceModule` → `WorkspaceService` for file-op path validation (read_file/write_file/list_directory)
+- `ConnectorModule` → `GmailService`, `GoogleCalendarService`, `GoogleDriveService`, `GoogleSheetsService` for Google connector executors
 
 ## Testing
 

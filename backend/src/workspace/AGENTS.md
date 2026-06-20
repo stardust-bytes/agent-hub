@@ -6,20 +6,34 @@ File system management module. Handles workspace root resolution, path permissio
 
 - `WorkspaceService` — resolves `WORKSPACE_ROOT` from env (default `./workspace_data`), validates allowed paths, provides read/write/list operations
 - `WorkspaceWatcherService` — chokidar-based file watcher that monitors workspace directory for new/changed/deleted files and delegates indexing to `KnowledgeService`
+- `IndexerService` — code-aware chunking + embedding of watched source files into LanceDB; exposes indexing progress via `GET /api/workspace/indexer/status`
 
 ## Files
 
 ```
 workspace/
+├── workspace.module.ts
 ├── workspace.service.ts
 ├── workspace.service.spec.ts
 ├── workspace-watcher.service.ts
 ├── workspace-watcher.service.spec.ts
+├── indexer.service.ts
 ├── workspace.controller.ts
 ├── workspace.controller.spec.ts
 └── dto/
     └── watch.dto.ts
 ```
+
+## API Endpoints
+
+Base path: `/api/workspace`
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/workspace/watch` | Start watching a codebase directory |
+| `GET` | `/api/workspace/watch/status` | Get watcher status `{ watching, directory, indexedCount }` |
+| `DELETE` | `/api/workspace/watch` | Stop watching |
+| `GET` | `/api/workspace/indexer/status` | Get indexer progress |
 
 ## Services
 

@@ -30,7 +30,12 @@ agent/
 │   ├── agent-run-state.ts     — execution tracking (steps, duration, iterations, currentState)
 │   ├── agent-state.enum.ts    — AgentState enum (PLANNING/EXECUTING/EVALUATING/CORRECTING/RESPONDING/DONE)
 │   ├── agent-action.dto.ts    — text-based action parser (activate_skill, search_kb, respond)
-│   └── execute-plan.dto.ts    — DTO for POST /api/agent/plans/:id/execute body
+│   ├── approve-tool.dto.ts    — body for POST /api/agent/approve-tool
+│   ├── permissions-config.ts  — PermissionsConfig types (per-mode tool rules)
+│   ├── update-permissions.dto.ts — body for PATCH /api/agent/permissions
+│   ├── yolo-config.dto.ts     — YoloConfig DTO for GET/PATCH /api/agent/yolo-config
+│   ├── write-stream.interface.ts — SSE write-stream abstraction
+│   └── execute-plan.dto.ts    — execute-plan body shape
 ├── services/
 │   ├── agent-loop.service.ts            — State Machine orchestrator (main loop)
 │   ├── agent-loop.service.spec.ts
@@ -39,6 +44,7 @@ agent/
 │   ├── context-builder.service.spec.ts
 │   ├── permissions.service.ts           — tool permission config: getConfig/updateConfig/isAllowed + decide() with 6-mode dispatch
 │   ├── permissions.service.spec.ts
+│   ├── approval-manager.service.ts      — tracks pending tool-call approvals; resolves on POST /approve-tool
 │   ├── danger-patterns.config.ts        — pattern-based BLOCK_RULES + matchDangerPattern
 │   ├── danger-patterns.config.spec.ts
 │   ├── denial-tracking.ts               — DenialTracker (consecutive/total limits)
@@ -49,10 +55,15 @@ agent/
 ├── subagent/
 │   ├── subagent.service.ts         — spawns sub-agents + delegate() parallel orchestration with SSE progress
 │   └── subagent.service.spec.ts
+├── mcp/
+│   ├── mcp.module.ts               — MCP integration module
+│   ├── mcp.service.ts              — manages configured MCP servers + exposes their tools to the loop
+│   └── mcp-client.service.ts       — per-server MCP client (connect, list tools, call tool)
 └── providers/
     ├── llm-provider.interface.ts   — LLMProvider interface + StreamChunk/OllamaMessage/StreamOptions types
     ├── ollama.provider.ts          — raw Ollama stream only (no loop/tool/SSE logic)
-    └── ollama.provider.spec.ts
+    ├── ollama.provider.spec.ts
+    └── openai.provider.ts          — OpenAI-compatible streaming provider (OpenAI/DeepSeek spec)
 ```
 
 ## API
@@ -80,6 +91,14 @@ Get current tool permissions config.
 **`PATCH /api/agent/permissions`**
 
 Update tool permissions config.
+
+**`POST /api/agent/approve-tool`**
+
+Approve or deny a pending tool call (resolved by `ApprovalManagerService`). Body: see `approve-tool.dto.ts`.
+
+**`GET` / `PATCH /api/agent/yolo-config`**
+
+Get / update the YOLO classifier config (`yolo-config.dto.ts`).
 
 **`POST /api/agent/chat` (plan approve/reject/resume)**
 
@@ -111,7 +130,7 @@ Plan execution is now handled inside the main `/chat` SSE stream. Send messages 
 5. If no tool_calls → **RESPONDING**: LLM decided task is complete, emit final text tokens
 6. **DONE**: emit `[DONE]` SSE event
 
-Tools available: create_task, update_task, list_tasks, get_task, delete_tasks, search_knowledge, web_fetch, web_search, create_note, update_note, list_notes, delete_note, convert_note_to_task, resume_plan, create_plan, spawn_subagent, google_gmail_search, google_gmail_read, google_gmail_send, google_gmail_draft, google_gmail_labels, google_calendar_list, google_calendar_create, google_calendar_update, google_calendar_availability, google_drive_search, google_drive_read, google_drive_list, google_drive_upload
+Tools available (gated by the Tools registry `enabled` flag and `ModePolicyService` per mode) — task/note CRUD (create_task, update_task, list_tasks, get_task, delete_tasks, create_note, update_note, list_notes, delete_note, convert_note_to_task), planning (create_plan, resume_plan, spawn_subagent), knowledge/web (search_knowledge, web_fetch, web_search), file ops (read_file, write_file, list_directory, grep, run_command [disabled by default]), Office (read_excel, write_excel, list_excel_sheets, excel_add_sheet, excel_chart, read_word, write_word, edit_word), and Google connectors (gmail/calendar/drive/sheets). See `tools/AGENTS.md` for the authoritative executor list.
 
 Permission check: before each tool execution, `PermissionsService.isAllowed(name)` is called. Denied tools emit a `toolResult` denial SSE and continue to next tool call.
 
@@ -126,13 +145,18 @@ Permission check: before each tool execution, `PermissionsService.isAllowed(name
 
 - ModePolicyModule (tool filtering per agent mode)
 - PlansModule (plan persistence + approve/reject via AgentService)
-- TasksModule (task tool executors)
+- ScheduleTasksModule (`forwardRef`) — `create_task` / `convert_note_to_task` executors
 - KnowledgeModule (search_knowledge executor)
 - SessionsModule (chat history CRUD)
 - ProvidersModule (provider model resolution)
 - ToolsModule (all ToolExecutor implementations)
 - NotesModule (note tool executors — create/update/list/delete/convert)
 - ConnectorModule (Google connector services + OAuth)
+- MemoryModule (memory context injection + extraction)
+- McpModule (external MCP server tools)
+- CoworkModule (active project path resolution)
+- WorkspaceModule (file-op path validation)
+- ExcelModule (excel tool executors)
 
 
 ## Testing
