@@ -1,10 +1,14 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { AgentLoopService } from '../services/agent-loop.service';
 import { ToolDefinition } from '../services/context-builder.service';
 import { WriteStream } from '../dto/write-stream.interface';
+import { runWithConcurrency } from './subagent-tools.util';
 
 @Injectable()
 export class SubagentService {
+  private static readonly MAX_PARALLEL = 4;
+
   constructor(@Inject(forwardRef(() => AgentLoopService)) private readonly agentLoop: AgentLoopService) {}
 
   async delegate(
@@ -17,6 +21,8 @@ export class SubagentService {
     res: WriteStream,
     sessionId?: number,
     projectPath?: string,
+    systemPromptOverride?: string,
+    subagentName?: string,
   ): Promise<string> {
     if (signal.aborted) return 'Aborted';
 
@@ -24,17 +30,14 @@ export class SubagentService {
 
     res.write(`data: ${JSON.stringify({ delegate: { requestId, taskCount: tasks.length } })}\n\n`);
 
-    const promises = tasks.map((task, i) => {
+    const results = await runWithConcurrency(tasks, SubagentService.MAX_PARALLEL, async (task, i) => {
       res.write(`data: ${JSON.stringify({ delegateProgress: { requestId, index: i, subtask: task, status: 'running' } })}\n\n`);
-      return this.spawn(task, providerType, model, providerConfig, tools, signal, res, sessionId, projectPath)
-        .then(result => ({ index: i, task, status: 'completed' as const, summary: result.slice(0, 200) }))
-        .catch((err: Error) => ({ index: i, task, status: 'failed' as const, summary: err.message ?? 'Unknown error' }));
-    });
-
-    const settled = await Promise.allSettled(promises);
-    const results: Array<{ index: number; task: string; status: string; summary: string }> = settled.map((r, i) => {
-      if (r.status === 'fulfilled') return r.value;
-      return { index: i, task: tasks[i], status: 'failed', summary: 'Promise rejected' };
+      try {
+        const summary = await this.spawn(task, providerType, model, providerConfig, tools, signal, res, sessionId, projectPath, systemPromptOverride, subagentName);
+        return { index: i, task, status: 'completed' as const, summary: summary.slice(0, 200) };
+      } catch (err) {
+        return { index: i, task, status: 'failed' as const, summary: (err as Error).message ?? 'Unknown error' };
+      }
     });
 
     res.write(`data: ${JSON.stringify({ delegateResult: { requestId, results } })}\n\n`);
@@ -52,25 +55,32 @@ export class SubagentService {
     res: WriteStream,
     sessionId?: number,
     projectPath?: string,
+    systemPromptOverride?: string,
+    subagentName?: string,
+    subagentRunId?: string,
   ): Promise<string> {
-    const subagentPrompt =
-      `You are a sub-agent. Your task: ${task}\n\n` +
-      'You have access to the same workspace tools. Complete the task and report back concisely.';
+    const runId = subagentRunId ?? crypto.randomUUID();
+    const subagentPrompt = systemPromptOverride ??
+      (`You are a sub-agent. Your task: ${task}\n\n` +
+       'You have access to the same workspace tools. Complete the task and report back concisely.');
 
-    const subRes = this.createPrefixedResponse(res);
+    const subRes = this.createPrefixedResponse(res, subagentName, runId);
 
     return this.agentLoop.run(
       providerType, model, subagentPrompt, [], task,
-      tools, subRes, signal, sessionId, projectPath, providerConfig,
+      tools, subRes, signal, sessionId, projectPath, providerConfig, subagentName, runId,
     );
   }
 
-  private createPrefixedResponse(res: WriteStream): WriteStream {
+  private createPrefixedResponse(res: WriteStream, subagentName?: string, subagentRunId?: string): WriteStream {
     const originalWrite = res.write.bind(res);
     return {
       write(data: string): boolean {
         if (/^data: \[DONE\]\n?$/m.test(data)) {
-          return originalWrite('data: {"subagent":true,"done":true}\n\n');
+          const donePayload: Record<string, unknown> = { subagent: true, done: true };
+          if (subagentName) donePayload.subagentName = subagentName;
+          if (subagentRunId) donePayload.subagentRunId = subagentRunId;
+          return originalWrite(`data: ${JSON.stringify(donePayload)}\n\n`);
         }
         const modified = data.replace(
           /^(data: )(\{.*?\})(\n\n)$/gm,
@@ -78,6 +88,8 @@ export class SubagentService {
             try {
               const parsed = JSON.parse(json);
               parsed.subagent = true;
+              if (subagentName) parsed.subagentName = subagentName;
+              if (subagentRunId) parsed.subagentRunId = subagentRunId;
               return `${prefix}${JSON.stringify(parsed)}${suffix}`;
             } catch {
               return _match;

@@ -23,6 +23,7 @@
     <MemoryView v-if="activeSettingsTab === 'memories'" />
     <UsageView v-else-if="activeSettingsTab === 'usage'" />
     <ProvidersView v-else-if="activeSettingsTab === 'providers'" />
+    <AgentsView v-else-if="activeSettingsTab === 'agents'" />
     <ToolsView v-else-if="activeSettingsTab === 'tools'" />
     <PermissionView v-else-if="activeSettingsTab === 'permissions'" />
     <div v-else class="flex-1 overflow-y-auto px-4 py-4">
@@ -62,6 +63,14 @@
         </div>
 
         <div class="border-t border-cyber-accent/10 pt-4 mt-4">
+          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('agents.header') }}</div>
+          <label class="flex items-center gap-2 text-cyber-muted text-sm font-mono cursor-pointer">
+            <input type="checkbox" v-model="autoDispatch" @change="saveAutoDispatch" class="accent-cyber-accent" />
+            {{ t('agents.autoDispatch') }}
+          </label>
+        </div>
+
+        <div class="border-t border-cyber-accent/10 pt-4 mt-4">
           <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.mcpServers') }}</div>
           <div v-if="mcpServers.length === 0" class="text-cyber-muted/50 text-sm font-mono">
             {{ t('settings.noMcpServers') }}
@@ -94,6 +103,7 @@ import PermissionView from './PermissionView.vue'
 import UsageView from './UsageView.vue'
 import ProvidersView from './ProvidersView.vue'
 import ToolsView from './ToolsView.vue'
+import AgentsView from './AgentsView.vue'
 import { getHealth } from '../api/health'
 import { listSettings, updateSetting } from '../api/settings'
 import { useProvidersStore } from '../stores/providers'
@@ -106,6 +116,7 @@ const router = useRouter()
 const TABS = [
   { key: 'general', labelKey: 'settings.header' },
   { key: 'providers', labelKey: 'providers.header' },
+  { key: 'agents', labelKey: 'agents.header' },
   { key: 'tools', labelKey: 'tools.header' },
   { key: 'memories', labelKey: 'memory.title' },
   { key: 'usage', labelKey: 'usage.header' },
@@ -145,6 +156,7 @@ const summaryModelId = ref<string>('')
 const saved = ref(false)
 const fetchError = ref(false)
 const mcpServers = ref<McpServerInfo[]>([])
+const autoDispatch = ref(true)
 
 onMounted(async () => {
   try {
@@ -157,6 +169,7 @@ onMounted(async () => {
     const settingsData = await listSettings()
     embedModelId.value = settingsData['embed_model_id'] ?? ''
     summaryModelId.value = settingsData['summary_model_id'] ?? ''
+    autoDispatch.value = settingsData['agent.autoDispatch'] !== 'false'
     if (settingsData['mcp.servers']) {
       try {
         mcpServers.value = JSON.parse(settingsData['mcp.servers']) as McpServerInfo[]
@@ -164,6 +177,11 @@ onMounted(async () => {
     }
   } catch { fetchError.value = true }
 })
+
+async function saveAutoDispatch() {
+  try { await updateSetting('agent.autoDispatch', autoDispatch.value ? 'true' : 'false') }
+  catch { /* ignore */ }
+}
 
 async function saveSetting(key: string, value: string) {
   saved.value = false

@@ -26,6 +26,7 @@ Base path: `/api/sessions`
 |---|---|---|
 | `GET` | `/api/sessions` | List all sessions with message count, ordered by `updatedAt DESC` |
 | `POST` | `/api/sessions` | Create a new session |
+| `DELETE` | `/api/sessions` | Delete all sessions |
 | `DELETE` | `/api/sessions/:id` | Delete a session (cascades messages) |
 | `GET` | `/api/sessions/:id/messages` | Get all messages for a session (ordered by `createdAt ASC`) |
 

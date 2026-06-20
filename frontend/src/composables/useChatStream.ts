@@ -7,6 +7,9 @@ export interface SubagentEvent {
   toolCall?: { name: string; args: Record<string, unknown> }
   toolResult?: { name: string; result: string }
   thinking?: string
+  toolApprovalRequired?: { id: string; name: string; args: Record<string, unknown> }
+  subagentName?: string
+  subagentRunId?: string
 }
 
 export interface SseCallbacks {
@@ -45,6 +48,7 @@ export async function parseSseStream(
       try {
         const p = JSON.parse(payload) as Record<string, unknown>
         if (p.error) { cb.onError(String(p.error)); done = true; break }
+        else if (p.toolApprovalRequired) { const { id, name, args } = p.toolApprovalRequired as { id: string; name: string; args: Record<string, unknown> }; cb.onToolApprovalRequired?.(id, name, args) }
         else if (p.subagent) cb.onSubagent(p as unknown as SubagentEvent)
         else if (p.toolCall) { const tc = p.toolCall as { name: string; args: Record<string, unknown> }; cb.onToolCall(tc.name, tc.args) }
         else if (p.toolResult) { const tr = p.toolResult as { name: string; result: string }; cb.onToolResult(tr.name, tr.result) }
@@ -52,7 +56,6 @@ export async function parseSseStream(
         else if (p.plan) cb.onPlan(p.plan as PlanData)
         else if (p.planStepUpdate) { const u = p.planStepUpdate as { planId: number; stepId: number; status: string }; cb.onPlanStepUpdate(u.planId, u.stepId, u.status) }
         else if (p.planInterrupted) { const i = p.planInterrupted as { planId: number; reason: string }; cb.onPlanInterrupted(i.planId, i.reason) }
-        else if (p.toolApprovalRequired) { const { id, name, args } = p.toolApprovalRequired as { id: string; name: string; args: Record<string, unknown> }; cb.onToolApprovalRequired?.(id, name, args) }
         else if (p.delegateProgress) { const d = p.delegateProgress as { index: number; subtask: string; status: string }; cb.onDelegateProgress(d.index, d.subtask, d.status) }
         else if (p.delegateResult) { const d = p.delegateResult as { count: number }; cb.onDelegateResult(d.count) }
         else if (p.token) cb.onToken(String(p.token))

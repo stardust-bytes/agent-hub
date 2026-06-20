@@ -3,11 +3,13 @@
     <ProjectBar
       :project-path="projectPath"
       :saved-projects="savedProjects"
+      :subagent-count="activeSubagentCount"
       @browse-directory="showDirBrowser = true"
       @select-project="connectProject"
       @delete-project="deleteProject"
       @save-project="saveCurrentProject"
       @toggle-artifacts="artifactsVisible = !artifactsVisible"
+      @toggle-subagent-monitor="subagentMonitorVisible = !subagentMonitorVisible"
       @disconnect="disconnect"
     />
 
@@ -67,6 +69,11 @@
         class="w-96 shrink-0"
         @close="artifactsVisible = false"
       />
+      <SubagentMonitorPanel
+        :visible="subagentMonitorVisible"
+        :sessions="subagentSessions"
+        @close="subagentMonitorVisible = false"
+      />
     </div>
 
     <SessionModal
@@ -84,6 +91,7 @@ import { ref, computed, triggerRef, onMounted, onUnmounted, nextTick } from 'vue
 import { useI18n } from 'vue-i18n'
 import FileTree from './FileTree.vue'
 import ArtifactsPanel from './ArtifactsPanel.vue'
+import SubagentMonitorPanel from './SubagentMonitorPanel.vue'
 import DirectoryBrowser from './DirectoryBrowser.vue'
 import SessionModal from './SessionModal.vue'
 import MessageList from './cowork/MessageList.vue'
@@ -91,6 +99,7 @@ import ChatInputBar from './cowork/ChatInputBar.vue'
 import ProjectBar from './cowork/ProjectBar.vue'
 import ToolApprovalBar from './ToolApprovalBar.vue'
 import type { Message, PlanData } from './cowork/types'
+import type { SubagentSession, SubagentLogEntry } from './SubagentMonitorPanel.vue'
 import { useProvidersStore } from '../stores/providers'
 import { useUiStore } from '../stores/ui'
 import { createSession, getSessionMessages } from '../api/sessions'
@@ -130,6 +139,8 @@ const showSessionModal = ref(false)
 const fileTreeRefreshKey = ref(0)
 const activeSubagentCount = ref(0)
 const messageListRef = ref<{ scrollToBottom: () => Promise<void> } | null>(null)
+const subagentSessions = ref<SubagentSession[]>([])
+const subagentMonitorVisible = ref(false)
 
 const chatInputWrapperRef = ref<HTMLElement | null>(null)
 const chatInputBarHeight = ref(0)
@@ -139,6 +150,28 @@ const maxExpandHeight = computed(() => window.innerHeight - statusBarHeight - ch
 const pendingApproval = ref<{ id: string; name: string; args: string; expiresAt: number } | null>(null)
 const remainingSeconds = ref(0)
 let approvalTimer: ReturnType<typeof setInterval> | null = null
+
+function uid(): string {
+  return Math.random().toString(36).slice(2, 10)
+}
+
+function getOrCreateSession(runId: string | undefined, name: string): SubagentSession {
+  if (runId) {
+    const existing = subagentSessions.value.find(s => s.id === runId)
+    if (existing) return existing
+  }
+  const session: SubagentSession = {
+    id: runId || uid(),
+    name,
+    status: 'running',
+    logs: [],
+    startedAt: now(),
+    startedAtMs: Date.now(),
+  }
+  subagentSessions.value.push(session)
+  triggerRef(subagentSessions)
+  return session
+}
 
 function clearPendingApproval() {
   if (approvalTimer) {
@@ -217,7 +250,7 @@ async function deleteProject(id: string) {
 async function loadModel() {
   const providersStore = useProvidersStore()
   try {
-    await providersStore.loadModels()
+    await providersStore.loadModels(true)
     const models = providersStore.models
     availableModels.value = models
     if (models.length > 0) {
@@ -314,7 +347,27 @@ function stopStream() {
 }
 
 async function submitText(text: string) {
-  if (!text || streaming.value || !selectedModelId.value) return
+  if (!text || streaming.value) return
+
+  if (text === '/clear') {
+    messages.value = []
+    activePlans.value = []
+    recentToolResults.value = []
+    return
+  }
+
+  if (text === '/help') {
+    const cmds = [
+      '/agent <slug> <nhiệm vụ> — ' + t('slash.agent'),
+      '/help — ' + t('slash.help'),
+      '/clear — ' + t('slash.clear'),
+    ]
+    messages.value.push({ role: 'system', content: cmds.join('\n'), timestamp: now() })
+    await scrollToBottom()
+    return
+  }
+
+  if (!selectedModelId.value) return
 
   if (currentSessionId.value === null) {
     try {
@@ -382,44 +435,64 @@ async function submitText(text: string) {
       },
       onSubagent(ev) {
         clearThinking()
+        const session = getOrCreateSession(ev.subagentRunId, ev.subagentName || 'subagent')
+        const saLabel = ev.subagentName ? `[subagent:${ev.subagentName}]` : '[subagent]'
+        const ts = now()
         if (ev.done) {
+          session.status = 'completed'
+          session.completedAt = ts
+          session.logs.push({ type: 'done', text: 'Done', timestamp: ts })
           if (activeSubagentCount.value > 0) {
             activeSubagentCount.value--
             ui.activeSubagents = activeSubagentCount.value
           }
+          triggerRef(subagentSessions)
+        } else if (ev.toolApprovalRequired) {
+          const { id, name, args } = ev.toolApprovalRequired
+          callbacks.onToolApprovalRequired?.(id, name, args)
         } else if (ev.token) {
-          const idx = getOrCreateAgentMsg()
-          messages.value[idx].content += String(ev.token)
-          scrollToBottom()
+          const lastLog = session.logs[session.logs.length - 1]
+          if (lastLog && lastLog.type === 'token') {
+            lastLog.text += String(ev.token)
+          } else {
+            session.logs.push({ type: 'token', text: String(ev.token), timestamp: ts })
+          }
+          triggerRef(subagentSessions)
         } else if (ev.toolCall) {
           currentAgentIdx = -1
           const tc = ev.toolCall
           const argsStr = Object.entries(tc.args).map(([k, v]) => `${k}=${v}`).join(', ')
+          session.logs.push({ type: 'toolCall', text: `${tc.name}(${argsStr})`, timestamp: ts, toolName: tc.name })
           messages.value.push({
             role: 'tool',
-            content: `[subagent] ${tc.name}(${argsStr})`,
-            timestamp: now(),
+            content: `${saLabel} ${tc.name}`,
+            timestamp: ts,
             toolName: tc.name,
             isResult: false,
           })
+          triggerRef(subagentSessions)
           scrollToBottom()
         } else if (ev.toolResult) {
           const tr = ev.toolResult
+          session.logs.push({ type: 'toolResult', text: tr.result, timestamp: ts, toolName: tr.name })
           messages.value.push({
             role: 'tool',
-            content: `[subagent] ${tr.name}: ${tr.result}`,
-            timestamp: now(),
+            content: `${saLabel} ${tr.result.slice(0, 200)}`,
+            timestamp: ts,
             toolName: tr.name,
             isResult: true,
           })
+          triggerRef(subagentSessions)
           scrollToBottom()
         } else if (ev.thinking) {
           currentAgentIdx = -1
+          session.logs.push({ type: 'thinking', text: String(ev.thinking), timestamp: ts })
           messages.value.push({
             role: 'system',
-            content: `⟳ [subagent] ${String(ev.thinking)}`,
-            timestamp: now(),
+            content: `⟳ ${saLabel} ${String(ev.thinking)}`,
+            timestamp: ts,
           })
+          triggerRef(subagentSessions)
           scrollToBottom()
         }
       },
@@ -513,7 +586,9 @@ async function submitText(text: string) {
         scrollToBottom()
       },
       onDone() {
-        /* no-op: post-stream cleanup handled below */
+        const lastAgent = [...messages.value].reverse().find(m => m.role === 'agent')
+        if (lastAgent) lastAgent.typing = false
+        triggerRef(messages)
       },
     }
 
@@ -521,6 +596,7 @@ async function submitText(text: string) {
 
     const lastAgent = [...messages.value].reverse().find(m => m.role === 'agent')
     if (lastAgent) lastAgent.typing = false
+    triggerRef(messages)
     await scrollToBottom()
   } catch (e) {
     if (currentAgentIdx >= 0) {

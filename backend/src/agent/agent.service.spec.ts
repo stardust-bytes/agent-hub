@@ -6,7 +6,8 @@ import { ContextBuilderService } from './services/context-builder.service';
 import { ProvidersService } from '../providers/providers.service';
 import { PermissionsService } from './services/permissions.service';
 import { PlansService } from '../plans/plans.service';
-import { SubagentService } from './subagent/subagent.service';
+import { CoworkService } from '../cowork/cowork.service';
+import { AgentProfilesService } from '../agent-profiles/agent-profiles.service';
 
 describe('AgentService', () => {
   let service: AgentService;
@@ -43,10 +44,12 @@ describe('AgentService', () => {
     approve: jest.fn().mockResolvedValue({ id: 1, status: 'APPROVED' }),
     reject: jest.fn().mockResolvedValue({ id: 1, status: 'CANCELLED' }),
   };
-  const mockSubagentService = {
-    getDelegation: jest.fn(),
-    removeDelegation: jest.fn(),
-    spawn: jest.fn().mockResolvedValue('subtask done'),
+  const mockCoworkService = {
+    getProject: jest.fn().mockResolvedValue(null),
+  };
+  const mockAgentProfilesService = {
+    findBySlug: jest.fn().mockResolvedValue(null),
+    findEnabled: jest.fn().mockResolvedValue([]),
   };
 
   beforeEach(async () => {
@@ -59,7 +62,8 @@ describe('AgentService', () => {
         { provide: ProvidersService, useValue: mockProvidersService },
         { provide: PermissionsService, useValue: mockPermissionsService },
         { provide: PlansService, useValue: mockPlansService },
-        { provide: SubagentService, useValue: mockSubagentService },
+        { provide: CoworkService, useValue: mockCoworkService },
+        { provide: AgentProfilesService, useValue: mockAgentProfilesService },
       ],
     }).compile();
     service = module.get(AgentService);
@@ -163,6 +167,7 @@ describe('AgentService', () => {
         signal,
         res,
         1,
+        undefined,
       );
     });
 

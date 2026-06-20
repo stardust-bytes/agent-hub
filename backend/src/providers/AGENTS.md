@@ -35,6 +35,7 @@ Base path: `/api/providers`
 | `GET` | `/api/providers/models` | List all models as flat list `{ id, name, providerId, providerName }` |
 | `POST` | `/api/providers/:id/models` | Add model to provider |
 | `DELETE` | `/api/providers/:id/models/:modelId` | Remove model from provider |
+| `POST` | `/api/providers/:id/sync-models` | Fetch + sync available models from the provider API |
 
 ## Key Patterns
 

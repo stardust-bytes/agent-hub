@@ -17,6 +17,7 @@ agent-output/
 |---|---|---|
 | GET | /api/agent-output | List files in agent-output/ directory |
 | GET | /api/agent-output/:filename/download | Download file by filename |
+| DELETE | /api/agent-output/:filename | Delete a file by filename |
 
 ## How it works
 

@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { NotesModule } from './notes/notes.module';
 import { AgentModule } from './agent/agent.module';
+import { AgentProfilesModule } from './agent-profiles/agent-profiles.module';
 import { AgentOutputModule } from './agent-output/agent-output.module';
 import { SettingsModule } from './settings/settings.module';
 import { KnowledgeModule } from './knowledge/knowledge.module';
@@ -30,6 +31,7 @@ import { ScheduleTasksModule } from './schedule-tasks/schedule-tasks.module';
     PrismaModule,
     NotesModule,
     AgentModule,
+    AgentProfilesModule,
     AgentOutputModule,
     SettingsModule,
     KnowledgeModule,

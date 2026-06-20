@@ -1,6 +1,7 @@
 <template>
   <div class="relative">
     <button
+      type="button"
       @click="showModal = true"
       :disabled="disabled"
       class="text-sm font-mono text-cyber-accent px-2 py-0.5 border border-cyber-accent/40 transition-colors duration-150 hover:bg-cyber-accent/10 disabled:opacity-50 disabled:cursor-not-allowed truncate"

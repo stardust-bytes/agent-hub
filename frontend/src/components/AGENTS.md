@@ -1,41 +1,56 @@
 # components/ — Agent Context
 
-All UI components for the AI Workspace. The layout is a multi-panel IDE: icon sidebar (desktop) + content column + bottom tab bar (mobile). Additional full-width views for tasks, settings, files, and providers.
+All UI components for the AI Workspace. The layout is a multi-panel IDE: icon sidebar (desktop) + router-view content column + bottom tab bar (mobile). Routing is handled by `vue-router` (`src/router/index.ts`); settings sub-screens (providers, tools, usage, memories, permissions) are tabs inside `SettingsView`.
 
 ## Component Map
 
 ```
 AppShell.vue              — layout shell, hosts <router-view>, reads ui state from useUiStore
-├── SidebarNav.vue        — 60px nav column (desktop), RouterLink items from config/navigation
-├── [Content area — router-view]
-│   ├── CoworkView.vue            — coordinator: project + chat + artifacts
+├── SidebarNav.vue        — desktop nav column, RouterLink items from config/navigation
+├── [Content area — router-view, see router/index.ts]
+│   ├── CoworkView.vue            — /cowork: coordinator (project + chat + artifacts)
 │   │   ├── cowork/MessageList.vue  — scroll wrapper + v-for MessageItem, forward events
 │   │   ├── cowork/MessageItem.vue  — per-message render (thinking/tool/agent/plan/user/system)
 │   │   ├── cowork/ChatInputBar.vue — input form + ModelSelector + mode toggle + sessions button
+│   │   ├── cowork/ProjectBar.vue   — project path + connect/save/delete menu
 │   │   ├── cowork/types.ts         — shared interfaces (Message, PlanData, ProviderModelFlat, …)
 │   │   ├── cowork/markdown.ts      — renderMarkdown, parseSegments, highlightUserMessage
-│   │   ├── cowork/ProjectBar.vue — project path + connect/save/delete menu
-│   │   └── ArtifactsPanel.vue    — file preview + plan steps + tool results pane
-│   ├── TasksView.vue         — priority filter bar + KanbanBoard
-│   ├── KanbanBoard.vue       — drag-and-drop columns (TODO/PROCESSING/DONE/FAILED)
-│   │   ├── TaskCard.vue      — individual task card with priority highlight
-│   │   │   └── TaskCardMenu.vue — priority picker + delete action
-│   ├── FilesView.vue         — knowledge base upload + codebase watcher
-│   ├── SettingsView.vue      — health check + version info + memories tab (MemoryView)
-│   │   └── MemoryView.vue   — memory CRUD with type filter, search, auto-extracted badge, create/edit modals
-│   └── ProvidersView.vue     — LLM provider CRUD + model management
-├── AgentOutputView.vue  — list + download agent-generated files
-├── BottomTabBar.vue     — mobile navigation (visible < sm)
-├── StatusBar.vue         — bottom bar: model name, DB status, WS status, live clock
+│   │   ├── ArtifactsPanel.vue      — file preview + plan steps + tool results pane
+│   │   ├── SubagentMonitorPanel.vue — sub-agent live log sessions panel
+│   │   ├── FileTree.vue            — project file tree
+│   │   ├── FilesView.vue           — knowledge base upload + codebase watcher
+│   │   ├── ToolApprovalBar.vue     — pending tool-call approve/deny bar
+│   │   ├── SlashMenu.vue           — slash-command autocomplete
+│   │   ├── PlanBubble.vue          — plan steps bubble in chat
+│   │   ├── SessionModal.vue        — session list/CRUD modal
+│   │   └── DirectoryBrowser.vue    — backend-driven filesystem tree modal
+│   ├── ScheduleTasksView.vue   — /tasks: scheduled task list + create
+│   ├── ScheduleTaskDetailView.vue — /tasks/:id: task detail + run logs
+│   ├── NotesView.vue           — /notes: markdown notes CRUD (uses NoteModal)
+│   ├── ConnectorsView.vue      — /connectors: Google connector accounts + OAuth
+│   ├── AgentOutputView.vue     — /agent-output: list + download agent files
+│   ├── PlansView.vue           — /plans: execution plan list
+│   ├── OAuthCallbackPage.vue   — /oauth/callback: OAuth redirect handler (state+code → confirmOAuth)
+│   └── SettingsView.vue        — /settings/:tab: tabbed settings host
+│       ├── ProvidersView.vue   — LLM provider CRUD + model management (uses ProviderFormModal)
+│       ├── AgentsView.vue      — agent profile CRUD (uses ModelSelector + BaseConfirmModal)
+│       ├── ToolsView.vue       — tool registry toggle + config (uses ToolConfigModal)
+│       ├── UsageView.vue       — token usage totals + per-session breakdown
+│       ├── MemoryView.vue      — memory CRUD with type filter, search, auto-extracted badge
+│       └── PermissionView.vue  — tool permission / YOLO config
+├── BottomTabBar.vue     — mobile navigation (visible < md)
+└── StatusBar.vue        — bottom bar: model name, DB status, WS status, live clock
 
-DirectoryBrowser.vue         — backend-driven filesystem tree modal for cowork project selection (Teleport to body)
-SessionModal.vue             — session list modal (teleported to body, session CRUD)
-├── BaseModal.vue            — reusable modal shell
-ModelSelector.vue            — model dropdown
-├── BaseSelect.vue           — reusable styled select
+Shared/reusable:
+ModelSelector.vue            — model dropdown (uses BaseSelect)
+BaseModal.vue                — reusable modal shell (Teleport)
+BaseConfirmModal.vue         — confirm dialog (uses BaseModal)
+BaseSelect.vue               — reusable styled select
+FormBlock.vue                — agent-rendered form segment
+NoteModal.vue                — create/edit note modal
 ProviderFormModal.vue        — create/edit provider form
-├── BaseModal.vue
-OAuthCallbackPage.vue        — OAuth redirect handler (state+code from URL, calls confirmOAuth)
+ToolConfigModal.vue          — per-tool config editor
+SubagentMonitorPanel.vue     — sub-agent live log sessions panel
 ```
 
 ---
@@ -80,9 +95,13 @@ Visible on mobile only (`flex md:hidden`, `h-[3rem]`). Renders `bottomItems` fro
 
 **SSE streaming:** Uses `parseSseStream` from `src/composables/useChatStream.ts`. Plan events populate `activePlans` ref and push step-update system messages with emoji icons (✅ ⟳ ✗). `toolResult` events populate both messages and `recentToolResults`. `mode: 'cowork'` sent as the agent mode.
 
+**Frontend slash commands:** `/clear` clears messages locally; `/help` renders available commands as a system message. `/agent` and `/plan` commands are forwarded to the backend for processing.
+
 **Model loading:** Reads from `providersStore.models` via `useProvidersStore().loadModels()`.
 
 **Session history:** Uses `loadSessionMessages` from `src/composables/useSessionMessages.ts`.
+
+**Sub-agent monitoring:** Manages `subagentSessions` ref and `SubagentMonitorPanel` toggle. Sub-agent SSE events are routed to session logs for live display, with brief inline messages in the main chat. `activeSubagentCount` shown via `ProjectBar` prop.
 
 **File tree:** Refreshed via `fileTreeRefreshKey` counter incremented on stream complete.
 
@@ -92,11 +111,11 @@ Visible on mobile only (`flex md:hidden`, `h-[3rem]`). Renders `bottomItems` fro
 
 ## cowork/ProjectBar.vue
 
-**Props:** `projectPath: string | null`, `savedProjects: SavedProject[]`
+**Props:** `projectPath: string | null`, `savedProjects: SavedProject[]`, `subagentCount?: number`
 
-**Emits:** `browse-directory`, `select-project(path)`, `delete-project(id)`, `save-project(name)`, `toggle-artifacts`
+**Emits:** `browse-directory`, `select-project(path)`, `delete-project(id)`, `save-project(name)`, `toggle-artifacts`, `toggle-subagent-monitor`
 
-Owns its own dropdown state (`showProjectMenu`, `showSaveModal`, `saveProjectName`). Renders the project path bar with a connected indicator dot, dropdown menu for saved projects, and save/delete/browse actions.
+Owns its own dropdown state (`showProjectMenu`, `showSaveModal`, `saveProjectName`). Renders the project path bar with a connected indicator dot, dropdown menu for saved projects, and save/delete/browse actions. When `subagentCount > 0`, shows a ◈ button that toggles the SubagentMonitorPanel.
 
 ---
 
@@ -122,43 +141,35 @@ Scroll wrapper with `messagesEl` ref. Renders `<MessageItem>` per message. Expos
 
 ## cowork/ChatInputBar.vue
 
-**Props:** `streaming: boolean`, `models: ProviderModelFlat[]`, `modelId: number | null`, `mode: 'chat' | 'agent'`
+**Props:** `streaming: boolean`, `models: ProviderModelFlat[]`, `modelId: number | null`
 
-**Emits:** `update:modelId`, `update:mode`, `submit(text)`, `stop`, `openSessions`
+**Emits:** `update:modelId`, `submit(text)`, `stop`, `openSessions`
 
-Owns its own `input` ref and text state. Emits `submit` with trimmed text on form submit. Contains `<ModelSelector>`, mode toggle buttons, sessions button, and streaming dots animation.
-
----
-
-## KanbanBoard.vue
-
-**Props:** `activeFilters: Set<number>`
-
-**Emits:** `edit: [task]`, `delete: [id]`
-
-**Columns:** TODO, PROCESSING, DONE, FAILED. Drag-and-drop via `vue-draggable-plus`. WebSocket via `socket.io-client` (`/tasks` namespace) for real-time task:created/updated/deleted events. WS connection state written directly to `useUiStore().wsConnected`.
-
-**Optimistic updates:** On drag, updates status optimistically; rolls back on PATCH failure.
+Owns its own `input` ref and text state. Emits `submit` with trimmed text on form submit. Contains `<SlashMenu>` with full keyboard navigation (ArrowUp/Down/Enter/Escape). Computes `slashCommands` from static entries (`/plan`, `/resume-plan`, `/help`, `/clear`) plus dynamic `/agent <slug>` per enabled profile (loaded from `useAgentProfilesStore`). Filters commands by current input prefix. Contains `<ModelSelector>`, sessions button, and streaming dots animation.
 
 ---
 
-## TaskCard.vue
+## ScheduleTasksView.vue
 
-**Props:** `task: Task`
-
-**Emits:** `delete: [id]`, `update-priority: [id, priority]`
-
-Renders title, description (truncated), priority label, due date. Priority determines left border color (red=high, orange=medium, transparent=low).
+`/tasks` route. Lists scheduled tasks from `GET /api/schedule-tasks`, create new, toggle enabled, run-now, navigate to detail. Frequency shown as manual/hourly/daily/weekdays/weekly.
 
 ---
 
-## TaskCardMenu.vue (absolute-positioned dropdown)
+## ScheduleTaskDetailView.vue
 
-**Props:** `taskId: number`, `currentPriority: number`
+`/tasks/:id` route (`props: true`). Shows a single scheduled task and its run logs (`GET /api/schedule-tasks/:id/logs`). Supports edit, delete, run-now.
 
-**Emits:** `delete`, `update-priority: [id, priority]`
+---
 
-Three priority buttons (HIGH/MED/LOW) + delete action with confirmation.
+## NotesView.vue
+
+`/notes` route. Markdown notes CRUD against `/api/notes`; create/edit via `NoteModal`. Real-time updates via the `/notes` Socket.io namespace.
+
+---
+
+## ConnectorsView.vue
+
+`/connectors` route. Lists connector accounts, starts Google OAuth (`GET /api/connectors/oauth/auth-url`), enables/disables and deletes connectors.
 
 ---
 
@@ -206,7 +217,39 @@ File upload zone (drag-and-drop + click), filter input, file list with status po
 
 ## SettingsView.vue
 
-Shows version and health check status (pings `GET /api/health` on mount).
+`/settings/:tab` route. Tabbed host that renders one of `ProvidersView`, `AgentsView`, `ToolsView`, `UsageView`, `MemoryView`, `PermissionView` based on the `:tab` param, plus a general tab with version and health check status (pings `GET /api/health`) and an `agent.autoDispatch` toggle (persisted via `PATCH /api/settings/agent.autoDispatch`).
+
+---
+
+## AgentsView.vue
+
+`agents` settings tab. Lists agent profiles from `useAgentProfilesStore` (`GET /api/agent-profiles`); create/edit in a `BaseModal` (name, slug, description, systemPrompt, allowedTools, model via `ModelSelector`, enabled). `allowedTools` is edited via a "Chọn công cụ" button that opens `ToolPickerModal`; the chosen tool names render as removable chips (empty selection ⇒ `*` / all tools, shown as "Tất cả công cụ"). Toggle enable/disable inline; delete non-builtin profiles via `BaseConfirmModal` (builtin profiles are read-only — no delete, slug locked on edit).
+
+---
+
+## ToolPickerModal.vue
+
+**Props:** `modelValue: boolean`, `selected: string[]`
+
+**Emits:** `update:modelValue`, `confirm(tools: string[])`
+
+`BaseModal` listing all registry tools (`GET /api/tools`, loaded once) with a filter input and a checkbox per tool. Initializes checked state from `selected` each open; "Thêm" emits `confirm` with the checked names and closes. Used by `AgentsView` to pick a profile's allowed tools.
+
+---
+
+## SlashMenu.vue
+
+Slash-command autocomplete dropdown. Purely presentational — receives `commands` as a prop from `ChatInputBar.vue`, which provides static entries (`/plan`, `/resume-plan`, `/help`, `/clear`) plus dynamic `/agent <slug>` entries per enabled profile. Keyboard navigation handled by parent.
+
+---
+
+## SubagentMonitorPanel.vue
+
+**Props:** `visible: boolean`, `sessions: SubagentSession[]`
+
+**Emits:** `close`
+
+Right-side collapsible panel for live sub-agent monitoring. Each active/completed sub-agent spawn is a `SubagentSession` card with a log area showing thinking, tool calls, tool results, token stream, and completion status. Auto-scrolls on new log entries. Session identity comes from `subagentRunId` in SSE events (set by backend).
 
 ---
 

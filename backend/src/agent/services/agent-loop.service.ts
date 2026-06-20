@@ -35,6 +35,8 @@ import { ApprovalManagerService } from './approval-manager.service';
 import { PlansService } from '../../plans/plans.service';
 import { McpService } from '../mcp/mcp.service';
 import { SubagentService } from '../subagent/subagent.service';
+import { filterSubagentTools } from '../subagent/subagent-tools.util';
+import { AgentProfilesService } from '../../agent-profiles/agent-profiles.service';
 import { UsageService } from '../../usage/usage.service';
 import { ReadExcelExecutor } from '../../excel/executors/read-excel.executor';
 import { WriteExcelExecutor } from '../../excel/executors/write-excel.executor';
@@ -84,6 +86,7 @@ export class AgentLoopService {
     private readonly plansService: PlansService,
     private readonly mcpService: McpService,
     @Inject(forwardRef(() => SubagentService)) private readonly subagentService: SubagentService,
+    private readonly agentProfilesService: AgentProfilesService,
     private readonly eventEmitter: EventEmitter2,
     createTask: CreateTaskExecutor,
     updateTask: UpdateTaskExecutor,
@@ -205,6 +208,8 @@ export class AgentLoopService {
     sessionId?: number,
     projectPath?: string,
     providerConfig: { baseUrl: string; key?: string } = { baseUrl: 'http://localhost:11434' },
+    subagentName?: string,
+    subagentRunId?: string,
   ): Promise<string> {
     this.state = AgentState.PLANNING;
 
@@ -256,80 +261,104 @@ export class AgentLoopService {
         const toolCallId = `call_${ti}_${name}`;
         const args = this.normalizeArgs(tc.arguments);
 
-        res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
+        const saPrefix = subagentName ? `[subagent:${subagentName}] ` : '';
+        res.write(`data: ${JSON.stringify({ subagentName, toolCall: { name, args } })}\n\n`);
         if (sessionId) {
-          await this.sessionsService.saveMessage(sessionId, 'tool', `${name}(${JSON.stringify(args)})`, name, false);
+          await this.sessionsService.saveMessage(sessionId, 'tool', `${saPrefix}${name}(${JSON.stringify(args)})`, name, false);
         }
 
         const toolInput = JSON.stringify(args);
         const transcript = this.buildTranscript(messages);
         const decision = await this.permissionsService.decide(name, toolInput, transcript, sessionId);
+        if (signal.aborted) break;
 
         if (decision.action === 'allow') {
           // execute tool — fall through to executeTool below
-        } else if (decision.action === 'deny') {
+        } else         if (decision.action === 'deny') {
           const denialResult = `Tool '${name}' is not permitted by workspace policy.${decision.reason ? ' ' + decision.reason : ''}`;
-          res.write(`data: ${JSON.stringify({ toolResult: { name, result: denialResult } })}\n\n`);
+          const denialWithPrefix = `${saPrefix}${denialResult}`;
+          res.write(`data: ${JSON.stringify({ subagentName, toolResult: { name, result: denialResult } })}\n\n`);
           if (sessionId) {
-            await this.sessionsService.saveMessage(sessionId, 'tool', denialResult, name, true);
+            await this.sessionsService.saveMessage(sessionId, 'tool', denialWithPrefix, name, true);
           }
-          messages.push({ role: 'tool', content: denialResult, toolCallId });
+          messages.push({ role: 'tool', content: denialWithPrefix, toolCallId });
           continue;
         } else if (decision.action === 'ask') {
           const approvalId = crypto.randomUUID();
-          res.write(`data: ${JSON.stringify({ toolApprovalRequired: { id: approvalId, name, args } })}\n\n`);
+          res.write(`data: ${JSON.stringify({ subagentName, toolApprovalRequired: { id: approvalId, name, args } })}\n\n`);
 
           const approved = await this.approvalManager.requestApproval(approvalId, name, args, sessionId ?? 0);
+          if (signal.aborted) break;
 
           if (approved) {
             // execute tool — fall through to executeTool below
           } else {
-            res.write(`data: ${JSON.stringify({ toolResult: { name, result: 'Tool execution denied by user' } })}\n\n`);
+            const deniedMsg = `${saPrefix}Tool execution denied by user`;
+            res.write(`data: ${JSON.stringify({ subagentName, toolResult: { name, result: 'Tool execution denied by user' } })}\n\n`);
             if (sessionId) {
-              await this.sessionsService.saveMessage(sessionId, 'tool', 'Tool execution denied by user', name, true);
+              await this.sessionsService.saveMessage(sessionId, 'tool', deniedMsg, name, true);
             }
-            messages.push({ role: 'tool', content: 'Tool execution denied by user', toolCallId });
+            messages.push({ role: 'tool', content: deniedMsg, toolCallId });
             continue;
           }
         }
 
-        let result: string;
+        let result: string | undefined;
+        if (signal.aborted) break;
+
         if (name === 'spawn_subagent') {
-          const task = typeof args === 'object' && args !== null ? String((args as any).task ?? '') : '';
+          const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
+          const task = String(argsObj.task ?? '');
+          const profileSlug = argsObj.profile ? String(argsObj.profile) : undefined;
           if (!task) {
             result = 'Error: spawn_subagent requires a "task" parameter';
           } else {
-            try {
-              result = await this.subagentService.spawn(
-                task, providerType, model, providerConfig,
-                activeTools, signal, res, sessionId,
-              projectPath,
-            );
-          } catch (e) {
-            result = `Error: Subagent failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+            const { error, promptOverride, allowedTools } = await this.resolveProfile(profileSlug);
+            if (signal.aborted) break;
+            if (error) {
+              result = error;
+            } else {
+              const subTools = filterSubagentTools(activeTools, allowedTools);
+              const subagentProfileName = profileSlug ?? subagentName;
+              try {
+                result = await this.subagentService.spawn(
+                  task, providerType, model, providerConfig, subTools, signal, res, sessionId,
+                  projectPath, promptOverride, subagentProfileName,
+                );
+              } catch (e) {
+                result = `Error: Subagent failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+              }
+            }
           }
-        }
-      } else if (name === 'delegate') {
-        const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
-        const tasks = argsObj.tasks;
-        const taskList = Array.isArray(tasks) ? tasks.map(String) : [];
+        } else if (name === 'delegate') {
+          const argsObj = typeof args === 'object' && args !== null ? args as Record<string, unknown> : {};
+          const tasks = argsObj.tasks;
+          const taskList = Array.isArray(tasks) ? tasks.map(String) : [];
+          const profileSlug = argsObj.profile ? String(argsObj.profile) : undefined;
 
-        if (taskList.length === 0) {
-          result = 'Error: delegate requires a non-empty "tasks" array';
-        } else {
-          try {
-            result = await this.subagentService.delegate(
-              taskList, providerType, model, providerConfig,
-              activeTools, signal, res, sessionId,
-              projectPath,
-              );
-            } catch (e) {
-              result = `Error: Delegate failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+          if (taskList.length === 0) {
+            result = 'Error: delegate requires a non-empty "tasks" array';
+          } else {
+            const { error, promptOverride, allowedTools } = await this.resolveProfile(profileSlug);
+            if (signal.aborted) break;
+            if (error) {
+              result = error;
+            } else {
+              const subTools = filterSubagentTools(activeTools, allowedTools);
+              const subagentProfileName = profileSlug ?? subagentName;
+              try {
+                result = await this.subagentService.delegate(
+                  taskList, providerType, model, providerConfig, subTools, signal, res, sessionId,
+                  projectPath, promptOverride, subagentProfileName,
+                );
+              } catch (e) {
+                result = `Error: Delegate failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+              }
             }
           }
         } else {
           try {
-            result = await this.executeTool(name, args, { sessionId: sessionId ?? 0, projectPath });
+            result = await this.executeTool(name, args, signal, { sessionId: sessionId ?? 0, projectPath });
           } catch (e) {
             result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
           }
@@ -367,12 +396,13 @@ export class AgentLoopService {
           }
         }
 
-        res.write(`data: ${JSON.stringify({ toolResult: { name, result } })}\n\n`);
+        const resultWithPrefix = `${saPrefix}${result}`;
+        res.write(`data: ${JSON.stringify({ subagentName, toolResult: { name, result } })}\n\n`);
         if (sessionId) {
-          await this.sessionsService.saveMessage(sessionId, 'tool', result, name, true);
+          await this.sessionsService.saveMessage(sessionId, 'tool', resultWithPrefix, name, true);
         }
 
-        messages.push({ role: 'tool', content: result, toolCallId });
+        messages.push({ role: 'tool', content: resultWithPrefix, toolCallId });
 
         const linkMatch = result.match(/\[Download[^\]]+\]\(([^)]+)\)/);
         if (linkMatch) downloadLinks.push(linkMatch[1]);
@@ -678,12 +708,24 @@ export class AgentLoopService {
     ];
   }
 
-  private async executeTool(name: string, args: Record<string, unknown>, context?: ToolContext): Promise<string> {
+  private async executeTool(name: string, args: Record<string, unknown>, signal: AbortSignal, context?: ToolContext): Promise<string> {
+    if (signal.aborted) return 'Error: Execution aborted by user';
     const executor = this.executorMap.get(name);
     if (executor) return executor.execute(args, context);
     const mcpResult = await this.mcpService.tryExecute(name, args);
     if (mcpResult !== null) return mcpResult;
     return `Error: Unknown tool: ${name}`;
+  }
+
+  private async resolveProfile(
+    profileSlug: string | undefined,
+  ): Promise<{ error?: string; promptOverride?: string; allowedTools?: string }> {
+    if (!profileSlug) return {};
+    const profile = await this.agentProfilesService.findBySlug(profileSlug);
+    if (!profile || !profile.enabled) {
+      return { error: `Error: unknown agent profile "${profileSlug}"` };
+    }
+    return { promptOverride: profile.systemPrompt, allowedTools: profile.allowedTools };
   }
 
   private buildTranscript(messages: OllamaMessage[]): string {
@@ -700,6 +742,8 @@ export class AgentLoopService {
     parentSignal?: AbortSignal,
     providerType: string = 'ollama',
     projectPath?: string,
+    subagentName?: string,
+    subagentRunId?: string,
   ): Promise<void> {
     const signal = parentSignal ?? new AbortController().signal;
     let currentMessages = [...messages];
@@ -721,58 +765,66 @@ export class AgentLoopService {
       currentMessages = this.addToolCallsToMessages(currentMessages, text, toolCalls, reasoningContent);
 
       for (let ti = 0; ti < toolCalls.length; ti++) {
+        if (signal.aborted) break;
         const tc = toolCalls[ti];
         const name = tc.name;
         const toolCallId = `call_${ti}_${name}`;
         const args = this.normalizeArgs(tc.arguments);
-        res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
+        const saPrefix = subagentName ? `[subagent:${subagentName}] ` : '';
+        res.write(`data: ${JSON.stringify({ subagentName, toolCall: { name, args } })}\n\n`);
         if (sessionId) {
-          await this.sessionsService.saveMessage(sessionId, 'tool', `${name}(${JSON.stringify(args)})`, name, false);
+          await this.sessionsService.saveMessage(sessionId, 'tool', `${saPrefix}${name}(${JSON.stringify(args)})`, name, false);
         }
 
         const toolInput = JSON.stringify(args);
         const transcript = this.buildTranscript(currentMessages);
         const decision = await this.permissionsService.decide(name, toolInput, transcript, sessionId);
+        if (signal.aborted) break;
 
         if (decision.action === 'allow') {
           // execute tool — fall through to executeTool below
         } else if (decision.action === 'deny') {
           const denialResult = `Tool '${name}' is not permitted by workspace policy.${decision.reason ? ' ' + decision.reason : ''}`;
-          res.write(`data: ${JSON.stringify({ toolResult: { name, result: denialResult } })}\n\n`);
+          const denialWithPrefix = `${saPrefix}${denialResult}`;
+          res.write(`data: ${JSON.stringify({ subagentName, toolResult: { name, result: denialResult } })}\n\n`);
           if (sessionId) {
-            await this.sessionsService.saveMessage(sessionId, 'tool', denialResult, name, true);
+            await this.sessionsService.saveMessage(sessionId, 'tool', denialWithPrefix, name, true);
           }
-          currentMessages.push({ role: 'tool', content: denialResult, toolCallId });
+          currentMessages.push({ role: 'tool', content: denialWithPrefix, toolCallId });
           continue;
         } else if (decision.action === 'ask') {
           const approvalId = crypto.randomUUID();
-          res.write(`data: ${JSON.stringify({ toolApprovalRequired: { id: approvalId, name, args } })}\n\n`);
+          res.write(`data: ${JSON.stringify({ subagentName, toolApprovalRequired: { id: approvalId, name, args } })}\n\n`);
 
           const approved = await this.approvalManager.requestApproval(approvalId, name, args, sessionId ?? 0);
+          if (signal.aborted) break;
 
           if (approved) {
             // execute tool — fall through to executeTool below
           } else {
-            res.write(`data: ${JSON.stringify({ toolResult: { name, result: 'Tool execution denied by user' } })}\n\n`);
+            const deniedMsg = `${saPrefix}Tool execution denied by user`;
+            res.write(`data: ${JSON.stringify({ subagentName, toolResult: { name, result: 'Tool execution denied by user' } })}\n\n`);
             if (sessionId) {
-              await this.sessionsService.saveMessage(sessionId, 'tool', 'Tool execution denied by user', name, true);
+              await this.sessionsService.saveMessage(sessionId, 'tool', deniedMsg, name, true);
             }
-            currentMessages.push({ role: 'tool', content: 'Tool execution denied by user', toolCallId });
+            currentMessages.push({ role: 'tool', content: deniedMsg, toolCallId });
             continue;
           }
         }
 
+        if (signal.aborted) break;
         let result: string;
         try {
-          result = await this.executeTool(name, args, { sessionId: sessionId ?? 0, projectPath });
+          result = await this.executeTool(name, args, signal, { sessionId: sessionId ?? 0, projectPath });
         } catch (e) {
           result = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
         }
-        res.write(`data: ${JSON.stringify({ toolResult: { name, result } })}\n\n`);
+        const resultWithPrefix = `${saPrefix}${result}`;
+        res.write(`data: ${JSON.stringify({ subagentName, toolResult: { name, result } })}\n\n`);
         if (sessionId) {
-          await this.sessionsService.saveMessage(sessionId, 'tool', result, name, true);
+          await this.sessionsService.saveMessage(sessionId, 'tool', resultWithPrefix, name, true);
         }
-        currentMessages.push({ role: 'tool', content: result, toolCallId });
+        currentMessages.push({ role: 'tool', content: resultWithPrefix, toolCallId });
       }
     }
   }

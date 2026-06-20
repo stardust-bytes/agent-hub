@@ -20,10 +20,10 @@ Single-page application with a multi-panel IDE layout: icon sidebar + content pa
 | Sanitization | DOMPurify — required on every `v-html` binding |
 | Markdown | `marked` + `DOMPurify` via `renderMarkdown()` |
 | Icons | `vue-icons-plus/hi` (Hero Icons) |
-| Drag & drop | `vue-draggable-plus` (Kanban) |
-| WebSocket | `socket.io-client` (task real-time sync) |
+| Routing | `vue-router` (`src/router/index.ts`) |
+| WebSocket | `socket.io-client` (notes & memories real-time sync) |
 | State management | Pinia — domain stores in `src/stores/` |
-| Testing | Vitest — unit tests in `src/__tests__/` |
+| Testing | Vitest — co-located `*.spec.ts` files |
 
 ---
 
@@ -61,35 +61,35 @@ Single-page application with a multi-panel IDE layout: icon sidebar + content pa
 ```
 App.vue
 └── AppShell.vue
-    ├── SidebarNav.vue       — 32px/52px icon column (desktop), navigation + VI/EN toggle
-    ├── [Content area]
-    │   ├── CoworkView.vue       — coordinator: project + chat + artifacts, uses cowork/ subcomponents
-    │   │   ├── cowork/MessageList.vue
-    │   │   ├── cowork/MessageItem.vue
-    │   │   ├── cowork/ChatInputBar.vue
-    │   │   └── cowork/ProjectBar.vue
-    │   ├── TasksView.vue        — priority filter bar + KanbanBoard
-    │   ├── NotesView.vue        — markdown notes CRUD
-    │   ├── PlansView.vue        — execution plan management
-    │   ├── FilesView.vue        — knowledge base upload + codebase watcher
-    │   ├── ToolsView.vue        — tool registry
-    │   ├── SettingsView.vue     — health check + version info + Memories tab (MemoryView)
-│   │   └── MemoryView.vue   — memory CRUD with type filter, search, auto-extracted badge
-    │   ├── AgentOutputView.vue   — list + download agent-generated files
-    │   └── ProvidersView.vue    — LLM provider CRUD + model management
-    ├── BottomTabBar.vue     — mobile navigation (visible < sm)
+    ├── SidebarNav.vue       — desktop icon column, RouterLink nav + VI/EN toggle
+    ├── <router-view>        — active screen by URL (see src/router/index.ts)
+    │   ├── CoworkView.vue       — /cowork: project + chat + artifacts (cowork/ subcomponents)
+    │   ├── ScheduleTasksView.vue — /tasks: scheduled task list
+    │   ├── ScheduleTaskDetailView.vue — /tasks/:id: task detail + run logs
+    │   ├── NotesView.vue        — /notes: markdown notes CRUD (Socket.io)
+    │   ├── ConnectorsView.vue   — /connectors: Google connectors + OAuth
+    │   ├── AgentOutputView.vue  — /agent-output: list + download agent files
+    │   ├── PlansView.vue        — /plans: execution plan list
+    │   ├── OAuthCallbackPage.vue — /oauth/callback: OAuth redirect handler
+    │   └── SettingsView.vue     — /settings/:tab: tabbed host
+    │       ├── ProvidersView.vue — LLM provider CRUD + model management
+    │       ├── AgentsView.vue    — agent profile CRUD (system prompt + scoped tools)
+    │       ├── ToolsView.vue     — tool registry toggle + config
+    │       ├── UsageView.vue     — token usage totals + per-session
+    │       ├── MemoryView.vue    — memory CRUD with type filter, search
+    │       └── PermissionView.vue — tool permission / YOLO config
+    ├── BottomTabBar.vue     — mobile navigation (visible < md)
     └── StatusBar.vue        — bottom bar: model, DB, WS status, clock
-
-KanbanBoard.vue              — drag-and-drop column layout, Socket.io real-time sync
-├── TaskCard.vue             — individual task card with priority indicator
-│   └── TaskCardMenu.vue     — priority picker + delete action
 
 SessionModal.vue             — session list modal (teleported, BaseModal wrapper)
 ModelSelector.vue            — model dropdown (uses BaseSelect)
 ProviderFormModal.vue        — create/edit provider form modal (uses BaseModal)
+NoteModal.vue                — create/edit note modal
+ToolConfigModal.vue          — per-tool config editor
 
 BaseSelect.vue               — reusable styled select component
 BaseModal.vue                — reusable modal shell (Teleport, slots for header/body/footer)
+BaseConfirmModal.vue         — confirm dialog (uses BaseModal)
 ```
 
 ---
@@ -99,8 +99,12 @@ BaseModal.vue                — reusable modal shell (Teleport, slots for heade
 ```
 src/
 ├── App.vue
-├── main.ts              — createApp + app.use(i18n) + app.mount('#app')
+├── main.ts              — createApp + use(createPinia()) + use(router) + use(i18n) + mount('#app')
 ├── i18n.ts              — createI18n instance
+├── router/
+│   └── index.ts         — vue-router routes (createWebHistory)
+├── config/
+│   └── navigation.ts    — NAV map + sidebarItems / bottomItems
 ├── assets/
 │   └── main.css         — Tailwind imports + scrollbar + .markdown-body styles
 ├── locales/
@@ -108,41 +112,23 @@ src/
 │   └── en.json          — English (secondary/fallback)
 ├── api/                 — typed API call layer; client.ts adds /api prefix and throws AppError(code) mapped to i18n
 │   ├── client.ts        — base request(), AppError class, fallback codes errors.network / errors.request
-│   └── *.ts             — one module per domain (providers, sessions, tasks, notes, …)
+│   └── *.ts             — one module per domain (providers, sessions, scheduleTasks, notes, connectors, …)
 ├── stores/              — Pinia domain stores; components read/write data exclusively through these
-│   └── *.ts             — one store per domain, delegates to api/ modules
+│   └── *.ts             — agentProfiles, connectors, memories, notes, providers, sessions, ui
 ├── composables/         — shared composables extracted from components
 │   ├── useChatStream.ts        — SSE stream parser (parseSseStream) + SseCallbacks interface
 │   └── useSessionMessages.ts   — session history loader (loadSessionMessages)
-└── components/
-    ├── AppShell.vue
-    ├── SidebarNav.vue
-    ├── BottomTabBar.vue
-    ├── TasksView.vue
-    ├── KanbanBoard.vue
-    ├── TaskCard.vue
-    ├── TaskCardMenu.vue
-    ├── CoworkView.vue
-    │   ├── cowork/MessageList.vue
-    │   ├── cowork/MessageItem.vue
-    │   ├── cowork/ChatInputBar.vue
-    │   ├── cowork/markdown.ts
-    │   ├── cowork/types.ts
-    │   └── cowork/ProjectBar.vue
-    ├── ArtifactsPanel.vue
-    ├── DirectoryBrowser.vue
-    ├── FileTree.vue
-    ├── FilesView.vue
-    ├── SettingsView.vue
-    ├── PlansView.vue
-    ├── ProvidersView.vue
-    ├── ProviderFormModal.vue
-    ├── AgentOutputView.vue
-    ├── SessionModal.vue
-    ├── ModelSelector.vue
-    ├── BaseSelect.vue
-    ├── BaseModal.vue
-    └── StatusBar.vue
+└── components/          — see components/AGENTS.md for the full map
+    ├── AppShell.vue, SidebarNav.vue, BottomTabBar.vue, StatusBar.vue
+    ├── CoworkView.vue + cowork/ (MessageList, MessageItem, ChatInputBar, ProjectBar, markdown.ts, types.ts)
+    ├── ArtifactsPanel.vue, FileTree.vue, FilesView.vue, DirectoryBrowser.vue
+    ├── ToolApprovalBar.vue, SlashMenu.vue, PlanBubble.vue
+    ├── ScheduleTasksView.vue, ScheduleTaskDetailView.vue
+    ├── NotesView.vue, NoteModal.vue, ConnectorsView.vue, OAuthCallbackPage.vue
+    ├── AgentOutputView.vue, PlansView.vue
+    ├── SettingsView.vue → ProvidersView, ToolsView, UsageView, MemoryView, PermissionView
+    ├── ProviderFormModal.vue, ToolConfigModal.vue, SessionModal.vue, ModelSelector.vue, FormBlock.vue
+    └── BaseModal.vue, BaseConfirmModal.vue, BaseSelect.vue
 ```
 
 ---

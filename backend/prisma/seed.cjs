@@ -23,8 +23,8 @@ const DEFAULT_TOOLS = [
   { name: 'glob', description: 'Match files using a glob pattern', parameters: '{"type":"object","properties":{"pattern":{"type":"string","description":"Glob pattern to match files"},"path":{"type":"string","description":"Directory to search in (default: current dir)"}},"required":["pattern"]}' },
   { name: 'resume_plan', description: 'Validate and describe plan status for resumption by plan ID', parameters: '{"type":"object","properties":{"planId":{"type":"number","description":"ID of the plan to check"}},"required":["planId"]}' },
   { name: 'create_plan', description: 'Create a multi-step plan for complex tasks with optional approval gate', parameters: '{"type":"object","properties":{"title":{"type":"string","description":"Title of the plan"},"steps":{"type":"array","items":{"type":"string"},"description":"Ordered list of steps to execute"},"requireApproval":{"type":"boolean","description":"Require user approval before executing (default: true)"}},"required":["title","steps"]}' },
-  { name: 'spawn_subagent', description: 'Spawn a sub-agent to complete a specific subtask. Use for complex, multi-step, or parallel tasks. Do NOT use for simple questions or single-tool operations — handle those directly.', parameters: '{"type":"object","properties":{"task":{"type":"string","description":"The task for the sub-agent to complete. Be specific and include all context needed."}},"required":["task"]}' },
-  { name: 'delegate', description: 'Delegate subtasks to run in parallel workers. Use for complex multi-step tasks like reading multiple files, processing data, or searching.', parameters: '{"type":"object","properties":{"tasks":{"type":"array","items":{"type":"string"},"description":"Array of subtask descriptions to execute in parallel"}},"required":["tasks"]}' },
+  { name: 'spawn_subagent', description: 'Spawn a sub-agent to complete a specific subtask. Use for complex, multi-step, or parallel tasks. Do NOT use for simple questions or single-tool operations — handle those directly.', parameters: '{"type":"object","properties":{"task":{"type":"string","description":"The task for the sub-agent to complete. Be specific and include all context needed."},"profile":{"type":"string","description":"Optional agent profile slug to specialize the sub-agent."}},"required":["task"]}' },
+  { name: 'delegate', description: 'Delegate subtasks to run in parallel workers. Use for complex multi-step tasks like reading multiple files, processing data, or searching.', parameters: '{"type":"object","properties":{"tasks":{"type":"array","items":{"type":"string"},"description":"Array of subtask descriptions to execute in parallel"},"profile":{"type":"string","description":"Optional agent profile slug applied to all workers."}},"required":["tasks"]}' },
   { name: 'read_excel', description: 'Read data from an Excel (.xlsx) file. Returns data as a markdown table.', parameters: '{"type":"object","properties":{"path":{"type":"string","description":"File path to .xlsx file"},"sheet":{"type":"string","description":"Sheet name (default: first sheet)"},"range":{"type":"string","description":"Cell range like A1:D10 (default: all used cells)"}},"required":["path"]}' },
   { name: 'write_excel', description: 'Write data to an Excel (.xlsx) file. Creates new file if it does not exist. Supports cells, rows, columns, formulas, merge, and styling.', parameters: '{"type":"object","properties":{"path":{"type":"string","description":"File path"},"operations":{"type":"array","description":"Array of write operations","items":{"type":"object","properties":{"type":{"type":"string","enum":["write_cell","write_row","write_column","formula","merge","style","column_width"]},"sheet":{"type":"string"},"cell":{"type":"string"},"value":{},"values":{"type":"array"},"formula":{"type":"string"},"range":{"type":"string"},"column":{"type":"string"},"width":{"type":"number"},"style":{"type":"object","properties":{"bold":{"type":"boolean"},"italic":{"type":"boolean"},"fontSize":{"type":"number"},"fontColor":{"type":"string"},"fillColor":{"type":"string"},"numberFormat":{"type":"string"},"border":{"type":"boolean"}}}}}}},"required":["path","operations"]}' },
   { name: 'excel_add_sheet', description: 'Add a new sheet to an existing Excel (.xlsx) file.', parameters: '{"type":"object","properties":{"path":{"type":"string","description":"File path to .xlsx file"},"sheet":{"type":"string","description":"Name for the new sheet"}},"required":["path","sheet"]}' },
@@ -110,6 +110,21 @@ async function main() {
       (process.env.SUMMARY_MODEL || 'llama3.2') + ', ' +
       (process.env.EMBED_MODEL || 'nomic-embed-text'));
   }
+
+  const DEFAULT_PROFILES = [
+    { slug: 'researcher', name: 'Researcher', description: 'Read-only research and synthesis', systemPrompt: 'You are a research sub-agent. Gather and synthesize information accurately. Report findings concisely with sources.', allowedTools: JSON.stringify(['search_knowledge','web_search','web_fetch','read_file','grep','glob','list_directory']), builtin: true },
+    { slug: 'code-reviewer', name: 'Code Reviewer', description: 'Reviews code for bugs and clarity', systemPrompt: 'You are a code-review sub-agent. Inspect the code and report concrete issues (bugs, risks, simplifications) with file:line references. Do not modify files.', allowedTools: JSON.stringify(['read_file','grep','glob','list_directory']), builtin: true },
+    { slug: 'explorer', name: 'Explorer', description: 'Broad codebase search', systemPrompt: 'You are an exploration sub-agent. Locate relevant files and summarize where things live. Return paths and short excerpts, not full files.', allowedTools: JSON.stringify(['grep','glob','list_directory','read_file']), builtin: true },
+    { slug: 'general', name: 'General Assistant', description: 'General-purpose agent with full tool access', systemPrompt: 'You are a general-purpose sub-agent. Use any tools available to complete the task. Plan your approach, execute steps methodically, and report back concisely.', allowedTools: '*', builtin: true },
+  ];
+  for (const p of DEFAULT_PROFILES) {
+    await prisma.agentProfile.upsert({
+      where: { slug: p.slug },
+      update: { name: p.name, description: p.description, systemPrompt: p.systemPrompt, allowedTools: p.allowedTools, builtin: true },
+      create: p,
+    });
+  }
+  console.log(`Seeded ${DEFAULT_PROFILES.length} agent profiles`);
 }
 
 main()

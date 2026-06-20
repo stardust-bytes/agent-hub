@@ -21,8 +21,9 @@
       </div>
     </div>
     <button v-if="projectPath" @click="emit('disconnect')" class="text-sm text-red-400 font-mono px-2 py-0.5 border border-red-400/40 transition-colors duration-150 hover:bg-red-400/10">✕ {{ t('cowork.disconnect') }}</button>
-    <div v-if="projectPath" class="flex items-center gap-2 ml-auto">
-      <button @click="emit('toggleArtifacts')" class="text-sm text-cyber-muted font-mono px-2 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-accent hover:border-cyber-accent/40">{{ t('cowork.artifacts') }}</button>
+    <div class="flex items-center gap-2 ml-auto">
+      <button v-if="subagentCount != null && subagentCount > 0" @click="emit('toggleSubagentMonitor')" class="text-sm text-cyber-cyan font-mono px-2 py-0.5 border border-cyber-cyan/30 transition-colors duration-150 hover:bg-cyber-cyan/10">◈ {{ subagentCount }}</button>
+      <button v-if="projectPath" @click="emit('toggleArtifacts')" class="text-sm text-cyber-muted font-mono px-2 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-accent hover:border-cyber-accent/40">{{ t('cowork.artifacts') }}</button>
     </div>
     <BaseModal v-model="showSaveModal" :closable="false">
       <template #header><span class="text-sm text-cyber-text font-mono">{{ t('cowork.project.saveAs') }}</span></template>
@@ -53,6 +54,7 @@ interface SavedProject {
 defineProps<{
   projectPath: string | null
   savedProjects: SavedProject[]
+  subagentCount?: number
 }>()
 
 const emit = defineEmits<{
@@ -61,6 +63,7 @@ const emit = defineEmits<{
   deleteProject: [id: string]
   saveProject: [name: string]
   toggleArtifacts: []
+  toggleSubagentMonitor: []
   disconnect: []
 }>()
 

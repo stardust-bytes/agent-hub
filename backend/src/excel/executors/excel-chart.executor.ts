@@ -18,9 +18,9 @@ export class ExcelChartExecutor implements ToolExecutor {
 
   async execute(args: Record<string, unknown>, context?: ToolContext): Promise<string> {
     const rawPath = String(args.path ?? '');
-    const sheetName = String(args.sheet_name ?? '');
-    const chartType = String(args.chart_type ?? '');
-    if (!rawPath || !sheetName || !chartType) return 'Error: "path", "sheet_name", and "chart_type" are required';
+    const sheetName = String(args.sheet ?? args.sheet_name ?? '');
+    const chartType = String(args.type ?? args.chart_type ?? '');
+    if (!rawPath || !sheetName || !chartType) return 'Error: "path", "sheet", and "type" are required';
 
     const filename = rawPath.split(/[\\/]/).pop() || 'file.xlsx';
     let filePath: string;
@@ -41,8 +41,8 @@ export class ExcelChartExecutor implements ToolExecutor {
       await this.excel.validatePath(filePath);
 
       const title = args.title ? String(args.title) : undefined;
-      const dataRange = String(args.data_range ?? '');
-      const categoriesRange = args.categories_range ? String(args.categories_range) : undefined;
+      const dataRange = String(args.dataRange ?? args.data_range ?? '');
+      const categoriesRange = args.categoriesRange ?? args.categories_range ? String(args.categoriesRange ?? args.categories_range ?? '') : undefined;
       const result = await this.excel.addChart(filePath, sheetName, chartType, title, dataRange, categoriesRange);
 
       if (!context?.projectPath) {

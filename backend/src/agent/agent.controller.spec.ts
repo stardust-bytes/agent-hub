@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { AgentController } from './agent.controller';
 import { AgentService } from './agent.service';
 import { YoloClassifierService } from './services/yolo-classifier.service';
+import { ApprovalManagerService } from './services/approval-manager.service';
 import { Request, Response } from 'express';
 
 describe('AgentController', () => {
@@ -17,6 +18,9 @@ describe('AgentController', () => {
     getConfig: jest.fn(),
     updateConfig: jest.fn(),
   };
+  const mockApprovalManager = {
+    resolve: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -24,6 +28,7 @@ describe('AgentController', () => {
       providers: [
         { provide: AgentService, useValue: mockAgentService },
         { provide: YoloClassifierService, useValue: mockYoloClassifier },
+        { provide: ApprovalManagerService, useValue: mockApprovalManager },
       ],
     }).compile();
     controller = module.get(AgentController);

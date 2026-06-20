@@ -1,9 +1,10 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { McpClientService } from './mcp-client.service';
 import { WorkspaceService } from '../../workspace/workspace.service';
 import * as path from 'path';
 import * as fs from 'fs';
+import { execSync } from 'child_process';
 
 interface McpServerEntry {
   id: string;
@@ -12,6 +13,7 @@ interface McpServerEntry {
 
 @Injectable()
 export class McpService implements OnModuleInit {
+  private readonly logger = new Logger(McpService.name);
   private servers = new Map<string, McpServerEntry>();
 
   constructor(
@@ -23,25 +25,54 @@ export class McpService implements OnModuleInit {
     await this.startPlaywrightServer();
   }
 
+  private async ensurePlaywrightBrowsers(): Promise<void> {
+    try {
+      const result = execSync('npx playwright install chromium 2>&1', {
+        timeout: 120_000,
+        stdio: 'pipe',
+        windowsHide: true,
+      });
+      this.logger.log('Playwright Chromium installed/verified');
+    } catch (e) {
+      this.logger.warn('Could not install Playwright browsers:', (e as Error).message);
+    }
+  }
+
+  private getCustomChromeUserDataDir(): string | null {
+    const dir = this.config.get<string>('CHROME_USER_DATA_DIR');
+    return dir ? path.resolve(dir) : null;
+  }
+
   private async startPlaywrightServer(): Promise<void> {
     try {
+      await this.ensurePlaywrightBrowsers();
+
       const root = this.workspace.getWorkspaceRoot();
       const snapshotDir = path.resolve(root, 'mcp_data');
       fs.mkdirSync(snapshotDir, { recursive: true });
 
-      const profileDir = path.resolve(root, 'playwright-profile');
-      fs.mkdirSync(profileDir, { recursive: true });
-
-      const client = new McpClientService();
-      await client.connectStdio('npx', [
+      const args: string[] = [
         '@playwright/mcp',
-        `--user-data-dir=${profileDir}`,
+        `--user-data-dir=${path.resolve(root, 'playwright-profile')}`,
         `--output-dir=${snapshotDir}`,
         '--output-mode=file',
-      ]);
+      ];
+
+      const customDataDir = this.getCustomChromeUserDataDir();
+      if (customDataDir) {
+        const isolatedDir = path.join(customDataDir, 'AgentWorkspace');
+        fs.mkdirSync(isolatedDir, { recursive: true });
+        args[1] = `--user-data-dir=${isolatedDir}`;
+        this.logger.log(`Using Chrome profile at: ${isolatedDir}`);
+      }
+
+      this.logger.log('Starting Playwright MCP server...');
+      const client = new McpClientService();
+      await client.connectStdio('npx', args);
       this.servers.set('playwright', { id: 'playwright', client });
+      this.logger.log('Playwright MCP server started');
     } catch (e) {
-      console.warn('Playwright MCP not available:', e instanceof Error ? e.message : e);
+      this.logger.warn('Playwright MCP not available:', (e as Error).message);
     }
   }
 

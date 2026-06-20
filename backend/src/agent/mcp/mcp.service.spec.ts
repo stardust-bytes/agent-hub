@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { McpService } from './mcp.service';
+import { WorkspaceService } from '../../workspace/workspace.service';
 
 describe('McpService', () => {
   let service: McpService;
@@ -10,6 +11,7 @@ describe('McpService', () => {
       providers: [
         McpService,
         { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue('./workspace_data') } },
+        { provide: WorkspaceService, useValue: { getWorkspaceRoot: jest.fn().mockReturnValue('./workspace_data') } },
       ],
     }).compile();
     service = module.get(McpService);
