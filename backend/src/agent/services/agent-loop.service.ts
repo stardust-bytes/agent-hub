@@ -304,18 +304,10 @@ export class AgentLoopService {
           if (!task) {
             result = 'Error: spawn_subagent requires a "task" parameter';
           } else {
-            let promptOverride: string | undefined;
-            let allowedTools: string | undefined;
-            if (profileSlug) {
-              const profile = await this.agentProfilesService.findBySlug(profileSlug);
-              if (!profile || !profile.enabled) {
-                result = `Error: unknown agent profile "${profileSlug}"`;
-              } else {
-                promptOverride = profile.systemPrompt;
-                allowedTools = profile.allowedTools;
-              }
-            }
-            if (result === undefined) {
+            const { error, promptOverride, allowedTools } = await this.resolveProfile(profileSlug);
+            if (error) {
+              result = error;
+            } else {
               const subTools = filterSubagentTools(activeTools, allowedTools);
               try {
                 result = await this.subagentService.spawn(
@@ -336,18 +328,10 @@ export class AgentLoopService {
           if (taskList.length === 0) {
             result = 'Error: delegate requires a non-empty "tasks" array';
           } else {
-            let promptOverride: string | undefined;
-            let allowedTools: string | undefined;
-            if (profileSlug) {
-              const profile = await this.agentProfilesService.findBySlug(profileSlug);
-              if (!profile || !profile.enabled) {
-                result = `Error: unknown agent profile "${profileSlug}"`;
-              } else {
-                promptOverride = profile.systemPrompt;
-                allowedTools = profile.allowedTools;
-              }
-            }
-            if (result === undefined) {
+            const { error, promptOverride, allowedTools } = await this.resolveProfile(profileSlug);
+            if (error) {
+              result = error;
+            } else {
               const subTools = filterSubagentTools(activeTools, allowedTools);
               try {
                 result = await this.subagentService.delegate(
@@ -716,6 +700,17 @@ export class AgentLoopService {
     const mcpResult = await this.mcpService.tryExecute(name, args);
     if (mcpResult !== null) return mcpResult;
     return `Error: Unknown tool: ${name}`;
+  }
+
+  private async resolveProfile(
+    profileSlug: string | undefined,
+  ): Promise<{ error?: string; promptOverride?: string; allowedTools?: string }> {
+    if (!profileSlug) return {};
+    const profile = await this.agentProfilesService.findBySlug(profileSlug);
+    if (!profile || !profile.enabled) {
+      return { error: `Error: unknown agent profile "${profileSlug}"` };
+    }
+    return { promptOverride: profile.systemPrompt, allowedTools: profile.allowedTools };
   }
 
   private buildTranscript(messages: OllamaMessage[]): string {

@@ -100,6 +100,7 @@ describe('AgentLoopService', () => {
   let plansService: typeof mockPlansService;
   let createPlanExec: { name: string; execute: jest.Mock };
   let agentProfilesService: { findBySlug: jest.Mock };
+  let subagentService: { spawn: jest.Mock; delegate: jest.Mock };
 
   const defaultTools = [
     { type: 'function' as const, function: { name: 'web_search', description: 'Search the web', parameters: {} } },
@@ -204,6 +205,7 @@ describe('AgentLoopService', () => {
     plansService = module.get(PlansService);
     createPlanExec = module.get(CreatePlanExecutor);
     agentProfilesService = module.get(AgentProfilesService);
+    subagentService = module.get(SubagentService);
     jest.clearAllMocks();
   });
 
@@ -351,6 +353,59 @@ describe('AgentLoopService', () => {
       expect(res.write).toHaveBeenCalledWith(
         expect.stringContaining('unknown agent profile'),
       );
+    });
+
+    it('applies the profile system prompt and scoped tools to a spawned sub-agent', async () => {
+      const toolCall: StreamChunk = {
+        type: 'tool_call',
+        toolCall: { name: 'spawn_subagent', arguments: { task: 'research X', profile: 'researcher' } },
+      };
+      llmController.stream = buildStreamMock(
+        [toolCall, DONE],
+        [{ type: 'token', token: 'Done' }, DONE],
+      );
+      agentProfilesService.findBySlug.mockResolvedValue({
+        slug: 'researcher', enabled: true, systemPrompt: 'You research.', allowedTools: '["web_search"]',
+      });
+
+      const res = mockRes();
+      const signal = new AbortController().signal;
+      await service.run(
+        'ollama', 'llama3', 'You are helpful', [], 'spawn with profile',
+        defaultTools, res, signal, undefined,
+      );
+
+      expect(agentProfilesService.findBySlug).toHaveBeenCalledWith('researcher');
+      expect(subagentService.spawn).toHaveBeenCalledTimes(1);
+      const callArgs = subagentService.spawn.mock.calls[0];
+      expect(callArgs[0]).toBe('research X');
+      const passedToolNames = (callArgs[4] as Array<{ function: { name: string } }>).map(t => t.function.name);
+      expect(passedToolNames).toEqual(['web_search']);
+      expect(callArgs[9]).toBe('You research.');
+    });
+
+    it('returns an error and does not delegate when the profile is disabled', async () => {
+      const toolCall: StreamChunk = {
+        type: 'tool_call',
+        toolCall: { name: 'delegate', arguments: { tasks: ['a', 'b'], profile: 'off' } },
+      };
+      llmController.stream = buildStreamMock(
+        [toolCall, DONE],
+        [{ type: 'token', token: 'Done' }, DONE],
+      );
+      agentProfilesService.findBySlug.mockResolvedValue({
+        slug: 'off', enabled: false, systemPrompt: 'x', allowedTools: '*',
+      });
+
+      const res = mockRes();
+      const signal = new AbortController().signal;
+      await service.run(
+        'ollama', 'llama3', 'You are helpful', [], 'delegate with disabled profile',
+        defaultTools, res, signal, undefined,
+      );
+
+      expect(subagentService.delegate).not.toHaveBeenCalled();
+      expect(res.write).toHaveBeenCalledWith(expect.stringContaining('unknown agent profile'));
     });
   });
 
