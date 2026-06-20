@@ -9,79 +9,90 @@
       >{{ t('agents.add') }}</button>
     </div>
 
-    <div class="flex-1 overflow-y-auto p-3 space-y-4">
-      <div v-if="store.error" class="text-red-400 text-sm font-mono">{{ t(store.error) }}</div>
+    <div class="flex-1 overflow-y-auto p-3 space-y-1">
+      <div v-if="store.error" class="text-red-400 text-sm font-mono mb-2">{{ t(store.error) }}</div>
 
-      <div class="space-y-1">
-        <div
-          v-for="p in store.profiles"
-          :key="p.id"
-          :class="editingId === p.id ? 'border-cyber-accent/40' : 'border-cyber-code-border'"
-          class="flex items-center gap-2 px-2 py-1.5 bg-cyber-dark border"
-        >
-          <span :class="p.enabled ? 'text-cyber-green' : 'text-cyber-muted'" class="font-mono text-sm">
-            {{ p.enabled ? '●' : '○' }}
-          </span>
-          <div class="min-w-0">
-            <div class="text-cyber-text text-sm font-mono truncate">
-              {{ p.name }}
-              <span v-if="p.builtin" class="text-cyber-cyan/70 ml-1">[{{ t('agents.builtin') }}]</span>
-            </div>
-            <div class="text-cyber-muted/60 text-sm font-mono truncate">/agent {{ p.slug }}</div>
+      <div
+        v-for="p in store.profiles"
+        :key="p.id"
+        class="flex items-center gap-2 px-2 py-1.5 bg-cyber-dark border border-cyber-code-border"
+      >
+        <span :class="p.enabled ? 'text-cyber-green' : 'text-cyber-muted'" class="font-mono text-sm">
+          {{ p.enabled ? '●' : '○' }}
+        </span>
+        <div class="min-w-0">
+          <div class="text-cyber-text text-sm font-mono truncate">
+            {{ p.name }}
+            <span v-if="p.builtin" class="text-cyber-cyan/70 ml-1">[{{ t('agents.builtin') }}]</span>
           </div>
-          <div class="ml-auto flex items-center gap-2 shrink-0">
-            <button
-              @click="toggleEnabled(p)"
-              :class="p.enabled ? 'text-cyber-orange hover:text-cyber-orange/80' : 'text-cyber-accent hover:text-cyber-accent/80'"
-              class="text-sm font-mono transition-colors duration-150"
-            >{{ p.enabled ? t('agents.disable') : t('agents.enable') }}</button>
-            <button
-              @click="startEdit(p)"
-              class="text-sm font-mono text-cyber-accent/70 hover:text-cyber-accent transition-colors duration-150"
-            >{{ t('agents.edit') }}</button>
-            <button
-              v-if="!p.builtin"
-              @click="askDelete(p)"
-              class="text-sm font-mono text-red-400 hover:text-red-400/80 transition-colors duration-150"
-            >{{ t('agents.delete') }}</button>
-          </div>
+          <div class="text-cyber-muted/60 text-sm font-mono truncate">/agent {{ p.slug }}</div>
         </div>
-        <div v-if="!store.profiles.length" class="text-cyber-muted text-sm font-mono">{{ t('agents.empty') }}</div>
+        <div class="ml-auto flex items-center gap-2 shrink-0">
+          <button
+            @click="toggleEnabled(p)"
+            :class="p.enabled ? 'text-cyber-orange hover:text-cyber-orange/80' : 'text-cyber-accent hover:text-cyber-accent/80'"
+            class="text-sm font-mono transition-colors duration-150"
+          >{{ p.enabled ? t('agents.disable') : t('agents.enable') }}</button>
+          <button
+            @click="startEdit(p)"
+            class="text-sm font-mono text-cyber-accent/70 hover:text-cyber-accent transition-colors duration-150"
+          >{{ t('agents.edit') }}</button>
+          <button
+            v-if="!p.builtin"
+            @click="askDelete(p)"
+            class="text-sm font-mono text-red-400 hover:text-red-400/80 transition-colors duration-150"
+          >{{ t('agents.delete') }}</button>
+        </div>
       </div>
+      <div v-if="!store.profiles.length" class="text-cyber-muted text-sm font-mono">{{ t('agents.empty') }}</div>
+    </div>
 
-      <form v-if="formOpen" @submit.prevent="save" class="border border-cyber-code-border bg-cyber-dark p-3 space-y-3 max-w-2xl">
-        <div class="text-cyber-accent text-sm font-mono">
-          {{ editingId ? t('agents.edit') : t('agents.add') }}
-        </div>
+    <BaseModal v-model="formOpen" closable size="xl" max-height="85vh">
+      <template #header>
+        <span class="text-cyber-text text-sm font-mono">{{ editingId ? t('agents.edit') : t('agents.add') }}</span>
+      </template>
 
+      <form id="agentForm" @submit.prevent="save" class="px-3 py-3 space-y-3">
         <div>
           <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('agents.name') }}</label>
           <input v-model="form.name" required
-            class="w-full bg-cyber-bg text-cyber-text text-sm font-mono border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent" />
+            class="w-full bg-cyber-dark text-cyber-text text-sm font-mono border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent" />
         </div>
 
         <div>
           <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('agents.slug') }}</label>
           <input v-model="form.slug" required :disabled="!!editingId" pattern="[a-z0-9-]+"
-            class="w-full bg-cyber-bg text-cyber-text text-sm font-mono border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent disabled:opacity-50" />
+            class="w-full bg-cyber-dark text-cyber-text text-sm font-mono border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent disabled:opacity-50" />
         </div>
 
         <div>
           <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('agents.description') }}</label>
           <input v-model="form.description"
-            class="w-full bg-cyber-bg text-cyber-text text-sm font-mono border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent" />
+            class="w-full bg-cyber-dark text-cyber-text text-sm font-mono border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent" />
         </div>
 
         <div>
           <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('agents.systemPrompt') }}</label>
           <textarea v-model="form.systemPrompt" required rows="4"
-            class="w-full bg-cyber-bg text-cyber-text text-sm font-mono border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent resize-y"></textarea>
+            class="w-full bg-cyber-dark text-cyber-text text-sm font-mono border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent resize-y"></textarea>
         </div>
 
         <div>
-          <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('agents.allowedTools') }}</label>
-          <input v-model="allowedToolsInput" :placeholder="'*'"
-            class="w-full bg-cyber-bg text-cyber-text text-sm font-mono border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent" />
+          <div class="flex items-center gap-2 mb-1">
+            <label class="text-cyber-muted text-sm font-mono">{{ t('agents.allowedTools') }}</label>
+            <button type="button" @click="pickerOpen = true"
+              class="ml-auto text-sm font-mono text-cyber-accent px-2 py-0.5 border border-cyber-accent/30 hover:bg-cyber-accent/10 transition-colors duration-150">
+              {{ t('agents.selectTools') }}
+            </button>
+          </div>
+          <div v-if="selectedTools.length" class="flex flex-wrap gap-1">
+            <span v-for="name in selectedTools" :key="name"
+              class="flex items-center gap-1 text-sm font-mono text-cyber-text bg-cyber-dark border border-cyber-code-border px-2 py-0.5">
+              {{ name }}
+              <button type="button" @click="removeTool(name)" class="text-cyber-muted hover:text-red-400 transition-colors duration-150">✕</button>
+            </span>
+          </div>
+          <div v-else class="text-cyber-muted/60 text-sm font-mono">{{ t('agents.allTools') }}</div>
         </div>
 
         <div>
@@ -95,19 +106,23 @@
         </label>
 
         <div v-if="formError" class="text-red-400 text-sm font-mono">{{ t(formError) }}</div>
+      </form>
 
+      <template #footer>
         <div class="flex gap-2 justify-end">
-          <button type="button" @click="closeForm"
+          <button type="button" @click="formOpen = false"
             class="text-sm font-mono text-cyber-muted px-3 py-1.5 hover:text-cyber-text transition-colors duration-150">
             {{ t('agents.cancel') }}
           </button>
-          <button type="submit"
+          <button type="submit" form="agentForm"
             class="text-sm font-mono text-cyber-accent px-3 py-1.5 border border-cyber-accent/30 hover:bg-cyber-accent/10 transition-colors duration-150">
             {{ t('agents.save') }}
           </button>
         </div>
-      </form>
-    </div>
+      </template>
+    </BaseModal>
+
+    <ToolPickerModal v-model="pickerOpen" :selected="selectedTools" @confirm="onToolsPicked" />
 
     <BaseConfirmModal
       v-model="confirmOpen"
@@ -124,7 +139,9 @@ import { useI18n } from 'vue-i18n'
 import { HiUserGroup } from 'vue-icons-plus/hi'
 import { storeToRefs } from 'pinia'
 import ModelSelector from './ModelSelector.vue'
+import BaseModal from './BaseModal.vue'
 import BaseConfirmModal from './BaseConfirmModal.vue'
+import ToolPickerModal from './ToolPickerModal.vue'
 import { useAgentProfilesStore } from '../stores/agentProfiles'
 import type { AgentProfile } from '../api/agentProfiles'
 import { useProvidersStore } from '../stores/providers'
@@ -147,7 +164,8 @@ interface ProfileForm {
 const formOpen = ref(false)
 const editingId = ref<number | null>(null)
 const formError = ref<string | null>(null)
-const allowedToolsInput = ref('*')
+const selectedTools = ref<string[]>([])
+const pickerOpen = ref(false)
 const confirmOpen = ref(false)
 const pendingDelete = ref<AgentProfile | null>(null)
 
@@ -156,27 +174,24 @@ const emptyForm = (): ProfileForm => ({
 })
 const form = reactive<ProfileForm>(emptyForm())
 
-const allowedToolsString = computed(() => {
-  const raw = allowedToolsInput.value.trim()
-  if (!raw || raw === '*') return '*'
-  const list = raw.split(',').map(s => s.trim()).filter(Boolean)
-  return list.length ? JSON.stringify(list) : '*'
-})
+const allowedToolsString = computed(() =>
+  selectedTools.value.length ? JSON.stringify(selectedTools.value) : '*',
+)
 
-function allowedToolsToInput(value: string): string {
-  if (!value || value === '*') return '*'
+function parseAllowedTools(value: string): string[] {
+  if (!value || value === '*') return []
   try {
     const parsed = JSON.parse(value)
-    if (Array.isArray(parsed)) return parsed.map(String).join(', ')
+    if (Array.isArray(parsed)) return parsed.map(String)
   } catch { /* fall through */ }
-  return '*'
+  return []
 }
 
 function startCreate() {
   editingId.value = null
   formError.value = null
   Object.assign(form, emptyForm())
-  allowedToolsInput.value = '*'
+  selectedTools.value = []
   formOpen.value = true
 }
 
@@ -189,13 +204,16 @@ function startEdit(p: AgentProfile) {
   form.systemPrompt = p.systemPrompt
   form.modelId = p.modelId ?? null
   form.enabled = p.enabled
-  allowedToolsInput.value = allowedToolsToInput(p.allowedTools)
+  selectedTools.value = parseAllowedTools(p.allowedTools)
   formOpen.value = true
 }
 
-function closeForm() {
-  formOpen.value = false
-  editingId.value = null
+function onToolsPicked(tools: string[]) {
+  selectedTools.value = tools
+}
+
+function removeTool(name: string) {
+  selectedTools.value = selectedTools.value.filter(t => t !== name)
 }
 
 async function save() {
@@ -216,7 +234,8 @@ async function save() {
     } else {
       await store.create(body)
     }
-    closeForm()
+    formOpen.value = false
+    editingId.value = null
   } catch (e) {
     formError.value = errorCode(e)
   }

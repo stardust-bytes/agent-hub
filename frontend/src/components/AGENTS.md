@@ -217,7 +217,17 @@ File upload zone (drag-and-drop + click), filter input, file list with status po
 
 ## AgentsView.vue
 
-`agents` settings tab. Lists agent profiles from `useAgentProfilesStore` (`GET /api/agent-profiles`); create/edit form (name, slug, description, systemPrompt, allowedTools as comma list ↔ JSON array string or `*`, model via `ModelSelector`, enabled). Toggle enable/disable inline; delete non-builtin profiles via `BaseConfirmModal` (builtin profiles are read-only — no delete, slug locked on edit).
+`agents` settings tab. Lists agent profiles from `useAgentProfilesStore` (`GET /api/agent-profiles`); create/edit in a `BaseModal` (name, slug, description, systemPrompt, allowedTools, model via `ModelSelector`, enabled). `allowedTools` is edited via a "Chọn công cụ" button that opens `ToolPickerModal`; the chosen tool names render as removable chips (empty selection ⇒ `*` / all tools, shown as "Tất cả công cụ"). Toggle enable/disable inline; delete non-builtin profiles via `BaseConfirmModal` (builtin profiles are read-only — no delete, slug locked on edit).
+
+---
+
+## ToolPickerModal.vue
+
+**Props:** `modelValue: boolean`, `selected: string[]`
+
+**Emits:** `update:modelValue`, `confirm(tools: string[])`
+
+`BaseModal` listing all registry tools (`GET /api/tools`, loaded once) with a filter input and a checkbox per tool. Initializes checked state from `selected` each open; "Thêm" emits `confirm` with the checked names and closes. Used by `AgentsView` to pick a profile's allowed tools.
 
 ---
 
