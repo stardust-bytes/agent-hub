@@ -16,6 +16,10 @@
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="MIT" />
 </p>
 
+<p align="center">
+  <img src="./media/app-screenshot.png" alt="Agent Hub" width="100%" />
+</p>
+
 ---
 
 ## Features
