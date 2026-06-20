@@ -115,6 +115,7 @@ async function main() {
     { slug: 'researcher', name: 'Researcher', description: 'Read-only research and synthesis', systemPrompt: 'You are a research sub-agent. Gather and synthesize information accurately. Report findings concisely with sources.', allowedTools: JSON.stringify(['search_knowledge','web_search','web_fetch','read_file','grep','glob','list_directory']), builtin: true },
     { slug: 'code-reviewer', name: 'Code Reviewer', description: 'Reviews code for bugs and clarity', systemPrompt: 'You are a code-review sub-agent. Inspect the code and report concrete issues (bugs, risks, simplifications) with file:line references. Do not modify files.', allowedTools: JSON.stringify(['read_file','grep','glob','list_directory']), builtin: true },
     { slug: 'explorer', name: 'Explorer', description: 'Broad codebase search', systemPrompt: 'You are an exploration sub-agent. Locate relevant files and summarize where things live. Return paths and short excerpts, not full files.', allowedTools: JSON.stringify(['grep','glob','list_directory','read_file']), builtin: true },
+    { slug: 'general', name: 'General Assistant', description: 'General-purpose agent with full tool access', systemPrompt: 'You are a general-purpose sub-agent. Use any tools available to complete the task. Plan your approach, execute steps methodically, and report back concisely.', allowedTools: '*', builtin: true },
   ];
   for (const p of DEFAULT_PROFILES) {
     await prisma.agentProfile.upsert({
