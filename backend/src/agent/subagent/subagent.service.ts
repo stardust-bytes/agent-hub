@@ -77,7 +77,10 @@ export class SubagentService {
     return {
       write(data: string): boolean {
         if (/^data: \[DONE\]\n?$/m.test(data)) {
-          return originalWrite('data: {"subagent":true,"done":true}\n\n');
+          const donePayload: Record<string, unknown> = { subagent: true, done: true };
+          if (subagentName) donePayload.subagentName = subagentName;
+          if (subagentRunId) donePayload.subagentRunId = subagentRunId;
+          return originalWrite(`data: ${JSON.stringify(donePayload)}\n\n`);
         }
         const modified = data.replace(
           /^(data: )(\{.*?\})(\n\n)$/gm,
