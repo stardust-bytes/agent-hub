@@ -166,6 +166,7 @@ function getOrCreateSession(runId: string | undefined, name: string): SubagentSe
     status: 'running',
     logs: [],
     startedAt: now(),
+    startedAtMs: Date.now(),
   }
   subagentSessions.value.push(session)
   triggerRef(subagentSessions)
@@ -450,7 +451,12 @@ async function submitText(text: string) {
           const { id, name, args } = ev.toolApprovalRequired
           callbacks.onToolApprovalRequired?.(id, name, args)
         } else if (ev.token) {
-          session.logs.push({ type: 'token', text: String(ev.token), timestamp: ts })
+          const lastLog = session.logs[session.logs.length - 1]
+          if (lastLog && lastLog.type === 'token') {
+            lastLog.text += String(ev.token)
+          } else {
+            session.logs.push({ type: 'token', text: String(ev.token), timestamp: ts })
+          }
           triggerRef(subagentSessions)
         } else if (ev.toolCall) {
           currentAgentIdx = -1

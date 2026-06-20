@@ -16,6 +16,7 @@ AppShell.vue              — layout shell, hosts <router-view>, reads ui state 
 │   │   ├── cowork/types.ts         — shared interfaces (Message, PlanData, ProviderModelFlat, …)
 │   │   ├── cowork/markdown.ts      — renderMarkdown, parseSegments, highlightUserMessage
 │   │   ├── ArtifactsPanel.vue      — file preview + plan steps + tool results pane
+│   │   ├── SubagentMonitorPanel.vue — sub-agent live log sessions panel
 │   │   ├── FileTree.vue            — project file tree
 │   │   ├── FilesView.vue           — knowledge base upload + codebase watcher
 │   │   ├── ToolApprovalBar.vue     — pending tool-call approve/deny bar
@@ -49,6 +50,7 @@ FormBlock.vue                — agent-rendered form segment
 NoteModal.vue                — create/edit note modal
 ProviderFormModal.vue        — create/edit provider form
 ToolConfigModal.vue          — per-tool config editor
+SubagentMonitorPanel.vue     — sub-agent live log sessions panel
 ```
 
 ---
@@ -99,6 +101,8 @@ Visible on mobile only (`flex md:hidden`, `h-[3rem]`). Renders `bottomItems` fro
 
 **Session history:** Uses `loadSessionMessages` from `src/composables/useSessionMessages.ts`.
 
+**Sub-agent monitoring:** Manages `subagentSessions` ref and `SubagentMonitorPanel` toggle. Sub-agent SSE events are routed to session logs for live display, with brief inline messages in the main chat. `activeSubagentCount` shown via `ProjectBar` prop.
+
 **File tree:** Refreshed via `fileTreeRefreshKey` counter incremented on stream complete.
 
 **Artifacts:** File preview via `readFile` API call; tool results fed to `ArtifactsPanel`.
@@ -107,11 +111,11 @@ Visible on mobile only (`flex md:hidden`, `h-[3rem]`). Renders `bottomItems` fro
 
 ## cowork/ProjectBar.vue
 
-**Props:** `projectPath: string | null`, `savedProjects: SavedProject[]`
+**Props:** `projectPath: string | null`, `savedProjects: SavedProject[]`, `subagentCount?: number`
 
-**Emits:** `browse-directory`, `select-project(path)`, `delete-project(id)`, `save-project(name)`, `toggle-artifacts`
+**Emits:** `browse-directory`, `select-project(path)`, `delete-project(id)`, `save-project(name)`, `toggle-artifacts`, `toggle-subagent-monitor`
 
-Owns its own dropdown state (`showProjectMenu`, `showSaveModal`, `saveProjectName`). Renders the project path bar with a connected indicator dot, dropdown menu for saved projects, and save/delete/browse actions.
+Owns its own dropdown state (`showProjectMenu`, `showSaveModal`, `saveProjectName`). Renders the project path bar with a connected indicator dot, dropdown menu for saved projects, and save/delete/browse actions. When `subagentCount > 0`, shows a ◈ button that toggles the SubagentMonitorPanel.
 
 ---
 
@@ -236,6 +240,16 @@ File upload zone (drag-and-drop + click), filter input, file list with status po
 ## SlashMenu.vue
 
 Slash-command autocomplete dropdown. Purely presentational — receives `commands` as a prop from `ChatInputBar.vue`, which provides static entries (`/plan`, `/resume-plan`, `/help`, `/clear`) plus dynamic `/agent <slug>` entries per enabled profile. Keyboard navigation handled by parent.
+
+---
+
+## SubagentMonitorPanel.vue
+
+**Props:** `visible: boolean`, `sessions: SubagentSession[]`
+
+**Emits:** `close`
+
+Right-side collapsible panel for live sub-agent monitoring. Each active/completed sub-agent spawn is a `SubagentSession` card with a log area showing thinking, tool calls, tool results, token stream, and completion status. Auto-scrolls on new log entries. Session identity comes from `subagentRunId` in SSE events (set by backend).
 
 ---
 
