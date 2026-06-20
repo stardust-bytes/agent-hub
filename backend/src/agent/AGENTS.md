@@ -5,7 +5,7 @@ AI agent integration module. Implements State Machine orchestrator with Planning
 ## Responsibility
 
 - `AgentController` — exposes `POST /api/agent/chat` (SSE streaming endpoint). Uses `@Res({ passthrough: false })` to directly write SSE events.
-- `AgentService` — thin orchestrator: resolves provider model, builds context, delegates to `AgentLoopService`, persists messages.
+- `AgentService` — thin orchestrator: resolves provider model, builds context, delegates to `AgentLoopService`, persists messages. Handles the `/agent <slug> <task>` command (parsed by `dto/agent-command.util.ts`): resolves the profile via `AgentProfilesService`, builds context with the profile's system prompt, scopes tools via `filterSubagentTools`, optionally switches to the profile's `modelId`, and runs the loop directly (unknown/disabled slug → error SSE listing enabled slugs).
 - `AgentLoopService` — State Machine orchestrator: drives PLANNING → EXECUTING → EVALUATING → CORRECTING → RESPONDING → DONE loop, executes tools, emits SSE events. Implements `runPlanMode()` and `executePlan()` for Plan Mode. Detects `[PLAN_CREATED]` marker from `create_plan` tool execution and routes to approval (`[DONE]`) or auto-execution (`executePlan()`). Emits `planInterrupted` SSE event when a plan execution is aborted.
 - `LLMControllerService` — provider-agnostic LLM routing: selects registered provider, manages message history, builds message arrays. Exposes `stream()` (async generator) and `generateCompletion()` (non-streaming, collects full response).
 - `danger-patterns.config` — pattern-based block rules (`BLOCK_RULES`) and `matchDangerPattern()` for fast-path security evaluation. Covers interpreters, package runners, network, cloud CLIs, git destructive, etc.
@@ -35,7 +35,8 @@ agent/
 │   ├── update-permissions.dto.ts — body for PATCH /api/agent/permissions
 │   ├── yolo-config.dto.ts     — YoloConfig DTO for GET/PATCH /api/agent/yolo-config
 │   ├── write-stream.interface.ts — SSE write-stream abstraction
-│   └── execute-plan.dto.ts    — execute-plan body shape
+│   ├── execute-plan.dto.ts    — execute-plan body shape
+│   └── agent-command.util.ts  — parseAgentCommand for the /agent <slug> <task> command
 ├── services/
 │   ├── agent-loop.service.ts            — State Machine orchestrator (main loop)
 │   ├── agent-loop.service.spec.ts

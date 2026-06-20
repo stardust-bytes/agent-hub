@@ -9,6 +9,9 @@ import { PlansService } from '../plans/plans.service';
 import { PermissionsConfig } from './dto/permissions-config';
 import { AgentRunState } from './dto/agent-run-state';
 import { WriteStream } from './dto/write-stream.interface';
+import { AgentProfilesService } from '../agent-profiles/agent-profiles.service';
+import { parseAgentCommand } from './dto/agent-command.util';
+import { filterSubagentTools } from './subagent/subagent-tools.util';
 
 @Injectable()
 export class AgentService {
@@ -20,6 +23,7 @@ export class AgentService {
     private readonly permissionsService: PermissionsService,
     private readonly plansService: PlansService,
     private readonly cowork: CoworkService,
+    private readonly agentProfiles: AgentProfilesService,
   ) {}
 
   async streamChat(
@@ -50,6 +54,52 @@ export class AgentService {
 
     const project = await this.cowork.getProject().catch(() => null);
     const projectPath = project ?? undefined;
+
+    const agentCmd = parseAgentCommand(message);
+    if (agentCmd) {
+      const profile = await this.agentProfiles.findBySlug(agentCmd.slug);
+      if (!profile || !profile.enabled) {
+        const enabled = await this.agentProfiles.findEnabled();
+        const slugs = enabled.map(p => p.slug).join(', ') || '(none)';
+        res.write(`data: ${JSON.stringify({ error: `unknown agent profile "${agentCmd.slug}". Available: ${slugs}` })}\n\n`);
+        res.write('data: [DONE]\n\n');
+        return;
+      }
+
+      let cmdProviderType = providerType;
+      let cmdModel = providerModel.name;
+      let cmdProviderConfig = providerConfig;
+      if (profile.modelId) {
+        const pm = await this.providersService.findModelWithProvider(profile.modelId);
+        if (pm) {
+          cmdProviderType = pm.provider.type ?? 'ollama';
+          cmdModel = pm.name;
+          cmdProviderConfig = {
+            baseUrl: pm.provider.baseUrl ?? 'http://localhost:11434',
+            key: pm.provider.key ?? undefined,
+          };
+        }
+      }
+
+      const runState = {
+        step: 0, maxIterations: 10, roomId: String(sessionId),
+        steps: [], startTime: Date.now(), currentState: 'PLANNING',
+      } as AgentRunState;
+      const context = await this.contextBuilder.build(runState, sessionId, profile.systemPrompt);
+      const tools = filterSubagentTools(context.tools, profile.allowedTools);
+      const history = await this.sessionsService.getHistory(sessionId);
+      if (!signal.aborted) {
+        await this.sessionsService.saveMessage(sessionId, 'user', message);
+      }
+      await this.agentLoop.run(
+        cmdProviderType, cmdModel, profile.systemPrompt, history,
+        agentCmd.task, tools, res, signal, sessionId, projectPath, cmdProviderConfig,
+      );
+      if (!signal.aborted) {
+        await this.sessionsService.autoTitle(sessionId, message);
+      }
+      return;
+    }
 
     if (message.startsWith('/plan ')) {
       const approveMatch = message.match(/^\/plan approve (\d+)$/);
