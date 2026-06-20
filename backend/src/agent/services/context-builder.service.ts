@@ -189,7 +189,6 @@ export class ContextBuilderService {
       '- browser_wait_for({ time: 2 }) — wait 2 seconds after navigation or slow page updates.',
       '- browser_handle_dialog({ accept: true }) — dismiss alerts, confirmations, prompts.',
       '- browser_press_key({ key: "Enter" }) — keyboard shortcuts like Enter, Escape, Tab, ArrowDown.',
-      '- browser_tabs({ action: "new", url: "..." }) — open a new tab.',
       '- If a snapshot does not show the element you need, the page may need scrolling or a menu may need to be opened first.',
       '',
       'KEY PRINCIPLE: Never assume the page state after an action. Always take a fresh snapshot.',
