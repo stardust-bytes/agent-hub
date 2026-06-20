@@ -1,7 +1,8 @@
 <template>
   <nav class="w-60 bg-cyber-dark flex flex-col items-stretch py-3 gap-1 shrink-0">
-    <div class="flex items-center justify-center px-3 py-1 mb-1">
-      <span class="font-['Press_Start_2P'] text-xl text-cyber-accent">Agent Hub</span>
+    <div class="flex flex-col items-center px-3 py-1 mb-1">
+      <span class="font-['Press_Start_2P'] text-sm text-cyber-accent">Agent Hub</span>
+      <span class="text-xs font-mono text-cyber-muted">Code 171305</span>
     </div>
 
     <RouterLink
