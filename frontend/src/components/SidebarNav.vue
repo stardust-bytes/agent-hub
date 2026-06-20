@@ -1,8 +1,7 @@
 <template>
   <nav class="w-60 bg-cyber-dark flex flex-col items-stretch py-3 gap-1 shrink-0">
-    <div class="flex items-center justify-center gap-2 px-3 py-1 mb-1">
-      <img src="/logo.png" class="w-6 h-6 shrink-0" alt="171305" />
-      <span class="font-['Press_Start_2P'] text-xl text-cyber-accent">171305</span>
+    <div class="flex items-center justify-center px-3 py-1 mb-1">
+      <span class="font-['Press_Start_2P'] text-xl text-cyber-accent">Agent Hub</span>
     </div>
 
     <RouterLink
