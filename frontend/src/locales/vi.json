@@ -255,6 +255,14 @@
 
   "plans.fetch_failed": "Không tải được kế hoạch",
 
+  "subagent.panel.header": "Sub-agents",
+  "subagent.panel.empty": "Không có sub-agent nào đang chạy",
+  "subagent.session.running": "đang chạy",
+  "subagent.session.done": "Hoàn thành",
+  "subagent.session.failed": "Thất bại",
+  "subagent.log.view": "xem kết quả",
+  "subagent.log.collapse": "thu gọn",
+
   "plans.header": "Kế hoạch thực thi",
   "plans.empty": "Chưa có kế hoạch nào",
   "plans.steps": "bước",

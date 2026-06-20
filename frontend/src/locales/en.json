@@ -255,6 +255,14 @@
 
   "plans.fetch_failed": "Could not load plans",
 
+  "subagent.panel.header": "Sub-agents",
+  "subagent.panel.empty": "No sub-agents active",
+  "subagent.session.running": "running",
+  "subagent.session.done": "Done",
+  "subagent.session.failed": "Failed",
+  "subagent.log.view": "view full result",
+  "subagent.log.collapse": "collapse",
+
   "plans.header": "Execution Plan",
   "plans.empty": "No plans yet",
   "plans.steps": "steps",

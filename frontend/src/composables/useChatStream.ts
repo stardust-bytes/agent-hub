@@ -9,6 +9,7 @@ export interface SubagentEvent {
   thinking?: string
   toolApprovalRequired?: { id: string; name: string; args: Record<string, unknown> }
   subagentName?: string
+  subagentRunId?: string
 }
 
 export interface SseCallbacks {

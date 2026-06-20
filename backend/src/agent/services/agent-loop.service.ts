@@ -209,6 +209,7 @@ export class AgentLoopService {
     projectPath?: string,
     providerConfig: { baseUrl: string; key?: string } = { baseUrl: 'http://localhost:11434' },
     subagentName?: string,
+    subagentRunId?: string,
   ): Promise<string> {
     this.state = AgentState.PLANNING;
 
@@ -742,6 +743,7 @@ export class AgentLoopService {
     providerType: string = 'ollama',
     projectPath?: string,
     subagentName?: string,
+    subagentRunId?: string,
   ): Promise<void> {
     const signal = parentSignal ?? new AbortController().signal;
     let currentMessages = [...messages];

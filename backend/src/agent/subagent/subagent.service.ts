@@ -1,4 +1,5 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { AgentLoopService } from '../services/agent-loop.service';
 import { ToolDefinition } from '../services/context-builder.service';
 import { WriteStream } from '../dto/write-stream.interface';
@@ -56,20 +57,22 @@ export class SubagentService {
     projectPath?: string,
     systemPromptOverride?: string,
     subagentName?: string,
+    subagentRunId?: string,
   ): Promise<string> {
+    const runId = subagentRunId ?? crypto.randomUUID();
     const subagentPrompt = systemPromptOverride ??
       (`You are a sub-agent. Your task: ${task}\n\n` +
        'You have access to the same workspace tools. Complete the task and report back concisely.');
 
-    const subRes = this.createPrefixedResponse(res, subagentName);
+    const subRes = this.createPrefixedResponse(res, subagentName, runId);
 
     return this.agentLoop.run(
       providerType, model, subagentPrompt, [], task,
-      tools, subRes, signal, sessionId, projectPath, providerConfig, subagentName,
+      tools, subRes, signal, sessionId, projectPath, providerConfig, subagentName, runId,
     );
   }
 
-  private createPrefixedResponse(res: WriteStream, subagentName?: string): WriteStream {
+  private createPrefixedResponse(res: WriteStream, subagentName?: string, subagentRunId?: string): WriteStream {
     const originalWrite = res.write.bind(res);
     return {
       write(data: string): boolean {
@@ -83,6 +86,7 @@ export class SubagentService {
               const parsed = JSON.parse(json);
               parsed.subagent = true;
               if (subagentName) parsed.subagentName = subagentName;
+              if (subagentRunId) parsed.subagentRunId = subagentRunId;
               return `${prefix}${JSON.stringify(parsed)}${suffix}`;
             } catch {
               return _match;
