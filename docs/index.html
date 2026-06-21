@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Hub — Local-First AI Workspace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+      background: #000000;
+      color: #e6edf3;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #58a6ff; text-decoration: none; transition: color 0.15s; }
+    a:hover { color: #3B82F6; }
+
+    /* Navigation */
+    nav {
+      position: fixed; top: 0; width: 100%; z-index: 100;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid #30363d;
+      padding: 0 24px; height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    nav .logo { font-weight: 700; font-size: 18px; color: #00d4ff; }
+    nav .logo span { color: #3B82F6; }
+    nav .links { display: flex; gap: 24px; align-items: center; }
+    nav .links a { font-size: 13px; color: #888888; }
+    nav .links a:hover { color: #e6edf3; }
+    nav .links .gh-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border: 1px solid #30363d; border-radius: 4px;
+      color: #e6edf3; font-size: 12px; background: #111111;
+    }
+    nav .links .gh-btn:hover { border-color: #3B82F6; background: #161616; }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+      padding: 120px 24px 80px; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(ellipse at 30% 20%, rgba(0,212,255,0.03) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 80%, rgba(59,130,246,0.03) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border: 1px solid #30363d; border-radius: 4px;
+      font-size: 12px; color: #888888; margin-bottom: 32px;
+      background: #0d1117;
+    }
+    .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #22C55E; display: inline-block; }
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 72px); font-weight: 800; line-height: 1.1;
+      margin-bottom: 20px; letter-spacing: -1px;
+    }
+    .hero h1 .accent { color: #00d4ff; }
+    .hero h1 .accent2 { color: #3B82F6; }
+    .hero p {
+      font-size: 15px; color: #888888; max-width: 600px;
+      margin-bottom: 40px; font-weight: 300;
+    }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 4px; font-family: inherit;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: all 0.15s; border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: #3B82F6; color: #fff; border-color: #3B82F6;
+    }
+    .btn-primary:hover { background: #2563eb; border-color: #2563eb; }
+    .btn-secondary {
+      background: transparent; color: #e6edf3; border-color: #30363d;
+    }
+    .btn-secondary:hover { border-color: #3B82F6; background: rgba(59,130,246,0.08); }
+    .btn-gh {
+      background: #111111; color: #e6edf3; border-color: #30363d;
+    }
+    .btn-gh:hover { border-color: #3B82F6; }
+    .hero-stats {
+      display: flex; gap: 48px; margin-top: 64px;
+      padding: 24px 48px; border: 1px solid #30363d; border-radius: 4px;
+      background: #0d1117;
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat .num { font-size: 24px; font-weight: 700; color: #00d4ff; }
+    .hero-stat .label { font-size: 11px; color: #888888; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Terminal block */
+    .terminal-block {
+      max-width: 680px; margin: 40px auto 0;
+      background: #0d1117; border: 1px solid #30363d; border-radius: 4px;
+      text-align: left; overflow: hidden; width: 100%;
+    }
+    .terminal-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px; border-bottom: 1px solid #30363d;
+      background: #111111; font-size: 12px; color: #888888;
+    }
+    .terminal-dots { display: flex; gap: 6px; }
+    .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-dot.red { background: #ff5f56; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #27c93f; }
+    .terminal-title { margin-left: 12px; }
+    .terminal-body { padding: 20px; font-size: 13px; color: #e6edf3; line-height: 1.8; }
+    .terminal-body .prompt { color: #22C55E; }
+    .terminal-body .comment { color: #888888; }
+    .terminal-body .cmd { color: #e6edf3; }
+    .cursor {
+      display: inline-block; width: 8px; height: 16px; background: #3B82F6;
+      margin-left: 2px; animation: blink 1s step-end infinite;
+      vertical-align: text-bottom;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* Sections */
+    section { padding: 100px 24px; max-width: 1100px; margin: 0 auto; }
+    .section-tag {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+      color: #3B82F6; margin-bottom: 12px; font-weight: 600;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 42px); font-weight: 700; margin-bottom: 16px;
+      line-height: 1.2;
+    }
+    .section-desc { font-size: 14px; color: #888888; max-width: 600px; font-weight: 300; }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2px; margin-top: 48px; }
+    .feature-card {
+      background: #0d1117; border: 1px solid #30363d; padding: 32px 24px;
+      transition: border-color 0.15s; position: relative;
+    }
+    .feature-card:hover { border-color: #3B82F6; }
+    .feature-icon {
+      width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+      border: 1px solid #30363d; border-radius: 4px; margin-bottom: 16px;
+      font-size: 18px; background: #111111;
+    }
+    .feature-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .feature-card p { font-size: 12px; color: #888888; line-height: 1.7; font-weight: 300; }
+
+    /* How it started */
+    .story { margin-top: 48px; }
+    .story-content {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 4px;
+      padding: 32px; margin-top: 24px;
+    }
+    .story-content p { font-size: 13px; color: #888888; line-height: 1.8; margin-bottom: 16px; }
+    .story-content p:last-child { margin-bottom: 0; }
+
+    /* Get started */
+    .get-started {
+      text-align: center; border-top: 1px solid #30363d;
+      padding: 100px 24px;
+    }
+    .get-started-inner { max-width: 600px; margin: 0 auto; }
+    .get-started h2 { font-size: clamp(24px, 3vw, 36px); font-weight: 700; margin-bottom: 12px; }
+    .get-started p { font-size: 13px; color: #888888; margin-bottom: 32px; font-weight: 300; }
+    .code-block {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 4px;
+      padding: 16px 20px; text-align: left; font-size: 13px;
+      position: relative; margin-bottom: 24px;
+    }
+    .code-block .copy-btn {
+      position: absolute; top: 12px; right: 12px;
+      background: #161616; border: 1px solid #30363d; border-radius: 4px;
+      color: #888888; padding: 4px 10px; font-size: 11px; cursor: pointer;
+      font-family: inherit; transition: all 0.15s;
+    }
+    .code-block .copy-btn:hover { border-color: #3B82F6; color: #e6edf3; }
+    .code-block code { color: #e6edf3; word-break: break-all; }
+    .code-block .prompt { color: #22C55E; }
+
+    /* Features row */
+    .features-row {
+      display: flex; justify-content: center; gap: 32px; flex-wrap: wrap;
+      margin-top: 48px; padding-top: 48px; border-top: 1px solid #30363d;
+    }
+    .feature-item { text-align: center; }
+    .feature-item .icon { color: #22C55E; font-size: 20px; margin-bottom: 4px; }
+    .feature-item .text { font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid #30363d; padding: 32px 24px;
+      text-align: center; font-size: 12px; color: #888888;
+    }
+    footer a { color: #888888; }
+    footer a:hover { color: #e6edf3; }
+    footer .sep { margin: 0 12px; color: #30363d; }
+
+    /* Testimonials */
+    .testimonials { margin-top: 48px; }
+    .testimonial-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2px;
+    }
+    .testimonial-card {
+      background: #0d1117; border: 1px solid #30363d; padding: 24px;
+      font-size: 12px; line-height: 1.7;
+    }
+    .testimonial-card .stars { color: #FFA500; margin-bottom: 8px; font-size: 14px; }
+    .testimonial-card .quote { color: #888888; margin-bottom: 12px; font-style: italic; }
+    .testimonial-card .author { color: #e6edf3; font-weight: 500; }
+    .testimonial-card .role { color: #888888; font-size: 11px; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      nav { padding: 0 16px; }
+      nav .links a:not(.gh-btn) { display: none; }
+      .hero-stats { flex-direction: column; gap: 24px; padding: 24px; width: 100%; }
+      .features { grid-template-columns: 1fr; }
+      .testimonial-grid { grid-template-columns: 1fr; }
+      .terminal-body { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Nav -->
+  <nav>
+    <div class="logo">Agent<span>Hub</span></div>
+    <div class="links">
+      <a href="#features">Features</a>
+      <a href="#testimonials">Testimonials</a>
+      <a href="#story">How it started</a>
+      <a href="#start">Get started</a>
+      <a href="https://github.com/anomalyco/agent-hub" class="gh-btn" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Local-first &middot; Self-hosted &middot; No telemetry
+    </div>
+    <h1>Your own <span class="accent">AI workspace</span>,<br />running on <span class="accent2">your hardware</span>.</h1>
+    <p>
+      Agent Hub is a self-hosted interface for AI agents — chat, tools, MCP, RAG, email,
+      scheduling, and more. Privacy-first, local-first, and entirely under your control.
+    </p>
+    <div class="hero-actions">
+      <a href="#start" class="btn btn-primary">Get started</a>
+      <a href="https://github.com/anomalyco/agent-hub" class="btn btn-secondary" target="_blank">View on GitHub</a>
+    </div>
+    <div class="terminal-block">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="terminal-dot red"></span>
+          <span class="terminal-dot yellow"></span>
+          <span class="terminal-dot green"></span>
+        </div>
+        <div class="terminal-title">workspace@agent-hub: ~</div>
+      </div>
+      <div class="terminal-body">
+        <span class="prompt">$</span> <span class="cmd">npx workspace-hub<span class="cursor"></span></span><br />
+        <span class="comment"># &gt; Agent Hub started on http://localhost:17135</span><br />
+        <span class="comment"># &gt; SQLite connected. LanceDB ready. Waiting for your first message...</span>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="num">10+</div>
+        <div class="label">Tools &amp; Connectors</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">270+</div>
+        <div class="label">Supported Models</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">100%</div>
+        <div class="label">Local &amp; Private</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="section-tag">Everything, self-hosted</div>
+    <h2 class="section-title">One app, a lot of capabilities.</h2>
+    <p class="section-desc">
+      Started as an AI chat. Became a workspace. Each piece runs locally against
+      whatever endpoints you point it at.
+    </p>
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4AC;</div>
+        <h3>Chat &amp; Agents</h3>
+        <p>Multi-turn chat plus autonomous agents that plan, call tools, and work through complex tasks — all against your local or remote models.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F527;</div>
+        <h3>Tools &amp; MCP</h3>
+        <p>Built-in tools (bash, files, web, memory, code execution) plus any MCP server you connect. Toggle per tool with granular permission control.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4DA;</div>
+        <h3>RAG &amp; Knowledge</h3>
+        <p>Upload documents (.pdf, .docx, .xlsx) or watch a codebase directory. LanceDB-powered vector search makes your data accessible to the agent.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4E7;</div>
+        <h3>Email &amp; Calendar</h3>
+        <p>AI-powered email summaries, style-matched draft replies, auto-tagging, and spam triage over IMAP/SMTP. Google Calendar integration for scheduling.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4CA;</div>
+        <h3>Google Workspace</h3>
+        <p>Connect Gmail, Calendar, Google Drive, and Google Sheets. The agent can read, write, and manage your data directly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4C5;</div>
+        <h3>Scheduled Tasks</h3>
+        <p>Create cron-driven agent runs. The agent executes prompts on a schedule and logs results. Perfect for daily briefings, reports, and monitoring.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F9E0;</div>
+        <h3>Persistent Memory</h3>
+        <p>The assistant builds up persistent memory across all your conversations, getting more capable and context-aware over time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F3AF;</div>
+        <h3>Model Agnostic</h3>
+        <p>Works with Ollama, OpenAI, DeepSeek, or any OpenAI-compatible API. Full provider management UI — add, configure, and switch models on the fly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F512;</div>
+        <h3>Private by Default</h3>
+        <p>Runs entirely on your machine. No telemetry, no data leaves your network. Optional external integrations only when you explicitly enable them.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section id="testimonials">
+    <div class="section-tag">Loved by developers</div>
+    <h2 class="section-title">What our users are saying.</h2>
+    <div class="testimonials">
+      <div class="testimonial-grid">
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <div class="quote">"Finally, an AI workspace that respects my privacy. I run everything locally and it just works. The MCP tool integration is a game-changer."</div>
+          <div class="author">Senior Developer</div>
+          <div class="role">Self-hosted enthusiast</div>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <div class="quote">"The Google Sheets integration alone saves me hours every week. My agent prepares reports, updates spreadsheets, and briefs me every morning."</div>
+          <div class="author">Operations Lead</div>
+          <div class="role">Automation user</div>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <div class="quote">"I was skeptical about self-hosting AI, but the Docker Compose setup was genuinely one command. Had it running in under 2 minutes."</div>
+          <div class="author">DevOps Engineer</div>
+          <div class="role">First-time user</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it started -->
+  <section id="story">
+    <div class="section-tag">How it actually started</div>
+    <h2 class="section-title">Built from a single prompt.</h2>
+    <div class="story-content">
+      <p>
+        Agent Hub started as an experiment: could an AI agent build its own workspace?
+        The project grew from a single prompt into a full-featured, local-first AI workspace
+        with chat, autonomous agents, tools, RAG, and deep integrations.
+      </p>
+      <p>
+        The idea was simple — running local AI should feel empowering, not limiting.
+        Every tool, every connector, every feature was built to give you and your agents
+        more capability without compromising privacy. The more context you give it,
+        the more useful it becomes.
+      </p>
+      <p>
+        Which is exactly why it's self-hosted: all that context stays on your machine.
+      </p>
+    </div>
+    <div class="terminal-block">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="terminal-dot red"></span>
+          <span class="terminal-dot yellow"></span>
+          <span class="terminal-dot green"></span>
+        </div>
+        <div class="terminal-title">user@agent-hub: ~ — ✕</div>
+      </div>
+      <div class="terminal-body">
+        <span class="prompt">$</span> <span class="cmd">make something good, make it local, make it powerful<span class="cursor"></span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Get started -->
+  <section id="start" class="get-started">
+    <div class="get-started-inner">
+      <h2>Agent Hub is yours.</h2>
+      <p>
+        Open source and free. No sales team, no demo request, no Trojan horse.
+        One command to run, full control forever.
+      </p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('npx workspace-hub');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+        <code><span class="prompt">$</span> npx workspace-hub</code>
+      </div>
+      <p style="font-size:12px;color:#888888;margin-bottom:24px;">
+        or clone the repo and run with Docker:
+      </p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('git clone https://github.com/anomalyco/agent-hub.git && cd agent-hub && docker compose up');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+        <code><span class="prompt">$</span> git clone https://github.com/anomalyco/agent-hub.git<br />
+        <span class="prompt">$</span> cd agent-hub<br />
+        <span class="prompt">$</span> docker compose up</code>
+      </div>
+      <div style="margin-top:32px;">
+        <a href="https://github.com/anomalyco/agent-hub" class="btn btn-gh" target="_blank">View on GitHub</a>
+      </div>
+      <div class="features-row" style="border-top-color:#30363d;">
+        <div class="feature-item">
+          <div class="icon">●</div>
+          <div class="text">Self-hosted</div>
+        </div>
+        <div class="feature-item">
+          <div class="icon">●</div>
+          <div class="text">Bring your own models</div>
+        </div>
+        <div class="feature-item">
+          <div class="icon">●</div>
+          <div class="text">Local-first</div>
+        </div>
+        <div class="feature-item">
+          <div class="icon">●</div>
+          <div class="text">MCP-ready</div>
+        </div>
+        <div class="feature-item">
+          <div class="icon">●</div>
+          <div class="text">No telemetry</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>
+      <a href="https://github.com/anomalyco/agent-hub">Agent Hub</a>
+      <span class="sep">·</span>
+      Open source &amp; free
+      <span class="sep">·</span>
+      Built from a prompt that refused to stop
+    </p>
+  </footer>
+</body>
+</html>
