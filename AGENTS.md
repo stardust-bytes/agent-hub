@@ -83,6 +83,7 @@ agent-hub/
 │   └── src/<module>/AGENTS.md — per-module docs
 ├── frontend/               — Vue 3 + Vite SPA (see frontend/AGENTS.md)
 │   └── src/components/AGENTS.md
+├── docs/index.html          — GitHub Pages landing page (project site)
 ├── docs/superpowers/       — specs/ (design) + plans/ (implementation) — committed
 └── workspace_data/         — runtime volume: dev.db, lancedb/, uploads/, agent-output/ (git-ignored)
 ```
