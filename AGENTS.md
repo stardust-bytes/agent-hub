@@ -131,41 +131,41 @@ These rules apply to ALL tasks in this project. Claude must follow them strictly
 
 ### Rule Set 1: UI / Design System
 
-**Theme: GitHub Light.** Use the **default Tailwind palette** directly in components (not custom `cyber-*` tokens); interactive primitives use **Headless UI** (`@headlessui/vue`).
+**Theme: Semantic Tokens (Mintlify-style).** `darkMode: 'class'` + CSS variable tokens defined in `main.css` (`:root`/`.dark`), exposed via Tailwind `rgb(var(--name) / <alpha-value>)`. Components use semantic utility classes only — no Tailwind color literals (`bg-white`, `text-gray-900`, `border-gray-200`, etc.). Interactive primitives use **Headless UI** (`@headlessui/vue`).
 
-| Role | Tailwind class | Usage |
-|---|---|---|
-| Page | `bg-gray-50` | Main background |
-| Surface | `bg-white` | Panel headers, sidebar, cards, input bars, modals |
-| Divider | `border-gray-200` | Panel dividers |
-| Input border | `border-gray-300` | Inputs, selects, secondary buttons |
-| Accent | `blue-600` | Links, active state, primary buttons, active icons |
-| Success | `green-600` | Connected / success state |
-| Warning | `amber-600` | Warning, processing state |
-| Danger | `red-600` | Errors, delete |
-| Text primary | `text-gray-900` | Headings, body |
-| Text secondary | `text-gray-600` | Supporting text |
-| Text muted | `text-gray-500` | Dimmed/secondary text |
-| Code surface | `bg-gray-50` / `bg-gray-100` | Code blocks, terminal panes (mono) |
-
-> Legacy `cyber-*` / `gh-*` tokens stay defined in `tailwind.config.ts` only as a safety net — do not use them in new components.
+| Token | Light value | Dark value | Usage |
+|---|---|---|---|
+| `background` | `255 255 255` | `15 17 23` | View background |
+| `surface` | `255 255 255` | `22 27 34` | Panels, cards, headers, sidebar, modals |
+| `muted` | `249 250 251` | `26 32 40` | Hover rows, code/terminal panes, inset fills |
+| `elevated` | `255 255 255` | `30 37 46` | Modals, dropdowns, popovers |
+| `border` | `229 231 235` | `34 43 54` | Panel/section dividers |
+| `input` | `209 213 219` | `48 58 70` | Inputs, selects, secondary buttons |
+| `ring` | `59 130 246` | `59 130 246` | Input focus ring |
+| `foreground` | `17 24 39` | `230 237 243` | Primary text, code text |
+| `muted-foreground` | `107 114 128` | `139 148 158` | Secondary, muted, meta text |
+| `primary` | `37 99 235` | `59 130 246` | Links, active, accent, primary buttons |
+| `primary-foreground` | `255 255 255` | `255 255 255` | Primary button label |
+| `success` | `22 163 74` | `34 197 94` | Connected / success |
+| `warning` | `217 119 6` | `245 158 11` | Processing / pending |
+| `danger` | `220 38 38` | `248 113 113` | Errors, delete |
 
 **Typography:**
-- UI chrome uses `font-sans` (GitHub system stack: `-apple-system, BlinkMacSystemFont, "Segoe UI"…`).
-- `font-mono` (JetBrains Mono → Fira Code → Courier New) only for code, terminal/chat input, logs, and file paths.
-- Body/prose text: `text-gray-900` (primary) or `text-gray-600` (secondary).
-- Dimmed/system text: `text-gray-500`.
+- UI chrome uses `font-sans` (Inter stack: `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI"…`).
+- `font-mono` (`"JetBrains Mono"`, `"Fira Code"`, monospace) only for code, terminal/chat input, logs, and file paths.
+- Body/prose text: `text-foreground` (primary) or `text-muted-foreground` (secondary).
 
 **Layout rules:**
-- 3-panel structure is canonical: `SidebarNav (52px fixed) | ChatPanel (45%) | ArtifactsPanel (flex-1)`.
+- Mintlify-style shell: `TopBar (h-14) | flex-row (grouped SidebarNav + router-view content) | StatusBar (h-[1.75rem])`.
+- Sidebar is `w-64`, hidden on mobile (`hidden xl:flex`). Mobile uses an overlay drawer.
 - Do not add margins or padding outside the defined panel boundaries.
 - All panels use `overflow-hidden` at the shell level; individual panels handle their own scroll with `overflow-y-auto`.
-- Use `border-gray-200` (not arbitrary border colors) for all panel dividers.
+- Use `border-border` (not arbitrary border colors) for all panel dividers.
 
 **Component styling:**
-- Border radius: `rounded-md` (6px) for controls, inputs, cards, and modals.
-- Subtle shadows only — `shadow-sm` on hover cards, `shadow-lg`/`shadow-xl` on popovers & modals. No gradients.
-- Light, flat surfaces (white on gray-50).
+- Border radius: `rounded-lg` (8px) for controls, inputs, cards; `rounded-xl` (12px) for modals.
+- Subtle shadows only — `shadow-sm` on hover cards, `shadow-lg` on popovers/menus, `shadow-xl` on modals. No gradients.
+- Light/flat surfaces — `bg-background` (page), `bg-surface` (panels/cards).
 - Allowed animations: `animate-blink` (cursor), `animate-dot-pulse` (streaming), typewriter via `setInterval`. No `transition` animations except `transition-colors duration-150` on interactive elements.
 - Icons: `vue-icons-plus/hi` (Hero Icons) throughout the UI. No inline SVG.
 - Interactive primitives (modal/select) built on Headless UI — see `BaseModal`, `BaseSelect`.

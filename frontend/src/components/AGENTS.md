@@ -1,12 +1,13 @@
 # components/ — Agent Context
 
-All UI components for the AI Workspace. The layout is a multi-panel IDE: icon sidebar (desktop) + router-view content column + bottom tab bar (mobile). Routing is handled by `vue-router` (`src/router/index.ts`); settings sub-screens (providers, tools, usage, memories, permissions) are tabs inside `SettingsView`.
+All UI components for the AI Workspace. The layout is a Mintlify-style shell: TopBar + grouped sidebar (desktop) + router-view content column + StatusBar + ⌘K command palette. Routing is handled by `vue-router` (`src/router/index.ts`); settings sub-screens are routed as `/settings/:tab` and listed in the sidebar Config group.
 
 ## Component Map
 
 ```
-AppShell.vue              — layout shell, hosts <router-view>, reads ui state from useUiStore
-├── SidebarNav.vue        — desktop nav column, RouterLink items from config/navigation
+AppShell.vue              — layout shell, hosts TopBar + SidebarNav + router-view + StatusBar + CommandPalette
+├── TopBar.vue            — top bar: brand, ⌘K search trigger, ThemeToggle, lang toggle, settings
+├── SidebarNav.vue        — grouped desktop nav column, RouterLink items from config/navigation navGroups
 ├── [Content area — router-view, see router/index.ts]
 │   ├── CoworkView.vue            — /cowork: coordinator (project + chat + artifacts)
 │   │   ├── cowork/MessageList.vue  — scroll wrapper + v-for MessageItem, forward events
@@ -38,10 +39,11 @@ AppShell.vue              — layout shell, hosts <router-view>, reads ui state 
 │       ├── UsageView.vue       — token usage totals + per-session breakdown
 │       ├── MemoryView.vue      — memory CRUD with type filter, search, auto-extracted badge
 │       └── PermissionView.vue  — tool permission / YOLO config
-├── BottomTabBar.vue     — mobile navigation (visible < md)
-└── StatusBar.vue        — bottom bar: model name, DB status, WS status, live clock
+├── StatusBar.vue        — bottom bar: backend status, DB status, sub-agent count, live clock
+└── CommandPalette.vue   — ⌘K global command palette (Headless UI Dialog + Combobox)
 
 Shared/reusable:
+ThemeToggle.vue              — light/dark toggle button (used by TopBar)
 ModelSelector.vue            — model dropdown (uses BaseSelect)
 BaseModal.vue                — reusable modal shell (Teleport)
 BaseConfirmModal.vue         — confirm dialog (uses BaseModal)
@@ -59,7 +61,7 @@ SubagentMonitorPanel.vue     — sub-agent live log sessions panel
 
 **Owns:** nothing — reads all state from `useUiStore()`.
 
-**Layout:** flex-col h-screen → flex flex-1 (SidebarNav + `<router-view>`) + BottomTabBar + StatusBar.
+**Layout:** TopBar → flex flex-1 (SidebarNav + `<router-view>`) + StatusBar + CommandPalette.
 
 **Routing:** `<router-view>` renders the active view based on the current URL. `watch(route.fullPath)` closes the mobile sidebar on navigation.
 
@@ -76,14 +78,6 @@ SubagentMonitorPanel.vue     — sub-agent live log sessions panel
 Visible on desktop only (`hidden xl:flex`, `w-60`).
 
 ---
-
-## BottomTabBar.vue
-
-**Props:** none
-
-**Emits:** none
-
-Visible on mobile only (`flex md:hidden`, `h-[3rem]`). Renders `bottomItems` from `config/navigation.ts` as `<RouterLink>` elements. Items: cowork, tasks, agent-output, plans, notes, connectors, settings.
 
 ---
 
@@ -255,40 +249,39 @@ Right-side collapsible panel for live sub-agent monitoring. Each active/complete
 
 ## Design Rules
 
-> Theme: **GitHub Light**. Default Tailwind palette + Headless UI primitives. Light/white surfaces, no `cyber-*` tokens in components.
+> Theme: **Semantic Tokens** (Mintlify-style). CSS variable tokens via `rgb(var(--name))` + `darkMode: 'class'`. No Tailwind color literals in components — use `bg-surface`, `text-foreground`, `border-border`, `bg-primary`, etc.
 
 | Rule | Value |
 |---|---|
-| Font | `font-sans` (GitHub system stack) for UI chrome; `font-mono` only for code, terminal/chat input, logs, file paths. |
-| Surfaces | Page `bg-gray-50`, panels/cards/headers `bg-white`. Dividers `border-gray-200`, inputs `border-gray-300`. |
-| Text | Primary `text-gray-900`, secondary `text-gray-600`, muted `text-gray-500`. |
-| Accent | `blue-600` links/active; `bg-blue-600 text-white` primary buttons. Success `green-600`, warning `amber-600`, danger `red-600`. |
-| Border radius | `rounded-md` (6px) for controls, inputs, cards, modals. |
-| Shadows | Subtle only — `shadow-sm` on hover cards, `shadow-lg`/`shadow-xl` on popovers & modals. |
+| Font | `font-sans` (Inter stack) for UI chrome; `font-mono` (JetBrains Mono) only for code, terminal/chat input, logs, file paths. |
+| Background | `bg-background` (page root), `bg-surface` (panels/cards/headers), `bg-muted` (hover/inset/code), `bg-elevated` (modals/popovers). |
+| Dividers | `border-border` (panel/section dividers), `border-input` (inputs, selects). |
+| Text | `text-foreground` (primary), `text-muted-foreground` (secondary/muted). |
+| Accent | `text-primary` / `bg-primary text-primary-foreground` for links/buttons; `bg-primary/10` for active/hover tint. |
+| Status | `text-success` (connected), `text-warning` (pending), `text-danger` (errors/delete). |
+| Border radius | `rounded-lg` (8px) for controls, inputs, cards; `rounded-xl` for modals. |
+| Shadows | Subtle only — `shadow-sm` on hover cards, `shadow-lg` on popovers/menus, `shadow-xl` on modals. |
 | Gradients | Forbidden |
 | Animations | `animate-blink` (cursor), `animate-dot-pulse` (streaming). `transition-colors duration-150` on interactive elements |
 | Icons | `vue-icons-plus/hi` (Hero Icons). No inline SVG |
-| Buttons | Text labels for action buttons. Delete: `text-red-600 rounded-md border border-red-300 hover:bg-red-50`. Secondary outline: `text-blue-600 rounded-md border border-blue-600/30 hover:bg-blue-50`. Primary solid: `text-white bg-blue-600 rounded-md hover:bg-blue-700`. |
-| Cards | Flex column (`flex flex-col`). `border border-gray-200 rounded-md bg-white`. Action buttons bottom-right (`mt-auto justify-end`). |
-| Inputs | `bg-white border border-gray-300 rounded-md outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500`. |
+| Buttons | Primary recipe: `inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/90`. Secondary: `inline-flex items-center gap-1.5 rounded-lg border border-input bg-surface px-3 py-1.5 text-sm text-foreground transition-colors duration-150 hover:bg-muted`. Delete: `rounded-lg border border-danger/40 px-2.5 py-1 text-sm text-danger transition-colors duration-150 hover:bg-danger/10`. |
+| Cards | `flex flex-col rounded-lg border border-border bg-surface p-3 transition-shadow hover:shadow-sm`. |
+| Inputs | `w-full rounded-lg border border-input bg-surface px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring`. |
 | Modals/selects | Built on Headless UI (`@headlessui/vue`): `Dialog`/`TransitionRoot` (`BaseModal`), `Listbox` (`BaseSelect`). |
 | Text size | `text-sm` for body; `text-xs` allowed for meta/badges. |
 
-## Header Pattern (standard cho mọi màn hình)
+## Header Pattern (in-column title — global TopBar owns top chrome)
 
 ```html
-<div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-gray-200 shrink-0 bg-white">
-  <Icon class="w-4 h-4 text-gray-400" />
-  <span class="text-sm text-gray-900 font-semibold">{{ t('view.header') }}</span>
-  <button class="ml-auto text-sm text-blue-600 px-2.5 py-1 rounded-md border border-blue-600/30 transition-colors duration-150 hover:bg-blue-50">
-    {{ t('view.action') }}
-  </button>
+<div class="px-6 py-6 mx-auto max-w-5xl">
+  <h1 class="text-lg font-semibold text-foreground">{{ t('view.header') }}</h1>
+  <p class="text-sm text-muted-foreground">{{ t('view.subtitle') }}</p>
 </div>
 ```
 
-- Chiều cao cố định `h-[3rem]`
-- Icon (muted `text-gray-400`) + title (`text-gray-900 font-semibold`) bên trái, action button `ml-auto` bên phải
-- Button style: `text-blue-600 rounded-md border border-blue-600/30 hover:bg-blue-50`
+- Global TopBar (`h-14`) replaces the old per-view `h-[3rem]` header bar
+- Each view starts with an in-column title (optional subtitle) inside `mx-auto max-w-5xl px-6 py-6`
+- Action buttons appear inside the content area, not in a header bar
 
 ## Data Access
 

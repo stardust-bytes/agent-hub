@@ -27,32 +27,32 @@ Single-page application with a multi-panel IDE layout: icon sidebar + content pa
 
 ---
 
-## Theme: GitHub Light
+## Theme: Semantic Tokens (Mintlify-style)
 
-The UI uses the **default Tailwind palette** (GitHub-light flavored) directly in components — not custom `cyber-*` tokens. Interactive primitives are built on **Headless UI** (`@headlessui/vue`).
+Theming uses CSS variable semantic tokens defined in `main.css` (`:root` / `.dark`) and mapped to Tailwind via `rgb(var(--name) / <alpha-value>)`. Components use semantic utility classes only — no raw hex or Tailwind color literals. `darkMode: 'class'` toggles `.dark` on `<html>`. Interactive primitives are built on **Headless UI** (`@headlessui/vue`).
 
-| Role | Tailwind class | Usage |
-|---|---|---|
-| Page | `bg-gray-50` | App / view background |
-| Surface | `bg-white` | Panels, cards, headers, sidebar, modals |
-| Divider | `border-gray-200` | Panel/section dividers |
-| Input border | `border-gray-300` | Inputs, selects, secondary buttons |
-| Accent | `blue-600` | Links, active state, primary buttons |
-| Success | `green-600` | Connected / SUCCESS |
-| Warning | `amber-600` | Processing / pending |
-| Danger | `red-600` | Errors, delete |
-| Text primary | `text-gray-900` | Headings, body |
-| Text secondary | `text-gray-600` | Supporting text |
-| Text muted | `text-gray-500` | Dimmed/meta |
-| Code surface | `bg-gray-50` / `bg-gray-100` | Code blocks, terminal panes (mono) |
+| Token | Light value | Dark value | Usage |
+|---|---|---|---|
+| `background` | `255 255 255` | `15 17 23` | View background |
+| `surface` | `255 255 255` | `22 27 34` | Panels, cards, headers, sidebar, modals |
+| `muted` | `249 250 251` | `26 32 40` | Hover rows, code/terminal, inset fills |
+| `elevated` | `255 255 255` | `30 37 46` | Modals, dropdowns, popovers |
+| `border` | `229 231 235` | `34 43 54` | Panel/section dividers |
+| `input` | `209 213 219` | `48 58 70` | Inputs, selects, secondary buttons |
+| `ring` | `59 130 246` | `59 130 246` | Input focus ring |
+| `foreground` | `17 24 39` | `230 237 243` | Primary/code text |
+| `muted-foreground` | `107 114 128` | `139 148 158` | Secondary/muted/meta text |
+| `primary` | `37 99 235` | `59 130 246` | Links, active state, primary buttons |
+| `primary-foreground` | `255 255 255` | `255 255 255` | Primary button label |
+| `success` | `22 163 74` | `34 197 94` | Connected / SUCCESS |
+| `warning` | `217 119 6` | `245 158 11` | Processing / pending |
+| `danger` | `220 38 38` | `248 113 113` | Errors, delete |
 
-> Legacy `cyber-*` / `gh-*` tokens remain defined in `tailwind.config.ts` only as a safety net; do not use them in new components.
+**Font:** `font-sans` (Inter stack: `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI"…`) for UI chrome. `font-mono` (`"JetBrains Mono"`, `"Fira Code"`, monospace) only for code, terminal/chat input, logs, and file paths.
 
-**Font:** `font-sans` (GitHub system stack: `-apple-system, BlinkMacSystemFont, "Segoe UI"…`) for UI chrome. `font-mono` (JetBrains Mono) only for code, terminal/chat input, logs, and file paths.
+**Border radius:** `rounded-lg` (8px) for controls, inputs, cards, modals; `rounded-xl` (12px) for modals.
 
-**Border radius:** `rounded-md` (6px) for controls, inputs, cards, and modals.
-
-**Shadows:** subtle only — `shadow-sm` on hover cards, `shadow-lg`/`shadow-xl` on popovers & modals. **No gradients.**
+**Shadows:** subtle only — `shadow-sm` on hover cards, `shadow-lg` on popovers/menus, `shadow-xl` on modals. **No gradients.**
 
 ---
 
@@ -61,7 +61,8 @@ The UI uses the **default Tailwind palette** (GitHub-light flavored) directly in
 ```
 App.vue
 └── AppShell.vue
-    ├── SidebarNav.vue       — desktop icon column, RouterLink nav + VI/EN toggle
+    ├── TopBar.vue           — top bar: brand, search trigger (⌘K), ThemeToggle, lang toggle, settings
+    ├── SidebarNav.vue       — grouped desktop nav, RouterLink items from navGroups
     ├── <router-view>        — active screen by URL (see src/router/index.ts)
     │   ├── CoworkView.vue       — /cowork: project + chat + artifacts (cowork/ subcomponents)
     │   ├── ScheduleTasksView.vue — /tasks: scheduled task list
@@ -78,9 +79,10 @@ App.vue
     │       ├── UsageView.vue     — token usage totals + per-session
     │       ├── MemoryView.vue    — memory CRUD with type filter, search
     │       └── PermissionView.vue — tool permission / YOLO config
-    ├── BottomTabBar.vue     — mobile navigation (visible < md)
-    └── StatusBar.vue        — bottom bar: model, DB, WS status, clock
+    ├── StatusBar.vue        — bottom bar: backend status, DB status, sub-agent count, clock
+    └── CommandPalette.vue   — ⌘K global command palette (Headless UI Dialog + Combobox)
 
+ThemeToggle.vue              — light/dark toggle button (used by TopBar)
 SessionModal.vue             — session list modal (teleported, BaseModal wrapper)
 ModelSelector.vue            — model dropdown (uses BaseSelect)
 ProviderFormModal.vue        — create/edit provider form modal (uses BaseModal)
@@ -187,9 +189,9 @@ npm run preview          # Preview production build
 
 1. **`<script setup>` always** — no Options API.
 2. **`font-sans`** for UI chrome; `font-mono` only for code, terminal/chat input, logs, file paths.
-3. **`rounded-md`** (6px) for controls, inputs, cards, modals.
+3. **`rounded-lg`** (8px) for controls, inputs, cards; `rounded-xl` for modals.
 4. **Subtle shadows only** (popovers/modals/hover cards); no gradients.
-5. **Default Tailwind palette** (`bg-white`, `text-gray-900`, `border-gray-200`, `blue-600`…); no `cyber-*` tokens in components.
+5. **Semantic token utilities only** (`bg-surface`, `text-foreground`, `border-border`, `bg-primary`…); no Tailwind color literals or `cyber-*` tokens in components.
 6. **Headless UI** for interactive primitives (modal/select); see `BaseModal`, `BaseSelect`.
 7. **No `any` types** — TypeScript strict throughout.
 8. **i18n required** — all user-facing strings via `t('key')`.
