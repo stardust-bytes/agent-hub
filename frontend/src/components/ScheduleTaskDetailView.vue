@@ -1,14 +1,24 @@
 <template>
   <div class="flex flex-col bg-background min-w-0 h-full">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
-      <button @click="router.push('/tasks')" class="flex items-center gap-1 text-sm text-muted-foreground font-mono hover:text-primary transition-colors duration-150"><HiArrowLeft class="w-3 h-3" /> {{ t('schedules.detail.back') }}</button>
-      <span class="text-sm text-primary font-mono ml-2 truncate">{{ task?.name || t('schedules.detail.loading') }}</span>
-      <div class="ml-auto flex gap-1">
-        <button @click="runNow(task!.id)" class="text-sm text-primary font-mono px-2.5 py-1 rounded-lg border border-primary/30 transition-colors duration-150 hover:bg-primary/10">{{ t('schedules.runNow') }}</button>
+    <div class="mx-auto max-w-5xl w-full px-6 pt-4 pb-4">
+      <div class="flex items-center gap-1 text-xs font-mono text-muted-foreground mb-2">
+        <button @click="router.push('/tasks')" class="hover:text-primary transition-colors">{{ t('schedules.header') }}</button>
+        <span class="text-input">/</span>
+        <span class="text-foreground truncate">{{ task?.name || t('schedules.detail.loading') }}</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+          <HiPlay class="w-4 h-4" />
+        </div>
+        <span class="text-lg font-bold text-foreground tracking-tight truncate">{{ task?.name || t('schedules.detail.loading') }}</span>
+        <span v-if="logs.length > 0" class="text-xs font-mono text-muted-foreground bg-muted rounded px-1.5 py-0.5">{{ logs.length }} runs</span>
+        <div class="ml-auto flex gap-2">
+          <button @click="runNow(task!.id)" class="text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-colors duration-150 px-2.5 py-1">{{ t('schedules.runNow') }}</button>
+        </div>
       </div>
     </div>
 
-    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full space-y-4">
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 pb-6 space-y-4">
       <div class="border border-border rounded-lg bg-surface p-3">
         <div class="grid grid-cols-2 gap-3 text-sm font-mono">
           <div><span class="text-muted-foreground">{{ t('schedules.form.name') }}:</span> <span class="text-foreground">{{ task?.name }}</span></div>
@@ -46,7 +56,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { HiArrowLeft, HiPlay } from 'vue-icons-plus/hi'
+import { HiPlay } from 'vue-icons-plus/hi'
 import * as api from '../api/scheduleTasks'
 import type { ScheduleTask, ScheduleTaskLog } from '../api/scheduleTasks'
 
