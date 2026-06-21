@@ -1,33 +1,26 @@
 <template>
-  <div class="h-[1.75rem] bg-white border-t border-gray-200 flex items-center justify-between px-3 shrink-0">
+  <div class="flex h-[1.75rem] shrink-0 items-center justify-between border-t border-border bg-surface px-3">
     <div class="flex items-center gap-3">
-      <span class="text-xs flex items-center gap-1" :class="backendOnline ? 'text-green-600' : 'text-gray-400'">
+      <span class="flex items-center gap-1 text-xs" :class="backendOnline ? 'text-success' : 'text-muted-foreground'">
         {{ backendOnline ? '●' : '○' }} {{ t('status.backend') }}
       </span>
-      <span class="text-xs flex items-center gap-1" :class="dbConnected ? 'text-green-600' : 'text-gray-400'">
+      <span class="flex items-center gap-1 text-xs" :class="dbConnected ? 'text-success' : 'text-muted-foreground'">
         [{{ dbConnected ? '✓' : '✗' }}] {{ t('status.db') }}
       </span>
-      <span v-if="activeSubagents && activeSubagents > 0" class="text-xs text-blue-600 flex items-center gap-1">
+      <span v-if="activeSubagents && activeSubagents > 0" class="flex items-center gap-1 text-xs text-primary">
         ● {{ activeSubagents }} {{ t('status.subagents') }}
       </span>
     </div>
-    <div class="flex items-center gap-3">
-      <button
-        @click="toggleLang"
-        class="text-xs text-gray-500 hover:text-blue-600 transition-colors duration-150"
-      >{{ t('nav.lang') }}</button>
-      <span class="text-xs font-mono text-gray-500">{{ time }}</span>
-    </div>
+    <span class="font-mono text-xs text-muted-foreground">{{ time }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { Locale } from '../i18n'
 import { getHealth } from '../api/health'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 defineProps<{
   dbConnected?: boolean
@@ -54,12 +47,6 @@ onMounted(() => {
   checkHealth()
   healthTimer = setInterval(checkHealth, 15000)
 })
-
-function toggleLang() {
-  const next: Locale = locale.value === 'vi' ? 'en' : 'vi'
-  locale.value = next
-  localStorage.setItem('workspace.lang', next)
-}
 
 onUnmounted(() => {
   clearInterval(timer)
