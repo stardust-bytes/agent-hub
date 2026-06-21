@@ -1,44 +1,44 @@
 <template>
-  <div class="flex flex-col bg-gray-50 min-w-0 h-full">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-gray-200 shrink-0 bg-white">
-      <HiClock class="w-4 h-4 text-gray-400" />
-      <span class="text-sm text-gray-900 font-semibold">{{ t('schedules.header') }}</span>
+  <div class="flex flex-col bg-background min-w-0 h-full">
+    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
+      <HiClock class="w-4 h-4 text-muted-foreground" />
+      <span class="text-sm text-foreground font-semibold">{{ t('schedules.header') }}</span>
       <button @click="openAddForm"
-        class="ml-auto text-sm text-blue-600 font-mono px-2.5 py-1 rounded-md border border-blue-600/30 transition-colors duration-150 hover:bg-blue-50">
+        class="ml-auto text-sm text-primary font-mono px-2.5 py-1 rounded-lg border border-primary/30 transition-colors duration-150 hover:bg-primary/10">
           {{ t('schedules.add') }}
       </button>
     </div>
 
-    <div class="flex-1 overflow-y-auto px-3 py-3">
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full">
       <div v-if="tasks.length === 0" class="flex items-center justify-center h-full">
-        <div class="text-sm text-gray-500 font-mono">{{ t('schedules.empty') }}</div>
+        <div class="text-sm text-muted-foreground font-mono">{{ t('schedules.empty') }}</div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-3 py-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
   <div v-for="task in tasks" :key="task.id"
-    class="border border-gray-200 rounded-md bg-white p-3 cursor-pointer hover:border-gray-300 hover:shadow-sm transition-colors duration-150 flex flex-col"
+    class="border border-border rounded-lg bg-surface p-3 cursor-pointer hover:border-input hover:shadow-sm transition-colors duration-150 flex flex-col"
     @click="router.push(`/tasks/${task.id}`)">
     <div class="flex items-center gap-2 mb-2">
       <div class="w-2 h-2 rounded-full shrink-0"
-        :class="task.enabled ? 'bg-green-600' : 'bg-gray-500'"></div>
-      <div class="text-sm text-gray-900 font-mono truncate flex-1">{{ task.name }}</div>
+        :class="task.enabled ? 'bg-success' : 'bg-muted-foreground'"></div>
+      <div class="text-sm text-foreground font-mono truncate flex-1">{{ task.name }}</div>
     </div>
-    <div class="text-sm text-gray-500 font-mono mb-2 flex items-center gap-1">
-            <span class="px-1 border border-gray-200 text-xs"
+    <div class="text-sm text-muted-foreground font-mono mb-2 flex items-center gap-1">
+            <span class="px-1 border border-border text-xs"
               :class="frequencyClass(task.frequency)">{{ t(`schedules.frequency.${task.frequency}`) }}</span>
             <span>{{ scheduleTime(task) }}</span>
           </div>
           <div class="text-sm font-mono mb-3">
             <span v-if="task.logs?.[0]"
-              :class="task.logs[0].status === 'SUCCESS' ? 'text-green-600' : task.logs[0].status === 'FAILED' ? 'text-red-600' : 'text-amber-600'">
+              :class="task.logs[0].status === 'SUCCESS' ? 'text-success' : task.logs[0].status === 'FAILED' ? 'text-danger' : 'text-warning'">
               {{ task.logs[0].status }}
             </span>
-            <span v-else class="text-gray-500">—</span>
+            <span v-else class="text-muted-foreground">—</span>
           </div>
           <div class="flex gap-1 mt-auto justify-end" @click.stop>
-            <button @click="runNow(task.id)" class="text-sm text-blue-600 font-mono px-2.5 py-1 rounded-md border border-blue-600/30 transition-colors duration-150 hover:bg-blue-50">{{ t('schedules.runNow') }}</button>
-            <button @click="editTask(task)" class="text-sm text-gray-500 font-mono px-2.5 py-1 rounded-md border border-gray-300 transition-colors duration-150 hover:bg-gray-50 hover:text-blue-600">{{ t('schedules.edit') }}</button>
-            <button @click="confirmDelete(task)" class="text-sm px-1.5 py-0.5 font-mono text-red-600 rounded-md border border-red-300 hover:bg-red-50 transition-colors duration-150">{{ t('schedules.delete') }}</button>
+            <button @click="runNow(task.id)" class="text-sm text-primary font-mono px-2.5 py-1 rounded-lg border border-primary/30 transition-colors duration-150 hover:bg-primary/10">{{ t('schedules.runNow') }}</button>
+            <button @click="editTask(task)" class="text-sm text-muted-foreground font-mono px-2.5 py-1 rounded-lg border border-input transition-colors duration-150 hover:bg-muted hover:text-primary">{{ t('schedules.edit') }}</button>
+            <button @click="confirmDelete(task)" class="text-sm px-1.5 py-0.5 font-mono text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">{{ t('schedules.delete') }}</button>
           </div>
         </div>
       </div>
@@ -46,25 +46,25 @@
 
     <BaseModal v-model="showForm">
       <template #header>
-        <span class="text-sm text-gray-900 font-mono">{{ editingTask ? t('schedules.edit') : t('schedules.add') }}</span>
+        <span class="text-sm text-foreground font-mono">{{ editingTask ? t('schedules.edit') : t('schedules.add') }}</span>
       </template>
       <div class="p-3 space-y-3 max-w-xl">
         <div>
-          <label class="text-sm text-gray-500 font-mono block mb-1">{{ t('schedules.form.name') }}</label>
-          <input v-model="form.name" class="w-full bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+          <label class="text-sm text-muted-foreground font-mono block mb-1">{{ t('schedules.form.name') }}</label>
+          <input v-model="form.name" class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring" />
         </div>
         <div>
-          <label class="text-sm text-gray-500 font-mono block mb-1">{{ t('schedules.form.description') }}</label>
-          <input v-model="form.description" class="w-full bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+          <label class="text-sm text-muted-foreground font-mono block mb-1">{{ t('schedules.form.description') }}</label>
+          <input v-model="form.description" class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring" />
         </div>
         <div>
-          <label class="text-sm text-gray-500 font-mono block mb-1">{{ t('schedules.form.prompt') }}</label>
-          <textarea v-model="form.prompt" rows="4" class="w-full bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
+          <label class="text-sm text-muted-foreground font-mono block mb-1">{{ t('schedules.form.prompt') }}</label>
+          <textarea v-model="form.prompt" rows="4" class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"></textarea>
         </div>
         <div>
-          <label class="text-sm text-gray-500 font-mono block mb-1">{{ t('schedules.frequency') }}</label>
+          <label class="text-sm text-muted-foreground font-mono block mb-1">{{ t('schedules.frequency') }}</label>
           <select v-model="form.frequency"
-            class="w-full bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
             <option v-for="f in FREQUENCIES" :key="f" :value="f">{{ t(`schedules.frequency.${f}`) }}</option>
           </select>
         </div>
@@ -73,36 +73,36 @@
         <div v-if="form.frequency !== 'manual'" class="space-y-3">
           <div v-if="['daily','weekdays','weekly'].includes(form.frequency)" class="flex items-center gap-2">
             <div class="flex items-center gap-1">
-              <span class="text-xs text-gray-500 font-mono">HH</span>
+              <span class="text-xs text-muted-foreground font-mono">HH</span>
               <select v-model.number="form.cronHour"
-                class="bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                class="bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
                 <option v-for="h in 24" :key="h-1" :value="h-1">{{ String(h-1).padStart(2,'0') }}</option>
               </select>
             </div>
-            <span class="text-gray-500 font-mono">:</span>
+            <span class="text-muted-foreground font-mono">:</span>
             <div class="flex items-center gap-1">
               <select v-model.number="form.cronMinute"
-                class="bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                class="bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
                 <option v-for="m in 60" :key="m-1" :value="m-1">{{ String(m-1).padStart(2,'0') }}</option>
               </select>
-              <span class="text-xs text-gray-500 font-mono">MM</span>
+              <span class="text-xs text-muted-foreground font-mono">MM</span>
             </div>
           </div>
 
           <div v-if="form.frequency === 'hourly'" class="flex items-center gap-2">
-            <span class="text-sm text-gray-500 font-mono">{{ t('schedules.form.atMinute') }}</span>
+            <span class="text-sm text-muted-foreground font-mono">{{ t('schedules.form.atMinute') }}</span>
             <select v-model.number="form.cronMinute"
-              class="bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+              class="bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
               <option v-for="m in 60" :key="m-1" :value="m-1">{{ String(m-1).padStart(2,'0') }}</option>
             </select>
           </div>
 
           <div v-if="form.frequency === 'weekly'">
-            <div class="text-sm text-gray-500 font-mono mb-1">{{ t('schedules.form.days') }}</div>
+            <div class="text-sm text-muted-foreground font-mono mb-1">{{ t('schedules.form.days') }}</div>
             <div class="flex flex-wrap gap-2">
               <label v-for="(label, idx) in DAYS" :key="idx"
-                class="flex items-center gap-1 px-2 py-1 border border-gray-200 cursor-pointer text-sm font-mono select-none transition-colors duration-150"
-                :class="selectedDays.includes(idx) ? 'bg-blue-600/20 text-blue-600 border-blue-600/40' : 'text-gray-500 hover:text-gray-900 hover:border-blue-600/30'">
+                class="flex items-center gap-1 px-2 py-1 border border-border cursor-pointer text-sm font-mono select-none rounded-lg transition-colors duration-150"
+                :class="selectedDays.includes(idx) ? 'bg-primary/20 text-primary border-primary/40' : 'text-muted-foreground hover:text-foreground hover:border-primary/30'">
                 <input type="checkbox" :value="idx" v-model="selectedDays" class="sr-only" />
                 {{ label }}
               </label>
@@ -110,24 +110,24 @@
           </div>
         </div>
 
-        <div class="text-sm text-gray-500 font-mono" v-if="form.frequency !== 'manual'">
+        <div class="text-sm text-muted-foreground font-mono" v-if="form.frequency !== 'manual'">
           {{ scheduleDesc }}
         </div>
 
         <!-- Model selector -->
         <div>
-          <label class="text-sm text-gray-500 font-mono block mb-1">{{ t('schedules.form.selectModel') }}</label>
+          <label class="text-sm text-muted-foreground font-mono block mb-1">{{ t('schedules.form.selectModel') }}</label>
           <select v-model.number="form.modelId"
-            class="w-full bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
             <option v-for="m in models" :key="m.id" :value="m.id">{{ m.providerName }} / {{ m.name }}</option>
           </select>
         </div>
 
         <!-- Project path -->
         <div>
-          <label class="text-sm text-gray-500 font-mono block mb-1">{{ t('schedules.form.projectPath') }}</label>
+          <label class="text-sm text-muted-foreground font-mono block mb-1">{{ t('schedules.form.projectPath') }}</label>
           <select v-model="form.projectPath"
-            class="w-full bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
             <option :value="null">{{ t('schedules.form.noProject') }}</option>
             <option v-for="p in savedProjects" :key="p.id" :value="p.path">{{ p.name }} ({{ p.path }})</option>
           </select>
@@ -135,8 +135,8 @@
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <button @click="showForm = false" class="text-sm text-gray-500 font-mono px-3 py-1.5 border border-gray-200 transition-colors duration-150 hover:text-gray-900">{{ t('tasks.form.cancel') }}</button>
-          <button @click="saveTask" class="text-sm text-white font-mono px-3 py-1.5 rounded-md bg-blue-600 transition-colors duration-150 hover:bg-blue-700">{{ t('tasks.form.save') }}</button>
+          <button @click="showForm = false" class="text-sm text-muted-foreground font-mono px-3 py-1.5 border border-border rounded-lg transition-colors duration-150 hover:text-foreground">{{ t('tasks.form.cancel') }}</button>
+          <button @click="saveTask" class="text-sm text-primary-foreground font-mono px-3 py-1.5 rounded-lg bg-primary transition-colors duration-150 hover:bg-primary/90">{{ t('tasks.form.save') }}</button>
         </div>
       </template>
     </BaseModal>
@@ -230,11 +230,11 @@ const scheduleDesc = computed(() => {
 })
 
 function frequencyClass(f: string) {
-  if (f === 'manual') return 'text-gray-500'
-  if (f === 'hourly') return 'text-blue-600'
-  if (f === 'daily') return 'text-green-600'
-  if (f === 'weekdays') return 'text-amber-600'
-  return 'text-blue-600'
+  if (f === 'manual') return 'text-muted-foreground'
+  if (f === 'hourly') return 'text-primary'
+  if (f === 'daily') return 'text-success'
+  if (f === 'weekdays') return 'text-warning'
+  return 'text-primary'
 }
 
 function scheduleTime(task: { frequency: string; cronHour: number | null; cronMinute: number | null; cronDayOfWeek: number | null; cronDaysOfWeek: string | null; timezone: string | null }): string {

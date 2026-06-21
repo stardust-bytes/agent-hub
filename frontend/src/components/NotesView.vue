@@ -1,26 +1,26 @@
 <template>
-  <div class="flex flex-col bg-gray-50 min-w-0 h-full">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-gray-200 shrink-0 bg-white">
-      <HiDocumentText class="w-4 h-4 text-gray-400" />
-      <span class="text-sm text-gray-900 font-semibold">{{ t('notes.header') }}</span>
+  <div class="flex flex-col bg-background min-w-0 h-full">
+    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
+      <HiDocumentText class="w-4 h-4 text-muted-foreground" />
+      <span class="text-sm text-foreground font-semibold">{{ t('notes.header') }}</span>
       <button @click="openAdd"
-        class="ml-auto text-sm text-blue-600 font-mono px-2.5 py-1 rounded-md border border-blue-600/30 transition-colors duration-150 hover:bg-blue-50">
+        class="ml-auto text-sm text-primary font-mono px-2.5 py-1 rounded-lg border border-primary/30 transition-colors duration-150 hover:bg-primary/10">
         {{ t('notes.add') }}
       </button>
     </div>
 
-    <div class="flex-1 overflow-y-auto">
-      <div v-if="notes.length === 0" class="flex items-center justify-center h-full text-sm font-mono text-gray-500">{{ t('notes.empty') }}</div>
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full">
+      <div v-if="notes.length === 0" class="flex items-center justify-center h-full text-sm font-mono text-muted-foreground">{{ t('notes.empty') }}</div>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-3">
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         <div v-for="note in notes" :key="note.id"
-          class="border border-gray-200 rounded-md bg-white p-3 flex flex-col gap-2 hover:shadow-sm transition-shadow duration-150">
-          <div class="text-sm text-gray-900 font-semibold truncate">{{ note.title }}</div>
-          <div class="text-sm text-gray-600 line-clamp-2">{{ note.content }}</div>
-          <div class="text-xs font-mono text-gray-400">{{ new Date(note.updatedAt).toLocaleTimeString('vi-VN', { hour12: false }) }}</div>
+          class="border border-border rounded-lg bg-surface p-3 flex flex-col gap-2 hover:shadow-sm transition-shadow duration-150">
+          <div class="text-sm text-foreground font-semibold truncate">{{ note.title }}</div>
+          <div class="text-sm text-muted-foreground line-clamp-2">{{ note.content }}</div>
+          <div class="text-xs font-mono text-muted-foreground">{{ new Date(note.updatedAt).toLocaleTimeString('vi-VN', { hour12: false }) }}</div>
           <div class="flex justify-end gap-1 mt-auto pt-1">
-            <button @click="openEdit(note)" class="text-sm px-2.5 py-1 rounded-md text-blue-600 border border-blue-600/30 hover:bg-blue-50 transition-colors duration-150">{{ t('notes.edit') }}</button>
-            <button @click="deleteNote(note.id)" class="text-sm px-2.5 py-1 text-red-600 rounded-md border border-red-300 hover:bg-red-50 transition-colors duration-150">{{ t('notes.delete') }}</button>
+            <button @click="openEdit(note)" class="text-sm px-2.5 py-1 rounded-lg text-primary border border-primary/30 hover:bg-primary/10 transition-colors duration-150">{{ t('notes.edit') }}</button>
+            <button @click="deleteNote(note.id)" class="text-sm px-2.5 py-1 text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">{{ t('notes.delete') }}</button>
           </div>
         </div>
       </div>

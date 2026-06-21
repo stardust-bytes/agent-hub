@@ -6,17 +6,17 @@
     max-height="90vh"
   >
     <template #header>
-      <span class="text-sm text-gray-900 font-semibold">{{ editingId ? t('notes.edit') : t('notes.add') }}</span>
+      <span class="text-sm text-foreground font-semibold">{{ editingId ? t('notes.edit') : t('notes.add') }}</span>
     </template>
-    <div class="p-4 flex flex-col gap-3 bg-white">
+    <div class="p-4 flex flex-col gap-3 bg-surface">
       <input
         v-model="title"
-        class="w-full bg-white text-gray-900 text-sm font-semibold rounded-md border border-gray-300 outline-none px-3 py-2 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+        class="w-full bg-surface text-foreground text-sm font-semibold rounded-lg border border-input outline-none px-3 py-2 placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-ring"
         :placeholder="t('notes.form.title')"
       />
       <textarea
         v-model="content"
-        class="flex-1 w-full bg-white text-gray-900 text-sm font-mono rounded-md border border-gray-300 outline-none p-3 resize-none placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+        class="flex-1 w-full bg-surface text-foreground text-sm font-mono rounded-lg border border-input outline-none p-3 resize-none placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-ring"
         style="min-height:30vh"
         :placeholder="t('notes.form.content')"
       />
@@ -25,11 +25,11 @@
       <div class="flex justify-end gap-2">
         <button
           @click="cancel"
-          class="text-sm text-gray-700 px-3 py-1.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors duration-150"
+          class="text-sm text-foreground px-3 py-1.5 rounded-lg border border-input bg-surface hover:bg-muted transition-colors duration-150"
         >{{ t('notes.form.cancel') }}</button>
         <button
           @click="save"
-          class="text-sm text-white px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 transition-colors duration-150"
+          class="text-sm text-primary-foreground px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 transition-colors duration-150"
         >{{ t('notes.form.save') }}</button>
       </div>
     </template>

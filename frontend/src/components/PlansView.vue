@@ -1,31 +1,30 @@
 <template>
-  <div class="flex-1 flex flex-col bg-gray-50 overflow-hidden">
-    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-white border-b border-gray-200 flex items-center shrink-0">
-      <span class="text-gray-900 text-sm font-semibold">
-        <HiClipboardList class="w-4 h-4 inline-block text-gray-400" /> {{ t('plans.header') }}
-      </span>
+  <div class="flex-1 flex flex-col bg-background overflow-hidden">
+    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
+      <HiClipboardList class="w-4 h-4 text-muted-foreground" />
+      <span class="text-lg font-semibold text-foreground">{{ t('plans.header') }}</span>
     </div>
 
-    <div class="flex-1 overflow-y-auto px-4 py-4">
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full">
       <div class="max-w-2xl mx-auto space-y-3">
-        <div v-if="plans.length === 0" class="text-center text-gray-500 text-sm font-mono py-8">
+        <div v-if="plans.length === 0" class="text-center text-muted-foreground text-sm font-mono py-8">
           {{ t('plans.empty') }}
         </div>
         <div v-for="plan in plans" :key="plan.id"
-          class="bg-white border border-gray-200  p-3 space-y-2">
+          class="bg-surface border border-border rounded-lg p-3 space-y-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <span class="text-sm font-mono" :class="statusDot(plan.status)">{{ statusIcon(plan.status) }}</span>
-              <span class="text-gray-900 text-sm font-mono">{{ plan.title }}</span>
+              <span class="text-foreground text-sm font-mono">{{ plan.title }}</span>
             </div>
-            <span class="text-gray-500 text-[10px] font-mono">{{ statusLabel(plan.status) }}</span>
+            <span class="text-muted-foreground text-[10px] font-mono">{{ statusLabel(plan.status) }}</span>
           </div>
 
-          <div class="h-1 bg-gray-50  overflow-hidden" v-if="plan.steps.length > 0">
-            <div class="h-full bg-blue-600 transition-all duration-500" :style="{ width: progressPercent(plan) + '%' }"></div>
+          <div class="h-1 bg-muted rounded-lg overflow-hidden" v-if="plan.steps.length > 0">
+            <div class="h-full bg-primary transition-all duration-500" :style="{ width: progressPercent(plan) + '%' }"></div>
           </div>
 
-          <div class="text-gray-500 text-[10px] font-mono">
+          <div class="text-muted-foreground text-[10px] font-mono">
             {{ doneCount(plan) }}/{{ plan.steps.length }} {{ t('plans.steps') }}
           </div>
 
@@ -39,13 +38,13 @@
 
           <div v-if="plan.status === 'APPROVED'" class="pt-1">
             <button @click="execute(plan.id)"
-              class="px-3 py-1 text-sm font-mono text-blue-600 bg-blue-600/10 hover:bg-blue-600/20 transition-colors duration-150">
+              class="px-3 py-1 text-sm font-mono text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors duration-150">
               {{ t('plans.execute') }}
             </button>
           </div>
           <div v-else-if="plan.status === 'INTERRUPTED' || plan.status === 'EXECUTING'" class="pt-1">
             <button @click="execute(plan.id)"
-              class="px-3 py-1 text-sm font-mono text-blue-600 bg-blue-600/10 hover:bg-blue-600/20 transition-colors duration-150">
+              class="px-3 py-1 text-sm font-mono text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors duration-150">
               {{ t('plans.resume') }}
             </button>
           </div>

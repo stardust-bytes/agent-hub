@@ -1,33 +1,33 @@
 <template>
-  <div class="flex flex-col h-full bg-gray-50 font-mono overflow-hidden">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-gray-200 shrink-0 bg-white">
-      <HiDownload class="w-4 h-4 text-gray-400" />
-      <span class="text-sm text-gray-900 font-semibold">{{ t('agentOutput.header') }}</span>
-      <button @click="fetchFiles" class="ml-auto text-sm text-blue-600 font-mono px-2.5 py-1 rounded-md border border-blue-600/30 transition-colors duration-150 hover:bg-blue-50">⟳ {{ t('agentOutput.refresh') }}</button>
+  <div class="flex flex-col h-full bg-background font-mono overflow-hidden">
+    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
+      <HiDownload class="w-4 h-4 text-muted-foreground" />
+      <span class="text-sm text-foreground font-semibold">{{ t('agentOutput.header') }}</span>
+      <button @click="fetchFiles" class="ml-auto text-sm text-primary font-mono px-2.5 py-1 rounded-lg border border-primary/30 transition-colors duration-150 hover:bg-primary/10">⟳ {{ t('agentOutput.refresh') }}</button>
     </div>
 
-    <div v-if="loading" class="flex-1 flex items-center justify-center text-gray-500 text-sm font-mono">
+    <div v-if="loading" class="flex-1 flex items-center justify-center text-muted-foreground text-sm font-mono">
       {{ t('chat.thinking') }}
     </div>
 
-    <div v-else-if="files.length === 0" class="flex-1 flex items-center justify-center text-gray-500 text-sm font-mono">
+    <div v-else-if="files.length === 0" class="flex-1 flex items-center justify-center text-muted-foreground text-sm font-mono">
       {{ t('agentOutput.empty') }}
     </div>
 
     <div v-else class="flex-1 overflow-y-auto">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-3">
         <div v-for="file in files" :key="file.filename"
-          class="border border-gray-200 rounded-md bg-white p-3 flex flex-col gap-2">
-          <div class="text-sm font-mono text-gray-800 truncate" :title="file.filename">{{ file.filename }}</div>
-          <div class="text-sm font-mono text-gray-500">{{ formatSize(file.size) }} · {{ formatDate(file.modifiedAt) }}</div>
+          class="border border-border rounded-lg bg-surface p-3 flex flex-col gap-2">
+          <div class="text-sm font-mono text-foreground truncate" :title="file.filename">{{ file.filename }}</div>
+          <div class="text-sm font-mono text-muted-foreground">{{ formatSize(file.size) }} · {{ formatDate(file.modifiedAt) }}</div>
           <div class="flex justify-end gap-1 mt-auto">
             <a :href="`/api/agent-output/${encodeURIComponent(file.filename)}/download`"
-              class="text-sm px-1.5 py-0.5 font-mono text-blue-600 rounded-md border border-blue-600/30 hover:bg-blue-50 transition-colors duration-150"
+              class="text-sm px-1.5 py-0.5 font-mono text-primary rounded-lg border border-primary/30 hover:bg-primary/10 transition-colors duration-150"
               download>
               {{ t('agentOutput.download') }}
             </a>
             <button @click="deleteFile(file.filename)"
-              class="text-sm px-1.5 py-0.5 font-mono text-red-600 rounded-md border border-red-300 hover:bg-red-50 transition-colors duration-150">
+              class="text-sm px-1.5 py-0.5 font-mono text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">
               {{ t('agentOutput.delete') }}
             </button>
           </div>

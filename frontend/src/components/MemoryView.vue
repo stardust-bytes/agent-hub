@@ -1,82 +1,81 @@
 <template>
-  <div class="flex-1 flex flex-col bg-gray-50 overflow-hidden">
-    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-white border-b border-gray-200 flex items-center justify-between shrink-0">
-      <span class="text-gray-900 text-sm font-semibold">
-        <HiSave class="w-4 h-4 inline-block text-gray-400" /> {{ t('memory.title') }}
-      </span>
+  <div class="flex-1 flex flex-col bg-background overflow-hidden">
+    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
+      <HiSave class="w-4 h-4 text-muted-foreground" />
+      <span class="text-lg font-semibold text-foreground">{{ t('memory.title') }}</span>
       <button
         @click="openAddModal"
-        class="text-sm font-mono font-bold text-white bg-blue-600 px-2 py-1 rounded-md hover:bg-blue-700 transition-colors duration-150"
+        class="ml-auto text-sm font-mono font-bold text-primary-foreground bg-primary px-2 py-1 rounded-lg hover:bg-primary/90 transition-colors duration-150"
       >{{ t('memory.create') }}</button>
     </div>
 
-    <div class="xl:pl-3 pl-10 px-3 py-1.5 bg-gray-50 border-b border-gray-200 flex items-center gap-2 shrink-0">
-      <span class="text-gray-500 text-sm">{{ t('tasks.filter.label') }}</span>
+    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 py-1.5 bg-background border-b border-border shrink-0">
+      <span class="text-muted-foreground text-sm">{{ t('tasks.filter.label') }}</span>
       <button
         v-for="f in TYPE_FILTERS"
         :key="f.value"
         @click="activeType = activeType === f.value ? '' : f.value"
         :class="[
-          'text-sm px-2 py-0.5 rounded-md transition-colors duration-150',
-          activeType === f.value ? 'text-blue-700 bg-blue-50' : 'text-gray-500 hover:text-blue-600 hover:bg-gray-100',
+          'text-sm px-2 py-0.5 rounded-lg transition-colors duration-150',
+          activeType === f.value ? 'text-blue-700 bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-muted',
         ]"
       >{{ t(f.labelKey) }}</button>
       <input
         v-model="searchQuery"
         :placeholder="t('memory.searchPlaceholder')"
-        class="ml-auto bg-white text-gray-900 text-sm rounded-md border border-gray-300 px-2.5 py-1 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-48"
+        class="ml-auto bg-surface text-foreground text-sm rounded-lg border border-input px-2.5 py-1 outline-none focus:border-primary focus:ring-1 focus:ring-ring w-48"
       />
     </div>
 
-    <div class="flex-1 overflow-y-auto">
-      <div v-if="loading" class="text-gray-500/50 text-sm font-mono text-center py-8">
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full">
+      <div v-if="loading" class="text-muted-foreground/50 text-sm font-mono text-center py-8">
         {{ t('chat.thinking') }}
       </div>
-      <div v-else-if="memories.length === 0" class="text-gray-500/50 text-sm font-mono text-center py-8">
+      <div v-else-if="memories.length === 0" class="text-muted-foreground/50 text-sm font-mono text-center py-8">
         {{ t('memory.empty') }}
       </div>
       <div v-for="mem in filteredMemories" :key="mem.id"
-        class="border border-gray-200 rounded-md bg-white p-3 flex flex-col gap-2">
+        class="border border-border rounded-lg bg-surface p-3 flex flex-col gap-2 mb-2">
         <div class="flex items-center gap-2 min-w-0">
           <span class="text-sm font-mono" :class="typeColor(mem.type)">{{ typeLabel(mem.type) }}</span>
-          <span class="text-gray-900 text-sm font-mono truncate">{{ mem.title }}</span>
-          <span v-if="isAutoExtracted(mem)" class="text-gray-500/40 text-xs font-mono">{{ t('memory.auto_extracted') }}</span>
+          <span class="text-foreground text-sm font-mono truncate">{{ mem.title }}</span>
+          <span v-if="isAutoExtracted(mem)" class="text-muted-foreground/40 text-xs font-mono">{{ t('memory.auto_extracted') }}</span>
         </div>
-        <div class="text-gray-500/80 text-sm font-mono line-clamp-2">{{ mem.content }}</div>
+        <div class="text-muted-foreground/80 text-sm font-mono line-clamp-2">{{ mem.content }}</div>
         <div class="flex justify-end gap-1 mt-auto pt-1">
-          <button @click="openEditModal(mem)" class="text-sm px-1.5 py-0.5 font-mono text-blue-600 rounded-md border border-blue-600/30 hover:bg-blue-50 transition-colors duration-150">{{ t('memory.edit') }}</button>
-          <button @click="openDeleteConfirm(mem.id)" class="text-sm px-1.5 py-0.5 font-mono text-red-600 rounded-md border border-red-300 hover:bg-red-50 transition-colors duration-150">{{ t('memory.delete') }}</button>
+          <button @click="openEditModal(mem)" class="text-sm px-1.5 py-0.5 font-mono text-primary rounded-lg border border-primary/30 hover:bg-primary/10 transition-colors duration-150">{{ t('memory.edit') }}</button>
+          <button @click="openDeleteConfirm(mem.id)" class="text-sm px-1.5 py-0.5 font-mono text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">{{ t('memory.delete') }}</button>
         </div>
       </div>
     </div>
 
     <BaseModal v-model="showFormModal">
-      <template #header>{{ editing ? t('memory.edit') : t('memory.create') }}</template>
+      <template #header><span class="text-foreground text-sm font-mono">{{ editing ? t('memory.edit') : t('memory.create') }}</span></template>
       <div class="p-3 space-y-3">
           <div>
-            <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('memory.form.type') }}</label>
+            <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('memory.form.type') }}</label>
             <BaseSelect v-model="formType" :options="typeFilterOptions" />
           </div>
           <div>
-            <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('memory.form.title') }}</label>
+            <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('memory.form.title') }}</label>
             <input v-model="formTitle"
-              class="w-full bg-white text-gray-900 text-sm font-mono  border border-gray-300 rounded-md px-2.5 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              class="w-full bg-surface text-foreground text-sm font-mono border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring"
             />
           </div>
           <div>
-            <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('memory.form.content') }}</label>
+            <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('memory.form.content') }}</label>
             <textarea v-model="formContent" rows="4"
-              class="w-full bg-white text-gray-900 text-sm font-mono  border border-gray-300 rounded-md px-2.5 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
+              class="w-full bg-surface text-foreground text-sm font-mono border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring resize-none"
             ></textarea>
         </div>
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
           <button @click="showFormModal = false"
-            class="text-sm font-mono text-gray-500 px-3 py-1 hover:text-gray-900 transition-colors duration-150"
+            class="text-sm font-mono text-muted-foreground px-3 py-1 hover:text-foreground transition-colors duration-150"
           >{{ t('tasks.form.cancel') }}</button>
           <button @click="saveMemory"
-            class="text-sm font-mono font-bold text-white bg-blue-600 px-4 py-1 rounded-md hover:bg-blue-700 transition-colors duration-150"
+            class="text-sm font-mono font-bold text-primary-foreground bg-primary px-4 py-1 rounded-lg hover:bg-primary/90 transition-colors duration-150"
           >{{ t('tasks.form.save') }}</button>
         </div>
       </template>
@@ -145,8 +144,8 @@ const filteredMemories = computed(() => {
 })
 
 function typeColor(type: string): string {
-  const colors: Record<string, string> = { USER: 'text-green-600', FEEDBACK: 'text-amber-600', PROJECT: 'text-blue-600', REFERENCE: 'text-gray-500' }
-  return colors[type] || 'text-gray-500'
+  const colors: Record<string, string> = { USER: 'text-success', FEEDBACK: 'text-warning', PROJECT: 'text-primary', REFERENCE: 'text-muted-foreground' }
+  return colors[type] || 'text-muted-foreground'
 }
 
 function typeLabel(type: string): string {

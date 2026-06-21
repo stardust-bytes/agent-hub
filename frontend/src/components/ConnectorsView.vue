@@ -1,25 +1,25 @@
 <template>
-  <div class="flex-1 flex flex-col bg-gray-50 overflow-hidden">
-    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-white border-b border-gray-200 flex items-center justify-between shrink-0">
-      <span class="text-gray-900 text-sm font-semibold">{{ t('connectors.header') }}</span>
+  <div class="flex-1 flex flex-col bg-background overflow-hidden">
+    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
+      <span class="text-lg font-semibold text-foreground">{{ t('connectors.header') }}</span>
     </div>
-    <div class="flex-1 overflow-y-auto px-4 py-4">
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full">
       <div class="max-w-xl">
 
-        <div v-for="connector in displayConnectors" :key="connector.type" class="flex items-center justify-between px-3 h-[3rem] border border-gray-200 rounded-md mb-2 bg-white">
+        <div v-for="connector in displayConnectors" :key="connector.type" class="flex items-center justify-between px-3 h-[3rem] border border-border rounded-lg mb-2 bg-surface">
           <div class="flex items-center gap-3 min-w-0">
-            <span class="text-sm text-gray-900 font-mono truncate">{{ connector.name }}</span>
+            <span class="text-sm text-foreground font-mono truncate">{{ connector.name }}</span>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <span class="text-sm font-mono" :class="connector.enabled ? 'text-green-600' : 'text-gray-500'">
+            <span class="text-sm font-mono" :class="connector.enabled ? 'text-success' : 'text-muted-foreground'">
               {{ connector.enabled ? t('connectors.connected') : t('connectors.disconnected') }}
             </span>
             <button v-if="!connector.enabled" @click="connect(connector.type)"
-              class="text-sm font-mono px-2.5 py-1 rounded-md border border-green-600/30 text-green-600 hover:bg-green-50 transition-colors duration-150">
+              class="text-sm font-mono px-2.5 py-1 rounded-lg border border-green-600/30 text-success hover:bg-green-50 transition-colors duration-150">
               {{ t('connectors.connect') }}
             </button>
             <button v-if="connector.enabled" @click="disconnect(connector)"
-              class="text-sm px-1.5 py-0.5 font-mono text-red-600 rounded-md border border-red-300 hover:bg-red-50 transition-colors duration-150">
+              class="text-sm px-1.5 py-0.5 font-mono text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">
               {{ t('connectors.disconnect') }}
             </button>
           </div>

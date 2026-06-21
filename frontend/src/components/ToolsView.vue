@@ -1,15 +1,15 @@
 <template>
-  <div class="flex-1 flex flex-col bg-gray-50 overflow-hidden">
-    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-white border-b border-gray-200 flex items-center shrink-0">
-      <span class="text-gray-900 text-sm font-semibold">
+  <div class="flex-1 flex flex-col bg-background overflow-hidden">
+    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
+      <span class="text-lg font-semibold text-foreground">
         ⚡ {{ t('tools.header') }}
       </span>
     </div>
-    <div class="flex-1 overflow-y-auto p-3">
-      <div v-if="loading" class="text-gray-500 text-sm font-mono">{{ t('tools.loading') }}</div>
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full">
+      <div v-if="loading" class="text-muted-foreground text-sm font-mono">{{ t('tools.loading') }}</div>
       <table v-else-if="tools.length" class="w-full border-collapse font-mono text-sm">
         <thead>
-          <tr class="border-b border-gray-200 text-gray-500">
+          <tr class="border-b border-border text-muted-foreground">
             <th class="text-left py-2 px-2 w-20">{{ t('tools.status') }}</th>
             <th class="text-left py-2 px-2 w-40">{{ t('tools.name') }}</th>
             <th class="text-left py-2 px-2">{{ t('tools.description') }}</th>
@@ -18,18 +18,18 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="tool in tools" :key="tool.name" class="border-b border-gray-200/50 hover:bg-gray-50 transition-colors duration-150">
+          <tr v-for="tool in tools" :key="tool.name" class="border-b border-border/50 hover:bg-muted transition-colors duration-150">
             <td class="py-2 px-2">
-              <span :class="tool.enabled ? 'text-green-600' : 'text-gray-500'" class="font-mono text-sm">
+              <span :class="tool.enabled ? 'text-success' : 'text-muted-foreground'" class="font-mono text-sm">
                 {{ tool.enabled ? '●' : '○' }}
               </span>
             </td>
-            <td class="py-2 px-2 text-gray-900 font-mono">{{ tool.name }}</td>
-            <td class="py-2 px-2 text-gray-500/80 font-mono text-sm">{{ tool.description }}</td>
+            <td class="py-2 px-2 text-foreground font-mono">{{ tool.name }}</td>
+            <td class="py-2 px-2 text-muted-foreground/80 font-mono text-sm">{{ tool.description }}</td>
             <td class="py-2 px-2 text-right">
               <button
                 @click="toggle(tool.name)"
-                :class="tool.enabled ? 'text-amber-600 hover:text-amber-600/80' : 'text-blue-600 hover:text-blue-600/80'"
+                :class="tool.enabled ? 'text-warning hover:text-warning/80' : 'text-primary hover:text-primary/80'"
                 class="text-sm font-mono transition-colors duration-150"
               >{{ tool.enabled ? t('tools.disable') : t('tools.enable') }}</button>
             </td>
@@ -37,13 +37,13 @@
               <button
                 v-if="tool.configSchema"
                 @click="openConfig(tool)"
-                class="text-sm font-mono text-blue-600/70 hover:text-blue-600 transition-colors duration-150"
+                class="text-sm font-mono text-primary/70 hover:text-primary transition-colors duration-150"
               >{{ t('tools.config.edit') }}</button>
             </td>
           </tr>
         </tbody>
       </table>
-      <div v-else class="text-gray-500 text-sm font-mono">{{ t('tools.no_tools') }}</div>
+      <div v-else class="text-muted-foreground text-sm font-mono">{{ t('tools.no_tools') }}</div>
     </div>
   </div>
   <ToolConfigModal v-model="showConfigModal" :tool="configTool" @saved="fetchTools" />
