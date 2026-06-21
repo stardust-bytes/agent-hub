@@ -1,9 +1,14 @@
 <template>
   <div class="flex-1 flex flex-col bg-background overflow-hidden">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
-      <span class="text-lg font-semibold text-foreground">{{ t('connectors.header') }}</span>
+    <div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+        </div>
+        <span class="text-base font-semibold text-foreground">{{ t('connectors.header') }}</span>
+      </div>
     </div>
-    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full">
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 pb-6">
       <div class="max-w-xl">
 
         <div v-for="connector in displayConnectors" :key="connector.type" class="flex items-center justify-between px-3 h-[3rem] border border-border rounded-lg mb-2 bg-surface">

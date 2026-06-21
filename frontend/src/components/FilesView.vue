@@ -1,12 +1,15 @@
 <template>
   <div class="flex-1 flex flex-col bg-background overflow-hidden">
-    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-surface border-b border-border flex items-center shrink-0">
-      <span class="text-foreground text-sm font-semibold flex items-center gap-2">
-        <HiFolder class="w-4 h-4 text-muted-foreground" /> {{ t('files.header') }}
-      </span>
+    <div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+          <HiFolder class="w-4 h-4" />
+        </div>
+        <span class="text-base font-semibold text-foreground">{{ t('files.header') }}</span>
+      </div>
     </div>
 
-    <div class="flex-1 overflow-y-auto px-4 py-4">
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 pb-6">
       <div class="max-w-2xl mx-auto space-y-4">
 
         <!-- Upload zone -->
