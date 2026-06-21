@@ -12,7 +12,7 @@
       >
         <div
           @click="toggleExpand(provider.id)"
-          class="flex items-center justify-between xl:pl-3 pl-10 px-3 h-[3rem] bg-surface cursor-pointer hover:bg-muted transition-colors duration-150"
+          class="flex items-center justify-between px-3 h-[3rem] bg-surface cursor-pointer hover:bg-muted transition-colors duration-150"
         >
           <div class="flex items-center gap-2 min-w-0">
             <span class="text-muted-foreground text-sm font-mono shrink-0">{{ expanded.has(provider.id) ? '▼' : '▶' }}</span>

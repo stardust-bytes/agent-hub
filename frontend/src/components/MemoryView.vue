@@ -1,6 +1,6 @@
 <template>
   <div class="flex-1 flex flex-col bg-background overflow-hidden">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 py-1.5 bg-background border-b border-border shrink-0">
+    <div class="flex items-center gap-2 px-3 py-1.5 bg-background border-b border-border shrink-0">
       <span class="text-muted-foreground text-sm">{{ t('tasks.filter.label') }}</span>
       <button
         v-for="f in TYPE_FILTERS"
