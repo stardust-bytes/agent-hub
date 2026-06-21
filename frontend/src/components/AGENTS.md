@@ -30,7 +30,6 @@ AppShell.vue              — layout shell, hosts TopBar + SidebarNav + router-v
 │   ├── NotesView.vue           — /notes: markdown notes CRUD (uses NoteModal)
 │   ├── ConnectorsView.vue      — /connectors: Google connector accounts + OAuth
 │   ├── AgentOutputView.vue     — /agent-output: list + download agent files
-│   ├── PlansView.vue           — /plans: execution plan list
 │   ├── OAuthCallbackPage.vue   — /oauth/callback: OAuth redirect handler (state+code → confirmOAuth)
 │   └── SettingsView.vue        — /settings/:tab: tabbed settings host
 │       ├── ProvidersView.vue   — LLM provider CRUD + model management (uses ProviderFormModal)
@@ -270,18 +269,93 @@ Right-side collapsible panel for live sub-agent monitoring. Each active/complete
 | Modals/selects | Built on Headless UI (`@headlessui/vue`): `Dialog`/`TransitionRoot` (`BaseModal`), `Listbox` (`BaseSelect`). |
 | Text size | `text-sm` for body; `text-xs` allowed for meta/badges. |
 
-## Header Pattern (in-column title — global TopBar owns top chrome)
+## Header Pattern (seamless — no border between header and content)
+
+All pages use a seamless layout where header and content share the same `mx-auto max-w-5xl w-full px-6` container. No `border-b` separates them.
+
+### A. List view (ScheduleTasks, Notes, AgentOutput, Connectors, Files)
 
 ```html
-<div class="px-6 py-6 mx-auto max-w-5xl">
-  <h1 class="text-lg font-semibold text-foreground">{{ t('view.header') }}</h1>
-  <p class="text-sm text-muted-foreground">{{ t('view.subtitle') }}</p>
+<div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-4">
+  <div class="flex items-center gap-3">
+    <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+      <HiIcon class="w-4 h-4" />
+    </div>
+    <span class="text-base font-semibold text-foreground">{{ t('view.header') }}</span>
+    <span class="text-xs font-mono text-muted-foreground bg-muted rounded px-1.5 py-0.5">badge</span>
+    <div class="ml-auto">
+      <button class="text-sm rounded-lg border border-primary/30 text-primary hover:bg-primary/10 px-2.5 py-1">{{ t('view.action') }}</button>
+    </div>
+  </div>
+</div>
+<div class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 pb-6">
+  (content)
 </div>
 ```
 
-- Global TopBar (`h-14`) replaces the old per-view `h-[3rem]` header bar
-- Each view starts with an in-column title (optional subtitle) inside `mx-auto max-w-5xl px-6 py-6`
-- Action buttons appear inside the content area, not in a header bar
+### B. Detail view (ScheduleTaskDetail)
+
+```html
+<div class="mx-auto max-w-5xl w-full px-6 pt-4 pb-4">
+  <div class="flex items-center gap-1 text-xs font-mono text-muted-foreground mb-2">
+    <span class="hover:text-primary">Parent</span>
+    <span class="text-input">/</span>
+    <span class="text-foreground">Current</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+      <HiIcon class="w-4 h-4" />
+    </div>
+    <span class="text-lg font-bold text-foreground tracking-tight">Title</span>
+    <span class="text-xs font-mono text-muted-foreground bg-muted rounded px-1.5 py-0.5">N runs</span>
+    <div class="ml-auto flex gap-2">
+      <button class="secondary-recipe">{{ t('view.secondary') }}</button>
+      <button class="primary-recipe">{{ t('view.primary') }}</button>
+    </div>
+  </div>
+</div>
+```
+
+### C. Settings tab bar
+
+```html
+<div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-0">
+  <div class="flex items-center gap-3">
+    <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+      <HiCog class="w-4 h-4" />
+    </div>
+    <span class="text-base font-semibold text-foreground">{{ t('settings.header') }}</span>
+  </div>
+</div>
+<div class="mx-auto max-w-5xl w-full px-6">
+  <div class="flex gap-0 border-b border-border">
+    <button class="font-mono text-sm px-3 py-1.5 text-muted-foreground hover:text-foreground">Tab</button>
+    <button class="font-mono text-sm px-3 py-1.5 text-primary border-b-2 border-primary">Active</button>
+  </div>
+</div>
+```
+
+### D. CoworkView ProjectBar
+
+CoworkView uses a `ProjectBar` instead of a standard header. Styled consistently with icon box + path segments + status badge:
+
+```html
+<div class="flex items-center gap-3 px-6 py-3">
+  <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+    <svg><!-- folder icon --></svg>
+  </div>
+  <span class="w-2 h-2 rounded-full bg-success"></span>
+  <span class="font-mono text-sm"><span class="text-foreground font-medium">~/projects</span><span class="text-muted-foreground">/my-app</span></span>
+</div>
+```
+
+**Rules:**
+- No `border-b` between header and content (seamless flow)
+- Header and content share `mx-auto max-w-5xl w-full px-6`
+- Icon in `w-7 h-7 bg-primary/10 text-primary rounded-lg` accent box
+- Action buttons: ghost recipe (`border border-primary/30 text-primary hover:bg-primary/10`) for secondary, primary recipe for CTA
+- No `h-[3rem]` on page headers
+- No `xl:pl-3 pl-10` legacy padding
 
 ## Data Access
 
