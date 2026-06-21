@@ -1,31 +1,31 @@
 <template>
-  <form @submit.prevent="onSubmit" class="border border-gray-200 rounded-md p-3 my-2 bg-gray-50">
+  <form @submit.prevent="onSubmit" class="rounded-lg border border-border bg-muted p-3 my-2">
     <div v-for="(field, i) in fields" :key="i" class="mb-2">
-      <label class="text-sm text-gray-600 block mb-1">{{ field.label }}</label>
+      <label class="text-sm text-muted-foreground block mb-1">{{ field.label }}</label>
       <input
         v-if="field.type === 'input'"
         v-model="field.value"
-        class="w-full bg-white rounded-md border border-gray-300 px-2.5 py-1.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+        class="w-full rounded-lg border border-input bg-surface px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring"
         :placeholder="field.placeholder"
       />
       <select
         v-else-if="field.type === 'select'"
         v-model="field.value"
-        class="w-full bg-white rounded-md border border-gray-300 px-2.5 py-1.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+        class="w-full rounded-lg border border-input bg-surface px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring"
       >
         <option v-for="opt in field.options" :key="opt" :value="opt">{{ opt }}</option>
       </select>
       <textarea
         v-else-if="field.type === 'textarea'"
         v-model="field.value"
-        class="w-full bg-white rounded-md border border-gray-300 px-2.5 py-1.5 text-sm text-gray-900 outline-none resize-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+        class="w-full rounded-lg border border-input bg-surface px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors resize-none focus:border-primary focus:ring-1 focus:ring-ring"
         :placeholder="field.placeholder"
         rows="3"
       />
     </div>
     <button
       type="submit"
-      class="text-sm font-medium text-white bg-blue-600 rounded-md px-3 py-1.5 hover:bg-blue-700 transition-colors duration-150"
+      class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/90"
     >{{ submitText }}</button>
   </form>
 </template>

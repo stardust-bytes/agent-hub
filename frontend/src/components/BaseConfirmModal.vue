@@ -1,20 +1,20 @@
 <template>
   <BaseModal :model-value="modelValue" :closable="false" @update:model-value="$emit('update:modelValue', $event)">
     <template #header>
-      <span class="text-gray-900 text-sm font-semibold">{{ title }}</span>
+      <span class="text-foreground text-sm font-semibold">{{ title }}</span>
     </template>
     <div class="px-4 py-4">
-      <p class="text-sm text-gray-600">{{ message }}</p>
+      <p class="text-sm text-muted-foreground">{{ message }}</p>
     </div>
     <template #footer>
       <div class="flex gap-2 justify-end">
         <button
           @click="$emit('update:modelValue', false)"
-          class="px-3 py-1.5 text-sm rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors duration-150"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-input bg-surface px-3 py-1.5 text-sm text-foreground transition-colors duration-150 hover:bg-muted"
         >{{ t('tasks.form.cancel') }}</button>
         <button
           @click="onConfirm"
-          class="px-3 py-1.5 text-sm rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors duration-150"
+          class="inline-flex items-center gap-1.5 rounded-lg bg-danger px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-danger/90"
         >{{ t('tasks.delete.confirm.btn') }}</button>
       </div>
     </template>

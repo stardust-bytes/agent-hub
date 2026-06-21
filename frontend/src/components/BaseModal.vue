@@ -6,7 +6,7 @@
         enter="duration-150 ease-out" enter-from="opacity-0" enter-to="opacity-100"
         leave="duration-100 ease-in" leave-from="opacity-100" leave-to="opacity-0"
       >
-        <div class="fixed inset-0 bg-gray-900/40" aria-hidden="true" />
+        <div class="fixed inset-0 bg-foreground/40" aria-hidden="true" />
       </TransitionChild>
 
       <div class="fixed inset-0 overflow-y-auto">
@@ -17,19 +17,19 @@
             leave="duration-100 ease-in" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-1 sm:scale-95"
           >
             <DialogPanel :class="panelClass" :style="panelStyle">
-              <div v-if="$slots.header" class="px-4 py-3 border-b border-gray-200 flex items-center justify-between shrink-0">
+              <div v-if="$slots.header" class="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
                 <slot name="header" />
                 <button
                   v-if="closable"
                   @click="onClose"
-                  class="text-gray-400 text-base leading-none transition-colors duration-150 hover:text-gray-700"
+                  class="text-muted-foreground text-base leading-none transition-colors duration-150 hover:text-foreground"
                   aria-label="Close"
                 >✕</button>
               </div>
               <div class="overflow-y-auto flex-1">
                 <slot />
               </div>
-              <div v-if="$slots.footer" class="px-4 py-3 border-t border-gray-200 bg-gray-50 shrink-0">
+              <div v-if="$slots.footer" class="px-4 py-3 border-t border-border bg-muted shrink-0">
                 <slot name="footer" />
               </div>
             </DialogPanel>
@@ -59,7 +59,7 @@ const SIZE_MAP: Record<string, string> = {
 }
 
 const panelClass = computed(() =>
-  `bg-white rounded-md border border-gray-200 shadow-xl flex flex-col max-w-[90vw] ${SIZE_MAP[props.size ?? 'md']}`,
+  `bg-elevated rounded-xl border border-border shadow-xl flex flex-col max-w-[90vw] ${SIZE_MAP[props.size ?? 'md']}`,
 )
 
 const panelStyle = computed(() => ({ maxHeight: props.maxHeight ?? '85vh' }))
