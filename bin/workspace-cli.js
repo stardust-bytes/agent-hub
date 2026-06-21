@@ -3,13 +3,33 @@ const { spawn, execSync, exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
+const os = require('os');
 
 const ROOT = path.resolve(__dirname, '..');
 const CWD = process.cwd();
-const DATA_DIR = path.resolve(CWD, 'workspace_data');
-const DB_PATH = path.join(DATA_DIR, 'dev.db');
-
 const BACKEND_ENTRY = path.join(ROOT, 'backend', 'dist', 'main.js');
+
+function resolveDataDir() {
+  for (let i = 0; i < process.argv.length; i++) {
+    if (process.argv[i] === '--data-dir' && i + 1 < process.argv.length) {
+      return path.resolve(process.argv[i + 1]);
+    }
+  }
+  if (process.env.AGENT_HUB_DATA_DIR) {
+    return path.resolve(process.env.AGENT_HUB_DATA_DIR);
+  }
+  const rootData = path.join(ROOT, 'workspace_data');
+  if (fs.existsSync(rootData)) return rootData;
+  const cwdData = path.resolve(CWD, 'workspace_data');
+  if (fs.existsSync(cwdData)) return cwdData;
+  const appData = process.env.APPDATA
+    ? path.join(process.env.APPDATA, 'agent-hub')
+    : path.join(os.homedir(), '.agent-hub');
+  return appData;
+}
+
+const DATA_DIR = resolveDataDir();
+const DB_PATH = path.join(DATA_DIR, 'dev.db');
 
 function log(tag, msg) {
   console.log(`[${tag}] ${msg}`);
@@ -23,8 +43,14 @@ function createDataDir() {
 }
 
 function createEnv() {
-  const envPath = path.join(CWD, '.env');
+  const envPath = path.join(DATA_DIR, '.env');
+  const legacyEnv = path.join(CWD, '.env');
   if (fs.existsSync(envPath)) return;
+  if (fs.existsSync(legacyEnv) && legacyEnv !== envPath) {
+    fs.copyFileSync(legacyEnv, envPath);
+    log('init', `Migrated .env from ${legacyEnv} to ${envPath}`);
+    return;
+  }
   const examplePath = path.join(ROOT, 'backend', '.env.example');
   if (fs.existsSync(examplePath)) {
     log('init', 'Creating .env from .env.example — edit it to match your setup');
@@ -96,7 +122,7 @@ function getPort() {
 }
 
 function resolveEnv() {
-  const envPath = path.join(CWD, '.env');
+  const envPath = path.join(DATA_DIR, '.env');
   if (fs.existsSync(envPath)) {
     const content = fs.readFileSync(envPath, 'utf-8');
     for (const line of content.split('\n')) {
@@ -153,6 +179,7 @@ function openBrowser(url) {
 }
 
 async function cmdInit() {
+  log('init', `Data dir: ${DATA_DIR}`);
   createDataDir();
   createEnv();
   if (needsMigration()) {
@@ -176,6 +203,7 @@ async function cmdStudio() {
   generatePrismaClient();
   resolveEnv();
 
+  log('studio', `Using data dir: ${DATA_DIR}`);
   const server = spawn('node', [BACKEND_ENTRY], {
     stdio: 'inherit',
     env: {
@@ -238,16 +266,23 @@ async function cmdAutoStart() {
   const sub = process.argv[3];
   const key = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run';
   const valueName = 'AgentHubStudio';
-  const cliPath = path.resolve(__dirname, 'workspace-cli.js');
-  const cmd = `"${process.execPath}" "${cliPath}" studio --no-browser`;
+  const projectRoot = path.resolve(__dirname, '..');
 
   if (sub === 'enable') {
-    exec(`reg add "${key}" /v "${valueName}" /t REG_SZ /d "${cmd}" /f`, (err) => {
+    const dataDir = path.join(projectRoot, 'workspace_data');
+    const psScript = [
+      `if (!(Test-Path '${dataDir}')) { $null = New-Item -ItemType Directory -Path '${dataDir}' -Force }`,
+      `Start-Process -FilePath '${process.execPath}' -ArgumentList '${path.join(projectRoot, 'bin', 'workspace-cli.js')}','studio','--no-browser' -WorkingDirectory '${projectRoot}' -WindowStyle Hidden`,
+    ].join('; ');
+    const encoded = Buffer.from(psScript, 'utf16le').toString('base64');
+    const regCmd = `powershell -WindowStyle Hidden -EncodedCommand ${encoded}`;
+
+    exec(`reg add "${key}" /v "${valueName}" /t REG_SZ /d "${regCmd}" /f`, (err) => {
       if (err) {
         console.error('Failed to enable auto-start:', err.message);
         process.exit(1);
       }
-      console.log('Auto-start enabled — Agent Hub Studio will start on Windows boot');
+      console.log('Auto-start enabled — Agent Hub Studio will start silently on Windows boot');
       process.exit(0);
     });
   } else if (sub === 'disable') {
@@ -273,12 +308,37 @@ async function cmdAutoStart() {
   }
 }
 
+async function cmdMigrate() {
+  const force = process.argv.includes('--force');
+  if (!force && !fs.existsSync(DB_PATH)) {
+    log('migrate', 'No existing database found. Run "agent-hub init" first, or use --force');
+    process.exit(1);
+  }
+  log('migrate', `Running database migrations on ${DB_PATH}...`);
+  try {
+    const schemaPath = path.join(ROOT, 'backend', 'prisma', 'schema.prisma');
+    const backendDir = path.join(ROOT, 'backend');
+    const env = { ...process.env, DATABASE_URL: `file:${DB_PATH}` };
+    execSync(`npx prisma migrate deploy --schema="${schemaPath}"`, {
+      cwd: backendDir, stdio: 'inherit', env,
+    });
+    generatePrismaClient();
+    log('migrate', 'Migration complete');
+  } catch (e) {
+    console.error('Migration failed:', e.message);
+    process.exit(1);
+  }
+  process.exit(0);
+}
+
 async function main() {
   const subcommand = process.argv[2];
   if (!subcommand || subcommand === 'studio') {
     await cmdStudio();
   } else if (subcommand === 'init') {
     await cmdInit();
+  } else if (subcommand === 'migrate') {
+    await cmdMigrate();
   } else if (subcommand === 'auto-start') {
     await cmdAutoStart();
   } else if (subcommand === '--help' || subcommand === 'help') {
@@ -286,14 +346,21 @@ async function main() {
   Agent Hub Studio — CLI
 
   Usage:
-    agent-hub                    Start Studio (server + dashboard)
-    agent-hub studio             Same as above
+    agent-hub [studio]           Start Studio (server + dashboard)
     agent-hub studio --no-browser  Start server without opening browser
     agent-hub init               One-time setup (data dir, .env, migrations)
-    agent-hub auto-start enable  Register Windows auto-start
+    agent-hub migrate            Apply pending DB migrations (safe update)
+    agent-hub auto-start enable  Register Windows auto-start (run hidden)
     agent-hub auto-start disable  Remove Windows auto-start
     agent-hub auto-start status  Check auto-start status
     agent-hub --help             Show this help
+
+  Data directory (default: auto-detected):
+    --data-dir <path>            Set workspace data directory
+    AGENT_HUB_DATA_DIR           Environment variable alternative
+
+  Examples:
+    agent-hub studio --data-dir "C:\\Users\\me\\agent-hub-data"
     `);
     process.exit(0);
   } else {
