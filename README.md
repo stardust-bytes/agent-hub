@@ -113,11 +113,42 @@ cd frontend
 npm install && npm run dev
 ```
 
-### Windows
+### npm / CLI
 
-```powershell
-.\run.ps1
+**Quick start (no install needed):**
+```bash
+npx @stardust-bytes/agent-hub
 ```
+
+This runs `agent-hub studio` — starts the server, runs first-time setup, and opens your browser.
+
+**Global install (use `agent-hub` directly):**
+```bash
+npm install -g @stardust-bytes/agent-hub
+agent-hub studio
+```
+
+Once installed globally, you can run `agent-hub` from anywhere without `npx`.
+
+### CLI Commands
+
+| Command | Description |
+|---|---|
+| `agent-hub` / `agent-hub studio` | Start Studio (server + dashboard, auto-opens browser) |
+| `agent-hub studio --no-browser` | Start server without opening browser |
+| `agent-hub init` | One-time setup (data dir, .env, database migrations, seed) |
+| `agent-hub auto-start enable` | Register Windows auto-start on boot |
+| `agent-hub auto-start disable` | Remove Windows auto-start |
+| `agent-hub auto-start status` | Check auto-start status |
+| `agent-hub --help` | Show help |
+
+### Windows Auto-Start
+
+```bash
+agent-hub auto-start enable
+```
+
+Registers Agent Hub in Windows Registry (`HKCU\Run`). The server will start automatically on every boot without opening a browser.
 
 ---
 

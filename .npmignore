@@ -3,8 +3,14 @@ frontend/node_modules/
 backend/src/
 backend/node_modules/
 backend/test/
+backend/prisma/workspace_data/
 scripts/
 docs/
 workspace_data/
+media/
 *.md
 .*
+**/tsconfig.build.tsbuildinfo
+Dockerfile
+docker-compose.yml
+run.ps1

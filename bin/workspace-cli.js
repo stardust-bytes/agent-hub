@@ -1,25 +1,36 @@
 #!/usr/bin/env node
-const { spawn, execSync } = require('child_process');
+const { spawn, execSync, exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 
 const ROOT = path.resolve(__dirname, '..');
 const CWD = process.cwd();
 const DATA_DIR = path.resolve(CWD, 'workspace_data');
 const DB_PATH = path.join(DATA_DIR, 'dev.db');
 
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+const BACKEND_ENTRY = path.join(ROOT, 'backend', 'dist', 'main.js');
+
+function log(tag, msg) {
+  console.log(`[${tag}] ${msg}`);
 }
 
-const envPath = path.join(CWD, '.env');
-if (!fs.existsSync(envPath)) {
+function createDataDir() {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    log('init', 'Created workspace_data directory');
+  }
+}
+
+function createEnv() {
+  const envPath = path.join(CWD, '.env');
+  if (fs.existsSync(envPath)) return;
   const examplePath = path.join(ROOT, 'backend', '.env.example');
   if (fs.existsSync(examplePath)) {
-    console.log('[workspace] Creating .env from .env.example — edit it to match your setup');
+    log('init', 'Creating .env from .env.example — edit it to match your setup');
     fs.copyFileSync(examplePath, envPath);
   } else {
-    console.log('[workspace] Creating default .env');
+    log('init', 'Creating default .env');
     const defaults = [
       'PORT=17135',
       'OLLAMA_URL=http://localhost:11434',
@@ -43,39 +54,243 @@ if (!fs.existsSync(envPath)) {
   }
 }
 
-console.log('[workspace] Applying database migrations...');
-execSync(`npx prisma migrate deploy --schema="${path.join(ROOT, 'backend', 'prisma', 'schema.prisma')}"`, {
-  cwd: path.join(ROOT, 'backend'),
-  stdio: 'inherit',
-  env: { ...process.env, DATABASE_URL: `file:${DB_PATH}` },
-});
+function needsMigration() {
+  return !fs.existsSync(DB_PATH);
+}
 
-console.log('[workspace] Generating Prisma client...');
-execSync(`npx prisma generate --schema="${path.join(ROOT, 'backend', 'prisma', 'schema.prisma')}"`, {
-  cwd: path.join(ROOT, 'backend'),
-  stdio: 'inherit',
-  env: { ...process.env, DATABASE_URL: `file:${DB_PATH}` },
-});
+function runMigrations() {
+  const schemaPath = path.join(ROOT, 'backend', 'prisma', 'schema.prisma');
+  const backendDir = path.join(ROOT, 'backend');
+  const env = { ...process.env, DATABASE_URL: `file:${DB_PATH}` };
 
-console.log('[workspace] Seeding database...');
-execSync('npx prisma db seed', {
-  cwd: path.join(ROOT, 'backend'),
-  stdio: 'inherit',
-  env: { ...process.env, DATABASE_URL: `file:${DB_PATH}` },
-});
+  log('init', 'Applying database migrations...');
+  execSync(`npx prisma migrate deploy --schema="${schemaPath}"`, {
+    cwd: backendDir, stdio: 'inherit', env,
+  });
 
-const server = spawn(
-  'node',
-  [path.join(ROOT, 'backend', 'dist', 'main.js')],
-  {
+  log('init', 'Generating Prisma client...');
+  execSync(`npx prisma generate --schema="${schemaPath}"`, {
+    cwd: backendDir, stdio: 'inherit', env,
+  });
+
+  log('init', 'Seeding database...');
+  execSync('npx prisma db seed', {
+    cwd: backendDir, stdio: 'inherit', env,
+  });
+}
+
+function getPort() {
+  return process.env.PORT ?? '17135';
+}
+
+function resolveEnv() {
+  const envPath = path.join(CWD, '.env');
+  if (fs.existsSync(envPath)) {
+    const content = fs.readFileSync(envPath, 'utf-8');
+    for (const line of content.split('\n')) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const eqIdx = trimmed.indexOf('=');
+      if (eqIdx === -1) continue;
+      const key = trimmed.slice(0, eqIdx).trim();
+      const val = trimmed.slice(eqIdx + 1).trim();
+      if (key && !process.env[key]) {
+        process.env[key] = val;
+      }
+    }
+  }
+}
+
+function waitForServer(port, maxRetries = 60) {
+  return new Promise((resolve, reject) => {
+    let retries = 0;
+    const check = () => {
+      const req = http.get(`http://localhost:${port}/api/health`, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(data);
+            if (json.status === 'ok') return resolve();
+          } catch {}
+          retry();
+        });
+      });
+      req.on('error', retry);
+      req.setTimeout(2000, () => { req.destroy(); retry(); });
+    };
+    const retry = () => {
+      if (++retries >= maxRetries) {
+        return reject(new Error('Server did not start in time'));
+      }
+      setTimeout(check, 500);
+    };
+    check();
+  });
+}
+
+function openBrowser(url) {
+  const platform = process.platform;
+  if (platform === 'win32') {
+    exec(`start "" "${url}"`);
+  } else if (platform === 'darwin') {
+    exec(`open "${url}"`);
+  } else {
+    exec(`xdg-open "${url}"`);
+  }
+}
+
+async function cmdInit() {
+  createDataDir();
+  createEnv();
+  if (needsMigration()) {
+    runMigrations();
+    log('init', 'Setup complete');
+  } else {
+    log('init', 'Already initialized (dev.db exists)');
+  }
+  process.exit(0);
+}
+
+async function cmdStudio() {
+  const noBrowser = process.argv.includes('--no-browser');
+  const port = getPort();
+
+  createDataDir();
+  createEnv();
+  if (needsMigration()) {
+    runMigrations();
+  }
+  resolveEnv();
+
+  const server = spawn('node', [BACKEND_ENTRY], {
     stdio: 'inherit',
     env: {
       ...process.env,
       DATABASE_URL: `file:${DB_PATH}`,
-      PORT: process.env.PORT ?? '17135',
+      PORT: port,
     },
-  }
-);
+  });
 
-server.on('exit', (code) => process.exit(code ?? 0));
-server.on('error', (err) => { console.error(err); process.exit(1); });
+  server.on('error', (err) => {
+    console.error(err);
+    process.exit(1);
+  });
+
+  log('studio', `Starting server on port ${port}...`);
+  try {
+    await waitForServer(port);
+  } catch {
+    log('studio', 'Warning: Could not confirm server readiness');
+  }
+
+  const url = `http://localhost:${port}`;
+  console.log('');
+  console.log('  ╔══════════════════════════════════════╗');
+  console.log('  ║      Agent Hub Studio                ║');
+  console.log('  ╠══════════════════════════════════════╣');
+  console.log(`  ║  URL:  ${url.padEnd(33)}║`);
+  console.log(`  ║  Port: ${port.padEnd(33)}║`);
+  console.log('  ╠══════════════════════════════════════╣');
+  console.log('  ║  Press Ctrl+C to stop                ║');
+  console.log('  ╚══════════════════════════════════════╝');
+  console.log('');
+
+  if (!noBrowser) {
+    openBrowser(url);
+  }
+
+  const cleanup = () => {
+    log('studio', 'Shutting down...');
+    server.kill('SIGTERM');
+    setTimeout(() => process.exit(0), 1000);
+  };
+  process.on('SIGINT', cleanup);
+  process.on('SIGTERM', cleanup);
+
+  server.on('exit', (code) => process.exit(code ?? 0));
+}
+
+function getRegistryValue(key, name) {
+  return new Promise((resolve) => {
+    exec(`reg query "${key}" /v "${name}"`, (err, stdout) => {
+      if (err) return resolve(null);
+      const match = stdout.match(/REG_SZ\s+(.+)/);
+      resolve(match ? match[1].trim() : null);
+    });
+  });
+}
+
+async function cmdAutoStart() {
+  const sub = process.argv[3];
+  const key = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run';
+  const valueName = 'AgentHubStudio';
+  const cliPath = path.resolve(__dirname, 'workspace-cli.js');
+  const cmd = `"${process.execPath}" "${cliPath}" studio --no-browser`;
+
+  if (sub === 'enable') {
+    exec(`reg add "${key}" /v "${valueName}" /t REG_SZ /d "${cmd}" /f`, (err) => {
+      if (err) {
+        console.error('Failed to enable auto-start:', err.message);
+        process.exit(1);
+      }
+      console.log('Auto-start enabled — Agent Hub Studio will start on Windows boot');
+      process.exit(0);
+    });
+  } else if (sub === 'disable') {
+    exec(`reg delete "${key}" /v "${valueName}" /f`, (err) => {
+      if (err && !err.message.includes('does not exist')) {
+        console.error('Failed to disable auto-start:', err.message);
+        process.exit(1);
+      }
+      console.log('Auto-start disabled');
+      process.exit(0);
+    });
+  } else if (sub === 'status') {
+    const val = await getRegistryValue(key, valueName);
+    if (val) {
+      console.log(`Auto-start: enabled (${val})`);
+    } else {
+      console.log('Auto-start: disabled');
+    }
+    process.exit(0);
+  } else {
+    console.log('Usage: agent-hub auto-start <enable|disable|status>');
+    process.exit(1);
+  }
+}
+
+async function main() {
+  const subcommand = process.argv[2];
+  if (!subcommand || subcommand === 'studio') {
+    await cmdStudio();
+  } else if (subcommand === 'init') {
+    await cmdInit();
+  } else if (subcommand === 'auto-start') {
+    await cmdAutoStart();
+  } else if (subcommand === '--help' || subcommand === 'help') {
+    console.log(`
+  Agent Hub Studio — CLI
+
+  Usage:
+    agent-hub                    Start Studio (server + dashboard)
+    agent-hub studio             Same as above
+    agent-hub studio --no-browser  Start server without opening browser
+    agent-hub init               One-time setup (data dir, .env, migrations)
+    agent-hub auto-start enable  Register Windows auto-start
+    agent-hub auto-start disable  Remove Windows auto-start
+    agent-hub auto-start status  Check auto-start status
+    agent-hub --help             Show this help
+    `);
+    process.exit(0);
+  } else {
+    console.log(`Unknown command: ${subcommand}`);
+    console.log('Run "agent-hub --help" for usage');
+    process.exit(1);
+  }
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

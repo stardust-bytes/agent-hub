@@ -76,7 +76,7 @@ This section reflects the implemented system. Each module keeps its own `AGENTS.
 agent-hub/
 ├── docker-compose.yml      — 2 services: workspace-backend (13596), workspace-frontend (17135)
 ├── package.json            — root npm package (agent-hub), publishes the CLI
-├── bin/workspace-cli.js    — `agent-hub` CLI (npx one-command install/run)
+├── bin/workspace-cli.js    — `agent-hub` CLI (npx one-command install/run; subcommands: init, studio, auto-start)
 ├── scripts/                — build/setup orchestration (build.mjs, …)
 ├── backend/                — NestJS API (see backend/AGENTS.md)
 │   ├── prisma/schema.prisma — single source of truth for the DB schema
@@ -108,7 +108,18 @@ agent-hub/
 
 ### Distribution
 
-The repo is a publishable npm package; end users can run it with one command via `npx agent-hub`, or via `docker-compose up`. See `README.md`.
+The repo is a publishable npm package (`@stardust-bytes/agent-hub`); end users can run it with one command via `npx @stardust-bytes/agent-hub`, or via `docker-compose up`. See `README.md`.
+
+**CLI Subcommands (`bin/workspace-cli.js`):**
+| Command | Description |
+|---|---|
+| `agent-hub` / `agent-hub studio` | Start Studio (server + dashboard, auto-opens browser) |
+| `agent-hub studio --no-browser` | Start server without opening browser |
+| `agent-hub init` | One-time setup (data dir, .env, prisma migrate, seed) |
+| `agent-hub auto-start enable` | Register Windows auto-start (HKCU Run) |
+| `agent-hub auto-start disable` | Remove Windows auto-start |
+| `agent-hub auto-start status` | Check auto-start status |
+| `agent-hub --help` | Show help |
 
 ---
 

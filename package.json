@@ -1,6 +1,6 @@
 {
-  "name": "agent-hub",
-  "version": "0.1.0",
+  "name": "@stardust-bytes/agent-hub",
+  "version": "0.2.0",
   "private": false,
   "bin": {
     "agent-hub": "./bin/workspace-cli.js"
@@ -8,7 +8,9 @@
   "files": [
     "bin/",
     "backend/dist/",
-    "backend/prisma/",
+    "backend/prisma/schema.prisma",
+    "backend/prisma/migrations/",
+    "backend/prisma/seed.cjs",
     "backend/.env.example",
     "backend/package.json",
     "frontend/dist/"

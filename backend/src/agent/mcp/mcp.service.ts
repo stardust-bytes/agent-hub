@@ -4,7 +4,7 @@ import { McpClientService } from './mcp-client.service';
 import { WorkspaceService } from '../../workspace/workspace.service';
 import * as path from 'path';
 import * as fs from 'fs';
-import { execSync } from 'child_process';
+import { exec } from 'child_process';
 
 interface McpServerEntry {
   id: string;
@@ -22,20 +22,17 @@ export class McpService implements OnModuleInit {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    await this.startPlaywrightServer();
+    this.startPlaywrightServer().catch(() => {});
   }
 
-  private async ensurePlaywrightBrowsers(): Promise<void> {
-    try {
-      const result = execSync('npx playwright install chromium 2>&1', {
-        timeout: 120_000,
-        stdio: 'pipe',
-        windowsHide: true,
-      });
-      this.logger.log('Playwright Chromium installed/verified');
-    } catch (e) {
-      this.logger.warn('Could not install Playwright browsers:', (e as Error).message);
-    }
+  private ensurePlaywrightBrowsers(): void {
+    exec('npx playwright install chromium 2>&1', { timeout: 120_000 }, (err) => {
+      if (err) {
+        this.logger.warn('Could not install Playwright browsers:', err.message);
+      } else {
+        this.logger.log('Playwright Chromium installed/verified');
+      }
+    });
   }
 
   private getCustomChromeUserDataDir(): string | null {
@@ -44,9 +41,9 @@ export class McpService implements OnModuleInit {
   }
 
   private async startPlaywrightServer(): Promise<void> {
-    try {
-      await this.ensurePlaywrightBrowsers();
+    this.ensurePlaywrightBrowsers();
 
+    try {
       const root = this.workspace.getWorkspaceRoot();
       const snapshotDir = path.resolve(root, 'mcp_data');
       fs.mkdirSync(snapshotDir, { recursive: true });

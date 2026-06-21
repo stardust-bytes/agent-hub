@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { existsSync, unlinkSync } from 'fs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -15,3 +16,7 @@ execSync('npm ci', { cwd: resolve(ROOT, 'backend'), stdio: 'inherit' });
 
 console.log('[build] Building backend...');
 execSync('npm run build', { cwd: resolve(ROOT, 'backend'), stdio: 'inherit' });
+
+console.log('[build] Cleaning build artifacts...');
+const tsbuildinfo = resolve(ROOT, 'backend', 'dist', 'tsconfig.build.tsbuildinfo');
+if (existsSync(tsbuildinfo)) unlinkSync(tsbuildinfo);
