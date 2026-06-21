@@ -1,14 +1,5 @@
 <template>
   <div class="flex-1 flex flex-col bg-background overflow-hidden">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
-      <HiUserGroup class="w-4 h-4 text-muted-foreground" />
-      <span class="text-lg font-semibold text-foreground">{{ t('agents.header') }}</span>
-      <button
-        @click="startCreate"
-        class="ml-auto text-sm text-primary font-mono px-2.5 py-1 rounded-lg border border-primary/30 transition-colors duration-150 hover:bg-primary/10"
-      >{{ t('agents.add') }}</button>
-    </div>
-
     <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full space-y-1">
       <div v-if="store.error" class="text-danger text-sm font-mono mb-2">{{ t(store.error) }}</div>
 
@@ -136,7 +127,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { HiUserGroup } from 'vue-icons-plus/hi'
 import { storeToRefs } from 'pinia'
 import ModelSelector from './ModelSelector.vue'
 import BaseModal from './BaseModal.vue'

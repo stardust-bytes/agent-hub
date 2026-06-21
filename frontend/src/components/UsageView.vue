@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { HiOutlineChartBar } from 'vue-icons-plus/hi';
 import { getUsage, getUsageSessions } from '../api/usage';
 import type { UsageTotal, SessionUsage } from '../api/usage';
 
@@ -38,10 +37,6 @@ onMounted(fetchData);
 
 <template>
   <div class="flex-1 flex flex-col bg-background overflow-hidden">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
-      <HiOutlineChartBar class="w-4 h-4 text-muted-foreground" />
-      <span class="text-lg font-semibold text-foreground">{{ t('usage.header') }}</span>
-    </div>
     <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full space-y-4">
     <div v-if="loading" class="text-muted-foreground text-sm font-mono">⟳ {{ t('chat.loading') }}</div>
 

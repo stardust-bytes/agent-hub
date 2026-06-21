@@ -1,14 +1,5 @@
 <template>
   <div class="flex-1 flex flex-col bg-background overflow-hidden">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
-      <HiSave class="w-4 h-4 text-muted-foreground" />
-      <span class="text-lg font-semibold text-foreground">{{ t('memory.title') }}</span>
-      <button
-        @click="openAddModal"
-        class="ml-auto text-sm font-mono font-bold text-primary-foreground bg-primary px-2 py-1 rounded-lg hover:bg-primary/90 transition-colors duration-150"
-      >{{ t('memory.create') }}</button>
-    </div>
-
     <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 py-1.5 bg-background border-b border-border shrink-0">
       <span class="text-muted-foreground text-sm">{{ t('tasks.filter.label') }}</span>
       <button
@@ -93,7 +84,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { HiSave } from 'vue-icons-plus/hi'
 import BaseModal from './BaseModal.vue'
 import BaseConfirmModal from './BaseConfirmModal.vue'
 import BaseSelect from './BaseSelect.vue'

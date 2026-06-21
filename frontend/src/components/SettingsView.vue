@@ -1,16 +1,30 @@
 <template>
   <div class="flex-1 flex flex-col bg-background overflow-hidden">
+    <div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-0">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+          <HiCog class="w-4 h-4" />
+        </div>
+        <span class="text-base font-semibold text-foreground">{{ t('settings.header') }}</span>
+      </div>
+    </div>
+    <div class="mx-auto max-w-5xl w-full px-6">
+      <div class="flex gap-0 border-b border-border">
+        <button v-for="tab in TABS" :key="tab.key"
+          @click="router.push('/settings/' + tab.key)"
+          class="font-mono text-sm px-3 py-1.5 transition-colors duration-150"
+          :class="activeSettingsTab === tab.key ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'"
+        >{{ t(tab.labelKey) }}</button>
+      </div>
+    </div>
+
     <MemoryView v-if="activeSettingsTab === 'memories'" />
     <UsageView v-else-if="activeSettingsTab === 'usage'" />
     <ProvidersView v-else-if="activeSettingsTab === 'providers'" />
     <AgentsView v-else-if="activeSettingsTab === 'agents'" />
     <ToolsView v-else-if="activeSettingsTab === 'tools'" />
     <PermissionView v-else-if="activeSettingsTab === 'permissions'" />
-    <div v-else class="flex-1 overflow-y-auto mx-auto max-w-3xl px-6 py-6 w-full">
-      <div class="flex items-center gap-2 mb-4">
-        <HiCog class="w-5 h-5 text-muted-foreground" />
-        <span class="text-lg font-semibold text-foreground">{{ t('settings.header') }}</span>
-      </div>
+    <div v-else class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 py-6">
       <div class="max-w-xl">
         <div class="border-t border-border pt-4">
           <div class="text-muted-foreground text-sm font-mono mb-2">{{ t('settings.info') }}</div>
@@ -76,6 +90,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { HiCog } from 'vue-icons-plus/hi'
 import { storeToRefs } from 'pinia'
@@ -89,8 +104,17 @@ import { getHealth } from '../api/health'
 import { listSettings, updateSetting } from '../api/settings'
 import { useProvidersStore } from '../stores/providers'
 
-const props = defineProps<{ tab?: string }>()
+const TABS = [
+  { key: 'providers', labelKey: 'providers.header' },
+  { key: 'agents', labelKey: 'agents.header' },
+  { key: 'tools', labelKey: 'tools.header' },
+  { key: 'usage', labelKey: 'usage.header' },
+  { key: 'memories', labelKey: 'memory.title' },
+  { key: 'permissions', labelKey: 'permissions.header' },
+]
 
+const props = defineProps<{ tab?: string }>()
+const router = useRouter()
 const { t } = useI18n()
 
 const activeSettingsTab = computed(() => props.tab ?? 'general')

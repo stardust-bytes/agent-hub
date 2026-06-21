@@ -1,10 +1,5 @@
 <template>
   <div class="flex-1 flex flex-col bg-background overflow-hidden">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
-      <span class="text-lg font-semibold text-foreground">
-        ⚡ {{ t('tools.header') }}
-      </span>
-    </div>
     <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full">
       <div v-if="loading" class="text-muted-foreground text-sm font-mono">{{ t('tools.loading') }}</div>
       <table v-else-if="tools.length" class="w-full border-collapse font-mono text-sm">

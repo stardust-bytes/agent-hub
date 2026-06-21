@@ -1,13 +1,5 @@
 <template>
   <div class="flex-1 flex flex-col bg-background overflow-hidden">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
-      <span class="text-lg font-semibold text-foreground">{{ t('providers.header') }}</span>
-      <button
-        @click="openAddModal"
-        class="ml-auto text-primary text-sm rounded-lg border border-primary/30 hover:bg-primary/10 px-2.5 py-1 transition-colors duration-150"
-      >{{ t('providers.add') }}</button>
-    </div>
-
     <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full">
       <div v-if="providers.length === 0" class="text-muted-foreground text-sm py-4">
         {{ t('providers.empty') }}
