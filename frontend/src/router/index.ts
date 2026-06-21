@@ -7,7 +7,6 @@ import OAuthCallbackPage from '../components/OAuthCallbackPage.vue'
 import AgentOutputView from '../components/AgentOutputView.vue'
 import SettingsView from '../components/SettingsView.vue'
 
-import PlansView from '../components/PlansView.vue'
 import ScheduleTaskDetailView from '../components/ScheduleTaskDetailView.vue'
 
 const routes: RouteRecordRaw[] = [
@@ -18,7 +17,6 @@ const routes: RouteRecordRaw[] = [
   { path: '/notes', name: 'notes', component: NotesView },
   { path: '/connectors', name: 'connectors', component: ConnectorsView },
   { path: '/agent-output', name: 'agent-output', component: AgentOutputView },
-  { path: '/plans', name: 'plans', component: PlansView },
   { path: '/oauth/callback', name: 'oauth-callback', component: OAuthCallbackPage },
   { path: '/settings', redirect: '/settings/general' },
   { path: '/settings/:tab', name: 'settings', component: SettingsView, props: true },

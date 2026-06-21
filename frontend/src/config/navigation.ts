@@ -1,7 +1,7 @@
 import type { Component } from 'vue'
 import {
   HiCode, HiClipboardList, HiDocumentText, HiCog, HiDownload,
-  HiClipboardCheck, HiFolder, HiDatabase, HiServer, HiUserGroup,
+  HiFolder, HiDatabase, HiServer, HiUserGroup,
   HiAdjustments, HiShieldCheck, HiChartBar,
 } from 'vue-icons-plus/hi'
 
@@ -20,7 +20,6 @@ export interface NavGroup {
 export const NAV: Record<string, NavItem> = {
   cowork:          { name: 'cowork',        path: '/cowork',        labelKey: 'nav.cowork',      icon: HiCode },
   tasks:           { name: 'tasks',         path: '/tasks',         labelKey: 'nav.tasks',       icon: HiClipboardList },
-  plans:           { name: 'plans',         path: '/plans',         labelKey: 'nav.plans',       icon: HiClipboardCheck },
   'agent-output':  { name: 'agent-output',  path: '/agent-output',  labelKey: 'nav.agentOutput', icon: HiDownload },
   notes:           { name: 'notes',         path: '/notes',         labelKey: 'nav.notes',       icon: HiDocumentText },
   files:           { name: 'files',         path: '/settings/general', labelKey: 'nav.files',    icon: HiFolder },
@@ -34,7 +33,6 @@ export const navGroups: NavGroup[] = [
     items: [
       { name: 'cowork',       path: '/cowork',       labelKey: 'nav.cowork',      icon: HiCode },
       { name: 'tasks',        path: '/tasks',        labelKey: 'nav.tasks',       icon: HiClipboardList },
-      { name: 'plans',        path: '/plans',        labelKey: 'nav.plans',       icon: HiClipboardCheck },
       { name: 'agent-output', path: '/agent-output', labelKey: 'nav.agentOutput', icon: HiDownload },
     ],
   },
@@ -65,4 +63,4 @@ export function pickNav(names: string[]): NavItem[] {
 
 export const sidebarItems = pickNav(['cowork', 'tasks', 'notes', 'connectors', 'agent-output'])
 export const settingsNav = NAV.settings
-export const bottomItems = pickNav(['cowork', 'tasks', 'agent-output', 'plans', 'notes', 'connectors', 'settings'])
+export const bottomItems = pickNav(['cowork', 'tasks', 'agent-output', 'notes', 'connectors', 'settings'])
