@@ -104,7 +104,7 @@ src/
 ├── router/
 │   └── index.ts         — vue-router routes (createWebHistory)
 ├── config/
-│   └── navigation.ts    — NAV map + sidebarItems / bottomItems
+│   └── navigation.ts    — NAV map + sidebarItems / bottomItems (back-compat) + navGroups (grouped nav, consumed by SidebarNav/CommandPalette)
 ├── assets/
 │   └── main.css         — Tailwind imports + scrollbar + .markdown-body styles
 ├── locales/
