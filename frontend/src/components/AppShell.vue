@@ -1,16 +1,16 @@
 <template>
-  <div class="flex flex-col h-screen bg-cyber-bg font-mono overflow-hidden">
+  <div class="flex flex-col h-screen bg-gray-50 text-gray-900 overflow-hidden">
     <div class="flex flex-1 overflow-hidden">
       <SidebarNav class="hidden xl:flex" />
 
       <div v-if="ui.sidebarOpen" class="fixed inset-0 z-40 xl:hidden" @click="ui.sidebarOpen = false">
-        <div class="absolute inset-0 bg-black/60"></div>
+        <div class="absolute inset-0 bg-gray-900/30"></div>
         <div class="relative h-full" @click.stop>
           <SidebarNav class="h-full" />
         </div>
       </div>
 
-      <button @click="ui.sidebarOpen = !ui.sidebarOpen" class="fixed top-0 left-0 z-50 xl:hidden w-8 h-[3rem] flex items-center justify-center bg-cyber-dark border-r border-b border-cyber-code-border text-cyber-muted hover:text-cyber-accent transition-colors duration-150 text-sm font-mono">
+      <button @click="ui.sidebarOpen = !ui.sidebarOpen" class="fixed top-0 left-0 z-50 xl:hidden w-8 h-[3rem] flex items-center justify-center bg-white border-r border-b border-gray-200 text-gray-500 hover:text-blue-600 transition-colors duration-150 text-sm">
         {{ ui.sidebarOpen ? '✕' : '☰' }}
       </button>
 

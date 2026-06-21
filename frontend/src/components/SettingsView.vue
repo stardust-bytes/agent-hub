@@ -1,12 +1,12 @@
 <template>
-  <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
-    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-cyber-dark flex items-center shrink-0">
-      <span class="text-cyber-accent text-sm tracking-widest font-mono">
-        <HiCog class="w-3 h-3 inline" /> {{ t('settings.header') }}
+  <div class="flex-1 flex flex-col bg-gray-50 overflow-hidden">
+    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-white border-b border-gray-200 flex items-center shrink-0">
+      <span class="text-gray-900 text-sm font-semibold flex items-center gap-2">
+        <HiCog class="w-4 h-4 text-gray-400" /> {{ t('settings.header') }}
       </span>
     </div>
 
-    <div class="flex border-b border-cyber-code-border shrink-0">
+    <div class="flex border-b border-gray-200 shrink-0">
       <button
         v-for="tab in TABS"
         :key="tab.key"
@@ -14,8 +14,8 @@
         :class="[
           'text-sm px-3 py-1.5 font-mono transition-colors duration-150',
           activeSettingsTab === tab.key
-            ? 'text-cyber-accent border-b-2 border-cyber-accent'
-            : 'text-cyber-muted hover:text-cyber-accent',
+            ? 'text-blue-600 border-b-2 border-blue-600'
+            : 'text-gray-500 hover:text-blue-600',
         ]"
       >{{ t(tab.labelKey) }}</button>
     </div>
@@ -28,60 +28,60 @@
     <PermissionView v-else-if="activeSettingsTab === 'permissions'" />
     <div v-else class="flex-1 overflow-y-auto px-4 py-4">
       <div class="max-w-xl">
-        <div class="border-t border-cyber-accent/10 pt-4">
-          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.info') }}</div>
-          <div class="text-sm font-mono text-cyber-muted space-y-1">
+        <div class="border-t border-gray-200 pt-4">
+          <div class="text-gray-500 text-sm font-mono mb-2">{{ t('settings.info') }}</div>
+          <div class="text-sm font-mono text-gray-500 space-y-1">
             <div>{{ t('settings.version') }}: 0.10.1</div>
-            <div :class="healthy ? 'text-cyber-green' : 'text-red-400'">
+            <div :class="healthy ? 'text-green-600' : 'text-red-600'">
               ● {{ healthy ? t('health.ok') : t('health.error') }}
             </div>
           </div>
         </div>
 
-        <div class="border-t border-cyber-accent/10 pt-4 mt-4">
-          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.models') }}</div>
+        <div class="border-t border-gray-200 pt-4 mt-4">
+          <div class="text-gray-500 text-sm font-mono mb-2">{{ t('settings.models') }}</div>
           <div class="space-y-3">
             <div>
-              <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('settings.embedModel') }}</label>
+              <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('settings.embedModel') }}</label>
               <select v-model="embedModelId" @change="saveSetting('embed_model_id', embedModelId)"
-                class="w-full bg-cyber-dark text-cyber-text text-sm font-mono  border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent">
+                class="w-full bg-white text-gray-900 text-sm font-mono  border border-gray-300 rounded-md px-2.5 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                 <option value="">{{ t('settings.defaultOption') }}</option>
                 <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
               </select>
             </div>
             <div>
-              <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('settings.summaryModel') }}</label>
+              <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('settings.summaryModel') }}</label>
               <select v-model="summaryModelId" @change="saveSetting('summary_model_id', summaryModelId)"
-                class="w-full bg-cyber-dark text-cyber-text text-sm font-mono  border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent">
+                class="w-full bg-white text-gray-900 text-sm font-mono  border border-gray-300 rounded-md px-2.5 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                 <option value="">{{ t('settings.defaultOption') }}</option>
                 <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
               </select>
             </div>
-            <div v-if="saved" class="text-cyber-green text-sm font-mono">{{ t('settings.saved') }}</div>
-            <div v-if="fetchError" class="text-red-400 text-sm font-mono mt-2">{{ t('settings.fetchError') }}</div>
+            <div v-if="saved" class="text-green-600 text-sm font-mono">{{ t('settings.saved') }}</div>
+            <div v-if="fetchError" class="text-red-600 text-sm font-mono mt-2">{{ t('settings.fetchError') }}</div>
           </div>
         </div>
 
-        <div class="border-t border-cyber-accent/10 pt-4 mt-4">
-          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('agents.header') }}</div>
-          <label class="flex items-center gap-2 text-cyber-muted text-sm font-mono cursor-pointer">
-            <input type="checkbox" v-model="autoDispatch" @change="saveAutoDispatch" class="accent-cyber-accent" />
+        <div class="border-t border-gray-200 pt-4 mt-4">
+          <div class="text-gray-500 text-sm font-mono mb-2">{{ t('agents.header') }}</div>
+          <label class="flex items-center gap-2 text-gray-500 text-sm font-mono cursor-pointer">
+            <input type="checkbox" v-model="autoDispatch" @change="saveAutoDispatch" class="accent-blue-600" />
             {{ t('agents.autoDispatch') }}
           </label>
         </div>
 
-        <div class="border-t border-cyber-accent/10 pt-4 mt-4">
-          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.mcpServers') }}</div>
-          <div v-if="mcpServers.length === 0" class="text-cyber-muted/50 text-sm font-mono">
+        <div class="border-t border-gray-200 pt-4 mt-4">
+          <div class="text-gray-500 text-sm font-mono mb-2">{{ t('settings.mcpServers') }}</div>
+          <div v-if="mcpServers.length === 0" class="text-gray-500/50 text-sm font-mono">
             {{ t('settings.noMcpServers') }}
           </div>
           <div v-for="server in mcpServers" :key="server.id"
-            class="flex items-center justify-between py-1.5 px-2 bg-cyber-dark border border-cyber-code-border  mb-1">
+            class="flex items-center justify-between py-1.5 px-2 bg-white border border-gray-200  mb-1">
             <div>
-              <div class="text-cyber-text text-sm font-mono">{{ server.name }}</div>
-              <div class="text-cyber-muted/50 text-2xs font-mono">{{ server.type }} &middot; {{ server.id }}</div>
+              <div class="text-gray-900 text-sm font-mono">{{ server.name }}</div>
+              <div class="text-gray-500/50 text-xs font-mono">{{ server.type }} &middot; {{ server.id }}</div>
             </div>
-            <span :class="server.enabled ? 'text-cyber-green' : 'text-cyber-muted/50'"
+            <span :class="server.enabled ? 'text-green-600' : 'text-gray-500/50'"
               class="text-sm font-mono">{{ server.enabled ? t('settings.mcpOn') : t('settings.mcpOff') }}</span>
           </div>
         </div>

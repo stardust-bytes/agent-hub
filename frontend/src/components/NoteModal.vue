@@ -6,17 +6,17 @@
     max-height="90vh"
   >
     <template #header>
-      <span class="text-sm font-mono text-cyber-accent">{{ editingId ? t('notes.edit') : t('notes.add') }}</span>
+      <span class="text-sm text-gray-900 font-semibold">{{ editingId ? t('notes.edit') : t('notes.add') }}</span>
     </template>
-    <div class="p-3 flex flex-col gap-3 bg-cyber-modal-bg">
+    <div class="p-4 flex flex-col gap-3 bg-white">
       <input
         v-model="title"
-        class="w-full bg-cyber-dark text-cyber-text text-sm font-mono font-semibold outline-none px-3 py-2 placeholder-cyber-muted/40"
+        class="w-full bg-white text-gray-900 text-sm font-semibold rounded-md border border-gray-300 outline-none px-3 py-2 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
         :placeholder="t('notes.form.title')"
       />
       <textarea
         v-model="content"
-        class="flex-1 w-full bg-cyber-dark text-cyber-text text-sm font-mono outline-none p-3 resize-none placeholder-cyber-muted/40"
+        class="flex-1 w-full bg-white text-gray-900 text-sm font-mono rounded-md border border-gray-300 outline-none p-3 resize-none placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
         style="min-height:30vh"
         :placeholder="t('notes.form.content')"
       />
@@ -25,11 +25,11 @@
       <div class="flex justify-end gap-2">
         <button
           @click="cancel"
-          class="text-sm font-mono text-cyber-muted px-3 py-1 rounded hover:text-cyber-text transition-colors duration-150"
+          class="text-sm text-gray-700 px-3 py-1.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors duration-150"
         >{{ t('notes.form.cancel') }}</button>
         <button
           @click="save"
-          class="text-sm font-mono text-cyber-accent px-3 py-1 rounded border border-cyber-accent/30 hover:bg-cyber-accent/10 transition-colors duration-150"
+          class="text-sm text-white px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 transition-colors duration-150"
         >{{ t('notes.form.save') }}</button>
       </div>
     </template>

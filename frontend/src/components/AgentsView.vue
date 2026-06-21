@@ -1,121 +1,121 @@
 <template>
-  <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-cyber-code-border shrink-0 bg-cyber-dark">
-      <HiUserGroup class="w-3 h-3 text-cyber-accent" />
-      <span class="text-sm text-cyber-accent font-mono">{{ t('agents.header') }}</span>
+  <div class="flex-1 flex flex-col bg-gray-50 overflow-hidden">
+    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-gray-200 shrink-0 bg-white">
+      <HiUserGroup class="w-4 h-4 text-gray-400" />
+      <span class="text-sm text-gray-900 font-semibold">{{ t('agents.header') }}</span>
       <button
         @click="startCreate"
-        class="ml-auto text-sm text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/30 transition-colors duration-150 hover:bg-cyber-accent/10"
+        class="ml-auto text-sm text-blue-600 font-mono px-2.5 py-1 rounded-md border border-blue-600/30 transition-colors duration-150 hover:bg-blue-50"
       >{{ t('agents.add') }}</button>
     </div>
 
     <div class="flex-1 overflow-y-auto p-3 space-y-1">
-      <div v-if="store.error" class="text-red-400 text-sm font-mono mb-2">{{ t(store.error) }}</div>
+      <div v-if="store.error" class="text-red-600 text-sm font-mono mb-2">{{ t(store.error) }}</div>
 
       <div
         v-for="p in store.profiles"
         :key="p.id"
-        class="flex items-center gap-2 px-2 py-1.5 bg-cyber-dark border border-cyber-code-border"
+        class="flex items-center gap-2 px-2 py-1.5 bg-white border border-gray-200"
       >
-        <span :class="p.enabled ? 'text-cyber-green' : 'text-cyber-muted'" class="font-mono text-sm">
+        <span :class="p.enabled ? 'text-green-600' : 'text-gray-500'" class="font-mono text-sm">
           {{ p.enabled ? '●' : '○' }}
         </span>
         <div class="min-w-0">
-          <div class="text-cyber-text text-sm font-mono truncate">
+          <div class="text-gray-900 text-sm font-mono truncate">
             {{ p.name }}
-            <span v-if="p.builtin" class="text-cyber-cyan/70 ml-1">[{{ t('agents.builtin') }}]</span>
+            <span v-if="p.builtin" class="text-blue-600/70 ml-1">[{{ t('agents.builtin') }}]</span>
           </div>
-          <div class="text-cyber-muted/60 text-sm font-mono truncate">/agent {{ p.slug }}</div>
+          <div class="text-gray-500/60 text-sm font-mono truncate">/agent {{ p.slug }}</div>
         </div>
         <div class="ml-auto flex items-center gap-2 shrink-0">
           <button
             @click="toggleEnabled(p)"
-            :class="p.enabled ? 'text-cyber-orange hover:text-cyber-orange/80' : 'text-cyber-accent hover:text-cyber-accent/80'"
+            :class="p.enabled ? 'text-amber-600 hover:text-amber-600/80' : 'text-blue-600 hover:text-blue-600/80'"
             class="text-sm font-mono transition-colors duration-150"
           >{{ p.enabled ? t('agents.disable') : t('agents.enable') }}</button>
           <button
             @click="startEdit(p)"
-            class="text-sm font-mono text-cyber-accent/70 hover:text-cyber-accent transition-colors duration-150"
+            class="text-sm font-mono text-blue-600/70 hover:text-blue-600 transition-colors duration-150"
           >{{ t('agents.edit') }}</button>
           <button
             v-if="!p.builtin"
             @click="askDelete(p)"
-            class="text-sm font-mono text-red-400 hover:text-red-400/80 transition-colors duration-150"
+            class="text-sm font-mono text-red-600 hover:text-red-600/80 transition-colors duration-150"
           >{{ t('agents.delete') }}</button>
         </div>
       </div>
-      <div v-if="!store.profiles.length" class="text-cyber-muted text-sm font-mono">{{ t('agents.empty') }}</div>
+      <div v-if="!store.profiles.length" class="text-gray-500 text-sm font-mono">{{ t('agents.empty') }}</div>
     </div>
 
     <BaseModal v-model="formOpen" closable size="xl" max-height="85vh">
       <template #header>
-        <span class="text-cyber-text text-sm font-mono">{{ editingId ? t('agents.edit') : t('agents.add') }}</span>
+        <span class="text-gray-900 text-sm font-mono">{{ editingId ? t('agents.edit') : t('agents.add') }}</span>
       </template>
 
       <form id="agentForm" @submit.prevent="save" class="px-3 py-3 space-y-3">
         <div>
-          <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('agents.name') }}</label>
+          <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('agents.name') }}</label>
           <input v-model="form.name" required
-            class="w-full bg-cyber-dark text-cyber-text text-sm font-mono border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent" />
+            class="w-full bg-white text-gray-900 text-sm font-mono border border-gray-300 rounded-md px-2.5 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
         </div>
 
         <div>
-          <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('agents.slug') }}</label>
+          <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('agents.slug') }}</label>
           <input v-model="form.slug" required :disabled="!!editingId" pattern="[a-z0-9-]+"
-            class="w-full bg-cyber-dark text-cyber-text text-sm font-mono border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent disabled:opacity-50" />
+            class="w-full bg-white text-gray-900 text-sm font-mono border border-gray-300 rounded-md px-2.5 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50" />
         </div>
 
         <div>
-          <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('agents.description') }}</label>
+          <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('agents.description') }}</label>
           <input v-model="form.description"
-            class="w-full bg-cyber-dark text-cyber-text text-sm font-mono border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent" />
+            class="w-full bg-white text-gray-900 text-sm font-mono border border-gray-300 rounded-md px-2.5 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
         </div>
 
         <div>
-          <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('agents.systemPrompt') }}</label>
+          <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('agents.systemPrompt') }}</label>
           <textarea v-model="form.systemPrompt" required rows="4"
-            class="w-full bg-cyber-dark text-cyber-text text-sm font-mono border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent resize-y"></textarea>
+            class="w-full bg-white text-gray-900 text-sm font-mono border border-gray-300 rounded-md px-2.5 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-y"></textarea>
         </div>
 
         <div>
           <div class="flex items-center gap-2 mb-1">
-            <label class="text-cyber-muted text-sm font-mono">{{ t('agents.allowedTools') }}</label>
+            <label class="text-gray-500 text-sm font-mono">{{ t('agents.allowedTools') }}</label>
             <button type="button" @click="pickerOpen = true"
-              class="ml-auto text-sm font-mono text-cyber-accent px-2 py-0.5 border border-cyber-accent/30 hover:bg-cyber-accent/10 transition-colors duration-150">
+              class="ml-auto text-sm font-mono text-blue-600 px-2 py-0.5 border border-blue-600/30 hover:bg-blue-600/10 transition-colors duration-150">
               {{ t('agents.selectTools') }}
             </button>
           </div>
           <div v-if="selectedTools.length" class="flex flex-wrap gap-1">
             <span v-for="name in selectedTools" :key="name"
-              class="flex items-center gap-1 text-sm font-mono text-cyber-text bg-cyber-dark border border-cyber-code-border px-2 py-0.5">
+              class="flex items-center gap-1 text-sm font-mono text-gray-900 bg-white border border-gray-200 px-2 py-0.5">
               {{ name }}
-              <button type="button" @click="removeTool(name)" class="text-cyber-muted hover:text-red-400 transition-colors duration-150">✕</button>
+              <button type="button" @click="removeTool(name)" class="text-gray-500 hover:text-red-600 transition-colors duration-150">✕</button>
             </span>
           </div>
-          <div v-else class="text-cyber-muted/60 text-sm font-mono">{{ t('agents.allTools') }}</div>
+          <div v-else class="text-gray-500/60 text-sm font-mono">{{ t('agents.allTools') }}</div>
         </div>
 
         <div>
-          <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('agents.model') }}</label>
+          <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('agents.model') }}</label>
           <ModelSelector :models="models" v-model="form.modelId" :disabled="false" />
         </div>
 
-        <label class="flex items-center gap-2 text-cyber-muted text-sm font-mono cursor-pointer">
-          <input type="checkbox" v-model="form.enabled" class="accent-cyber-accent" />
+        <label class="flex items-center gap-2 text-gray-500 text-sm font-mono cursor-pointer">
+          <input type="checkbox" v-model="form.enabled" class="accent-blue-600" />
           {{ t('agents.enabled') }}
         </label>
 
-        <div v-if="formError" class="text-red-400 text-sm font-mono">{{ t(formError) }}</div>
+        <div v-if="formError" class="text-red-600 text-sm font-mono">{{ t(formError) }}</div>
       </form>
 
       <template #footer>
         <div class="flex gap-2 justify-end">
           <button type="button" @click="formOpen = false"
-            class="text-sm font-mono text-cyber-muted px-3 py-1.5 hover:text-cyber-text transition-colors duration-150">
+            class="text-sm font-mono text-gray-500 px-3 py-1.5 hover:text-gray-900 transition-colors duration-150">
             {{ t('agents.cancel') }}
           </button>
           <button type="submit" form="agentForm"
-            class="text-sm font-mono text-cyber-accent px-3 py-1.5 border border-cyber-accent/30 hover:bg-cyber-accent/10 transition-colors duration-150">
+            class="text-sm font-mono text-blue-600 px-3 py-1.5 border border-blue-600/30 hover:bg-blue-600/10 transition-colors duration-150">
             {{ t('agents.save') }}
           </button>
         </div>

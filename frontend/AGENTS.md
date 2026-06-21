@@ -14,7 +14,7 @@ Single-page application with a multi-panel IDE layout: icon sidebar + content pa
 |---|---|
 | Framework | Vue 3 (Composition API, `<script setup>`) |
 | Build | Vite |
-| Styling | TailwindCSS — custom `cyber-*` color tokens + `.markdown-body` CSS |
+| Styling | TailwindCSS (default palette, GitHub-light) + Headless UI (`@headlessui/vue`) + `.markdown-body` CSS |
 | i18n | vue-i18n v9 (`legacy: false`, Composition API mode) |
 | Type safety | TypeScript strict |
 | Sanitization | DOMPurify — required on every `v-html` binding |
@@ -27,32 +27,32 @@ Single-page application with a multi-panel IDE layout: icon sidebar + content pa
 
 ---
 
-## Color Tokens (tailwind.config.ts)
+## Theme: GitHub Light
 
-| Token | Hex / Value | Usage |
+The UI uses the **default Tailwind palette** (GitHub-light flavored) directly in components — not custom `cyber-*` tokens. Interactive primitives are built on **Headless UI** (`@headlessui/vue`).
+
+| Role | Tailwind class | Usage |
 |---|---|---|
-| `cyber-bg` | `#000000` | Page background |
-| `cyber-dark` | `#111111` | Panel backgrounds, cards |
-| `cyber-status` | `#161616` | Status bar |
-| `cyber-modal-bg` | `#0a0e1a` | Modal backgrounds |
-| `cyber-accent` | `#3B82F6` | Primary accent (blue), borders, interactive elements |
-| `cyber-green` | `#22C55E` | Success, connected state |
-| `cyber-blue` | `#3B82F6` | Alias for accent |
-| `cyber-muted` | `#888888` | Dimmed/secondary text |
-| `cyber-text` | `#EEEEEE` | Primary text |
-| `cyber-orange` | `#FFA500` | Warning, processing state |
-| `cyber-cyan` | `#00d4ff` | Secondary accent, headings |
-| `cyber-link` | `#58a6ff` | Links |
-| `cyber-code-bg` | `#0d1117` | Code block background |
-| `cyber-code-border` | `#30363d` | Code block borders |
-| `cyber-code-text` | `#e6edf3` | Code text |
-| `cyber-row` | `#161b22` | Table rows |
+| Page | `bg-gray-50` | App / view background |
+| Surface | `bg-white` | Panels, cards, headers, sidebar, modals |
+| Divider | `border-gray-200` | Panel/section dividers |
+| Input border | `border-gray-300` | Inputs, selects, secondary buttons |
+| Accent | `blue-600` | Links, active state, primary buttons |
+| Success | `green-600` | Connected / SUCCESS |
+| Warning | `amber-600` | Processing / pending |
+| Danger | `red-600` | Errors, delete |
+| Text primary | `text-gray-900` | Headings, body |
+| Text secondary | `text-gray-600` | Supporting text |
+| Text muted | `text-gray-500` | Dimmed/meta |
+| Code surface | `bg-gray-50` / `bg-gray-100` | Code blocks, terminal panes (mono) |
 
-**Font:** `font-mono` everywhere. Stack: JetBrains Mono → Fira Code → Courier New (via Google Fonts).
+> Legacy `cyber-*` / `gh-*` tokens remain defined in `tailwind.config.ts` only as a safety net; do not use them in new components.
 
-**Border radius:** Max `rounded` (4px). Never `rounded-lg` or larger.
+**Font:** `font-sans` (GitHub system stack: `-apple-system, BlinkMacSystemFont, "Segoe UI"…`) for UI chrome. `font-mono` (JetBrains Mono) only for code, terminal/chat input, logs, and file paths.
 
-**No shadows. No gradients.**
+**Border radius:** `rounded-md` (6px) for controls, inputs, cards, and modals.
+
+**Shadows:** subtle only — `shadow-sm` on hover cards, `shadow-lg`/`shadow-xl` on popovers & modals. **No gradients.**
 
 ---
 
@@ -186,9 +186,11 @@ npm run preview          # Preview production build
 ## Coding Rules
 
 1. **`<script setup>` always** — no Options API.
-2. **`font-mono`** on every text element. Never use system sans-serif.
-3. **`rounded` max** — 4px border radius.
-4. **No shadows, no gradients.**
-5. **No `any` types** — TypeScript strict throughout.
-6. **i18n required** — all user-facing strings via `t('key')`.
-7. **Icons** — `vue-icons-plus/hi` (Hero Icons). No inline SVG.
+2. **`font-sans`** for UI chrome; `font-mono` only for code, terminal/chat input, logs, file paths.
+3. **`rounded-md`** (6px) for controls, inputs, cards, modals.
+4. **Subtle shadows only** (popovers/modals/hover cards); no gradients.
+5. **Default Tailwind palette** (`bg-white`, `text-gray-900`, `border-gray-200`, `blue-600`…); no `cyber-*` tokens in components.
+6. **Headless UI** for interactive primitives (modal/select); see `BaseModal`, `BaseSelect`.
+7. **No `any` types** — TypeScript strict throughout.
+8. **i18n required** — all user-facing strings via `t('key')`.
+9. **Icons** — `vue-icons-plus/hi` (Hero Icons). No inline SVG.

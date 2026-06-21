@@ -1,18 +1,18 @@
 <template>
   <BaseModal :model-value="modelValue" :closable="true" max-height="80vh" @update:model-value="$emit('update:modelValue', $event)">
     <template #header>
-      <span class="text-cyber-accent text-sm tracking-widest font-mono">
+      <span class="text-gray-900 text-sm font-semibold">
         {{ editing ? t('providers.edit') : t('providers.add') }}
       </span>
     </template>
 
     <div class="px-3 py-3 space-y-3">
       <div>
-        <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('providers.form.type') }}</label>
+        <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('providers.form.type') }}</label>
         <select
           v-model="form.type"
           @change="onTypeChange"
-          class="w-full bg-cyber-dark text-slate-100 text-sm px-2 py-1.5 font-mono outline-none border border-cyber-accent/10 focus:border-cyber-accent/40"
+          class="w-full bg-white text-gray-900 text-sm px-2 py-1.5 font-mono outline-none border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
         >
           <option value="ollama">Ollama</option>
           <option value="openai">OpenAI</option>
@@ -21,28 +21,28 @@
         </select>
       </div>
       <div>
-        <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('providers.form.name') }}</label>
+        <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('providers.form.name') }}</label>
         <input
           v-model="form.name"
-          class="w-full bg-cyber-dark text-slate-100 text-sm px-2 py-1.5 font-mono outline-none border border-cyber-accent/10 focus:border-cyber-accent/40"
+          class="w-full bg-white text-gray-900 text-sm px-2 py-1.5 font-mono outline-none border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           autocomplete="off"
         />
       </div>
       <div>
-        <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('providers.form.baseUrl') }}</label>
+        <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('providers.form.baseUrl') }}</label>
         <input
           v-model="form.baseUrl"
-          class="w-full bg-cyber-dark text-slate-100 text-sm px-2 py-1.5 font-mono outline-none border border-cyber-accent/10 focus:border-cyber-accent/40"
+          class="w-full bg-white text-gray-900 text-sm px-2 py-1.5 font-mono outline-none border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           placeholder="http://localhost:11434"
           autocomplete="off"
         />
       </div>
       <div>
-        <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('providers.form.key') }}</label>
+        <label class="text-gray-500 text-sm font-mono block mb-1">{{ t('providers.form.key') }}</label>
         <input
           v-model="form.key"
           type="password"
-          class="w-full bg-cyber-dark text-slate-100 text-sm px-2 py-1.5 font-mono outline-none border border-cyber-accent/10 focus:border-cyber-accent/40"
+          class="w-full bg-white text-gray-900 text-sm px-2 py-1.5 font-mono outline-none border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           autocomplete="new-password"
         />
       </div>
@@ -52,12 +52,12 @@
       <div class="flex justify-end gap-2">
         <button
           @click="$emit('update:modelValue', false)"
-          class="px-3 py-1 text-sm font-mono text-cyber-muted hover:text-slate-100 transition-colors duration-150"
+          class="px-3 py-1.5 text-sm rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors duration-150"
         >{{ t('providers.form.cancel') }}</button>
         <button
           @click="save"
           :disabled="!form.name.trim() || saving"
-          class="px-3 py-1 text-sm font-mono text-cyber-accent bg-cyber-accent/10 hover:bg-cyber-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
+          class="px-3 py-1.5 text-sm rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
         >{{ t('providers.form.save') }}</button>
       </div>
     </template>

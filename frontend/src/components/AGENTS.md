@@ -255,35 +255,40 @@ Right-side collapsible panel for live sub-agent monitoring. Each active/complete
 
 ## Design Rules
 
+> Theme: **GitHub Light**. Default Tailwind palette + Headless UI primitives. Light/white surfaces, no `cyber-*` tokens in components.
+
 | Rule | Value |
 |---|---|
-| Font | `font-mono` everywhere. Never sans or serif. |
-| Background | `bg-cyber-bg` / `bg-cyber-dark` |
-| Border radius | Max `rounded` (4px). Never `rounded-lg` |
-| Shadows | Forbidden (`shadow-*`) |
+| Font | `font-sans` (GitHub system stack) for UI chrome; `font-mono` only for code, terminal/chat input, logs, file paths. |
+| Surfaces | Page `bg-gray-50`, panels/cards/headers `bg-white`. Dividers `border-gray-200`, inputs `border-gray-300`. |
+| Text | Primary `text-gray-900`, secondary `text-gray-600`, muted `text-gray-500`. |
+| Accent | `blue-600` links/active; `bg-blue-600 text-white` primary buttons. Success `green-600`, warning `amber-600`, danger `red-600`. |
+| Border radius | `rounded-md` (6px) for controls, inputs, cards, modals. |
+| Shadows | Subtle only — `shadow-sm` on hover cards, `shadow-lg`/`shadow-xl` on popovers & modals. |
 | Gradients | Forbidden |
-| Animations | `animate-blink` for cursor only. `transition-colors duration-150` on interactive elements |
+| Animations | `animate-blink` (cursor), `animate-dot-pulse` (streaming). `transition-colors duration-150` on interactive elements |
 | Icons | `vue-icons-plus/hi` (Hero Icons). No inline SVG |
-| Buttons | Text labels (not icons) for action buttons. Delete button: `text-red-400 border-red-400/50 hover:bg-red-400/10`. Primary: `text-cyber-accent border-cyber-accent/30 hover:bg-cyber-accent/10` |
-| Cards | Flex column (`flex flex-col`). Action buttons at bottom-right (`mt-auto justify-end`). No `rounded`. |
-| Text size | `text-sm` everywhere. No `text-xs` or `text-2xs`. |
-| Border radius | None. All inputs, buttons, selects, cards are flat (no `rounded`). |
+| Buttons | Text labels for action buttons. Delete: `text-red-600 rounded-md border border-red-300 hover:bg-red-50`. Secondary outline: `text-blue-600 rounded-md border border-blue-600/30 hover:bg-blue-50`. Primary solid: `text-white bg-blue-600 rounded-md hover:bg-blue-700`. |
+| Cards | Flex column (`flex flex-col`). `border border-gray-200 rounded-md bg-white`. Action buttons bottom-right (`mt-auto justify-end`). |
+| Inputs | `bg-white border border-gray-300 rounded-md outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500`. |
+| Modals/selects | Built on Headless UI (`@headlessui/vue`): `Dialog`/`TransitionRoot` (`BaseModal`), `Listbox` (`BaseSelect`). |
+| Text size | `text-sm` for body; `text-xs` allowed for meta/badges. |
 
 ## Header Pattern (standard cho mọi màn hình)
 
 ```html
-<div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-cyber-code-border shrink-0 bg-cyber-dark">
-  <Icon class="w-3 h-3 text-cyber-accent" />
-  <span class="text-sm text-cyber-accent font-mono">{{ t('view.header') }}</span>
-  <button class="ml-auto text-sm text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/30 transition-colors duration-150 hover:bg-cyber-accent/10">
+<div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-gray-200 shrink-0 bg-white">
+  <Icon class="w-4 h-4 text-gray-400" />
+  <span class="text-sm text-gray-900 font-semibold">{{ t('view.header') }}</span>
+  <button class="ml-auto text-sm text-blue-600 px-2.5 py-1 rounded-md border border-blue-600/30 transition-colors duration-150 hover:bg-blue-50">
     {{ t('view.action') }}
   </button>
 </div>
 ```
 
 - Chiều cao cố định `h-[3rem]`
-- Icon + title bên trái, action button `ml-auto` bên phải
-- Button style: `text-cyber-accent border-cyber-accent/30 hover:bg-cyber-accent/10`
+- Icon (muted `text-gray-400`) + title (`text-gray-900 font-semibold`) bên trái, action button `ml-auto` bên phải
+- Button style: `text-blue-600 rounded-md border border-blue-600/30 hover:bg-blue-50`
 
 ## Data Access
 

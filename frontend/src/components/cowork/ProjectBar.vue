@@ -1,39 +1,39 @@
 <template>
-  <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-cyber-code-border shrink-0 bg-cyber-dark">
-    <span class="w-2 h-2 rounded-full shrink-0" :class="projectPath ? 'bg-cyber-green' : 'bg-cyber-muted'"></span>
+  <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-gray-200 shrink-0 bg-white">
+    <span class="w-2 h-2 rounded-full shrink-0" :class="projectPath ? 'bg-green-500' : 'bg-gray-300'"></span>
     <div class="relative">
-      <button @click="showProjectMenu = !showProjectMenu" class="flex items-center gap-1 text-sm text-cyber-text font-mono truncate max-w-60 hover:text-cyber-accent transition-colors duration-150 border border-cyber-code-border rounded px-2 py-0.5">
+      <button @click="showProjectMenu = !showProjectMenu" class="flex items-center gap-1 text-sm text-gray-700 truncate max-w-60 hover:bg-gray-50 transition-colors duration-150 border border-gray-300 rounded-md px-2.5 py-1">
         {{ projectPath ? projectPath.replace(/\\/g, '/').split('/').filter(Boolean).pop() : t('cowork.project.select') }}
-        <svg class="w-3 h-3 shrink-0" :class="showProjectMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        <svg class="w-3 h-3 shrink-0 text-gray-400" :class="showProjectMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
       </button>
       <div v-if="showProjectMenu" class="fixed inset-0 z-40" @click="showProjectMenu = false"></div>
-      <div v-if="showProjectMenu" class="absolute top-full left-0 mt-1 w-72 bg-cyber-dark border border-cyber-code-border rounded z-50">
-        <button @click="emit('browseDirectory'); showProjectMenu = false" class="w-full text-left px-3 py-2 text-sm text-cyber-text font-mono hover:bg-cyber-accent/10 transition-colors duration-150 flex items-center gap-2 border-b border-cyber-code-border">
+      <div v-if="showProjectMenu" class="absolute top-full left-0 mt-1 w-72 bg-white border border-gray-200 rounded-md shadow-lg z-50 overflow-hidden">
+        <button @click="emit('browseDirectory'); showProjectMenu = false" class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 flex items-center gap-2 border-b border-gray-200">
           <span>📁</span> {{ t('cowork.connect.browse') }}
         </button>
-        <div v-for="project in savedProjects" :key="project.id" class="flex items-center px-3 py-2 text-sm text-cyber-text font-mono hover:bg-cyber-accent/10 transition-colors duration-150 border-b border-cyber-code-border">
+        <div v-for="project in savedProjects" :key="project.id" class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 border-b border-gray-200">
           <button @click="emit('selectProject', project.path); showProjectMenu = false" class="flex-1 text-left truncate">{{ project.name }}</button>
-          <button @click="emit('deleteProject', project.id)" class="text-cyber-muted hover:text-red-400 transition-colors duration-150 shrink-0 ml-2 text-sm">✕</button>
+          <button @click="emit('deleteProject', project.id)" class="text-gray-400 hover:text-red-600 transition-colors duration-150 shrink-0 ml-2 text-sm">✕</button>
         </div>
-        <button @click="showSaveModal = true; showProjectMenu = false" class="w-full text-left px-3 py-2 text-sm text-cyber-accent font-mono hover:bg-cyber-accent/10 transition-colors duration-150 flex items-center gap-2">
+        <button @click="showSaveModal = true; showProjectMenu = false" class="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-gray-50 transition-colors duration-150 flex items-center gap-2">
           <span>+</span> {{ t('cowork.project.saveAs') }}
         </button>
       </div>
     </div>
-    <button v-if="projectPath" @click="emit('disconnect')" class="text-sm text-red-400 font-mono px-2 py-0.5 border border-red-400/40 transition-colors duration-150 hover:bg-red-400/10">✕ {{ t('cowork.disconnect') }}</button>
+    <button v-if="projectPath" @click="emit('disconnect')" class="text-sm text-red-600 px-2.5 py-1 rounded-md border border-red-300 transition-colors duration-150 hover:bg-red-50">✕ {{ t('cowork.disconnect') }}</button>
     <div class="flex items-center gap-2 ml-auto">
-      <button v-if="subagentCount != null && subagentCount > 0" @click="emit('toggleSubagentMonitor')" class="text-sm text-cyber-cyan font-mono px-2 py-0.5 border border-cyber-cyan/30 transition-colors duration-150 hover:bg-cyber-cyan/10">◈ {{ subagentCount }}</button>
-      <button v-if="projectPath" @click="emit('toggleArtifacts')" class="text-sm text-cyber-muted font-mono px-2 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-accent hover:border-cyber-accent/40">{{ t('cowork.artifacts') }}</button>
+      <button v-if="subagentCount != null && subagentCount > 0" @click="emit('toggleSubagentMonitor')" class="text-sm text-blue-600 px-2.5 py-1 rounded-md border border-blue-200 transition-colors duration-150 hover:bg-blue-50">◈ {{ subagentCount }}</button>
+      <button v-if="projectPath" @click="emit('toggleArtifacts')" class="text-sm text-gray-600 px-2.5 py-1 rounded-md border border-gray-300 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-900">{{ t('cowork.artifacts') }}</button>
     </div>
     <BaseModal v-model="showSaveModal" :closable="false">
-      <template #header><span class="text-sm text-cyber-text font-mono">{{ t('cowork.project.saveAs') }}</span></template>
-      <div class="p-3">
-        <input v-model="saveProjectName" @keyup.enter="onSave" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-code-text font-mono" :placeholder="t('cowork.project.name')" />
+      <template #header><span class="text-sm text-gray-900 font-semibold">{{ t('cowork.project.saveAs') }}</span></template>
+      <div class="p-4">
+        <input v-model="saveProjectName" @keyup.enter="onSave" class="w-full bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" :placeholder="t('cowork.project.name')" />
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <button @click="showSaveModal = false" class="text-sm text-cyber-muted font-mono px-3 py-1.5 border border-cyber-code-border rounded transition-colors duration-150 hover:text-cyber-text">{{ t('tasks.form.cancel') }}</button>
-          <button @click="onSave" class="text-sm text-white font-mono px-3 py-1.5 bg-cyber-accent rounded transition-colors duration-150 hover:bg-cyber-accent/80">{{ t('cowork.project.save') }}</button>
+          <button @click="showSaveModal = false" class="text-sm text-gray-700 px-3 py-1.5 border border-gray-300 rounded-md transition-colors duration-150 hover:bg-gray-50">{{ t('tasks.form.cancel') }}</button>
+          <button @click="onSave" class="text-sm text-white px-3 py-1.5 bg-blue-600 rounded-md transition-colors duration-150 hover:bg-blue-700">{{ t('cowork.project.save') }}</button>
         </div>
       </template>
     </BaseModal>

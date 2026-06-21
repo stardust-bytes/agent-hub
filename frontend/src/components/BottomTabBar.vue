@@ -1,15 +1,15 @@
 <template>
-  <nav class="flex md:hidden items-center bg-cyber-dark border-t border-cyber-code-border h-[3rem] shrink-0">
+  <nav class="flex md:hidden items-center bg-white border-t border-gray-200 h-[3rem] shrink-0">
     <RouterLink
       v-for="item in bottomItems"
       :key="item.name"
       :to="item.path"
       :title="t(item.labelKey)"
       :class="[
-        'flex flex-col items-center justify-center gap-0.5 flex-1 h-full font-mono text-sm transition-colors duration-150',
+        'flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-xs transition-colors duration-150',
         route.name === item.name
-          ? 'text-cyber-accent bg-cyber-accent/10'
-          : 'text-cyber-muted hover:text-cyber-accent'
+          ? 'text-blue-600'
+          : 'text-gray-500 hover:text-gray-900'
       ]"
     >
       <span v-if="typeof item.icon === 'string'" class="w-[1.125rem] h-[1.125rem] flex items-center justify-center">{{ item.icon }}</span>

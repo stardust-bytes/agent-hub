@@ -1,22 +1,22 @@
 <template>
-  <div class="h-[1.75rem] bg-cyber-status flex items-center justify-between px-3 shrink-0">
+  <div class="h-[1.75rem] bg-white border-t border-gray-200 flex items-center justify-between px-3 shrink-0">
     <div class="flex items-center gap-3">
-      <span class="text-sm font-mono" :class="backendOnline ? 'text-cyber-green' : 'text-cyber-muted'">
+      <span class="text-xs flex items-center gap-1" :class="backendOnline ? 'text-green-600' : 'text-gray-400'">
         {{ backendOnline ? '●' : '○' }} {{ t('status.backend') }}
       </span>
-      <span class="text-sm font-mono" :class="dbConnected ? 'text-cyber-green' : 'text-cyber-muted'">
+      <span class="text-xs flex items-center gap-1" :class="dbConnected ? 'text-green-600' : 'text-gray-400'">
         [{{ dbConnected ? '✓' : '✗' }}] {{ t('status.db') }}
       </span>
-      <span v-if="activeSubagents && activeSubagents > 0" class="text-sm font-mono text-cyber-cyan">
+      <span v-if="activeSubagents && activeSubagents > 0" class="text-xs text-blue-600 flex items-center gap-1">
         ● {{ activeSubagents }} {{ t('status.subagents') }}
       </span>
     </div>
     <div class="flex items-center gap-3">
       <button
         @click="toggleLang"
-        class="text-sm font-mono text-cyber-muted hover:text-cyber-accent transition-colors duration-150"
+        class="text-xs text-gray-500 hover:text-blue-600 transition-colors duration-150"
       >{{ t('nav.lang') }}</button>
-      <span class="text-sm font-mono text-cyber-muted">{{ time }}</span>
+      <span class="text-xs font-mono text-gray-500">{{ time }}</span>
     </div>
   </div>
 </template>

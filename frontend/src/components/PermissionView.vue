@@ -1,53 +1,53 @@
 <template>
-  <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
-    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-cyber-dark flex items-center shrink-0">
-      <span class="text-cyber-accent text-sm tracking-widest font-mono">
-        <HiShieldCheck class="w-3 h-3 inline" /> {{ t('permissions.header') }}
+  <div class="flex-1 flex flex-col bg-gray-50 overflow-hidden">
+    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-white border-b border-gray-200 flex items-center shrink-0">
+      <span class="text-gray-900 text-sm font-semibold">
+        <HiShieldCheck class="w-4 h-4 inline-block text-gray-400" /> {{ t('permissions.header') }}
       </span>
     </div>
 
     <div class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
       <div>
-        <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('permissions.mode.header') }}</div>
+        <div class="text-gray-500 text-sm font-mono mb-2">{{ t('permissions.mode.header') }}</div>
         <select v-model="permissionMode"
-          class="w-full bg-cyber-dark text-cyber-text text-sm font-mono  border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent">
+          class="w-full bg-white text-gray-900 text-sm font-mono  border border-gray-300 rounded-md px-2.5 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
           <option v-for="m in PERMISSION_MODES" :key="m" :value="m">{{ t(`permissions.mode.${m}`) }}</option>
         </select>
       </div>
 
       <div class="mt-4">
-        <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('permissions.requireApproval.header') }}</div>
-        <div class="text-sm text-cyber-muted font-mono mb-2">{{ t('permissions.requireApproval.hint') }}</div>
+        <div class="text-gray-500 text-sm font-mono mb-2">{{ t('permissions.requireApproval.header') }}</div>
+        <div class="text-sm text-gray-500 font-mono mb-2">{{ t('permissions.requireApproval.hint') }}</div>
         <div class="space-y-1">
           <div v-for="tool in ALL_TOOLS" :key="tool" class="flex items-center gap-2 py-1">
             <input type="checkbox" :checked="requireApprovalTools.includes(tool)"
-              @change="toggleApprovalTool(tool)" class="accent-cyber-accent" />
-            <span class="text-cyber-text text-sm font-mono">{{ tool }}</span>
+              @change="toggleApprovalTool(tool)" class="accent-blue-600" />
+            <span class="text-gray-900 text-sm font-mono">{{ tool }}</span>
           </div>
         </div>
       </div>
 
       <div v-if="permissionMode === 'auto'">
-        <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('permissions.yolo.config') }}</div>
+        <div class="text-gray-500 text-sm font-mono mb-2">{{ t('permissions.yolo.config') }}</div>
         <div class="space-y-3">
           <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" v-model="yoloConfig.failClosed" @change="saveYoloConfig" class="accent-cyber-accent" />
-            <span class="text-cyber-text text-sm font-mono">{{ t('permissions.yolo.failClosed') }}</span>
+            <input type="checkbox" v-model="yoloConfig.failClosed" @change="saveYoloConfig" class="accent-blue-600" />
+            <span class="text-gray-900 text-sm font-mono">{{ t('permissions.yolo.failClosed') }}</span>
           </label>
           <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" v-model="yoloConfig.safeToolAllowlist" @change="saveYoloConfig" class="accent-cyber-accent" />
-            <span class="text-cyber-text text-sm font-mono">{{ t('permissions.yolo.safeTools') }}</span>
+            <input type="checkbox" v-model="yoloConfig.safeToolAllowlist" @change="saveYoloConfig" class="accent-blue-600" />
+            <span class="text-gray-900 text-sm font-mono">{{ t('permissions.yolo.safeTools') }}</span>
           </label>
         </div>
       </div>
 
       <div v-if="permissionMode === 'auto'">
-        <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('permissions.rules.header') }}</div>
+        <div class="text-gray-500 text-sm font-mono mb-2">{{ t('permissions.rules.header') }}</div>
         <div class="space-y-1">
           <div v-for="rule in BLOCK_RULES" :key="rule.category" class="flex items-center gap-2 py-1">
             <input type="checkbox" :checked="!yoloConfig.disabledPatterns.includes(rule.category)"
-              @change="toggleRule(rule.category)" class="accent-cyber-accent" />
-            <span class="text-cyber-text text-sm font-mono">{{ t(`permissions.rules.${rule.category}`) }}</span>
+              @change="toggleRule(rule.category)" class="accent-blue-600" />
+            <span class="text-gray-900 text-sm font-mono">{{ t(`permissions.rules.${rule.category}`) }}</span>
           </div>
         </div>
       </div>

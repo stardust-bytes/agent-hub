@@ -1,19 +1,19 @@
 <template>
-  <div class="flex-1 flex flex-col items-center justify-center bg-cyber-bg">
-    <div v-if="status === 'loading'" class="text-cyber-accent font-mono text-sm">
+  <div class="flex-1 flex flex-col items-center justify-center bg-gray-50">
+    <div v-if="status === 'loading'" class="text-blue-600 font-mono text-sm">
       {{ t('oauth.callback.loading') }}
     </div>
-    <div v-else-if="status === 'success'" class="text-cyber-green font-mono text-sm">
+    <div v-else-if="status === 'success'" class="text-green-600 font-mono text-sm">
       {{ t('oauth.callback.success') }}
     </div>
     <div v-else class="flex flex-col items-center gap-3">
-      <div class="text-red-400 font-mono text-sm">{{ t('oauth.callback.error', { msg: errorMsg }) }}</div>
+      <div class="text-red-600 font-mono text-sm">{{ t('oauth.callback.error', { msg: errorMsg }) }}</div>
       <router-link v-if="showBackLink" to="/connectors"
-        class="text-cyber-accent font-mono text-sm border border-cyber-accent/30 px-2 py-0.5 transition-colors duration-150 hover:bg-cyber-accent/10">
+        class="text-blue-600 font-mono text-sm rounded-md border border-blue-600/30 px-2.5 py-1 transition-colors duration-150 hover:bg-blue-50">
         {{ t('oauth.callback.back') }}
       </router-link>
       <button v-else @click="handleClose"
-        class="text-cyber-muted font-mono text-sm border border-cyber-code-border px-2 py-0.5 transition-colors duration-150 hover:text-cyber-accent">
+        class="text-gray-500 font-mono text-sm rounded-md border border-gray-300 px-2.5 py-1 transition-colors duration-150 hover:bg-gray-50 hover:text-blue-600">
         {{ t('oauth.callback.close') }}
       </button>
     </div>

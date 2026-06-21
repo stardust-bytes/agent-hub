@@ -1,36 +1,36 @@
 <template>
   <Teleport to="body">
-    <div v-if="modelValue" class="fixed inset-0 bg-cyber-dark/80 z-50 flex items-center justify-center" @click.self="emit('update:modelValue', false)">
-      <div class="w-120 bg-cyber-modal-bg border border-cyber-border flex flex-col" style="max-height: 80vh; max-width: 90vw">
-        <div class="px-3 py-2 bg-cyber-dark flex items-center justify-between shrink-0 border-b border-cyber-border">
-          <span class="text-cyber-text text-sm font-mono truncate flex-1">{{ currentPath || t('cowork.browse.title') }}</span>
-          <button @click="emit('update:modelValue', false)" class="text-cyber-muted text-sm font-mono hover:text-cyber-accent shrink-0 ml-2">✕</button>
+    <div v-if="modelValue" class="fixed inset-0 bg-gray-900/40 z-50 flex items-center justify-center p-4" @click.self="emit('update:modelValue', false)">
+      <div class="w-120 bg-white border border-gray-200 rounded-md shadow-xl flex flex-col" style="max-height: 80vh; max-width: 90vw">
+        <div class="px-4 py-3 flex items-center justify-between shrink-0 border-b border-gray-200">
+          <span class="text-gray-900 text-sm font-mono truncate flex-1">{{ currentPath || t('cowork.browse.title') }}</span>
+          <button @click="emit('update:modelValue', false)" class="text-gray-400 text-base leading-none hover:text-gray-700 shrink-0 ml-2">✕</button>
         </div>
-        <div class="overflow-y-auto flex-1 px-3 py-3">
-          <div v-if="loading" class="text-cyber-muted text-sm font-mono text-center py-4">⟳ {{ t('cowork.browse.loading') }}</div>
-          <div v-else-if="error" class="text-red-400 text-sm font-mono text-center py-4">{{ t('cowork.browse.error') }}</div>
-          <div v-else-if="entries.length === 0 && !currentPath" class="text-cyber-muted text-sm font-mono text-center py-4">{{ t('cowork.browse.loading') }}</div>
-          <div v-else-if="entries.length === 0" class="text-cyber-muted text-sm font-mono text-center py-4">{{ t('cowork.browse.empty') }}</div>
+        <div class="overflow-y-auto flex-1 px-2 py-2">
+          <div v-if="loading" class="text-gray-500 text-sm text-center py-4">⟳ {{ t('cowork.browse.loading') }}</div>
+          <div v-else-if="error" class="text-red-600 text-sm text-center py-4">{{ t('cowork.browse.error') }}</div>
+          <div v-else-if="entries.length === 0 && !currentPath" class="text-gray-500 text-sm text-center py-4">{{ t('cowork.browse.loading') }}</div>
+          <div v-else-if="entries.length === 0" class="text-gray-500 text-sm text-center py-4">{{ t('cowork.browse.empty') }}</div>
           <div v-else class="space-y-0.5">
             <div v-if="canGoUp"
-              class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-cyber-accent/10 transition-colors duration-150 text-cyber-accent text-sm font-mono"
+              class="flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer hover:bg-gray-50 transition-colors duration-150 text-blue-600 text-sm font-mono"
               @click="goUp">
               <span>..</span>
-              <span class="text-cyber-muted text-sm">{{ t('cowork.browse.parent') }}</span>
+              <span class="text-gray-500 text-sm">{{ t('cowork.browse.parent') }}</span>
             </div>
             <div v-for="entry in entries" :key="entry.name"
-              class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-cyber-accent/10 transition-colors duration-150 text-cyber-text text-sm font-mono"
+              class="flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer hover:bg-gray-50 transition-colors duration-150 text-gray-700 text-sm font-mono"
               @click="navigate(entry.name)">
-              <HiFolder class="w-4 h-4 text-cyber-accent/60 shrink-0" />
+              <HiFolder class="w-4 h-4 text-blue-500 shrink-0" />
               <span class="truncate">{{ entry.name }}</span>
             </div>
           </div>
         </div>
-        <div class="px-3 py-2 border-t border-cyber-border shrink-0">
+        <div class="px-3 py-3 border-t border-gray-200 bg-gray-50 shrink-0">
           <button
             :disabled="!currentPath"
             @click="emit('select', currentPath)"
-            class="w-full bg-cyber-accent text-black text-sm font-bold px-3 py-1.5 transition-colors duration-150 hover:bg-cyber-accent/80 disabled:opacity-50 disabled:cursor-not-allowed font-mono"
+            class="w-full bg-blue-600 text-white text-sm font-medium px-3 py-1.5 rounded-md transition-colors duration-150 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >{{ t('cowork.browse.select') }}</button>
         </div>
       </div>

@@ -2,35 +2,35 @@
   <BaseModal v-model="show" closable max-height="480px" @update:model-value="onClose">
     <template #header>
       <div class="flex items-center gap-2">
-        <span class="text-cyber-accent text-sm font-mono tracking-widest">{{ t('sessions.header') }}</span>
+        <span class="text-gray-900 text-sm font-semibold">{{ t('sessions.header') }}</span>
         <button
           @click="createSession"
-          class="text-cyber-accent text-sm font-mono px-2 py-0.5 bg-cyber-accent/15 hover:bg-cyber-accent/25 transition-colors duration-150"
+          class="text-blue-600 text-sm px-2 py-0.5 rounded-md border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors duration-150"
         >{{ t('sessions.new') }}</button>
       </div>
     </template>
 
-    <div v-if="sessions.length === 0" class="px-3 py-4 text-sm text-cyber-accent font-mono">
+    <div v-if="sessions.length === 0" class="px-4 py-4 text-sm text-gray-500">
       {{ t('sessions.empty') }}
     </div>
     <div
       v-for="s in sessions"
       :key="s.id"
-      class="px-3 py-2 flex items-center justify-between cursor-pointer transition-colors duration-150"
+      class="px-4 py-2 flex items-center justify-between cursor-pointer transition-colors duration-150 border-b border-gray-100"
       :class="s.id === currentSessionId
-        ? 'bg-cyber-accent/10'
-        : 'hover:bg-cyber-accent/5'"
+        ? 'bg-blue-50'
+        : 'hover:bg-gray-50'"
       @click="selectSession(s.id)"
     >
       <div class="min-w-0 flex-1">
-        <div class="text-sm font-mono text-slate-100 truncate">{{ s.title }}</div>
-        <div class="text-sm font-mono text-cyber-accent mt-0.5">
+        <div class="text-sm text-gray-900 truncate">{{ s.title }}</div>
+        <div class="text-xs text-gray-500 mt-0.5 font-mono">
           {{ formatDate(s.createdAt) }} · {{ t('sessions.messages', { n: s._count.messages }) }}
         </div>
       </div>
       <button
         @click.stop="deleteSession(s.id)"
-        class="text-cyber-accent/30 text-sm font-mono ml-2 shrink-0 transition-colors duration-150 hover:text-red-400"
+        class="text-gray-300 text-sm ml-2 shrink-0 transition-colors duration-150 hover:text-red-600"
       >✕</button>
     </div>
 

@@ -1,53 +1,53 @@
 <template>
-  <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
-    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-cyber-dark flex items-center justify-between shrink-0">
-      <span class="text-cyber-accent text-sm tracking-widest font-mono">⚡ {{ t('providers.header') }}</span>
+  <div class="flex-1 flex flex-col bg-gray-50 overflow-hidden">
+    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-white border-b border-gray-200 flex items-center justify-between shrink-0">
+      <span class="text-gray-900 text-sm font-semibold">{{ t('providers.header') }}</span>
       <button
         @click="openAddModal"
-        class="text-cyber-accent text-sm font-mono hover:bg-cyber-accent/10 px-2 py-0.5 transition-colors duration-150"
+        class="text-blue-600 text-sm rounded-md border border-blue-600/30 hover:bg-blue-50 px-2.5 py-1 transition-colors duration-150"
       >{{ t('providers.add') }}</button>
     </div>
 
     <div class="flex-1 overflow-y-auto px-3 py-3">
-      <div v-if="providers.length === 0" class="text-cyber-muted text-sm font-mono py-4">
+      <div v-if="providers.length === 0" class="text-gray-500 text-sm py-4">
         {{ t('providers.empty') }}
       </div>
 
       <div
         v-for="provider in providers"
         :key="provider.id"
-        class="mb-2 border border-cyber-accent/10"
+        class="mb-2 border border-gray-200 rounded-md overflow-hidden"
       >
         <div
           @click="toggleExpand(provider.id)"
-          class="flex items-center justify-between xl:pl-3 pl-10 px-3 h-[3rem] bg-cyber-dark cursor-pointer hover:bg-cyber-accent/5 transition-colors duration-150"
+          class="flex items-center justify-between xl:pl-3 pl-10 px-3 h-[3rem] bg-white cursor-pointer hover:bg-gray-50 transition-colors duration-150"
         >
           <div class="flex items-center gap-2 min-w-0">
-            <span class="text-cyber-accent/60 text-sm font-mono shrink-0">{{ expanded.has(provider.id) ? '▼' : '▶' }}</span>
-            <span class="text-slate-100 text-sm font-mono truncate">{{ provider.name }}</span>
-            <span class="text-sm font-mono text-cyber-accent/50 border border-cyber-accent/20 px-1 shrink-0">{{ provider.type }}</span>
-            <span v-if="provider.baseUrl" class="text-sm text-cyber-muted font-mono truncate hidden sm:block">{{ provider.baseUrl }}</span>
+            <span class="text-gray-400 text-sm font-mono shrink-0">{{ expanded.has(provider.id) ? '▼' : '▶' }}</span>
+            <span class="text-gray-900 text-sm font-medium truncate">{{ provider.name }}</span>
+            <span class="text-xs font-mono text-gray-500 border border-gray-200 rounded px-1.5 py-0.5 shrink-0">{{ provider.type }}</span>
+            <span v-if="provider.baseUrl" class="text-sm text-gray-500 font-mono truncate hidden sm:block">{{ provider.baseUrl }}</span>
           </div>
           <div class="flex items-center gap-3 shrink-0 ml-2">
-            <button @click.stop="syncModels(provider.id)" :disabled="syncing === provider.id" class="text-cyber-accent/40 text-sm font-mono hover:text-cyber-accent transition-colors duration-150 disabled:opacity-30">{{ syncing === provider.id ? '⟳' : '⟳' }}</button>
-            <button @click.stop="openEditModal(provider)" class="text-cyber-accent/40 text-sm font-mono hover:text-cyber-accent transition-colors duration-150">✎</button>
-            <button @click.stop="confirmDeleteProvider(provider)" class="text-red-400/40 text-sm font-mono hover:text-red-400 transition-colors duration-150">✕</button>
+            <button @click.stop="syncModels(provider.id)" :disabled="syncing === provider.id" class="text-gray-400 text-sm font-mono hover:text-blue-600 transition-colors duration-150 disabled:opacity-30">{{ syncing === provider.id ? '⟳' : '⟳' }}</button>
+            <button @click.stop="openEditModal(provider)" class="text-gray-400 text-sm font-mono hover:text-blue-600 transition-colors duration-150">✎</button>
+            <button @click.stop="confirmDeleteProvider(provider)" class="text-gray-400 text-sm font-mono hover:text-red-600 transition-colors duration-150">✕</button>
           </div>
         </div>
 
-        <div v-if="expanded.has(provider.id)" class="px-3 py-2 bg-cyber-bg border-t border-cyber-accent/5">
-          <div class="text-sm text-cyber-accent/50 tracking-widest font-mono mb-2">MODELS</div>
+        <div v-if="expanded.has(provider.id)" class="px-3 py-2 bg-gray-50 border-t border-gray-200">
+          <div class="text-xs text-gray-500 tracking-wide font-semibold mb-2">MODELS</div>
 
-          <div v-if="provider.models.length === 0" class="text-cyber-muted text-sm font-mono mb-1">—</div>
+          <div v-if="provider.models.length === 0" class="text-gray-500 text-sm mb-1">—</div>
           <div
             v-for="model in provider.models"
             :key="model.id"
             class="flex items-center justify-between py-0.5"
           >
-            <span class="text-sm text-slate-300 font-mono">{{ model.name }}</span>
+            <span class="text-sm text-gray-700 font-mono">{{ model.name }}</span>
             <button
               @click="deleteModel(provider.id, model.id)"
-              class="text-red-400/40 text-sm font-mono hover:text-red-400 transition-colors duration-150 ml-2"
+              class="text-gray-400 text-sm font-mono hover:text-red-600 transition-colors duration-150 ml-2"
             >✕</button>
           </div>
 
@@ -57,17 +57,17 @@
               v-model="newModelName"
               @keyup.enter="submitAddModel(provider.id)"
               @keyup.escape="addingModelFor = null"
-              class="flex-1 bg-cyber-dark text-sm font-mono text-slate-100 px-2 py-0.5 outline-none border border-cyber-accent/30"
+              class="flex-1 bg-white text-sm font-mono text-gray-900 px-2.5 py-1 rounded-md outline-none border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               :placeholder="t('providers.models.placeholder')"
               autocomplete="off"
             />
-            <button @click="submitAddModel(provider.id)" class="text-cyber-accent text-sm font-mono hover:text-cyber-accent/70">✓</button>
-            <button @click="addingModelFor = null" class="text-cyber-muted text-sm font-mono hover:text-slate-100">✕</button>
+            <button @click="submitAddModel(provider.id)" class="text-blue-600 text-sm font-mono hover:text-blue-600/70">✓</button>
+            <button @click="addingModelFor = null" class="text-gray-500 text-sm font-mono hover:text-gray-900">✕</button>
           </div>
           <button
             v-else
             @click="startAddModel(provider.id)"
-            class="text-cyber-accent/60 text-sm font-mono hover:text-cyber-accent transition-colors duration-150 mt-1 block"
+            class="text-blue-600/60 text-sm font-mono hover:text-blue-600 transition-colors duration-150 mt-1 block"
           >{{ t('providers.models.add') }}</button>
         </div>
       </div>
