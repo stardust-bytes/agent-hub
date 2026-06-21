@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="isThinking" class="border-l-2 border-blue-200 pl-3 py-1">
+    <div v-if="isThinking" class="border-l-2 border-primary/30 pl-3 py-1">
       <div class="text-sm text-muted-foreground font-mono">⟳ {{ msg.content.replace('⟳ ', '') }}</div>
     </div>
 

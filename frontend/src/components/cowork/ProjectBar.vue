@@ -1,6 +1,6 @@
 <template>
   <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
-    <span class="w-2 h-2 rounded-full shrink-0" :class="projectPath ? 'bg-green-500' : 'bg-gray-300'"></span>
+    <span class="w-2 h-2 rounded-full shrink-0" :class="projectPath ? 'bg-success' : 'bg-muted'"></span>
     <div class="relative">
       <button @click="showProjectMenu = !showProjectMenu" class="flex items-center gap-1 text-sm text-muted-foreground truncate max-w-60 hover:bg-muted transition-colors duration-150 border border-input rounded-lg px-2.5 py-1">
         {{ projectPath ? projectPath.replace(/\\/g, '/').split('/').filter(Boolean).pop() : t('cowork.project.select') }}
