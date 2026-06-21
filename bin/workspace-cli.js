@@ -68,15 +68,27 @@ function runMigrations() {
     cwd: backendDir, stdio: 'inherit', env,
   });
 
-  log('init', 'Generating Prisma client...');
-  execSync(`npx prisma generate --schema="${schemaPath}"`, {
-    cwd: backendDir, stdio: 'inherit', env,
-  });
+  generatePrismaClient();
 
   log('init', 'Seeding database...');
   execSync('npx prisma db seed', {
     cwd: backendDir, stdio: 'inherit', env,
   });
+}
+
+function generatePrismaClient() {
+  const schemaPath = path.join(ROOT, 'backend', 'prisma', 'schema.prisma');
+  const backendDir = path.join(ROOT, 'backend');
+  const env = { ...process.env, DATABASE_URL: `file:${DB_PATH}` };
+
+  log('init', 'Generating Prisma client...');
+  try {
+    execSync(`npx prisma generate --schema="${schemaPath}"`, {
+      cwd: backendDir, stdio: 'pipe', env,
+    });
+  } catch (e) {
+    log('init', 'Warning: prisma generate failed:', e.message);
+  }
 }
 
 function getPort() {
@@ -101,7 +113,7 @@ function resolveEnv() {
   }
 }
 
-function waitForServer(port, maxRetries = 60) {
+function waitForServer(port, maxRetries = 120) {
   return new Promise((resolve, reject) => {
     let retries = 0;
     const check = () => {
@@ -161,6 +173,7 @@ async function cmdStudio() {
   if (needsMigration()) {
     runMigrations();
   }
+  generatePrismaClient();
   resolveEnv();
 
   const server = spawn('node', [BACKEND_ENTRY], {
