@@ -205,6 +205,9 @@
   "nav.notes": "Ghi chú",
   "nav.agentOutput": "Kết quả",
   "nav.connectors": "Kết nối",
+  "nav.group.workspace": "Không gian",
+  "nav.group.knowledge": "Kiến thức",
+  "nav.group.config": "Cấu hình",
   "notes.fetch_failed": "Không tải được ghi chú",
   "notes.save_failed": "Không lưu được ghi chú",
   "notes.delete_failed": "Không xóa được ghi chú",
@@ -416,5 +419,28 @@
     "delete": "Xoá",
     "deleteConfirm": "Xoá file này?",
     "delete_failed": "Không xoá được file"
+  },
+
+  "topbar": {
+    "search": "Tìm kiếm…",
+    "theme": {
+      "dark": "Chế độ tối",
+      "light": "Chế độ sáng"
+    },
+    "menu": "Menu"
+  },
+
+  "palette": {
+    "placeholder": "Đi tới hoặc tìm lệnh…",
+    "empty": "Không có kết quả",
+    "section": {
+      "navigate": "Điều hướng",
+      "actions": "Hành động"
+    },
+    "action": {
+      "newSession": "Phiên mới",
+      "toggleTheme": "Đổi giao diện",
+      "toggleLang": "Đổi ngôn ngữ"
+    }
   }
 }

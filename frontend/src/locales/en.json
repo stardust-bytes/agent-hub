@@ -205,6 +205,9 @@
   "nav.notes": "Notes",
   "nav.agentOutput": "Outputs",
   "nav.connectors": "Connectors",
+  "nav.group.workspace": "Workspace",
+  "nav.group.knowledge": "Knowledge",
+  "nav.group.config": "Config",
   "notes.fetch_failed": "Could not load notes",
   "notes.save_failed": "Could not save note",
   "notes.delete_failed": "Could not delete note",
@@ -416,5 +419,28 @@
     "delete": "Delete",
     "deleteConfirm": "Delete this file?",
     "delete_failed": "Could not delete file"
+  },
+
+  "topbar": {
+    "search": "Search…",
+    "theme": {
+      "dark": "Dark mode",
+      "light": "Light mode"
+    },
+    "menu": "Menu"
+  },
+
+  "palette": {
+    "placeholder": "Go to or search a command…",
+    "empty": "No results",
+    "section": {
+      "navigate": "Navigate",
+      "actions": "Actions"
+    },
+    "action": {
+      "newSession": "New session",
+      "toggleTheme": "Toggle theme",
+      "toggleLang": "Toggle language"
+    }
   }
 }
