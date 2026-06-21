@@ -152,7 +152,7 @@ These rules apply to ALL tasks in this project. Claude must follow them strictly
 
 **Typography:**
 - UI chrome uses `font-sans` (Inter stack: `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI"…`).
-- `font-mono` (`"JetBrains Mono"`, `"Fira Code"`, monospace) only for code, terminal/chat input, logs, and file paths.
+- `font-mono` (`"JetBrains Mono"`, `"Fira Code"`, monospace) currently unused (all UI uses `font-sans`). Reserve for future code-specific display if needed.
 - Body/prose text: `text-foreground` (primary) or `text-muted-foreground` (secondary).
 
 **Layout rules:**

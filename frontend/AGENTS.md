@@ -48,7 +48,7 @@ Theming uses CSS variable semantic tokens defined in `main.css` (`:root` / `.dar
 | `warning` | `217 119 6` | `245 158 11` | Processing / pending |
 | `danger` | `220 38 38` | `248 113 113` | Errors, delete |
 
-**Font:** `font-sans` (Inter stack: `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI"…`) for UI chrome. `font-mono` (`"JetBrains Mono"`, `"Fira Code"`, monospace) only for code, terminal/chat input, logs, and file paths.
+**Font:** `font-sans` (Inter stack: `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI"…`) for UI chrome. `font-mono` (`"JetBrains Mono"`, `"Fira Code"`, monospace) currently unused (all UI uses `font-sans`). Reserve for future code-specific display if needed.
 
 **Border radius:** `rounded-lg` (8px) for controls, inputs, cards, modals; `rounded-xl` (12px) for modals.
 
@@ -188,7 +188,7 @@ npm run preview          # Preview production build
 ## Coding Rules
 
 1. **`<script setup>` always** — no Options API.
-2. **`font-sans`** for UI chrome; `font-mono` only for code, terminal/chat input, logs, file paths.
+2. **`font-sans`** for all UI (no `font-mono` in components currently).
 3. **`rounded-lg`** (8px) for controls, inputs, cards; `rounded-xl` for modals.
 4. **Subtle shadows only** (popovers/modals/hover cards); no gradients.
 5. **Semantic token utilities only** (`bg-surface`, `text-foreground`, `border-border`, `bg-primary`…); no Tailwind color literals or `cyber-*` tokens in components.

@@ -252,7 +252,7 @@ Right-side collapsible panel for live sub-agent monitoring. Each active/complete
 
 | Rule | Value |
 |---|---|
-| Font | `font-sans` (Inter stack) for UI chrome; `font-mono` (JetBrains Mono) only for code, terminal/chat input, logs, file paths. |
+| Font | `font-sans` (Inter stack) for all UI; `font-mono` (JetBrains Mono) currently unused (reserve for future code display). |
 | Background | `bg-background` (page root), `bg-surface` (panels/cards/headers), `bg-muted` (hover/inset/code), `bg-elevated` (modals/popovers). |
 | Dividers | `border-border` (panel/section dividers), `border-input` (inputs, selects). |
 | Text | `text-foreground` (primary), `text-muted-foreground` (secondary/muted). |
