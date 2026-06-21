@@ -1,14 +1,14 @@
 <template>
   <div class="shrink-0">
     <div class="max-w-60rem mx-auto w-full px-3 pb-3">
-      <div class="bg-white border border-gray-300 rounded-md px-3 py-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-colors duration-150">
+      <div class="bg-surface border border-input rounded-lg px-3 py-2 focus-within:border-primary focus-within:ring-1 focus-within:ring-ring transition-colors duration-150">
         <form @submit.prevent="onSubmit" class="flex items-center gap-2">
           <div class="relative flex-1">
             <input
               ref="inputEl"
               v-model="input"
               @keydown="onKeydown"
-              class="flex-1 bg-transparent text-gray-900 text-sm outline-none font-mono placeholder-gray-400 w-full"
+              class="flex-1 bg-transparent text-foreground text-sm outline-none font-mono placeholder-muted-foreground w-full"
               :placeholder="t('chat.placeholder')"
               :disabled="streaming"
               autocomplete="off"
@@ -25,7 +25,7 @@
           <button
             v-if="streaming"
             @click="emit('stop')"
-            class="text-gray-500 text-sm px-2 py-0.5 transition-colors duration-150 hover:text-gray-900 shrink-0"
+            class="text-muted-foreground text-sm px-2 py-0.5 transition-colors duration-150 hover:text-foreground shrink-0"
           >{{ t('chat.stop') }}</button>
         </form>
         <div v-if="streaming" class="flex items-center gap-1 pt-2">
@@ -47,7 +47,7 @@
         </div>
         <button
           @click="emit('openSessions')"
-          class="text-blue-600 text-sm px-2 py-0.5 transition-colors duration-150 hover:text-blue-700"
+          class="text-primary text-sm px-2 py-0.5 transition-colors duration-150 hover:text-primary"
         >{{ t('sessions.header') }}</button>
       </div>
     </div>

@@ -2,14 +2,14 @@
   <div class="max-w-60rem mx-auto w-full px-3 mb-2">
     <div class="border border-amber-300 bg-amber-50 rounded-md px-3 py-2">
       <div class="flex items-center gap-2 mb-1">
-        <HiShieldExclamation class="w-3.5 h-3.5 text-amber-600 shrink-0" />
-        <span class="text-sm text-amber-700 font-medium">
+        <HiShieldExclamation class="w-3.5 h-3.5 text-warning shrink-0" />
+        <span class="text-sm text-warning font-medium">
           Tool '{{ name }}' {{ t('approval.required') }}
         </span>
       </div>
 
       <div
-        class="text-xs text-gray-600 font-mono break-all"
+        class="text-xs text-muted-foreground font-mono break-all"
         :class="[
           isLong && !expanded ? 'line-clamp-2 overflow-hidden' : (isLong ? 'overflow-y-auto' : ''),
           isLong ? 'mb-1' : 'mb-2'
@@ -22,7 +22,7 @@
       <button
         v-if="isLong"
         @click="expanded = !expanded"
-        class="block text-xs text-gray-500 mb-2 hover:text-blue-600 transition-colors duration-150"
+        class="block text-xs text-muted-foreground mb-2 hover:text-primary transition-colors duration-150"
       >
         {{ expanded ? t('approval.show_less') : t('approval.show_more') }}
       </button>
@@ -35,19 +35,19 @@
       </div>
 
       <div class="flex items-center justify-between">
-        <div class="text-xs text-gray-500 font-mono">{{ remaining }}s / {{ total }}s</div>
+        <div class="text-xs text-muted-foreground font-mono">{{ remaining }}s / {{ total }}s</div>
         <div class="flex items-center gap-3">
-          <span class="text-xs text-gray-500">{{ t('approval.keyboard_hint') }}</span>
+          <span class="text-xs text-muted-foreground">{{ t('approval.keyboard_hint') }}</span>
           <div class="flex gap-2">
             <button
               @click="emit('approve', id)"
-              class="text-sm text-white px-3 py-1 rounded-md bg-blue-600 transition-colors duration-150 hover:bg-blue-700"
+              class="text-sm text-primary-foreground px-3 py-1 rounded-lg bg-primary transition-colors duration-150 hover:bg-primary/90"
             >
               {{ t('approval.allow') }}
             </button>
             <button
               @click="emit('deny', id)"
-              class="text-sm text-gray-700 px-3 py-1 rounded-md border border-gray-300 bg-white transition-colors duration-150 hover:bg-gray-50"
+              class="text-sm text-muted-foreground px-3 py-1 rounded-lg border border-input bg-surface transition-colors duration-150 hover:bg-muted"
             >
               {{ t('approval.deny') }}
             </button>

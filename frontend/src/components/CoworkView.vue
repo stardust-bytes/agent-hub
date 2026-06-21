@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-full bg-gray-50">
+  <div class="flex flex-col h-full bg-background">
     <ProjectBar
       :project-path="projectPath"
       :saved-projects="savedProjects"
@@ -30,9 +30,9 @@
         />
         <div v-else class="flex-1 flex items-center justify-center min-h-0">
           <div class="text-center">
-            <div class="text-3xl font-semibold text-gray-900 mb-1">Agent Hub</div>
-            <div class="text-sm font-mono text-gray-500">Code 171305</div>
-            <div class="text-sm text-gray-400 mt-2">{{ t('chat.empty.subtitle') }}</div>
+            <div class="text-3xl font-semibold text-foreground mb-1">Agent Hub</div>
+            <div class="text-sm font-mono text-muted-foreground">Code 171305</div>
+            <div class="text-sm text-muted-foreground mt-2">{{ t('chat.empty.subtitle') }}</div>
           </div>
         </div>
 

@@ -1,8 +1,8 @@
 <template>
-  <div class="flex-1 flex flex-col bg-gray-50 overflow-hidden">
-    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-white border-b border-gray-200 flex items-center shrink-0">
-      <span class="text-gray-900 text-sm font-semibold flex items-center gap-2">
-        <HiFolder class="w-4 h-4 text-gray-400" /> {{ t('files.header') }}
+  <div class="flex-1 flex flex-col bg-background overflow-hidden">
+    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-surface border-b border-border flex items-center shrink-0">
+      <span class="text-foreground text-sm font-semibold flex items-center gap-2">
+        <HiFolder class="w-4 h-4 text-muted-foreground" /> {{ t('files.header') }}
       </span>
     </div>
 
@@ -11,37 +11,37 @@
 
         <!-- Upload zone -->
         <div
-          class="border-2 border-dashed border-gray-300 rounded-md bg-white p-6 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition-colors duration-150"
+          class="border-2 border-dashed border-input rounded-lg bg-surface p-6 text-center cursor-pointer hover:border-primary hover:bg-primary/10 transition-colors duration-150"
           @click="triggerUpload"
           @dragover.prevent
           @drop.prevent="onDrop"
         >
           <input ref="fileInput" type="file" class="hidden" multiple @change="onFileChange" />
-          <p class="text-gray-600 text-sm">{{ t('files.dropzone') }}</p>
-          <p class="text-gray-400 text-sm font-mono mt-1">.pdf .docx .txt .md .ts .js .py</p>
+          <p class="text-muted-foreground text-sm">{{ t('files.dropzone') }}</p>
+          <p class="text-muted-foreground text-sm font-mono mt-1">.pdf .docx .txt .md .ts .js .py</p>
         </div>
 
         <!-- Filter -->
         <input
           v-model="filter"
           :placeholder="t('files.filter')"
-          class="w-full bg-white text-gray-900 text-sm px-2.5 py-1.5 rounded-md border border-gray-300 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          class="w-full bg-surface text-foreground text-sm px-2.5 py-1.5 rounded-lg border border-input outline-none focus:border-primary focus:ring-1 focus:ring-ring"
         />
 
         <!-- File list -->
-        <div v-if="files.length === 0" class="text-center text-gray-500 text-sm py-8">
+        <div v-if="files.length === 0" class="text-center text-muted-foreground text-sm py-8">
           {{ t('files.empty') }}
         </div>
         <div v-for="f in filteredFiles" :key="f.id"
-          class="flex items-center gap-3 bg-white border border-gray-200 rounded-md px-3 py-2 text-sm font-mono"
+          class="flex items-center gap-3 bg-surface border border-border rounded-lg px-3 py-2 text-sm font-mono"
         >
           <div class="flex-1 min-w-0">
-            <div class="text-gray-900 truncate">{{ f.filename }}</div>
-            <div v-if="f.status === 'error' && f.errorMessage" class="text-red-600 text-sm truncate mt-0.5">{{ f.errorMessage }}</div>
+            <div class="text-foreground truncate">{{ f.filename }}</div>
+            <div v-if="f.status === 'error' && f.errorMessage" class="text-danger text-sm truncate mt-0.5">{{ f.errorMessage }}</div>
           </div>
-          <span class="text-gray-500 shrink-0 w-16 text-right">{{ formatSize(f.size) }}</span>
+          <span class="text-muted-foreground shrink-0 w-16 text-right">{{ formatSize(f.size) }}</span>
           <span :class="statusClass(f.status)" class="shrink-0 w-20 text-center">{{ statusLabel(f.status) }}</span>
-          <button @click="deleteFile(f.id)" class="text-gray-500 hover:text-red-600 shrink-0 transition-colors duration-150">{{ t('files.delete') }}</button>
+          <button @click="deleteFile(f.id)" class="text-muted-foreground hover:text-danger shrink-0 transition-colors duration-150">{{ t('files.delete') }}</button>
         </div>
 
 
@@ -73,9 +73,9 @@ function formatSize(bytes: number): string {
 }
 
 function statusClass(status: string): string {
-  if (status === 'ready') return 'text-green-600'
-  if (status === 'indexing') return 'text-amber-600'
-  return 'text-red-600'
+  if (status === 'ready') return 'text-success'
+  if (status === 'indexing') return 'text-warning'
+  return 'text-danger'
 }
 
 function statusLabel(status: string): string {

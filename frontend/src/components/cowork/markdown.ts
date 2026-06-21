@@ -57,9 +57,9 @@ function highlightSlash(text: string): string {
     if (spaceIdx !== -1) {
       const cmd = text.slice(0, spaceIdx)
       const rest = text.slice(spaceIdx)
-      return `<span class="text-blue-600 font-mono">${esc(cmd)}</span><span class="text-gray-900">${esc(rest)}</span>`
+      return `<span class="text-primary font-mono">${esc(cmd)}</span><span class="text-foreground">${esc(rest)}</span>`
     }
-    return `<span class="text-blue-600 font-mono">${esc(text)}</span>`
+    return `<span class="text-primary font-mono">${esc(text)}</span>`
   }
-  return `<span class="text-gray-900">${esc(text)}</span>`
+  return `<span class="text-foreground">${esc(text)}</span>`
 }
