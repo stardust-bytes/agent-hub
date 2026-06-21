@@ -113,14 +113,14 @@ cd frontend
 npm install && npm run dev
 ```
 
-### npm / CLI
+### CLI / One-Command
 
 **Quick start (no install needed):**
 ```bash
 npx @stardust-bytes/agent-hub
 ```
 
-This runs `agent-hub studio` — starts the server, runs first-time setup, and opens your browser.
+This runs `agent-hub studio` — starts the server, runs first-time setup, and opens your browser. Data is stored in `./workspace_data` or `%APPDATA%/agent-hub`.
 
 **Global install (use `agent-hub` directly):**
 ```bash
@@ -128,7 +128,7 @@ npm install -g @stardust-bytes/agent-hub
 agent-hub studio
 ```
 
-Once installed globally, you can run `agent-hub` from anywhere without `npx`.
+Once installed globally, you can run `agent-hub` from anywhere. Data dir is auto-detected: existing `workspace_data` in the current dir, then `%APPDATA%/agent-hub` (or `~/.agent-hub` on Linux/Mac).
 
 ### CLI Commands
 
@@ -137,18 +137,48 @@ Once installed globally, you can run `agent-hub` from anywhere without `npx`.
 | `agent-hub` / `agent-hub studio` | Start Studio (server + dashboard, auto-opens browser) |
 | `agent-hub studio --no-browser` | Start server without opening browser |
 | `agent-hub init` | One-time setup (data dir, .env, database migrations, seed) |
-| `agent-hub auto-start enable` | Register Windows auto-start on boot |
+| `agent-hub migrate` | Apply pending database migrations only (safe update) |
+| `agent-hub auto-start enable` | Register Windows auto-start (runs hidden, no cmd window) |
 | `agent-hub auto-start disable` | Remove Windows auto-start |
 | `agent-hub auto-start status` | Check auto-start status |
 | `agent-hub --help` | Show help |
 
-### Windows Auto-Start
+**Flags:**
+| Flag | Description |
+|---|---|
+| `--data-dir <path>` | Override workspace data directory |
+| `AGENT_HUB_DATA_DIR` | Environment variable alternative to `--data-dir` |
+
+### Data Directory
+
+Agent Hub auto-detects where to store data (SQLite DB, LanceDB vectors, uploads):
+
+1. `--data-dir <path>` or `AGENT_HUB_DATA_DIR` — explicit override
+2. `./workspace_data` — if it already exists (project-local mode)
+3. `%APPDATA%/agent-hub` — default for global install (Windows)
+4. `~/.agent-hub` — default for global install (Linux/Mac)
+
+Run `agent-hub init` to see which data dir is being used.
+
+### Safe Update
+
+When upgrading to a newer version, data is preserved automatically:
+
+```bash
+npm install -g @stardust-bytes/agent-hub@latest
+agent-hub migrate    # apply DB schema changes (safe, non-destructive)
+agent-hub studio     # start as usual
+```
+
+`agent-hub migrate` only runs pending database migrations — it never re-inits or resets your `.env`.
+
+### Windows Auto-Start (Hidden)
 
 ```bash
 agent-hub auto-start enable
 ```
 
-Registers Agent Hub in Windows Registry (`HKCU\Run`). The server will start automatically on every boot without opening a browser.
+Registers Agent Hub in Windows Registry (`HKCU\Run`). The server starts automatically on every boot **completely hidden** — no cmd window appears. Uses PowerShell `-WindowStyle Hidden` with Base64-encoded launch script. Auto-creates `workspace_data` if it doesn't exist yet.
 
 ---
 
