@@ -1,15 +1,22 @@
 <template>
   <div class="flex flex-col bg-background min-w-0 h-full">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
-      <HiClock class="w-4 h-4 text-muted-foreground" />
-      <span class="text-sm text-foreground font-semibold">{{ t('schedules.header') }}</span>
-      <button @click="openAddForm"
-        class="ml-auto text-sm text-primary font-mono px-2.5 py-1 rounded-lg border border-primary/30 transition-colors duration-150 hover:bg-primary/10">
-          {{ t('schedules.add') }}
-      </button>
+    <div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+          <HiClock class="w-4 h-4" />
+        </div>
+        <span class="text-base font-semibold text-foreground">{{ t('schedules.header') }}</span>
+        <span v-if="tasks.length > 0" class="text-xs font-mono text-muted-foreground bg-muted rounded px-1.5 py-0.5">{{ tasks.length }} {{ t('schedules.active') }}</span>
+        <div class="ml-auto">
+          <button @click="openAddForm"
+            class="text-sm rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-colors duration-150 px-2.5 py-1">
+            {{ t('schedules.add') }}
+          </button>
+        </div>
+      </div>
     </div>
 
-    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full">
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 pb-6">
       <div v-if="tasks.length === 0" class="flex items-center justify-center h-full">
         <div class="text-sm text-muted-foreground font-mono">{{ t('schedules.empty') }}</div>
       </div>

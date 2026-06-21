@@ -1,9 +1,16 @@
 <template>
   <div class="flex flex-col h-full bg-background font-mono overflow-hidden">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-border shrink-0 bg-surface">
-      <HiDownload class="w-4 h-4 text-muted-foreground" />
-      <span class="text-sm text-foreground font-semibold">{{ t('agentOutput.header') }}</span>
-      <button @click="fetchFiles" class="ml-auto text-sm text-primary font-mono px-2.5 py-1 rounded-lg border border-primary/30 transition-colors duration-150 hover:bg-primary/10">⟳ {{ t('agentOutput.refresh') }}</button>
+    <div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+          <HiDownload class="w-4 h-4" />
+        </div>
+        <span class="text-base font-semibold text-foreground">{{ t('agentOutput.header') }}</span>
+        <span v-if="files.length > 0" class="text-xs font-mono text-muted-foreground bg-muted rounded px-1.5 py-0.5">{{ files.length }}</span>
+        <div class="ml-auto">
+          <button @click="fetchFiles" class="text-sm rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-colors duration-150 px-2.5 py-1">⟳ {{ t('agentOutput.refresh') }}</button>
+        </div>
+      </div>
     </div>
 
     <div v-if="loading" class="flex-1 flex items-center justify-center text-muted-foreground text-sm font-mono">
@@ -15,7 +22,7 @@
     </div>
 
     <div v-else class="flex-1 overflow-y-auto">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-3">
+      <div class="mx-auto max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-6 pb-6">
         <div v-for="file in files" :key="file.filename"
           class="border border-border rounded-lg bg-surface p-3 flex flex-col gap-2">
           <div class="text-sm font-mono text-foreground truncate" :title="file.filename">{{ file.filename }}</div>
