@@ -57,19 +57,19 @@
       </template>
       <div class="p-3 space-y-3 max-w-xl">
         <div>
-          <label class="text-sm text-muted-foreground font-mono block mb-1">{{ t('schedules.form.name') }}</label>
+          <label class="text-sm text-muted-foreground font-sans block mb-1">{{ t('schedules.form.name') }}</label>
           <input v-model="form.name" class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring" />
         </div>
         <div>
-          <label class="text-sm text-muted-foreground font-mono block mb-1">{{ t('schedules.form.description') }}</label>
+          <label class="text-sm text-muted-foreground font-sans block mb-1">{{ t('schedules.form.description') }}</label>
           <input v-model="form.description" class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring" />
         </div>
         <div>
-          <label class="text-sm text-muted-foreground font-mono block mb-1">{{ t('schedules.form.prompt') }}</label>
+          <label class="text-sm text-muted-foreground font-sans block mb-1">{{ t('schedules.form.prompt') }}</label>
           <textarea v-model="form.prompt" rows="4" class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"></textarea>
         </div>
         <div>
-          <label class="text-sm text-muted-foreground font-mono block mb-1">{{ t('schedules.frequency') }}</label>
+          <label class="text-sm text-muted-foreground font-sans block mb-1">{{ t('schedules.frequency') }}</label>
           <select v-model="form.frequency"
             class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
             <option v-for="f in FREQUENCIES" :key="f" :value="f">{{ t(`schedules.frequency.${f}`) }}</option>
@@ -107,8 +107,8 @@
           <div v-if="form.frequency === 'weekly'">
             <div class="text-sm text-muted-foreground font-mono mb-1">{{ t('schedules.form.days') }}</div>
             <div class="flex flex-wrap gap-2">
-              <label v-for="(label, idx) in DAYS" :key="idx"
-                class="flex items-center gap-1 px-2 py-1 border border-border cursor-pointer text-sm font-mono select-none rounded-lg transition-colors duration-150"
+<label v-for="(label, idx) in DAYS" :key="idx"
+  class="flex items-center gap-1 px-2 py-1 border border-border cursor-pointer text-sm font-sans select-none rounded-lg transition-colors duration-150"
                 :class="selectedDays.includes(idx) ? 'bg-primary/20 text-primary border-primary/40' : 'text-muted-foreground hover:text-foreground hover:border-primary/30'">
                 <input type="checkbox" :value="idx" v-model="selectedDays" class="sr-only" />
                 {{ label }}
@@ -123,7 +123,7 @@
 
         <!-- Model selector -->
         <div>
-          <label class="text-sm text-muted-foreground font-mono block mb-1">{{ t('schedules.form.selectModel') }}</label>
+          <label class="text-sm text-muted-foreground font-sans block mb-1">{{ t('schedules.form.selectModel') }}</label>
           <select v-model.number="form.modelId"
             class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
             <option v-for="m in models" :key="m.id" :value="m.id">{{ m.providerName }} / {{ m.name }}</option>
@@ -132,7 +132,7 @@
 
         <!-- Project path -->
         <div>
-          <label class="text-sm text-muted-foreground font-mono block mb-1">{{ t('schedules.form.projectPath') }}</label>
+          <label class="text-sm text-muted-foreground font-sans block mb-1">{{ t('schedules.form.projectPath') }}</label>
           <select v-model="form.projectPath"
             class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
             <option :value="null">{{ t('schedules.form.noProject') }}</option>

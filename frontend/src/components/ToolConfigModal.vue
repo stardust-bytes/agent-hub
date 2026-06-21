@@ -5,7 +5,7 @@
     </template>
     <div class="px-3 py-4 space-y-3">
       <div v-for="(schema, key) in schemaProps" :key="key" class="mb-2">
-        <label class="text-sm text-muted-foreground font-mono block mb-1">{{ schema.title || key }}</label>
+        <label class="text-sm text-muted-foreground font-sans block mb-1">{{ schema.title || key }}</label>
         <input
           v-if="!schema.enum"
           v-model="formData[key]"

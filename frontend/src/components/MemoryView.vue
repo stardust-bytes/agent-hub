@@ -44,17 +44,17 @@
       <template #header><span class="text-foreground text-sm font-mono">{{ editing ? t('memory.edit') : t('memory.create') }}</span></template>
       <div class="p-3 space-y-3">
           <div>
-            <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('memory.form.type') }}</label>
+            <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('memory.form.type') }}</label>
             <BaseSelect v-model="formType" :options="typeFilterOptions" />
           </div>
           <div>
-            <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('memory.form.title') }}</label>
+            <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('memory.form.title') }}</label>
             <input v-model="formTitle"
               class="w-full bg-surface text-foreground text-sm font-mono border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring"
             />
           </div>
           <div>
-            <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('memory.form.content') }}</label>
+            <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('memory.form.content') }}</label>
             <textarea v-model="formContent" rows="4"
               class="w-full bg-surface text-foreground text-sm font-mono border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring resize-none"
             ></textarea>

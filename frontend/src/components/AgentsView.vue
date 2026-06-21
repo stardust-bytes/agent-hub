@@ -45,32 +45,32 @@
 
       <form id="agentForm" @submit.prevent="save" class="px-3 py-3 space-y-3">
         <div>
-          <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('agents.name') }}</label>
+          <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('agents.name') }}</label>
           <input v-model="form.name" required
             class="w-full bg-surface text-foreground text-sm font-mono border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring" />
         </div>
 
         <div>
-          <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('agents.slug') }}</label>
+          <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('agents.slug') }}</label>
           <input v-model="form.slug" required :disabled="!!editingId" pattern="[a-z0-9-]+"
             class="w-full bg-surface text-foreground text-sm font-mono border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring disabled:opacity-50" />
         </div>
 
         <div>
-          <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('agents.description') }}</label>
+          <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('agents.description') }}</label>
           <input v-model="form.description"
             class="w-full bg-surface text-foreground text-sm font-mono border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring" />
         </div>
 
         <div>
-          <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('agents.systemPrompt') }}</label>
+          <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('agents.systemPrompt') }}</label>
           <textarea v-model="form.systemPrompt" required rows="4"
             class="w-full bg-surface text-foreground text-sm font-mono border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring resize-y"></textarea>
         </div>
 
         <div>
           <div class="flex items-center gap-2 mb-1">
-            <label class="text-muted-foreground text-sm font-mono">{{ t('agents.allowedTools') }}</label>
+            <label class="text-muted-foreground text-sm font-sans">{{ t('agents.allowedTools') }}</label>
             <button type="button" @click="pickerOpen = true"
               class="ml-auto text-sm font-mono text-primary px-2 py-0.5 border border-primary/30 hover:bg-primary/10 rounded-lg transition-colors duration-150">
               {{ t('agents.selectTools') }}
@@ -87,11 +87,11 @@
         </div>
 
         <div>
-          <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('agents.model') }}</label>
+          <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('agents.model') }}</label>
           <ModelSelector :models="models" v-model="form.modelId" :disabled="false" />
         </div>
 
-        <label class="flex items-center gap-2 text-muted-foreground text-sm font-mono cursor-pointer">
+        <label class="flex items-center gap-2 text-muted-foreground text-sm font-sans cursor-pointer">
           <input type="checkbox" v-model="form.enabled" class="accent-blue-600" />
           {{ t('agents.enabled') }}
         </label>

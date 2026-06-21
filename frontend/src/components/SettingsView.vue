@@ -40,7 +40,7 @@
           <div class="text-muted-foreground text-sm font-mono mb-2">{{ t('settings.models') }}</div>
           <div class="space-y-3">
             <div>
-              <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('settings.embedModel') }}</label>
+              <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('settings.embedModel') }}</label>
               <select v-model="embedModelId" @change="saveSetting('embed_model_id', embedModelId)"
                 class="w-full bg-surface text-foreground text-sm font-mono border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring">
                 <option value="">{{ t('settings.defaultOption') }}</option>
@@ -48,7 +48,7 @@
               </select>
             </div>
             <div>
-              <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('settings.summaryModel') }}</label>
+              <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('settings.summaryModel') }}</label>
               <select v-model="summaryModelId" @change="saveSetting('summary_model_id', summaryModelId)"
                 class="w-full bg-surface text-foreground text-sm font-mono border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring">
                 <option value="">{{ t('settings.defaultOption') }}</option>
@@ -62,7 +62,7 @@
 
         <div class="border-t border-border pt-4 mt-4">
           <div class="text-muted-foreground text-sm font-mono mb-2">{{ t('agents.header') }}</div>
-          <label class="flex items-center gap-2 text-muted-foreground text-sm font-mono cursor-pointer">
+          <label class="flex items-center gap-2 text-muted-foreground text-sm font-sans cursor-pointer">
             <input type="checkbox" v-model="autoDispatch" @change="saveAutoDispatch" class="accent-blue-600" />
             {{ t('agents.autoDispatch') }}
           </label>

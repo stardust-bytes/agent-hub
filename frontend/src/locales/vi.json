@@ -35,16 +35,16 @@
   "settings.save": "Lưu",
   "settings.saved": "✓ Đã lưu",
   "settings.version": "Phiên bản",
-  "settings.info": "THÔNG TIN",
+  "settings.info": "Thông tin",
   "settings.embedModel": "Model Embedding",
   "settings.summaryModel": "Model Tóm tắt",
   "settings.defaultOption": "Mặc định (env)",
-  "settings.models": "CẤU HÌNH MODEL",
+  "settings.models": "Cấu hình Model",
   "settings.fetchError": "Không thể tải cấu hình model",
-  "settings.mcpServers": "MCP SERVERS",
+  "settings.mcpServers": "MCP Servers",
   "settings.noMcpServers": "Chưa có MCP server nào",
-  "settings.mcpOn": "BẬT",
-  "settings.mcpOff": "TẮT",
+  "settings.mcpOn": "Bật",
+  "settings.mcpOff": "Tắt",
   "connectors.fetch_failed": "Không tải được danh sách kết nối",
   "connectors.oauth_failed": "Xác thực OAuth thất bại",
   "connectors.oauth_confirm_failed": "Xác thực OAuth thất bại",
@@ -59,7 +59,7 @@
 
   "connectors.delete_failed": "Không xóa được kết nối",
 
-  "connectors.header": "KẾT NỐI",
+  "connectors.header": "Kết nối",
   "connectors.connected": "Đã kết nối",
   "connectors.disconnected": "Chưa kết nối",
   "connectors.connect": "Kết nối",
@@ -79,11 +79,11 @@
   "tasks.form.cancel": "Huỷ",
   "tasks.form.save": "Lưu",
   "tasks.delete.confirm.btn": "Xoá",
-  "tasks.filter.label": "LỌC:",
+  "tasks.filter.label": "Lọc:",
 
   "knowledge.fetch_failed": "Không tải được tệp kiến thức",
 
-  "files.header": "KIẾN THỨC",
+  "files.header": "Kiến thức",
   "files.dropzone": "Thả file hoặc click để upload",
   "files.filter": "Lọc theo tên...",
   "files.status.ready": "✓ sẵn sàng",
@@ -112,10 +112,10 @@
     "searchPlaceholder": "Tìm kiếm...",
     "auto_extracted": "[tự động]",
     "type": {
-      "user": "USER",
-      "feedback": "FEEDBACK",
-      "project": "PROJECT",
-      "reference": "REFERENCE"
+      "user": "User",
+      "feedback": "Feedback",
+      "project": "Project",
+      "reference": "Reference"
     },
     "form": {
       "type": "Loại",
@@ -154,7 +154,7 @@
   "sessions.create_failed": "Không tạo được session",
   "sessions.delete_failed": "Không xóa được session",
 
-  "sessions.header": "SESSIONS",
+  "sessions.header": "Sessions",
   "sessions.new": "+ Mới",
   "sessions.empty": "Chưa có session nào",
   "sessions.messages": "{n} tin nhắn",
@@ -186,7 +186,7 @@
   "nav.providers": "Providers",
   "nav.tools": "Tools",
   "tools.fetch_failed": "Không tải được danh sách tool",
-  "tools.header": "Công cụ (Tools)",
+  "tools.header": "Công cụ",
   "tools.loading": "Đang tải tools...",
   "tools.no_tools": "Chưa có tool nào",
   "tools.status": "Trạng thái",
@@ -211,7 +211,7 @@
   "notes.save_failed": "Không lưu được ghi chú",
   "notes.delete_failed": "Không xóa được ghi chú",
 
-  "notes.header": "GHI CHÚ",
+  "notes.header": "Ghi chú",
   "notes.empty": "Chưa có ghi chú nào",
   "notes.add": "+ Thêm ghi chú",
   "notes.form.title": "Tiêu đề",
@@ -358,7 +358,7 @@
   "schedules.delete_failed": "Không xóa được lịch",
   "schedules.run_failed": "Không chạy được lịch",
 
-  "schedules.header": "CÔNG VIỆC HẸN LỊCH",
+  "schedules.header": "Công việc hẹn lịch",
   "schedules.add": "+ Thêm lịch",
   "schedules.empty": "Chưa có lịch nào",
   "schedules.active": "đang chạy",
@@ -371,7 +371,7 @@
   "schedules.frequency.weekdays": "Ngày trong tuần",
   "schedules.frequency.weekly": "Hàng tuần",
   "schedules.hasModel": "có model",
-  "schedules.logs.header": "NHẬT KÝ",
+  "schedules.logs.header": "Nhật ký",
   "schedules.logs.empty": "Chưa có nhật ký",
   "schedules.form.name": "Tên lịch",
   "schedules.form.description": "Mô tả",
@@ -389,7 +389,7 @@
   "schedules.model": "Model",
   "schedules.timezone": "Timezone",
   "schedules.frequency": "Tần suất",
-  "schedules.runNow": "CHẠY NGAY",
+  "schedules.runNow": "Chạy ngay",
   "schedules.hint.hourly": "Mỗi giờ ở phút {m}",
   "schedules.hint.daily": "Mỗi ngày lúc {time}",
   "schedules.hint.weekdays": "Ngày trong tuần lúc {time}",
@@ -397,7 +397,7 @@
 
   "agentOutput": {
     "fetch_failed": "Không tải được kết quả agent",
-    "header": "KẾT QUẢ AGENT",
+    "header": "Kết quả Agent",
     "empty": "Chưa có file nào",
     "download": "Tải",
     "filename": "Tên file",

@@ -8,7 +8,7 @@
 
     <div class="px-3 py-3 space-y-3">
       <div>
-        <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('providers.form.type') }}</label>
+        <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('providers.form.type') }}</label>
         <select
           v-model="form.type"
           @change="onTypeChange"
@@ -21,7 +21,7 @@
         </select>
       </div>
       <div>
-        <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('providers.form.name') }}</label>
+        <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('providers.form.name') }}</label>
         <input
           v-model="form.name"
           class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-mono outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
@@ -29,7 +29,7 @@
         />
       </div>
       <div>
-        <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('providers.form.baseUrl') }}</label>
+        <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('providers.form.baseUrl') }}</label>
         <input
           v-model="form.baseUrl"
           class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-mono outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
@@ -38,7 +38,7 @@
         />
       </div>
       <div>
-        <label class="text-muted-foreground text-sm font-mono block mb-1">{{ t('providers.form.key') }}</label>
+        <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('providers.form.key') }}</label>
         <input
           v-model="form.key"
           type="password"
