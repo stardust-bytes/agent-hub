@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": false,
   "bin": {
-    "workspace-hub": "./bin/workspace-cli.js"
+    "agent-hub": "./bin/workspace-cli.js"
   },
   "files": [
     "bin/",

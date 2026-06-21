@@ -76,7 +76,7 @@ This section reflects the implemented system. Each module keeps its own `AGENTS.
 agent-hub/
 ├── docker-compose.yml      — 2 services: workspace-backend (13596), workspace-frontend (17135)
 ├── package.json            — root npm package (agent-hub), publishes the CLI
-├── bin/workspace-cli.js    — `workspace-hub` CLI (npx one-command install/run)
+├── bin/workspace-cli.js    — `agent-hub` CLI (npx one-command install/run)
 ├── scripts/                — build/setup orchestration (build.mjs, …)
 ├── backend/                — NestJS API (see backend/AGENTS.md)
 │   ├── prisma/schema.prisma — single source of truth for the DB schema
@@ -108,7 +108,7 @@ agent-hub/
 
 ### Distribution
 
-The repo is a publishable npm package; end users can run it with one command via `npx` (the `workspace-hub` CLI), or via `docker-compose up`. See `README.md`.
+The repo is a publishable npm package; end users can run it with one command via `npx agent-hub`, or via `docker-compose up`. See `README.md`.
 
 ---
 
