@@ -1,11 +1,11 @@
 <template>
-  <div class="flex items-center gap-3 px-6 py-3 shrink-0">
+  <div class="flex items-center gap-3 px-6 py-3 shrink-0 border-b border-border">
     <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
       <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
     </div>
     <span class="w-2 h-2 rounded-full shrink-0" :class="projectPath ? 'bg-success' : 'bg-muted'"></span>
-    <div class="relative flex-1 min-w-0">
-      <button @click="showProjectMenu = !showProjectMenu" class="flex items-center gap-1 text-sm font-mono truncate max-w-full hover:bg-muted transition-colors duration-150 rounded-lg px-2.5 py-1 -ml-2.5">
+    <div class="relative min-w-0">
+      <button @click="showProjectMenu = !showProjectMenu" class="flex items-center gap-1 text-sm font-mono truncate max-w-60 hover:bg-muted transition-colors duration-150 border border-input rounded-lg px-2.5 py-1">
         <span v-if="projectPath" class="truncate">
           <span class="text-foreground font-medium">{{ projectPath.replace(/\\/g, '/').split('/').filter(Boolean).shift() }}</span>
           <span class="text-muted-foreground">/{{ projectPath.replace(/\\/g, '/').split('/').filter(Boolean).slice(1).join('/') }}</span>
@@ -28,7 +28,7 @@
       </div>
     </div>
     <button v-if="projectPath" @click="emit('disconnect')" class="text-sm text-danger px-2.5 py-1 rounded-lg border border-danger/40 transition-colors duration-150 hover:bg-danger/10 shrink-0">✕ {{ t('cowork.disconnect') }}</button>
-    <div class="flex items-center gap-2 shrink-0">
+    <div class="flex items-center gap-2 ml-auto shrink-0">
       <span v-if="subagentCount != null && subagentCount > 0" class="text-xs font-mono text-muted-foreground bg-muted rounded px-1.5 py-0.5 flex items-center gap-1">
         <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
         {{ subagentCount }}
