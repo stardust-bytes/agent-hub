@@ -131,43 +131,44 @@ These rules apply to ALL tasks in this project. Claude must follow them strictly
 
 ### Rule Set 1: UI / Design System
 
-**Color Tokens — never use raw hex values in components, always use Tailwind custom classes:**
-| Token | Value | Usage |
+**Theme: GitHub Light.** Use the **default Tailwind palette** directly in components (not custom `cyber-*` tokens); interactive primitives use **Headless UI** (`@headlessui/vue`).
+
+| Role | Tailwind class | Usage |
 |---|---|---|
-| `cyber-bg` | `#000000` | Main background |
-| `cyber-dark` | `#111111` | Panel headers, sidebar, input bars |
-| `cyber-status` | `#161616` | Status bar |
-| `cyber-modal-bg` | `#0a0e1a` | Modal backgrounds |
-| `cyber-accent` | `#3B82F6` | Primary accent (blue), active icons, borders |
-| `cyber-green` | `#22C55E` | Success, connected state |
-| `cyber-blue` | `#3B82F6` | Alias for accent |
-| `cyber-muted` | `#888888` | Dimmed/secondary text |
-| `cyber-orange` | `#FFA500` | Warning, processing state |
-| `cyber-cyan` | `#00d4ff` | Secondary accent, headings |
-| `cyber-link` | `#58a6ff` | Links |
-| `cyber-code-bg` | `#0d1117` | Code block background |
-| `cyber-code-border` | `#30363d` | Subtle panel dividers, code borders |
-| `cyber-code-text` | `#e6edf3` | Code text |
-| `cyber-row` | `#161b22` | Table rows |
+| Page | `bg-gray-50` | Main background |
+| Surface | `bg-white` | Panel headers, sidebar, cards, input bars, modals |
+| Divider | `border-gray-200` | Panel dividers |
+| Input border | `border-gray-300` | Inputs, selects, secondary buttons |
+| Accent | `blue-600` | Links, active state, primary buttons, active icons |
+| Success | `green-600` | Connected / success state |
+| Warning | `amber-600` | Warning, processing state |
+| Danger | `red-600` | Errors, delete |
+| Text primary | `text-gray-900` | Headings, body |
+| Text secondary | `text-gray-600` | Supporting text |
+| Text muted | `text-gray-500` | Dimmed/secondary text |
+| Code surface | `bg-gray-50` / `bg-gray-100` | Code blocks, terminal panes (mono) |
+
+> Legacy `cyber-*` / `gh-*` tokens stay defined in `tailwind.config.ts` only as a safety net — do not use them in new components.
 
 **Typography:**
-- ALL text in the UI uses `font-mono` (JetBrains Mono → Fira Code → Courier New fallback).
-- Body/prose text: `text-slate-100` or `text-slate-300`.
-- Dimmed/system text: `text-cyber-accent/50` or `text-cyber-accent/40`.
-- Never use `sans` or `serif` font families anywhere in the UI.
+- UI chrome uses `font-sans` (GitHub system stack: `-apple-system, BlinkMacSystemFont, "Segoe UI"…`).
+- `font-mono` (JetBrains Mono → Fira Code → Courier New) only for code, terminal/chat input, logs, and file paths.
+- Body/prose text: `text-gray-900` (primary) or `text-gray-600` (secondary).
+- Dimmed/system text: `text-gray-500`.
 
 **Layout rules:**
 - 3-panel structure is canonical: `SidebarNav (52px fixed) | ChatPanel (45%) | ArtifactsPanel (flex-1)`.
 - Do not add margins or padding outside the defined panel boundaries.
 - All panels use `overflow-hidden` at the shell level; individual panels handle their own scroll with `overflow-y-auto`.
-- Use `border-cyber-border` (not arbitrary border colors) for all panel dividers.
+- Use `border-gray-200` (not arbitrary border colors) for all panel dividers.
 
 **Component styling:**
-- Border radius: max `rounded` (4px). Never use `rounded-lg`, `rounded-xl`, or larger — terminal aesthetic requires sharp corners.
-- No drop shadows (`shadow-*` classes are forbidden).
-- No gradients. Flat, dark surfaces only.
-- Allowed animations: `animate-blink` (cursor), typewriter via `setInterval`. No `transition` animations except `transition-colors duration-150` on interactive elements.
+- Border radius: `rounded-md` (6px) for controls, inputs, cards, and modals.
+- Subtle shadows only — `shadow-sm` on hover cards, `shadow-lg`/`shadow-xl` on popovers & modals. No gradients.
+- Light, flat surfaces (white on gray-50).
+- Allowed animations: `animate-blink` (cursor), `animate-dot-pulse` (streaming), typewriter via `setInterval`. No `transition` animations except `transition-colors duration-150` on interactive elements.
 - Icons: `vue-icons-plus/hi` (Hero Icons) throughout the UI. No inline SVG.
+- Interactive primitives (modal/select) built on Headless UI — see `BaseModal`, `BaseSelect`.
 
 **New components must:**
 1. Live in `frontend/src/components/`.
