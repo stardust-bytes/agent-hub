@@ -19,29 +19,29 @@
     </div>
 
     <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full">
-      <div v-if="loading" class="text-muted-foreground/50 text-sm font-mono text-center py-8">
+      <div v-if="loading" class="text-muted-foreground/50 text-sm font-sans text-center py-8">
         {{ t('chat.thinking') }}
       </div>
-      <div v-else-if="memories.length === 0" class="text-muted-foreground/50 text-sm font-mono text-center py-8">
+      <div v-else-if="memories.length === 0" class="text-muted-foreground/50 text-sm font-sans text-center py-8">
         {{ t('memory.empty') }}
       </div>
       <div v-for="mem in filteredMemories" :key="mem.id"
         class="border border-border rounded-lg bg-surface p-3 flex flex-col gap-2 mb-2">
         <div class="flex items-center gap-2 min-w-0">
-          <span class="text-sm font-mono" :class="typeColor(mem.type)">{{ typeLabel(mem.type) }}</span>
-          <span class="text-foreground text-sm font-mono truncate">{{ mem.title }}</span>
-          <span v-if="isAutoExtracted(mem)" class="text-muted-foreground/40 text-xs font-mono">{{ t('memory.auto_extracted') }}</span>
+          <span class="text-sm font-sans" :class="typeColor(mem.type)">{{ typeLabel(mem.type) }}</span>
+          <span class="text-foreground text-sm font-sans truncate">{{ mem.title }}</span>
+          <span v-if="isAutoExtracted(mem)" class="text-muted-foreground/40 text-xs font-sans">{{ t('memory.auto_extracted') }}</span>
         </div>
-        <div class="text-muted-foreground/80 text-sm font-mono line-clamp-2">{{ mem.content }}</div>
+        <div class="text-muted-foreground/80 text-sm font-sans line-clamp-2">{{ mem.content }}</div>
         <div class="flex justify-end gap-1 mt-auto pt-1">
-          <button @click="openEditModal(mem)" class="text-sm px-1.5 py-0.5 font-mono text-primary rounded-lg border border-primary/30 hover:bg-primary/10 transition-colors duration-150">{{ t('memory.edit') }}</button>
-          <button @click="openDeleteConfirm(mem.id)" class="text-sm px-1.5 py-0.5 font-mono text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">{{ t('memory.delete') }}</button>
+          <button @click="openEditModal(mem)" class="text-sm px-1.5 py-0.5 font-sans text-primary rounded-lg border border-primary/30 hover:bg-primary/10 transition-colors duration-150">{{ t('memory.edit') }}</button>
+          <button @click="openDeleteConfirm(mem.id)" class="text-sm px-1.5 py-0.5 font-sans text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">{{ t('memory.delete') }}</button>
         </div>
       </div>
     </div>
 
     <BaseModal v-model="showFormModal">
-      <template #header><span class="text-foreground text-sm font-mono">{{ editing ? t('memory.edit') : t('memory.create') }}</span></template>
+      <template #header><span class="text-foreground text-sm font-sans">{{ editing ? t('memory.edit') : t('memory.create') }}</span></template>
       <div class="p-3 space-y-3">
           <div>
             <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('memory.form.type') }}</label>
@@ -50,23 +50,23 @@
           <div>
             <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('memory.form.title') }}</label>
             <input v-model="formTitle"
-              class="w-full bg-surface text-foreground text-sm font-mono border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring"
+              class="w-full bg-surface text-foreground text-sm font-sans border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring"
             />
           </div>
           <div>
             <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('memory.form.content') }}</label>
             <textarea v-model="formContent" rows="4"
-              class="w-full bg-surface text-foreground text-sm font-mono border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring resize-none"
+              class="w-full bg-surface text-foreground text-sm font-sans border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring resize-none"
             ></textarea>
         </div>
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
           <button @click="showFormModal = false"
-            class="text-sm font-mono text-muted-foreground px-3 py-1 hover:text-foreground transition-colors duration-150"
+            class="text-sm font-sans text-muted-foreground px-3 py-1 hover:text-foreground transition-colors duration-150"
           >{{ t('tasks.form.cancel') }}</button>
           <button @click="saveMemory"
-            class="text-sm font-mono font-bold text-primary-foreground bg-primary px-4 py-1 rounded-lg hover:bg-primary/90 transition-colors duration-150"
+            class="text-sm font-sans font-bold text-primary-foreground bg-primary px-4 py-1 rounded-lg hover:bg-primary/90 transition-colors duration-150"
           >{{ t('tasks.form.save') }}</button>
         </div>
       </template>

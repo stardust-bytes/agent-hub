@@ -11,7 +11,7 @@
         ● {{ activeSubagents }} {{ t('status.subagents') }}
       </span>
     </div>
-    <span class="font-mono text-xs text-muted-foreground">{{ time }}</span>
+    <span class="font-sans text-xs text-muted-foreground">{{ time }}</span>
   </div>
 </template>
 

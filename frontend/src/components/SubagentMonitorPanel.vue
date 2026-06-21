@@ -4,21 +4,21 @@
     <div class="relative w-full max-w-3xl mx-auto my-4 bg-surface border border-border rounded-lg shadow-xl flex flex-col overflow-hidden" style="max-height: calc(100vh - 2rem)">
       <div class="flex items-center gap-2 px-3 py-2 bg-muted border-b border-border shrink-0">
         <span class="text-sm text-foreground font-semibold">{{ t('subagent.panel.header') }}</span>
-        <span v-if="sessions.length" class="text-xs text-muted-foreground font-mono">({{ sessions.length }})</span>
+        <span v-if="sessions.length" class="text-xs text-muted-foreground font-sans">({{ sessions.length }})</span>
         <button @click="emit('close')" class="ml-auto text-muted-foreground text-base leading-none hover:text-foreground transition-colors duration-150">✕</button>
       </div>
 
       <div ref="panelBody" class="flex-1 overflow-y-auto p-2 space-y-2">
         <div v-for="s in sessions" :key="s.id" class="border-l-2 pl-2 py-1.5" :class="s.status === 'running' ? 'border-green-500' : 'border-border'">
           <div class="flex items-center gap-2 mb-1">
-            <span class="text-xs text-primary font-mono">◈ {{ s.name }}</span>
-            <span v-if="s.status === 'running'" class="text-xs text-success font-mono">● {{ t('subagent.session.running') }}</span>
-            <span v-else-if="s.status === 'completed'" class="text-xs text-success font-mono">✓ {{ t('subagent.session.done') }}</span>
-            <span v-else class="text-xs text-danger font-mono">✗ {{ t('subagent.session.failed') }}</span>
-            <span class="text-xs text-muted-foreground font-mono ml-auto">{{ elapsed(s) }}</span>
+            <span class="text-xs text-primary font-sans">◈ {{ s.name }}</span>
+            <span v-if="s.status === 'running'" class="text-xs text-success font-sans">● {{ t('subagent.session.running') }}</span>
+            <span v-else-if="s.status === 'completed'" class="text-xs text-success font-sans">✓ {{ t('subagent.session.done') }}</span>
+            <span v-else class="text-xs text-danger font-sans">✗ {{ t('subagent.session.failed') }}</span>
+            <span class="text-xs text-muted-foreground font-sans ml-auto">{{ elapsed(s) }}</span>
           </div>
           <div ref="logAreaRefs" :data-session-id="s.id" class="max-h-96 overflow-y-auto space-y-0.5">
-            <div v-for="(log, li) in s.logs" :key="li" class="text-xs font-mono leading-relaxed">
+            <div v-for="(log, li) in s.logs" :key="li" class="text-xs font-sans leading-relaxed">
               <div v-if="log.type === 'thinking'" class="text-muted-foreground">⟳ {{ log.text }}</div>
               <div v-else-if="log.type === 'toolCall'" class="text-warning break-all">
                 <span v-if="isToolLong(log.text)">

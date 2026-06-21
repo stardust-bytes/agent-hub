@@ -16,7 +16,7 @@
       />
       <textarea
         v-model="content"
-        class="flex-1 w-full bg-surface text-foreground text-sm font-mono rounded-lg border border-input outline-none p-3 resize-none placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-ring"
+        class="flex-1 w-full bg-surface text-foreground text-sm font-sans rounded-lg border border-input outline-none p-3 resize-none placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-ring"
         style="min-height:30vh"
         :placeholder="t('notes.form.content')"
       />

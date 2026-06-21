@@ -6,7 +6,7 @@
           <HiClock class="w-4 h-4" />
         </div>
         <span class="text-base font-semibold text-foreground">{{ t('schedules.header') }}</span>
-        <span v-if="tasks.length > 0" class="text-xs font-mono text-muted-foreground bg-muted rounded px-1.5 py-0.5">{{ tasks.length }} {{ t('schedules.active') }}</span>
+        <span v-if="tasks.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded px-1.5 py-0.5">{{ tasks.length }} {{ t('schedules.active') }}</span>
         <div class="ml-auto">
           <button @click="openAddForm"
             class="text-sm rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-colors duration-150 px-2.5 py-1">
@@ -18,7 +18,7 @@
 
     <div class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 pb-6">
       <div v-if="tasks.length === 0" class="flex items-center justify-center h-full">
-        <div class="text-sm text-muted-foreground font-mono">{{ t('schedules.empty') }}</div>
+        <div class="text-sm text-muted-foreground font-sans">{{ t('schedules.empty') }}</div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -28,14 +28,14 @@
     <div class="flex items-center gap-2 mb-2">
       <div class="w-2 h-2 rounded-full shrink-0"
         :class="task.enabled ? 'bg-success' : 'bg-muted-foreground'"></div>
-      <div class="text-sm text-foreground font-mono truncate flex-1">{{ task.name }}</div>
+      <div class="text-sm text-foreground font-sans truncate flex-1">{{ task.name }}</div>
     </div>
-    <div class="text-sm text-muted-foreground font-mono mb-2 flex items-center gap-1">
+    <div class="text-sm text-muted-foreground font-sans mb-2 flex items-center gap-1">
             <span class="px-1 border border-border text-xs"
               :class="frequencyClass(task.frequency)">{{ t(`schedules.frequency.${task.frequency}`) }}</span>
             <span>{{ scheduleTime(task) }}</span>
           </div>
-          <div class="text-sm font-mono mb-3">
+          <div class="text-sm font-sans mb-3">
             <span v-if="task.logs?.[0]"
               :class="task.logs[0].status === 'SUCCESS' ? 'text-success' : task.logs[0].status === 'FAILED' ? 'text-danger' : 'text-warning'">
               {{ task.logs[0].status }}
@@ -43,9 +43,9 @@
             <span v-else class="text-muted-foreground">—</span>
           </div>
           <div class="flex gap-1 mt-auto justify-end" @click.stop>
-            <button @click="runNow(task.id)" class="text-sm text-primary font-mono px-2.5 py-1 rounded-lg border border-primary/30 transition-colors duration-150 hover:bg-primary/10">{{ t('schedules.runNow') }}</button>
-            <button @click="editTask(task)" class="text-sm text-muted-foreground font-mono px-2.5 py-1 rounded-lg border border-input transition-colors duration-150 hover:bg-muted hover:text-primary">{{ t('schedules.edit') }}</button>
-            <button @click="confirmDelete(task)" class="text-sm px-1.5 py-0.5 font-mono text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">{{ t('schedules.delete') }}</button>
+            <button @click="runNow(task.id)" class="text-sm text-primary font-sans px-2.5 py-1 rounded-lg border border-primary/30 transition-colors duration-150 hover:bg-primary/10">{{ t('schedules.runNow') }}</button>
+            <button @click="editTask(task)" class="text-sm text-muted-foreground font-sans px-2.5 py-1 rounded-lg border border-input transition-colors duration-150 hover:bg-muted hover:text-primary">{{ t('schedules.edit') }}</button>
+            <button @click="confirmDelete(task)" class="text-sm px-1.5 py-0.5 font-sans text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">{{ t('schedules.delete') }}</button>
           </div>
         </div>
       </div>
@@ -53,7 +53,7 @@
 
     <BaseModal v-model="showForm">
       <template #header>
-        <span class="text-sm text-foreground font-mono">{{ editingTask ? t('schedules.edit') : t('schedules.add') }}</span>
+        <span class="text-sm text-foreground font-sans">{{ editingTask ? t('schedules.edit') : t('schedules.add') }}</span>
       </template>
       <div class="p-3 space-y-3 max-w-xl">
         <div>
@@ -80,24 +80,24 @@
         <div v-if="form.frequency !== 'manual'" class="space-y-3">
           <div v-if="['daily','weekdays','weekly'].includes(form.frequency)" class="flex items-center gap-2">
             <div class="flex items-center gap-1">
-              <span class="text-xs text-muted-foreground font-mono">HH</span>
+              <span class="text-xs text-muted-foreground font-sans">HH</span>
               <select v-model.number="form.cronHour"
                 class="bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
                 <option v-for="h in 24" :key="h-1" :value="h-1">{{ String(h-1).padStart(2,'0') }}</option>
               </select>
             </div>
-            <span class="text-muted-foreground font-mono">:</span>
+            <span class="text-muted-foreground font-sans">:</span>
             <div class="flex items-center gap-1">
               <select v-model.number="form.cronMinute"
                 class="bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
                 <option v-for="m in 60" :key="m-1" :value="m-1">{{ String(m-1).padStart(2,'0') }}</option>
               </select>
-              <span class="text-xs text-muted-foreground font-mono">MM</span>
+              <span class="text-xs text-muted-foreground font-sans">MM</span>
             </div>
           </div>
 
           <div v-if="form.frequency === 'hourly'" class="flex items-center gap-2">
-            <span class="text-sm text-muted-foreground font-mono">{{ t('schedules.form.atMinute') }}</span>
+            <span class="text-sm text-muted-foreground font-sans">{{ t('schedules.form.atMinute') }}</span>
             <select v-model.number="form.cronMinute"
               class="bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
               <option v-for="m in 60" :key="m-1" :value="m-1">{{ String(m-1).padStart(2,'0') }}</option>
@@ -105,7 +105,7 @@
           </div>
 
           <div v-if="form.frequency === 'weekly'">
-            <div class="text-sm text-muted-foreground font-mono mb-1">{{ t('schedules.form.days') }}</div>
+            <div class="text-sm text-muted-foreground font-sans mb-1">{{ t('schedules.form.days') }}</div>
             <div class="flex flex-wrap gap-2">
 <label v-for="(label, idx) in DAYS" :key="idx"
   class="flex items-center gap-1 px-2 py-1 border border-border cursor-pointer text-sm font-sans select-none rounded-lg transition-colors duration-150"
@@ -117,7 +117,7 @@
           </div>
         </div>
 
-        <div class="text-sm text-muted-foreground font-mono" v-if="form.frequency !== 'manual'">
+        <div class="text-sm text-muted-foreground font-sans" v-if="form.frequency !== 'manual'">
           {{ scheduleDesc }}
         </div>
 
@@ -142,8 +142,8 @@
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <button @click="showForm = false" class="text-sm text-muted-foreground font-mono px-3 py-1.5 border border-border rounded-lg transition-colors duration-150 hover:text-foreground">{{ t('tasks.form.cancel') }}</button>
-          <button @click="saveTask" class="text-sm text-primary-foreground font-mono px-3 py-1.5 rounded-lg bg-primary transition-colors duration-150 hover:bg-primary/90">{{ t('tasks.form.save') }}</button>
+          <button @click="showForm = false" class="text-sm text-muted-foreground font-sans px-3 py-1.5 border border-border rounded-lg transition-colors duration-150 hover:text-foreground">{{ t('tasks.form.cancel') }}</button>
+          <button @click="saveTask" class="text-sm text-primary-foreground font-sans px-3 py-1.5 rounded-lg bg-primary transition-colors duration-150 hover:bg-primary/90">{{ t('tasks.form.save') }}</button>
         </div>
       </template>
     </BaseModal>

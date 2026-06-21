@@ -11,7 +11,7 @@
       @mousedown.prevent="emit('select', cmd.command)"
       @mouseenter="emit('highlight', i)"
     >
-      <span class="text-primary font-mono shrink-0">{{ cmd.command }}</span>
+      <span class="text-primary font-sans shrink-0">{{ cmd.command }}</span>
       <span class="text-muted-foreground truncate">{{ cmd.description }}</span>
     </div>
   </div>

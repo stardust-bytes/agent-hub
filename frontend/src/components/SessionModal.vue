@@ -24,7 +24,7 @@
     >
       <div class="min-w-0 flex-1">
         <div class="text-sm text-foreground truncate">{{ s.title }}</div>
-        <div class="text-xs text-muted-foreground mt-0.5 font-mono">
+        <div class="text-xs text-muted-foreground mt-0.5 font-sans">
           {{ formatDate(s.createdAt) }} · {{ t('sessions.messages', { n: s._count.messages }) }}
         </div>
       </div>

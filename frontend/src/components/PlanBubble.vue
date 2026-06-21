@@ -8,7 +8,7 @@
 
     <div class="px-3 py-2 space-y-0.5">
       <div v-for="step in sortedSteps" :key="step.id" class="flex gap-2 items-start">
-        <span :class="prefixClass(step.status)" class="text-sm font-mono select-none shrink-0 w-6 leading-5">
+        <span :class="prefixClass(step.status)" class="text-sm font-sans select-none shrink-0 w-6 leading-5">
           {{ stepPrefix(step.status) }}
         </span>
         <span :class="textClass(step.status)" class="text-sm break-words leading-5">{{ step.text }}</span>

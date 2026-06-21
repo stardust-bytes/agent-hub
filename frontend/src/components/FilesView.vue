@@ -21,7 +21,7 @@
         >
           <input ref="fileInput" type="file" class="hidden" multiple @change="onFileChange" />
           <p class="text-muted-foreground text-sm">{{ t('files.dropzone') }}</p>
-          <p class="text-muted-foreground text-sm font-mono mt-1">.pdf .docx .txt .md .ts .js .py</p>
+          <p class="text-muted-foreground text-sm font-sans mt-1">.pdf .docx .txt .md .ts .js .py</p>
         </div>
 
         <!-- Filter -->
@@ -36,7 +36,7 @@
           {{ t('files.empty') }}
         </div>
         <div v-for="f in filteredFiles" :key="f.id"
-          class="flex items-center gap-3 bg-surface border border-border rounded-lg px-3 py-2 text-sm font-mono"
+          class="flex items-center gap-3 bg-surface border border-border rounded-lg px-3 py-2 text-sm font-sans"
         >
           <div class="flex-1 min-w-0">
             <div class="text-foreground truncate">{{ f.filename }}</div>

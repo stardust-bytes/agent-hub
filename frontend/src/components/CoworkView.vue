@@ -31,7 +31,7 @@
         <div v-else class="flex-1 flex items-center justify-center min-h-0">
           <div class="text-center">
             <div class="text-3xl font-semibold text-foreground mb-1">Agent Hub</div>
-            <div class="text-sm font-mono text-muted-foreground">Code 171305</div>
+            <div class="text-sm font-sans text-muted-foreground">Code 171305</div>
             <div class="text-sm text-muted-foreground mt-2">{{ t('chat.empty.subtitle') }}</div>
           </div>
         </div>

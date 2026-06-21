@@ -11,7 +11,7 @@
           v-for="entry in tree"
           :key="entry.path"
           :style="{ paddingLeft: entry.depth * 16 + 8 + 'px' }"
-          class="flex items-center gap-1 px-2 py-1 cursor-pointer text-sm font-mono transition-colors duration-150"
+          class="flex items-center gap-1 px-2 py-1 cursor-pointer text-sm font-sans transition-colors duration-150"
           :class="selectedPath === entry.path ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'"
           @click="onClick(entry)"
         >

@@ -13,18 +13,18 @@
 
         <div v-for="connector in displayConnectors" :key="connector.type" class="flex items-center justify-between px-3 h-[3rem] border border-border rounded-lg mb-2 bg-surface">
           <div class="flex items-center gap-3 min-w-0">
-            <span class="text-sm text-foreground font-mono truncate">{{ connector.name }}</span>
+            <span class="text-sm text-foreground font-sans truncate">{{ connector.name }}</span>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <span class="text-sm font-mono" :class="connector.enabled ? 'text-success' : 'text-muted-foreground'">
+            <span class="text-sm font-sans" :class="connector.enabled ? 'text-success' : 'text-muted-foreground'">
               {{ connector.enabled ? t('connectors.connected') : t('connectors.disconnected') }}
             </span>
             <button v-if="!connector.enabled" @click="connect(connector.type)"
-              class="text-sm font-mono px-2.5 py-1 rounded-lg border border-green-600/30 text-success hover:bg-green-50 transition-colors duration-150">
+              class="text-sm font-sans px-2.5 py-1 rounded-lg border border-green-600/30 text-success hover:bg-green-50 transition-colors duration-150">
               {{ t('connectors.connect') }}
             </button>
             <button v-if="connector.enabled" @click="disconnect(connector)"
-              class="text-sm px-1.5 py-0.5 font-mono text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">
+              class="text-sm px-1.5 py-0.5 font-sans text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">
               {{ t('connectors.disconnect') }}
             </button>
           </div>

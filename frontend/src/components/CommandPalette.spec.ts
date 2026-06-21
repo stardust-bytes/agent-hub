@@ -9,7 +9,7 @@ const push = vi.fn()
 vi.mock('vue-router', () => ({ useRouter: () => ({ push }) }))
 
 const messages = { en: { 'nav.group': { workspace: 'Workspace', knowledge: 'Knowledge', config: 'Config' },
-  nav: { cowork: 'Cowork', tasks: 'Tasks', notes: 'Notes', plans: 'Plans', agentOutput: 'Agent Output', connectors: 'Connectors', settings: 'Settings', lang: 'EN' },
+  nav: { cowork: 'Cowork', tasks: 'Tasks', notes: 'Notes', agentOutput: 'Agent Output', connectors: 'Connectors', settings: 'Settings', lang: 'EN' },
   'memory': { title: 'Memories' }, providers: { header: 'Providers' }, agents: { header: 'Agents' }, tools: { header: 'Tools' },
   permissions: { header: 'Permissions' }, usage: { header: 'Usage' },
   palette: { placeholder: 'Go', empty: 'No results', section: { navigate: 'Navigate', actions: 'Actions' }, action: { toggleTheme: 'Toggle theme', toggleLang: 'Toggle language' } } } }

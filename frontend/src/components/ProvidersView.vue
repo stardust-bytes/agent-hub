@@ -15,15 +15,15 @@
           class="flex items-center justify-between px-3 h-[3rem] bg-surface cursor-pointer hover:bg-muted transition-colors duration-150"
         >
           <div class="flex items-center gap-2 min-w-0">
-            <span class="text-muted-foreground text-sm font-mono shrink-0">{{ expanded.has(provider.id) ? '▼' : '▶' }}</span>
+            <span class="text-muted-foreground text-sm font-sans shrink-0">{{ expanded.has(provider.id) ? '▼' : '▶' }}</span>
             <span class="text-foreground text-sm font-medium truncate">{{ provider.name }}</span>
-            <span class="text-xs font-mono text-muted-foreground border border-border rounded px-1.5 py-0.5 shrink-0">{{ provider.type }}</span>
-            <span v-if="provider.baseUrl" class="text-sm text-muted-foreground font-mono truncate hidden sm:block">{{ provider.baseUrl }}</span>
+            <span class="text-xs font-sans text-muted-foreground border border-border rounded px-1.5 py-0.5 shrink-0">{{ provider.type }}</span>
+            <span v-if="provider.baseUrl" class="text-sm text-muted-foreground font-sans truncate hidden sm:block">{{ provider.baseUrl }}</span>
           </div>
           <div class="flex items-center gap-3 shrink-0 ml-2">
-            <button @click.stop="syncModels(provider.id)" :disabled="syncing === provider.id" class="text-muted-foreground text-sm font-mono hover:text-primary transition-colors duration-150 disabled:opacity-30">{{ syncing === provider.id ? '⟳' : '⟳' }}</button>
-            <button @click.stop="openEditModal(provider)" class="text-muted-foreground text-sm font-mono hover:text-primary transition-colors duration-150">✎</button>
-            <button @click.stop="confirmDeleteProvider(provider)" class="text-muted-foreground text-sm font-mono hover:text-danger transition-colors duration-150">✕</button>
+            <button @click.stop="syncModels(provider.id)" :disabled="syncing === provider.id" class="text-muted-foreground text-sm font-sans hover:text-primary transition-colors duration-150 disabled:opacity-30">{{ syncing === provider.id ? '⟳' : '⟳' }}</button>
+            <button @click.stop="openEditModal(provider)" class="text-muted-foreground text-sm font-sans hover:text-primary transition-colors duration-150">✎</button>
+            <button @click.stop="confirmDeleteProvider(provider)" class="text-muted-foreground text-sm font-sans hover:text-danger transition-colors duration-150">✕</button>
           </div>
         </div>
 
@@ -36,10 +36,10 @@
             :key="model.id"
             class="flex items-center justify-between py-0.5"
           >
-            <span class="text-sm text-foreground font-mono">{{ model.name }}</span>
+            <span class="text-sm text-foreground font-sans">{{ model.name }}</span>
             <button
               @click="deleteModel(provider.id, model.id)"
-              class="text-muted-foreground text-sm font-mono hover:text-danger transition-colors duration-150 ml-2"
+              class="text-muted-foreground text-sm font-sans hover:text-danger transition-colors duration-150 ml-2"
             >✕</button>
           </div>
 
@@ -49,17 +49,17 @@
               v-model="newModelName"
               @keyup.enter="submitAddModel(provider.id)"
               @keyup.escape="addingModelFor = null"
-              class="flex-1 bg-surface text-sm font-mono text-foreground px-2.5 py-1 rounded-lg outline-none border border-input focus:border-primary focus:ring-1 focus:ring-ring"
+              class="flex-1 bg-surface text-sm font-sans text-foreground px-2.5 py-1 rounded-lg outline-none border border-input focus:border-primary focus:ring-1 focus:ring-ring"
               :placeholder="t('providers.models.placeholder')"
               autocomplete="off"
             />
-            <button @click="submitAddModel(provider.id)" class="text-primary text-sm font-mono hover:text-primary/70">✓</button>
-            <button @click="addingModelFor = null" class="text-muted-foreground text-sm font-mono hover:text-foreground">✕</button>
+            <button @click="submitAddModel(provider.id)" class="text-primary text-sm font-sans hover:text-primary/70">✓</button>
+            <button @click="addingModelFor = null" class="text-muted-foreground text-sm font-sans hover:text-foreground">✕</button>
           </div>
           <button
             v-else
             @click="startAddModel(provider.id)"
-            class="text-primary/60 text-sm font-mono hover:text-primary transition-colors duration-150 mt-1 block"
+            class="text-primary/60 text-sm font-sans hover:text-primary transition-colors duration-150 mt-1 block"
           >{{ t('providers.models.add') }}</button>
         </div>
       </div>

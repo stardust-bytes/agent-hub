@@ -5,7 +5,7 @@
     </div>
     <span class="w-2 h-2 rounded-full shrink-0" :class="projectPath ? 'bg-success' : 'bg-border'"></span>
     <div class="relative min-w-0">
-      <button @click="showProjectMenu = !showProjectMenu" class="flex items-center gap-1 text-sm font-mono truncate max-w-60 hover:bg-muted transition-colors duration-150 border border-input rounded-lg px-2.5 py-1">
+      <button @click="showProjectMenu = !showProjectMenu" class="flex items-center gap-1 text-sm font-sans truncate max-w-60 hover:bg-muted transition-colors duration-150 border border-input rounded-lg px-2.5 py-1">
         <span v-if="projectPath" class="truncate">
           <span class="text-foreground font-medium">{{ projectPath.replace(/\\/g, '/').split('/').filter(Boolean).shift() }}</span>
           <span class="text-muted-foreground">/{{ projectPath.replace(/\\/g, '/').split('/').filter(Boolean).slice(1).join('/') }}</span>
@@ -29,7 +29,7 @@
     </div>
     <button v-if="projectPath" @click="emit('disconnect')" class="text-sm text-danger px-2.5 py-1 rounded-lg border border-danger/40 transition-colors duration-150 hover:bg-danger/10 shrink-0">✕ {{ t('cowork.disconnect') }}</button>
     <div class="flex items-center gap-2 ml-auto shrink-0">
-      <span v-if="subagentCount != null && subagentCount > 0" class="text-xs font-mono text-muted-foreground bg-muted rounded px-1.5 py-0.5 flex items-center gap-1">
+      <span v-if="subagentCount != null && subagentCount > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded px-1.5 py-0.5 flex items-center gap-1">
         <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
         {{ subagentCount }}
       </span>

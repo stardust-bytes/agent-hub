@@ -3,7 +3,7 @@
     <div v-if="modelValue" class="fixed inset-0 bg-foreground/40 z-50 flex items-center justify-center p-4" @click.self="emit('update:modelValue', false)">
       <div class="w-120 bg-surface border border-border rounded-lg shadow-xl flex flex-col" style="max-height: 80vh; max-width: 90vw">
         <div class="px-4 py-3 flex items-center justify-between shrink-0 border-b border-border">
-          <span class="text-foreground text-sm font-mono truncate flex-1">{{ currentPath || t('cowork.browse.title') }}</span>
+          <span class="text-foreground text-sm font-sans truncate flex-1">{{ currentPath || t('cowork.browse.title') }}</span>
           <button @click="emit('update:modelValue', false)" class="text-muted-foreground text-base leading-none hover:text-foreground shrink-0 ml-2">✕</button>
         </div>
         <div class="overflow-y-auto flex-1 px-2 py-2">
@@ -13,13 +13,13 @@
           <div v-else-if="entries.length === 0" class="text-muted-foreground text-sm text-center py-4">{{ t('cowork.browse.empty') }}</div>
           <div v-else class="space-y-0.5">
             <div v-if="canGoUp"
-              class="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-muted transition-colors duration-150 text-primary text-sm font-mono"
+              class="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-muted transition-colors duration-150 text-primary text-sm font-sans"
               @click="goUp">
               <span>..</span>
               <span class="text-muted-foreground text-sm">{{ t('cowork.browse.parent') }}</span>
             </div>
             <div v-for="entry in entries" :key="entry.name"
-              class="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-muted transition-colors duration-150 text-muted-foreground text-sm font-mono"
+              class="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-muted transition-colors duration-150 text-muted-foreground text-sm font-sans"
               @click="navigate(entry.name)">
               <HiFolder class="w-4 h-4 text-primary shrink-0" />
               <span class="truncate">{{ entry.name }}</span>

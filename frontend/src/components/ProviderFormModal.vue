@@ -12,7 +12,7 @@
         <select
           v-model="form.type"
           @change="onTypeChange"
-          class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-mono outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
+          class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-sans outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
         >
           <option value="ollama">Ollama</option>
           <option value="openai">OpenAI</option>
@@ -24,7 +24,7 @@
         <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('providers.form.name') }}</label>
         <input
           v-model="form.name"
-          class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-mono outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
+          class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-sans outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
           autocomplete="off"
         />
       </div>
@@ -32,7 +32,7 @@
         <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('providers.form.baseUrl') }}</label>
         <input
           v-model="form.baseUrl"
-          class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-mono outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
+          class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-sans outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
           placeholder="http://localhost:11434"
           autocomplete="off"
         />
@@ -42,7 +42,7 @@
         <input
           v-model="form.key"
           type="password"
-          class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-mono outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
+          class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-sans outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
           autocomplete="new-password"
         />
       </div>

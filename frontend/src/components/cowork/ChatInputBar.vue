@@ -8,7 +8,7 @@
               ref="inputEl"
               v-model="input"
               @keydown="onKeydown"
-              class="flex-1 bg-transparent text-foreground text-sm outline-none font-mono placeholder-muted-foreground w-full"
+              class="flex-1 bg-transparent text-foreground text-sm outline-none font-sans placeholder-muted-foreground w-full"
               :placeholder="t('chat.placeholder')"
               :disabled="streaming"
               autocomplete="off"

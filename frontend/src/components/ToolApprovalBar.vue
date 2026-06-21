@@ -9,7 +9,7 @@
       </div>
 
       <div
-        class="text-xs text-muted-foreground font-mono break-all"
+        class="text-xs text-muted-foreground font-sans break-all"
         :class="[
           isLong && !expanded ? 'line-clamp-2 overflow-hidden' : (isLong ? 'overflow-y-auto' : ''),
           isLong ? 'mb-1' : 'mb-2'
@@ -35,7 +35,7 @@
       </div>
 
       <div class="flex items-center justify-between">
-        <div class="text-xs text-muted-foreground font-mono">{{ remaining }}s / {{ total }}s</div>
+        <div class="text-xs text-muted-foreground font-sans">{{ remaining }}s / {{ total }}s</div>
         <div class="flex items-center gap-3">
           <span class="text-xs text-muted-foreground">{{ t('approval.keyboard_hint') }}</span>
           <div class="flex gap-2">
