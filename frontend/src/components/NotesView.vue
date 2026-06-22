@@ -6,7 +6,7 @@
           <HiDocumentText class="w-4 h-4" />
         </div>
         <span class="text-base font-semibold text-foreground">{{ t('notes.header') }}</span>
-        <span v-if="notes.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded px-1.5 py-0.5">{{ notes.length }}</span>
+        <span v-if="notes.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">{{ notes.length }}</span>
         <div class="ml-auto">
           <button @click="openAdd"
             class="text-sm rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-colors duration-150 px-2.5 py-1">
@@ -19,7 +19,7 @@
     <div class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 pb-6">
       <div v-if="notes.length === 0" class="flex items-center justify-center h-full text-sm font-sans text-muted-foreground">{{ t('notes.empty') }}</div>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
         <div v-for="note in notes" :key="note.id"
           class="border border-border rounded-lg bg-surface p-3 flex flex-col gap-2 hover:shadow-sm transition-shadow duration-150">
           <div class="text-sm text-foreground font-semibold truncate">{{ note.title }}</div>

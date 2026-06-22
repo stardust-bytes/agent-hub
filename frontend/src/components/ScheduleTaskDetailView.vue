@@ -11,9 +11,11 @@
           <HiPlay class="w-4 h-4" />
         </div>
         <span class="text-lg font-bold text-foreground tracking-tight truncate">{{ task?.name || t('schedules.detail.loading') }}</span>
-        <span v-if="logs.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded px-1.5 py-0.5">{{ logs.length }} runs</span>
+        <span v-if="logs.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">{{ logs.length }} runs</span>
         <div class="ml-auto flex gap-2">
-          <button @click="runNow(task!.id)" class="text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-colors duration-150 px-2.5 py-1">{{ t('schedules.runNow') }}</button>
+          <button @click="runNow(task!.id)" :disabled="running"
+            class="text-sm font-medium rounded-lg transition-colors duration-150 px-2.5 py-1"
+            :class="running ? 'bg-primary/50 text-primary-foreground/70 cursor-not-allowed' : 'bg-primary text-primary-foreground hover:bg-primary/90'">{{ running ? '⟳' : t('schedules.runNow') }}</button>
         </div>
       </div>
     </div>
@@ -24,7 +26,7 @@
           <div><span class="text-muted-foreground">{{ t('schedules.form.name') }}:</span> <span class="text-foreground">{{ task?.name }}</span></div>
           <div><span class="text-muted-foreground">{{ t('schedules.form.description') }}:</span> <span class="text-foreground">{{ task?.description || '&mdash;' }}</span></div>
           <div><span class="text-muted-foreground">{{ t('schedules.frequency') }}:</span> <span class="text-foreground">{{ task ? t(`schedules.frequency.${task.frequency}`) : '' }} {{ scheduleTime(task) }}</span></div>
-          <div><span class="text-muted-foreground">{{ t('schedules.model') }}:</span> <span class="text-foreground">{{ task?.modelId || '&mdash;' }}</span></div>
+          <div><span class="text-muted-foreground">{{ t('schedules.model') }}:</span> <span class="text-foreground">{{ modelLabel(task?.modelId ?? null) }}</span></div>
           <div><span class="text-muted-foreground">{{ t('schedules.form.projectPath') }}:</span> <span class="text-foreground">{{ task?.projectPath || '&mdash;' }}</span></div>
           <div><span class="text-muted-foreground">{{ t('schedules.timezone') }}:</span> <span class="text-foreground">{{ task?.timezone || 'UTC' }}</span></div>
           <div class="col-span-2"><span class="text-muted-foreground">{{ t('schedules.form.prompt') }}:</span></div>
@@ -41,7 +43,7 @@
           class="px-3 py-2 border-b border-border last:border-0 cursor-pointer hover:bg-muted/30 transition-colors duration-150">
           <div class="flex items-center gap-3 text-sm font-sans">
             <span class="text-muted-foreground shrink-0">{{ log.createdAt ? new Date(log.createdAt).toLocaleString('vi-VN') : '' }}</span>
-            <span class="shrink-0" :class="log.status === 'SUCCESS' ? 'text-success' : log.status === 'FAILED' ? 'text-danger' : 'text-warning'">{{ log.status }}</span>
+            <span class="text-xs font-sans rounded-full px-1.5 py-0.5 shrink-0" :class="statusBadgeClass(log.status)">{{ statusLabel(log.status) }}</span>
             <span v-if="log.startedAt && log.completedAt" class="text-muted-foreground shrink-0">{{ Math.round((new Date(log.completedAt).getTime() - new Date(log.startedAt).getTime()) / 1000) }}s</span>
             <span v-if="log.sessionId" class="text-primary/60 shrink-0">#{{ log.sessionId }}</span>
           </div>
@@ -56,9 +58,11 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { storeToRefs } from 'pinia'
 import { HiPlay } from 'vue-icons-plus/hi'
 import * as api from '../api/scheduleTasks'
 import type { ScheduleTask, ScheduleTaskLog } from '../api/scheduleTasks'
+import { useProvidersStore } from '../stores/providers'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -67,8 +71,29 @@ const { t } = useI18n()
 const task = ref<ScheduleTask | null>(null)
 const logs = ref<ScheduleTaskLog[]>([])
 const expandedLog = ref<number | null>(null)
+const running = ref(false)
+
+const providersStore = useProvidersStore()
+const { models } = storeToRefs(providersStore)
+
+function modelLabel(modelId: number | null): string {
+  if (!modelId) return '—'
+  const m = models.value.find(m => m.id === modelId)
+  return m ? `${m.providerName} / ${m.name}` : String(modelId)
+}
 
 const DAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+
+function statusBadgeClass(status: string): string {
+  if (status === 'SUCCESS') return 'bg-success/10 text-success'
+  if (status === 'FAILED') return 'bg-danger/10 text-danger'
+  return 'bg-warning/10 text-warning'
+}
+
+function statusLabel(status: string): string {
+  const key = status === 'SUCCESS' ? 'schedules.status.success' : status === 'FAILED' ? 'schedules.status.failed' : 'schedules.status.running'
+  return t(key)
+}
 
 function scheduleTime(t: ScheduleTask | null): string {
   if (!t) return ''
@@ -94,12 +119,19 @@ onMounted(async () => {
   try {
     logs.value = await api.getTaskLogs(Number(props.id))
   } catch { /* ignore */ }
+  try {
+    await providersStore.loadModels()
+  } catch { /* ignore */ }
 })
 
 async function runNow(id: number) {
+  running.value = true
   try {
     await api.runTask(id)
+    const tasks = await api.listTasks()
+    task.value = tasks.find((t: ScheduleTask) => t.id === Number(props.id)) ?? null
     logs.value = await api.getTaskLogs(Number(props.id))
   } catch { /* ignore */ }
+  running.value = false
 }
 </script>

@@ -109,6 +109,7 @@
     "delete": "Delete Memory",
     "deleteConfirm": "Delete this memory?",
     "empty": "No memories yet",
+    "all": "All",
     "searchPlaceholder": "Search...",
     "auto_extracted": "[auto]",
     "type": {
@@ -394,6 +395,9 @@
   "schedules.hint.daily": "Every day at {time}",
   "schedules.hint.weekdays": "Weekdays at {time}",
   "schedules.hint.weekly": "{day} at {time}",
+  "schedules.status.success": "Success",
+  "schedules.status.failed": "Failed",
+  "schedules.status.running": "Running",
 
   "agentOutput": {
     "fetch_failed": "Could not load agent outputs",

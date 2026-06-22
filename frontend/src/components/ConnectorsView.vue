@@ -9,9 +9,9 @@
       </div>
     </div>
     <div class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 pb-6">
-      <div class="max-w-xl">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 
-        <div v-for="connector in displayConnectors" :key="connector.type" class="flex items-center justify-between px-3 h-[3rem] border border-border rounded-lg mb-2 bg-surface">
+        <div v-for="connector in displayConnectors" :key="connector.type" class="flex items-center justify-between px-3 h-[3rem] border border-border rounded-lg bg-surface">
           <div class="flex items-center gap-3 min-w-0">
             <span class="text-sm text-foreground font-sans truncate">{{ connector.name }}</span>
           </div>

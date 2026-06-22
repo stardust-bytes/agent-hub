@@ -2,7 +2,7 @@ import type { Component } from 'vue'
 import {
   HiCode, HiClipboardList, HiDocumentText, HiCog, HiDownload,
   HiFolder, HiDatabase, HiServer, HiUserGroup,
-  HiAdjustments, HiShieldCheck, HiChartBar,
+  HiAdjustments,
 } from 'vue-icons-plus/hi'
 
 export interface NavItem {
@@ -39,20 +39,18 @@ export const navGroups: NavGroup[] = [
   {
     labelKey: 'nav.group.knowledge',
     items: [
-      { name: 'notes',       path: '/notes',             labelKey: 'nav.notes',      icon: HiDocumentText },
-      { name: 'memories',    path: '/settings/memories', labelKey: 'memory.title',   icon: HiDatabase },
+      { name: 'notes',       path: '/notes',     labelKey: 'nav.notes',      icon: HiDocumentText },
+      { name: 'memories',    path: '/memories',  labelKey: 'memory.title',   icon: HiDatabase },
     ],
   },
   {
     labelKey: 'nav.group.config',
     items: [
-      { name: 'providers',   path: '/settings/providers',   labelKey: 'providers.header',   icon: HiServer },
-      { name: 'agents',      path: '/settings/agents',      labelKey: 'agents.header',      icon: HiUserGroup },
-      { name: 'tools',       path: '/settings/tools',       labelKey: 'tools.header',       icon: HiAdjustments },
-      { name: 'connectors',  path: '/connectors',           labelKey: 'nav.connectors',     icon: HiCog },
-      { name: 'permissions', path: '/settings/permissions', labelKey: 'permissions.header', icon: HiShieldCheck },
-      { name: 'usage',       path: '/settings/usage',       labelKey: 'usage.header',       icon: HiChartBar },
-      { name: 'general',     path: '/settings/general',     labelKey: 'nav.settings',       icon: HiCog },
+      { name: 'providers',   path: '/providers',   labelKey: 'providers.header',   icon: HiServer },
+      { name: 'agents',      path: '/agents',      labelKey: 'agents.header',      icon: HiUserGroup },
+      { name: 'tools',       path: '/tools',       labelKey: 'tools.header',       icon: HiAdjustments },
+      { name: 'connectors',  path: '/connectors',       labelKey: 'nav.connectors', icon: HiCog },
+      { name: 'general',     path: '/settings/general', labelKey: 'nav.settings',   icon: HiCog },
     ],
   },
 ]

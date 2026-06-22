@@ -29,7 +29,7 @@
               <div class="overflow-y-auto flex-1">
                 <slot />
               </div>
-              <div v-if="$slots.footer" class="px-4 py-3 border-t border-border bg-muted shrink-0">
+              <div v-if="$slots.footer" class="px-4 py-3 border-t border-border shrink-0">
                 <slot name="footer" />
               </div>
             </DialogPanel>

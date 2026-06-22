@@ -40,12 +40,12 @@
         <button
           type="button"
           @click="$emit('update:modelValue', false)"
-          class="text-sm font-sans text-muted-foreground px-3 py-1.5 hover:text-foreground transition-colors duration-150"
+          class="text-sm text-muted-foreground font-sans px-3 py-1.5 border border-border rounded-lg transition-colors duration-150 hover:text-foreground"
         >{{ t('agents.cancel') }}</button>
         <button
           type="button"
           @click="confirm"
-          class="text-sm font-sans text-primary px-3 py-1.5 border border-primary/30 hover:bg-primary/10 rounded-lg transition-colors duration-150"
+          class="text-sm text-primary-foreground font-sans px-3 py-1.5 rounded-lg bg-primary transition-colors duration-150 hover:bg-primary/90"
         >{{ t('agents.addTools') }}</button>
       </div>
     </template>

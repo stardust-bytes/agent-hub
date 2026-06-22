@@ -10,12 +10,12 @@
           v-if="!schema.enum"
           v-model="formData[key]"
           :type="schema.format === 'password' ? 'password' : 'text'"
-          class="w-full bg-surface px-2 py-1.5 text-sm font-sans text-foreground outline-none"
+          class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm font-sans text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"
         />
         <select
           v-else
           v-model="formData[key]"
-          class="w-full bg-surface px-2 py-1.5 text-sm font-sans text-foreground outline-none"
+          class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm font-sans text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"
         >
           <option v-for="opt in schema.enum" :key="opt" :value="opt" class="bg-surface">{{ opt }}</option>
         </select>

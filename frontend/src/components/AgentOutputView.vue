@@ -6,7 +6,7 @@
           <HiDownload class="w-4 h-4" />
         </div>
         <span class="text-base font-semibold text-foreground">{{ t('agentOutput.header') }}</span>
-        <span v-if="files.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded px-1.5 py-0.5">{{ files.length }}</span>
+        <span v-if="files.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">{{ files.length }}</span>
         <div class="ml-auto">
           <button @click="fetchFiles" class="text-sm rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-colors duration-150 px-2.5 py-1">⟳ {{ t('agentOutput.refresh') }}</button>
         </div>
@@ -22,7 +22,7 @@
     </div>
 
     <div v-else class="flex-1 overflow-y-auto">
-      <div class="mx-auto max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-6 pb-6">
+      <div class="mx-auto max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 px-6 pb-6">
         <div v-for="file in files" :key="file.filename"
           class="border border-border rounded-lg bg-surface p-3 flex flex-col gap-2">
           <div class="text-sm font-sans text-foreground truncate" :title="file.filename">{{ file.filename }}</div>

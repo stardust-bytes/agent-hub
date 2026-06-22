@@ -1,7 +1,7 @@
 <template>
   <BaseModal :model-value="modelValue" :closable="true" max-height="80vh" @update:model-value="$emit('update:modelValue', $event)">
     <template #header>
-      <span class="text-foreground text-sm font-semibold">
+      <span class="text-sm text-foreground font-sans">
         {{ editing ? t('providers.edit') : t('providers.add') }}
       </span>
     </template>
@@ -12,7 +12,7 @@
         <select
           v-model="form.type"
           @change="onTypeChange"
-          class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-sans outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
+          class="w-full bg-surface text-foreground text-sm px-2.5 py-1.5 font-sans outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
         >
           <option value="ollama">Ollama</option>
           <option value="openai">OpenAI</option>
@@ -24,7 +24,7 @@
         <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('providers.form.name') }}</label>
         <input
           v-model="form.name"
-          class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-sans outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
+          class="w-full bg-surface text-foreground text-sm px-2.5 py-1.5 font-sans outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
           autocomplete="off"
         />
       </div>
@@ -32,7 +32,7 @@
         <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('providers.form.baseUrl') }}</label>
         <input
           v-model="form.baseUrl"
-          class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-sans outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
+          class="w-full bg-surface text-foreground text-sm px-2.5 py-1.5 font-sans outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
           placeholder="http://localhost:11434"
           autocomplete="off"
         />
@@ -42,7 +42,7 @@
         <input
           v-model="form.key"
           type="password"
-          class="w-full bg-surface text-foreground text-sm px-2 py-1.5 font-sans outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
+          class="w-full bg-surface text-foreground text-sm px-2.5 py-1.5 font-sans outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
           autocomplete="new-password"
         />
       </div>
@@ -52,12 +52,12 @@
       <div class="flex justify-end gap-2">
         <button
           @click="$emit('update:modelValue', false)"
-          class="px-3 py-1.5 text-sm rounded-lg border border-input bg-surface text-foreground hover:bg-muted transition-colors duration-150"
+          class="text-sm text-muted-foreground font-sans px-3 py-1.5 border border-border rounded-lg transition-colors duration-150 hover:text-foreground"
         >{{ t('providers.form.cancel') }}</button>
         <button
           @click="save"
           :disabled="!form.name.trim() || saving"
-          class="px-3 py-1.5 text-sm rounded-lg text-primary-foreground bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
+          class="text-sm text-primary-foreground font-sans px-3 py-1.5 rounded-lg bg-primary transition-colors duration-150 hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed"
         >{{ t('providers.form.save') }}</button>
       </div>
     </template>

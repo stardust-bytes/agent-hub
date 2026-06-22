@@ -109,6 +109,7 @@
     "delete": "Xóa bộ nhớ",
     "deleteConfirm": "Xóa bộ nhớ này?",
     "empty": "Chưa có bộ nhớ nào",
+    "all": "Tất cả",
     "searchPlaceholder": "Tìm kiếm...",
     "auto_extracted": "[tự động]",
     "type": {
@@ -394,6 +395,9 @@
   "schedules.hint.daily": "Mỗi ngày lúc {time}",
   "schedules.hint.weekdays": "Ngày trong tuần lúc {time}",
   "schedules.hint.weekly": "Thứ {day} lúc {time}",
+  "schedules.status.success": "Thành công",
+  "schedules.status.failed": "Thất bại",
+  "schedules.status.running": "Đang chạy",
 
   "agentOutput": {
     "fetch_failed": "Không tải được kết quả agent",

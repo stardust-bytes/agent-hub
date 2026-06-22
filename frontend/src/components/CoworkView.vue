@@ -30,8 +30,11 @@
         />
         <div v-else class="flex-1 flex items-center justify-center min-h-0">
           <div class="text-center">
-            <div class="text-3xl font-semibold text-foreground mb-1">Agent Hub</div>
-            <div class="text-sm font-sans text-muted-foreground">Code 171305</div>
+            <div class="flex items-center justify-center gap-3 mb-1">
+              <span class="text-3xl font-medium bg-primary/10 text-primary rounded-lg px-2 py-0.5 font-mono">Agent</span>
+              <span class="text-3xl font-semibold text-foreground font-mono">Hub</span>
+            </div>
+            <div class="text-sm text-muted-foreground font-mono">Code 171305 · ready</div>
             <div class="text-sm text-muted-foreground mt-2">{{ t('chat.empty.subtitle') }}</div>
           </div>
         </div>

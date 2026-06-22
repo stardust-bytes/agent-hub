@@ -1,6 +1,21 @@
 <template>
   <div class="flex-1 flex flex-col bg-background overflow-hidden">
-    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full space-y-1">
+    <div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+          <HiUserGroup class="w-4 h-4" />
+        </div>
+        <span class="text-base font-semibold text-foreground">{{ t('agents.header') }}</span>
+        <span v-if="store.profiles.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">{{ store.profiles.length }}</span>
+        <div class="ml-auto">
+          <button @click="startCreate"
+            class="text-sm rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-colors duration-150 px-2.5 py-1">
+            {{ t('agents.add') }}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 pb-6 w-full space-y-1">
       <div v-if="store.error" class="text-danger text-sm font-sans mb-2">{{ t(store.error) }}</div>
 
       <div
@@ -102,18 +117,17 @@
       <template #footer>
         <div class="flex gap-2 justify-end">
           <button type="button" @click="formOpen = false"
-            class="text-sm font-sans text-muted-foreground px-3 py-1.5 hover:text-foreground transition-colors duration-150">
+            class="text-sm text-muted-foreground font-sans px-3 py-1.5 border border-border rounded-lg transition-colors duration-150 hover:text-foreground">
             {{ t('agents.cancel') }}
           </button>
           <button type="submit" form="agentForm"
-            class="text-sm font-sans text-primary px-3 py-1.5 border border-primary/30 hover:bg-primary/10 rounded-lg transition-colors duration-150">
+            class="text-sm text-primary-foreground font-sans px-3 py-1.5 rounded-lg bg-primary transition-colors duration-150 hover:bg-primary/90">
             {{ t('agents.save') }}
           </button>
         </div>
       </template>
+      <ToolPickerModal v-model="pickerOpen" :selected="selectedTools" @confirm="onToolsPicked" />
     </BaseModal>
-
-    <ToolPickerModal v-model="pickerOpen" :selected="selectedTools" @confirm="onToolsPicked" />
 
     <BaseConfirmModal
       v-model="confirmOpen"
@@ -128,6 +142,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
+import { HiUserGroup } from 'vue-icons-plus/hi'
 import ModelSelector from './ModelSelector.vue'
 import BaseModal from './BaseModal.vue'
 import BaseConfirmModal from './BaseConfirmModal.vue'

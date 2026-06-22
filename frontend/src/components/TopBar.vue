@@ -21,7 +21,7 @@
     >
       <HiSearch class="h-4 w-4 shrink-0" />
       <span class="truncate">{{ t('topbar.search') }}</span>
-      <kbd class="ml-auto hidden rounded border border-border px-1.5 py-0.5 font-sans text-xs sm:block">⌘K</kbd>
+      <kbd class="ml-auto hidden rounded-full border border-border px-1.5 py-0.5 font-sans text-xs sm:block">⌘K</kbd>
     </button>
 
     <div class="ml-auto flex items-center gap-1">

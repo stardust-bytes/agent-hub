@@ -1,6 +1,15 @@
 <template>
   <div class="flex-1 flex flex-col bg-background overflow-hidden">
-    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 py-6 w-full">
+    <div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+          <HiAdjustments class="w-4 h-4" />
+        </div>
+        <span class="text-base font-semibold text-foreground">{{ t('tools.header') }}</span>
+        <span v-if="!loading && tools.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">{{ tools.length }}</span>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 pb-6 w-full">
       <div v-if="loading" class="text-muted-foreground text-sm font-sans">{{ t('tools.loading') }}</div>
       <table v-else-if="tools.length" class="w-full border-collapse font-sans text-sm">
         <thead>
@@ -47,6 +56,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { HiAdjustments } from 'vue-icons-plus/hi'
 import ToolConfigModal from './ToolConfigModal.vue'
 import { listTools, toggleTool } from '../api/tools'
 import type { Tool } from '../api/tools'

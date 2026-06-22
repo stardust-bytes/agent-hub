@@ -18,63 +18,81 @@
       </div>
     </div>
 
-    <MemoryView v-if="activeSettingsTab === 'memories'" />
-    <UsageView v-else-if="activeSettingsTab === 'usage'" />
-    <ProvidersView v-else-if="activeSettingsTab === 'providers'" />
-    <AgentsView v-else-if="activeSettingsTab === 'agents'" />
-    <ToolsView v-else-if="activeSettingsTab === 'tools'" />
+    <UsageView v-if="activeSettingsTab === 'usage'" />
     <PermissionView v-else-if="activeSettingsTab === 'permissions'" />
-    <div v-else class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 py-6">
-      <div class="max-w-xl">
-        <div class="border-t border-border pt-4">
-          <div class="text-muted-foreground text-sm font-sans mb-2">{{ t('settings.info') }}</div>
-          <div class="text-sm font-sans text-muted-foreground space-y-1">
-            <div>{{ t('settings.version') }}: 0.10.1</div>
-            <div :class="healthy ? 'text-success' : 'text-danger'">
-              ● {{ healthy ? t('health.ok') : t('health.error') }}
-            </div>
+    <div v-else class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 py-6 space-y-4">
+      <div class="border border-border rounded-lg bg-surface p-4 space-y-3">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+            <HiInformationCircle class="w-3.5 h-3.5" />
+          </div>
+          <span class="text-sm font-semibold text-foreground font-sans">{{ t('settings.info') }}</span>
+        </div>
+        <div class="text-sm font-sans text-muted-foreground space-y-1 pl-8">
+          <div>{{ t('settings.version') }}: <span class="text-foreground">0.10.1</span></div>
+          <div :class="healthy ? 'text-success' : 'text-danger'">
+            ● {{ healthy ? t('health.ok') : t('health.error') }}
           </div>
         </div>
+      </div>
 
-        <div class="border-t border-border pt-4 mt-4">
-          <div class="text-muted-foreground text-sm font-sans mb-2">{{ t('settings.models') }}</div>
-          <div class="space-y-3">
-            <div>
-              <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('settings.embedModel') }}</label>
-              <select v-model="embedModelId" @change="saveSetting('embed_model_id', embedModelId)"
-                class="w-full bg-surface text-foreground text-sm font-sans border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring">
-                <option value="">{{ t('settings.defaultOption') }}</option>
-                <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('settings.summaryModel') }}</label>
-              <select v-model="summaryModelId" @change="saveSetting('summary_model_id', summaryModelId)"
-                class="w-full bg-surface text-foreground text-sm font-sans border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring">
-                <option value="">{{ t('settings.defaultOption') }}</option>
-                <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
-              </select>
-            </div>
-            <div v-if="saved" class="text-success text-sm font-sans">{{ t('settings.saved') }}</div>
-            <div v-if="fetchError" class="text-danger text-sm font-sans mt-2">{{ t('settings.fetchError') }}</div>
+      <div class="border border-border rounded-lg bg-surface p-4 space-y-3">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+            <HiCube class="w-3.5 h-3.5" />
           </div>
+          <span class="text-sm font-semibold text-foreground font-sans">{{ t('settings.models') }}</span>
         </div>
+        <div class="space-y-3 pl-8">
+          <div>
+            <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('settings.embedModel') }}</label>
+            <select v-model="embedModelId" @change="saveSetting('embed_model_id', embedModelId)"
+              class="w-full bg-surface text-foreground text-sm font-sans border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring">
+              <option value="">{{ t('settings.defaultOption') }}</option>
+              <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('settings.summaryModel') }}</label>
+            <select v-model="summaryModelId" @change="saveSetting('summary_model_id', summaryModelId)"
+              class="w-full bg-surface text-foreground text-sm font-sans border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring">
+              <option value="">{{ t('settings.defaultOption') }}</option>
+              <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
+            </select>
+          </div>
+          <div v-if="saved" class="text-success text-sm font-sans">{{ t('settings.saved') }}</div>
+          <div v-if="fetchError" class="text-danger text-sm font-sans mt-2">{{ t('settings.fetchError') }}</div>
+        </div>
+      </div>
 
-        <div class="border-t border-border pt-4 mt-4">
-          <div class="text-muted-foreground text-sm font-sans mb-2">{{ t('agents.header') }}</div>
+      <div class="border border-border rounded-lg bg-surface p-4 space-y-3">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+            <HiUserGroup class="w-3.5 h-3.5" />
+          </div>
+          <span class="text-sm font-semibold text-foreground font-sans">{{ t('agents.header') }}</span>
+        </div>
+        <div class="pl-8">
           <label class="flex items-center gap-2 text-muted-foreground text-sm font-sans cursor-pointer">
             <input type="checkbox" v-model="autoDispatch" @change="saveAutoDispatch" class="accent-blue-600" />
             {{ t('agents.autoDispatch') }}
           </label>
         </div>
+      </div>
 
-        <div class="border-t border-border pt-4 mt-4">
-          <div class="text-muted-foreground text-sm font-sans mb-2">{{ t('settings.mcpServers') }}</div>
+      <div class="border border-border rounded-lg bg-surface p-4 space-y-3">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+            <HiServer class="w-3.5 h-3.5" />
+          </div>
+          <span class="text-sm font-semibold text-foreground font-sans">{{ t('settings.mcpServers') }}</span>
+        </div>
+        <div class="pl-8 space-y-2">
           <div v-if="mcpServers.length === 0" class="text-muted-foreground/50 text-sm font-sans">
             {{ t('settings.noMcpServers') }}
           </div>
           <div v-for="server in mcpServers" :key="server.id"
-            class="flex items-center justify-between py-1.5 px-2 bg-surface border border-border rounded-lg mb-1">
+            class="flex items-center justify-between py-1.5 px-2 bg-muted border border-border rounded-lg">
             <div>
               <div class="text-foreground text-sm font-sans">{{ server.name }}</div>
               <div class="text-muted-foreground/50 text-xs font-sans">{{ server.type }} &middot; {{ server.id }}</div>
@@ -92,24 +110,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { HiCog } from 'vue-icons-plus/hi'
+import { HiCog, HiInformationCircle, HiCube, HiUserGroup, HiServer } from 'vue-icons-plus/hi'
 import { storeToRefs } from 'pinia'
-import MemoryView from './MemoryView.vue'
 import PermissionView from './PermissionView.vue'
 import UsageView from './UsageView.vue'
-import ProvidersView from './ProvidersView.vue'
-import ToolsView from './ToolsView.vue'
-import AgentsView from './AgentsView.vue'
 import { getHealth } from '../api/health'
 import { listSettings, updateSetting } from '../api/settings'
 import { useProvidersStore } from '../stores/providers'
 
 const TABS = [
-  { key: 'providers', labelKey: 'providers.header' },
-  { key: 'agents', labelKey: 'agents.header' },
-  { key: 'tools', labelKey: 'tools.header' },
+  { key: 'general', labelKey: 'nav.settings' },
   { key: 'usage', labelKey: 'usage.header' },
-  { key: 'memories', labelKey: 'memory.title' },
   { key: 'permissions', labelKey: 'permissions.header' },
 ]
 

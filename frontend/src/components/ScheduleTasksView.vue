@@ -6,7 +6,7 @@
           <HiClock class="w-4 h-4" />
         </div>
         <span class="text-base font-semibold text-foreground">{{ t('schedules.header') }}</span>
-        <span v-if="tasks.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded px-1.5 py-0.5">{{ tasks.length }} {{ t('schedules.active') }}</span>
+        <span v-if="tasks.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">{{ tasks.length }} {{ t('schedules.active') }}</span>
         <div class="ml-auto">
           <button @click="openAddForm"
             class="text-sm rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-colors duration-150 px-2.5 py-1">
@@ -21,7 +21,7 @@
         <div class="text-sm text-muted-foreground font-sans">{{ t('schedules.empty') }}</div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
   <div v-for="task in tasks" :key="task.id"
     class="border border-border rounded-lg bg-surface p-3 cursor-pointer hover:border-input hover:shadow-sm transition-colors duration-150 flex flex-col"
     @click="router.push(`/tasks/${task.id}`)">
@@ -31,19 +31,20 @@
       <div class="text-sm text-foreground font-sans truncate flex-1">{{ task.name }}</div>
     </div>
     <div class="text-sm text-muted-foreground font-sans mb-2 flex items-center gap-1">
-            <span class="px-1 border border-border text-xs"
+            <span class="px-1.5 rounded-full border border-border text-xs"
               :class="frequencyClass(task.frequency)">{{ t(`schedules.frequency.${task.frequency}`) }}</span>
             <span>{{ scheduleTime(task) }}</span>
           </div>
-          <div class="text-sm font-sans mb-3">
-            <span v-if="task.logs?.[0]"
-              :class="task.logs[0].status === 'SUCCESS' ? 'text-success' : task.logs[0].status === 'FAILED' ? 'text-danger' : 'text-warning'">
-              {{ task.logs[0].status }}
-            </span>
-            <span v-else class="text-muted-foreground">—</span>
+          <div class="text-sm text-muted-foreground/70 font-sans line-clamp-2 mb-2">{{ task.prompt }}</div>
+          <div class="mb-3">
+            <span v-if="task.logs?.[0]" class="text-xs font-sans rounded-full px-1.5 py-0.5"
+              :class="statusBadgeClass(task.logs[0].status)">{{ statusLabel(task.logs[0].status) }}</span>
+            <span v-else class="text-xs text-muted-foreground">—</span>
           </div>
           <div class="flex gap-1 mt-auto justify-end" @click.stop>
-            <button @click="runNow(task.id)" class="text-sm text-primary font-sans px-2.5 py-1 rounded-lg border border-primary/30 transition-colors duration-150 hover:bg-primary/10">{{ t('schedules.runNow') }}</button>
+            <button @click="runNow(task.id)" :disabled="runningId === task.id"
+              class="text-sm font-sans px-2.5 py-1 rounded-lg border border-primary/30 transition-colors duration-150"
+              :class="runningId === task.id ? 'text-primary/50 cursor-not-allowed' : 'text-primary hover:bg-primary/10'">{{ runningId === task.id ? '⟳' : t('schedules.runNow') }}</button>
             <button @click="editTask(task)" class="text-sm text-muted-foreground font-sans px-2.5 py-1 rounded-lg border border-input transition-colors duration-150 hover:bg-muted hover:text-primary">{{ t('schedules.edit') }}</button>
             <button @click="confirmDelete(task)" class="text-sm px-1.5 py-0.5 font-sans text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">{{ t('schedules.delete') }}</button>
           </div>
@@ -180,6 +181,7 @@ const showConfirm = ref(false)
 const editingTask = ref<ScheduleTask | null>(null)
 const expandedLogs = ref<number | null>(null)
 const deletingTask = ref<ScheduleTask | null>(null)
+const runningId = ref<number | null>(null)
 
 const form = ref({
   name: '',
@@ -235,6 +237,17 @@ const scheduleDesc = computed(() => {
   }
   return ''
 })
+
+function statusBadgeClass(status: string): string {
+  if (status === 'SUCCESS') return 'bg-success/10 text-success'
+  if (status === 'FAILED') return 'bg-danger/10 text-danger'
+  return 'bg-warning/10 text-warning'
+}
+
+function statusLabel(status: string): string {
+  const key = status === 'SUCCESS' ? 'schedules.status.success' : status === 'FAILED' ? 'schedules.status.failed' : 'schedules.status.running'
+  return t(key)
+}
 
 function frequencyClass(f: string) {
   if (f === 'manual') return 'text-muted-foreground'
@@ -319,10 +332,12 @@ async function saveTask() {
 }
 
 async function runNow(id: number) {
+  runningId.value = id
   try {
     await api.runTask(id)
     tasks.value = await api.listTasks()
   } catch { /* ignore */ }
+  runningId.value = null
 }
 
 function confirmDelete(task: ScheduleTask) {

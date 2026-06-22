@@ -6,17 +6,17 @@
     max-height="90vh"
   >
     <template #header>
-      <span class="text-sm text-foreground font-semibold">{{ editingId ? t('notes.edit') : t('notes.add') }}</span>
+      <span class="text-sm text-foreground font-sans">{{ editingId ? t('notes.edit') : t('notes.add') }}</span>
     </template>
-    <div class="p-4 flex flex-col gap-3 bg-surface">
+    <div class="p-3 space-y-3">
       <input
         v-model="title"
-        class="w-full bg-surface text-foreground text-sm font-semibold rounded-lg border border-input outline-none px-3 py-2 placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-ring"
+        class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"
         :placeholder="t('notes.form.title')"
       />
       <textarea
         v-model="content"
-        class="flex-1 w-full bg-surface text-foreground text-sm font-sans rounded-lg border border-input outline-none p-3 resize-none placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-ring"
+        class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring resize-none"
         style="min-height:30vh"
         :placeholder="t('notes.form.content')"
       />
@@ -25,11 +25,11 @@
       <div class="flex justify-end gap-2">
         <button
           @click="cancel"
-          class="text-sm text-foreground px-3 py-1.5 rounded-lg border border-input bg-surface hover:bg-muted transition-colors duration-150"
+          class="text-sm text-muted-foreground font-sans px-3 py-1.5 border border-border rounded-lg transition-colors duration-150 hover:text-foreground"
         >{{ t('notes.form.cancel') }}</button>
         <button
           @click="save"
-          class="text-sm text-primary-foreground px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 transition-colors duration-150"
+          class="text-sm text-primary-foreground font-sans px-3 py-1.5 rounded-lg bg-primary transition-colors duration-150 hover:bg-primary/90"
         >{{ t('notes.form.save') }}</button>
       </div>
     </template>

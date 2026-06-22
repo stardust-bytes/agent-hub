@@ -6,6 +6,10 @@ import ConnectorsView from '../components/ConnectorsView.vue'
 import OAuthCallbackPage from '../components/OAuthCallbackPage.vue'
 import AgentOutputView from '../components/AgentOutputView.vue'
 import SettingsView from '../components/SettingsView.vue'
+import ProvidersView from '../components/ProvidersView.vue'
+import AgentsView from '../components/AgentsView.vue'
+import ToolsView from '../components/ToolsView.vue'
+import MemoryView from '../components/MemoryView.vue'
 
 import ScheduleTaskDetailView from '../components/ScheduleTaskDetailView.vue'
 
@@ -18,6 +22,10 @@ const routes: RouteRecordRaw[] = [
   { path: '/connectors', name: 'connectors', component: ConnectorsView },
   { path: '/agent-output', name: 'agent-output', component: AgentOutputView },
   { path: '/oauth/callback', name: 'oauth-callback', component: OAuthCallbackPage },
+  { path: '/providers', name: 'providers', component: ProvidersView },
+  { path: '/agents', name: 'agents', component: AgentsView },
+  { path: '/tools', name: 'tools', component: ToolsView },
+  { path: '/memories', name: 'memories', component: MemoryView },
   { path: '/settings', redirect: '/settings/general' },
   { path: '/settings/:tab', name: 'settings', component: SettingsView, props: true },
   { path: '/:pathMatch(.*)*', redirect: '/cowork' },
