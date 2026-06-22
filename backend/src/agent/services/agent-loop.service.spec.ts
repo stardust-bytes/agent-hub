@@ -617,4 +617,123 @@ describe('AgentLoopService', () => {
       expect(writeCalls[writeCalls.length - 1]).toBe('data: [DONE]\n\n');
     });
   });
+
+  describe('Stop / Abort signal', () => {
+    async function* slowGen<T>(items: T[], delayMs: number): AsyncGenerator<T> {
+      for (const item of items) {
+        await new Promise(r => setTimeout(r, delayMs));
+        yield item;
+      }
+    }
+
+    it('stops the loop when aborted between iterations — LLM not called again', async () => {
+      const toolCall: StreamChunk = {
+        type: 'tool_call',
+        toolCall: { name: 'web_search', arguments: { q: 'test' } },
+      };
+      llmController.stream = buildStreamMock(
+        [toolCall, DONE],
+        [{ type: 'token', token: 'should not happen' }, DONE],
+      );
+      permissionsService.decide.mockImplementation(() =>
+        new Promise(r => setTimeout(() => r({ action: 'allow' }), 50)),
+      );
+      (webSearch.execute as jest.Mock).mockResolvedValue('result');
+
+      const ctrl = new AbortController();
+      const res = mockRes();
+
+      const promise = service.run(
+        'ollama', 'llama3', 'You are helpful', [], 'test',
+        defaultTools, res, ctrl.signal, undefined,
+      );
+
+      await new Promise(r => setTimeout(r, 10));
+      ctrl.abort();
+
+      await promise;
+      expect(llmController.stream).toHaveBeenCalledTimes(1);
+      expect(webSearch.execute).not.toHaveBeenCalled();
+      expect(res.write).not.toHaveBeenCalledWith('data: [DONE]\n\n');
+    });
+
+    it('prevents tool execution when aborted before first tool', async () => {
+      const toolCall: StreamChunk = {
+        type: 'tool_call',
+        toolCall: { name: 'web_search', arguments: { q: 'secret' } },
+      };
+      llmController.stream = buildStreamMock(
+        [toolCall, DONE],
+        [{ type: 'token', token: 'I cannot search' }, DONE],
+      );
+      (webSearch.execute as jest.Mock).mockResolvedValue('SHOULD NOT RUN');
+
+      const ctrl = new AbortController();
+      ctrl.abort();
+      const res = mockRes();
+
+      await service.run(
+        'ollama', 'llama3', 'You are helpful', [], 'test',
+        defaultTools, res, ctrl.signal, undefined,
+      );
+
+      expect(webSearch.execute).not.toHaveBeenCalled();
+      expect(llmController.stream).toHaveBeenCalledTimes(0);
+      expect(res.write).not.toHaveBeenCalledWith('data: [DONE]\n\n');
+    });
+
+    it('enforces MAX_MAIN_ITERATIONS and emits limit message', async () => {
+      const toolCall: StreamChunk = {
+        type: 'tool_call',
+        toolCall: { name: 'web_search', arguments: { q: 'loop' } },
+      };
+      const responses: StreamChunk[][] = [];
+      for (let i = 0; i < 52; i++) {
+        responses.push([toolCall, DONE]);
+      }
+      llmController.stream = buildStreamMock(...responses);
+      (webSearch.execute as jest.Mock).mockResolvedValue('ok');
+
+      const res = mockRes();
+      const signal = new AbortController().signal;
+      const result = await service.run(
+        'ollama', 'llama3', 'You are helpful', [], 'loop',
+        defaultTools, res, signal, 1,
+      );
+
+      expect(llmController.stream).toHaveBeenCalledTimes(50);
+      expect(result).toContain('maximum number of iterations');
+      expect(res.write).toHaveBeenCalledWith('data: [DONE]\n\n');
+    });
+
+    it('stops subagent spawn when signal is aborted during resolveProfile', async () => {
+      const toolCall: StreamChunk = {
+        type: 'tool_call',
+        toolCall: { name: 'spawn_subagent', arguments: { task: 'do work', profile: 'researcher' } },
+      };
+      llmController.stream = buildStreamMock(
+        [toolCall, DONE],
+        [{ type: 'token', token: 'Done' }, DONE],
+      );
+      agentProfilesService.findBySlug.mockImplementation(() =>
+        new Promise(r => setTimeout(() => r({
+          slug: 'researcher', enabled: true, systemPrompt: 'You research.', allowedTools: '["web_search"]',
+        }), 50)),
+      );
+
+      const ctrl = new AbortController();
+      const res = mockRes();
+
+      const promise = service.run(
+        'ollama', 'llama3', 'You are helpful', [], 'spawn',
+        defaultTools, res, ctrl.signal, 1,
+      );
+
+      await new Promise(r => setTimeout(r, 10));
+      ctrl.abort();
+
+      await promise;
+      expect(subagentService.spawn).not.toHaveBeenCalled();
+    });
+  });
 });
