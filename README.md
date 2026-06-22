@@ -17,7 +17,11 @@
 </p>
 
 <p align="center">
-  <img src="./media/app-screenshot.png" alt="Agent Hub" width="100%" />
+  <img src="./media/screenshot-01.png" alt="Agent Hub - Chat" width="49%" />
+  <img src="./media/screenshot-02.png" alt="Agent Hub - Tasks" width="49%" />
+  <br />
+  <img src="./media/screenshot-03.png" alt="Agent Hub - Providers" width="49%" />
+  <img src="./media/screenshot-04.png" alt="Agent Hub - Memory" width="49%" />
 </p>
 
 ---
