@@ -423,13 +423,74 @@
         <code><span class="prompt">$</span> npx @stardust-bytes/agent-hub</code>
       </div>
       <p style="font-size:12px;color:#888888;margin-bottom:24px;">
-        or clone the repo and run with Docker:
+        or run with Docker:
       </p>
       <div class="code-block">
-        <button class="copy-btn" onclick="navigator.clipboard.writeText('git clone https://github.com/stardust-bytes/agent-hub.git && cd agent-hub && docker compose up');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('docker compose up --build');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
         <code><span class="prompt">$</span> git clone https://github.com/stardust-bytes/agent-hub.git<br />
         <span class="prompt">$</span> cd agent-hub<br />
-        <span class="prompt">$</span> docker compose up</code>
+        <span class="prompt">$</span> docker compose up --build</code>
+      </div>
+      <div style="margin-top:40px;border-top:1px solid #30363d;padding-top:40px;">
+        <p style="font-size:12px;color:#888888;margin-bottom:16px;">or use it globally:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('npm install -g @stardust-bytes/agent-hub');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+          <code><span class="prompt">$</span> npm install -g @stardust-bytes/agent-hub</code>
+        </div>
+        <p style="font-size:12px;color:#888888;margin-bottom:8px;margin-top:24px;">CLI commands:</p>
+        <div style="background:#0d1117;border:1px solid #30363d;border-radius:4px;padding:16px 20px;text-align:left;font-size:12px;">
+          <table style="width:100%;border-collapse:collapse;font-family:inherit;">
+            <tr style="border-bottom:1px solid #30363d;">
+              <th style="padding:8px 12px;text-align:left;color:#888888;font-weight:500;">Command</th>
+              <th style="padding:8px 12px;text-align:left;color:#888888;font-weight:500;">Description</th>
+            </tr>
+            <tr style="border-bottom:1px solid #222;">
+              <td style="padding:8px 12px;color:#22C55E;">agent-hub studio</td>
+              <td style="padding:8px 12px;color:#e6edf3;">Start server + dashboard, opens browser</td>
+            </tr>
+            <tr style="border-bottom:1px solid #222;">
+              <td style="padding:8px 12px;color:#22C55E;">agent-hub studio --no-browser</td>
+              <td style="padding:8px 12px;color:#e6edf3;">Start server without opening browser</td>
+            </tr>
+            <tr style="border-bottom:1px solid #222;">
+              <td style="padding:8px 12px;color:#22C55E;">agent-hub init</td>
+              <td style="padding:8px 12px;color:#e6edf3;">One-time setup (data dir, .env, database, seed)</td>
+            </tr>
+            <tr style="border-bottom:1px solid #222;">
+              <td style="padding:8px 12px;color:#22C55E;">agent-hub migrate</td>
+              <td style="padding:8px 12px;color:#e6edf3;">Apply pending DB migrations (safe update)</td>
+            </tr>
+            <tr style="border-bottom:1px solid #222;">
+              <td style="padding:8px 12px;color:#22C55E;">agent-hub auto-start enable</td>
+              <td style="padding:8px 12px;color:#e6edf3;">Register Windows auto-start (hidden, no cmd window)</td>
+            </tr>
+            <tr style="border-bottom:1px solid #222;">
+              <td style="padding:8px 12px;color:#22C55E;">agent-hub auto-start disable</td>
+              <td style="padding:8px 12px;color:#e6edf3;">Remove Windows auto-start</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 12px;color:#22C55E;">agent-hub --help</td>
+              <td style="padding:8px 12px;color:#e6edf3;">Show help</td>
+            </tr>
+          </table>
+        </div>
+        <p style="font-size:11px;color:#888888;margin-top:16px;">&#x1F6A9; Use <code style="color:#e6edf3;">--data-dir &lt;path&gt;</code> or <code style="color:#e6edf3;">AGENT_HUB_DATA_DIR</code> to override the data directory.</p>
+        <p style="font-size:12px;color:#888888;margin-top:16px;">or clone the repo and develop locally:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('cd backend && npm install && npm run setup && npm run start:dev');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+          <code><span class="comment"># Terminal 1 — Backend</span><br />
+          <span class="prompt">$</span> cd backend<br />
+          <span class="prompt">$</span> npm install<br />
+          <span class="prompt">$</span> npm run setup<br />
+          <span class="prompt">$</span> npm run start:dev</code>
+        </div>
+        <div class="code-block">
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('cd frontend && npm install && npm run dev');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+          <code><span class="comment"># Terminal 2 — Frontend</span><br />
+          <span class="prompt">$</span> cd frontend<br />
+          <span class="prompt">$</span> npm install<br />
+          <span class="prompt">$</span> npm run dev</code>
+        </div>
       </div>
       <div style="margin-top:32px;">
         <a href="https://github.com/stardust-bytes/agent-hub" class="btn btn-gh" target="_blank">View on GitHub</a>
