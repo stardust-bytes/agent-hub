@@ -1,41 +1,53 @@
 <template>
-  <div class="flex flex-col bg-cyber-bg min-w-0 h-full">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-cyber-code-border shrink-0 bg-cyber-dark">
-      <button @click="router.push('/tasks')" class="flex items-center gap-1 text-sm text-cyber-muted font-mono hover:text-cyber-accent transition-colors duration-150"><HiArrowLeft class="w-3 h-3" /> {{ t('schedules.detail.back') }}</button>
-      <span class="text-sm text-cyber-accent font-mono ml-2 truncate">{{ task?.name || t('schedules.detail.loading') }}</span>
-      <div class="ml-auto flex gap-1">
-        <button @click="runNow(task!.id)" class="text-sm text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/30 transition-colors duration-150 hover:bg-cyber-accent/10">{{ t('schedules.runNow') }}</button>
+  <div class="flex flex-col bg-background min-w-0 h-full">
+    <div class="mx-auto max-w-5xl w-full px-6 pt-4 pb-4">
+      <div class="flex items-center gap-1 text-xs font-sans text-muted-foreground mb-2">
+        <button @click="router.push('/tasks')" class="hover:text-primary transition-colors">{{ t('schedules.header') }}</button>
+        <span class="text-input">/</span>
+        <span class="text-foreground truncate">{{ task?.name || t('schedules.detail.loading') }}</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+          <HiPlay class="w-4 h-4" />
+        </div>
+        <span class="text-lg font-bold text-foreground tracking-tight truncate">{{ task?.name || t('schedules.detail.loading') }}</span>
+        <span v-if="logs.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">{{ logs.length }} runs</span>
+        <div class="ml-auto flex gap-2">
+          <button @click="runNow(task!.id)" :disabled="running"
+            class="text-sm font-medium rounded-lg transition-colors duration-150 px-2.5 py-1"
+            :class="running ? 'bg-primary/50 text-primary-foreground/70 cursor-not-allowed' : 'bg-primary text-primary-foreground hover:bg-primary/90'">{{ running ? '⟳' : t('schedules.runNow') }}</button>
+        </div>
       </div>
     </div>
 
-    <div class="flex-1 overflow-y-auto px-3 py-3 space-y-4">
-      <div class="border border-cyber-code-border bg-cyber-dark p-3">
-        <div class="grid grid-cols-2 gap-3 text-sm font-mono">
-          <div><span class="text-cyber-muted">{{ t('schedules.form.name') }}:</span> <span class="text-cyber-text">{{ task?.name }}</span></div>
-          <div><span class="text-cyber-muted">{{ t('schedules.form.description') }}:</span> <span class="text-cyber-text">{{ task?.description || '&mdash;' }}</span></div>
-          <div><span class="text-cyber-muted">{{ t('schedules.frequency') }}:</span> <span class="text-cyber-text">{{ task ? t(`schedules.frequency.${task.frequency}`) : '' }} {{ scheduleTime(task) }}</span></div>
-          <div><span class="text-cyber-muted">{{ t('schedules.model') }}:</span> <span class="text-cyber-text">{{ task?.modelId || '&mdash;' }}</span></div>
-          <div><span class="text-cyber-muted">{{ t('schedules.form.projectPath') }}:</span> <span class="text-cyber-text">{{ task?.projectPath || '&mdash;' }}</span></div>
-          <div><span class="text-cyber-muted">{{ t('schedules.timezone') }}:</span> <span class="text-cyber-text">{{ task?.timezone || 'UTC' }}</span></div>
-          <div class="col-span-2"><span class="text-cyber-muted">{{ t('schedules.form.prompt') }}:</span></div>
-          <div class="col-span-2 text-cyber-text bg-cyber-code-bg p-2 whitespace-pre-wrap text-sm font-mono">{{ task?.prompt }}</div>
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 pb-6 space-y-4">
+      <div class="border border-border rounded-lg bg-surface p-3">
+        <div class="grid grid-cols-2 gap-3 text-sm font-sans">
+          <div><span class="text-muted-foreground">{{ t('schedules.form.name') }}:</span> <span class="text-foreground">{{ task?.name }}</span></div>
+          <div><span class="text-muted-foreground">{{ t('schedules.form.description') }}:</span> <span class="text-foreground">{{ task?.description || '&mdash;' }}</span></div>
+          <div><span class="text-muted-foreground">{{ t('schedules.frequency') }}:</span> <span class="text-foreground">{{ task ? t(`schedules.frequency.${task.frequency}`) : '' }} {{ scheduleTime(task) }}</span></div>
+          <div><span class="text-muted-foreground">{{ t('schedules.model') }}:</span> <span class="text-foreground">{{ modelLabel(task?.modelId ?? null) }}</span></div>
+          <div><span class="text-muted-foreground">{{ t('schedules.form.projectPath') }}:</span> <span class="text-foreground">{{ task?.projectPath || '&mdash;' }}</span></div>
+          <div><span class="text-muted-foreground">{{ t('schedules.timezone') }}:</span> <span class="text-foreground">{{ task?.timezone || 'UTC' }}</span></div>
+          <div class="col-span-2"><span class="text-muted-foreground">{{ t('schedules.form.prompt') }}:</span></div>
+          <div class="col-span-2 text-foreground bg-muted rounded-lg p-2 whitespace-pre-wrap text-sm font-sans">{{ task?.prompt }}</div>
         </div>
       </div>
 
-      <div class="border border-cyber-code-border bg-cyber-dark">
-        <div class="px-3 py-2 border-b border-cyber-code-border">
-          <span class="text-sm text-cyber-accent font-mono">{{ t('schedules.logs.header') }}</span>
+      <div class="border border-border rounded-lg bg-surface overflow-hidden">
+        <div class="px-3 py-2 border-b border-border">
+          <span class="text-sm text-foreground font-semibold">{{ t('schedules.logs.header') }}</span>
         </div>
-        <div v-if="logs.length === 0" class="px-3 py-4 text-sm text-cyber-muted font-mono text-center">{{ t('schedules.logs.empty') }}</div>
+        <div v-if="logs.length === 0" class="px-3 py-4 text-sm text-muted-foreground font-sans text-center">{{ t('schedules.logs.empty') }}</div>
         <div v-for="log in logs" :key="log.id" @click="expandedLog = expandedLog === log.id ? null : log.id"
-          class="px-3 py-2 border-b border-cyber-code-border last:border-0 cursor-pointer hover:bg-cyber-bg/30 transition-colors duration-150">
-          <div class="flex items-center gap-3 text-sm font-mono">
-            <span class="text-cyber-muted shrink-0">{{ log.createdAt ? new Date(log.createdAt).toLocaleString('vi-VN') : '' }}</span>
-            <span class="shrink-0" :class="log.status === 'SUCCESS' ? 'text-cyber-green' : log.status === 'FAILED' ? 'text-red-400' : 'text-cyber-orange'">{{ log.status }}</span>
-            <span v-if="log.startedAt && log.completedAt" class="text-cyber-muted shrink-0">{{ Math.round((new Date(log.completedAt).getTime() - new Date(log.startedAt).getTime()) / 1000) }}s</span>
-            <span v-if="log.sessionId" class="text-cyber-accent/60 shrink-0">#{{ log.sessionId }}</span>
+          class="px-3 py-2 border-b border-border last:border-0 cursor-pointer hover:bg-muted/30 transition-colors duration-150">
+          <div class="flex items-center gap-3 text-sm font-sans">
+            <span class="text-muted-foreground shrink-0">{{ log.createdAt ? new Date(log.createdAt).toLocaleString('vi-VN') : '' }}</span>
+            <span class="text-xs font-sans rounded-full px-1.5 py-0.5 shrink-0" :class="statusBadgeClass(log.status)">{{ statusLabel(log.status) }}</span>
+            <span v-if="log.startedAt && log.completedAt" class="text-muted-foreground shrink-0">{{ Math.round((new Date(log.completedAt).getTime() - new Date(log.startedAt).getTime()) / 1000) }}s</span>
+            <span v-if="log.sessionId" class="text-primary/60 shrink-0">#{{ log.sessionId }}</span>
           </div>
-          <div v-if="expandedLog === log.id && log.output" class="mt-2 text-sm text-cyber-text font-mono whitespace-pre-wrap bg-cyber-code-bg p-2 break-all">{{ log.output }}</div>
+          <div v-if="expandedLog === log.id && log.output" class="mt-2 text-sm text-foreground font-sans whitespace-pre-wrap bg-muted rounded-lg p-2 break-all">{{ log.output }}</div>
         </div>
       </div>
     </div>
@@ -46,9 +58,11 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { HiArrowLeft, HiPlay } from 'vue-icons-plus/hi'
+import { storeToRefs } from 'pinia'
+import { HiPlay } from 'vue-icons-plus/hi'
 import * as api from '../api/scheduleTasks'
 import type { ScheduleTask, ScheduleTaskLog } from '../api/scheduleTasks'
+import { useProvidersStore } from '../stores/providers'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -57,8 +71,29 @@ const { t } = useI18n()
 const task = ref<ScheduleTask | null>(null)
 const logs = ref<ScheduleTaskLog[]>([])
 const expandedLog = ref<number | null>(null)
+const running = ref(false)
+
+const providersStore = useProvidersStore()
+const { models } = storeToRefs(providersStore)
+
+function modelLabel(modelId: number | null): string {
+  if (!modelId) return '—'
+  const m = models.value.find(m => m.id === modelId)
+  return m ? `${m.providerName} / ${m.name}` : String(modelId)
+}
 
 const DAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+
+function statusBadgeClass(status: string): string {
+  if (status === 'SUCCESS') return 'bg-success/10 text-success'
+  if (status === 'FAILED') return 'bg-danger/10 text-danger'
+  return 'bg-warning/10 text-warning'
+}
+
+function statusLabel(status: string): string {
+  const key = status === 'SUCCESS' ? 'schedules.status.success' : status === 'FAILED' ? 'schedules.status.failed' : 'schedules.status.running'
+  return t(key)
+}
 
 function scheduleTime(t: ScheduleTask | null): string {
   if (!t) return ''
@@ -84,12 +119,19 @@ onMounted(async () => {
   try {
     logs.value = await api.getTaskLogs(Number(props.id))
   } catch { /* ignore */ }
+  try {
+    await providersStore.loadModels()
+  } catch { /* ignore */ }
 })
 
 async function runNow(id: number) {
+  running.value = true
   try {
     await api.runTask(id)
+    const tasks = await api.listTasks()
+    task.value = tasks.find((t: ScheduleTask) => t.id === Number(props.id)) ?? null
     logs.value = await api.getTaskLogs(Number(props.id))
   } catch { /* ignore */ }
+  running.value = false
 }
 </script>

@@ -1,26 +1,33 @@
 <template>
-  <div class="flex flex-col bg-cyber-bg min-w-0 h-full">
-    <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-cyber-code-border shrink-0 bg-cyber-dark">
-      <HiDocumentText class="w-3 h-3 text-cyber-accent" />
-      <span class="text-sm text-cyber-accent font-mono">{{ t('notes.header') }}</span>
-      <button @click="openAdd"
-        class="ml-auto text-sm text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/30 transition-colors duration-150 hover:bg-cyber-accent/10">
-        {{ t('notes.add') }}
-      </button>
+  <div class="flex flex-col bg-background min-w-0 h-full">
+    <div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+          <HiDocumentText class="w-4 h-4" />
+        </div>
+        <span class="text-base font-semibold text-foreground">{{ t('notes.header') }}</span>
+        <span v-if="notes.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">{{ notes.length }}</span>
+        <div class="ml-auto">
+          <button @click="openAdd"
+            class="text-sm rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-colors duration-150 px-2.5 py-1">
+            {{ t('notes.add') }}
+          </button>
+        </div>
+      </div>
     </div>
 
-    <div class="flex-1 overflow-y-auto">
-      <div v-if="notes.length === 0" class="flex items-center justify-center h-full text-sm font-mono text-cyber-muted">{{ t('notes.empty') }}</div>
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 pb-6">
+      <div v-if="notes.length === 0" class="flex items-center justify-center h-full text-sm font-sans text-muted-foreground">{{ t('notes.empty') }}</div>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-3">
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
         <div v-for="note in notes" :key="note.id"
-          class="border border-cyber-code-border bg-cyber-dark p-3 flex flex-col gap-2">
-          <div class="text-sm font-mono text-cyber-text font-semibold truncate">{{ note.title }}</div>
-          <div class="text-sm font-mono text-cyber-muted line-clamp-2">{{ note.content }}</div>
-          <div class="text-sm font-mono text-cyber-muted/50">{{ new Date(note.updatedAt).toLocaleTimeString('vi-VN', { hour12: false }) }}</div>
+          class="border border-border rounded-lg bg-surface p-3 flex flex-col gap-2 hover:shadow-sm transition-shadow duration-150">
+          <div class="text-sm text-foreground font-semibold truncate">{{ note.title }}</div>
+          <div class="text-sm text-muted-foreground line-clamp-2">{{ note.content }}</div>
+          <div class="text-xs font-sans text-muted-foreground">{{ new Date(note.updatedAt).toLocaleTimeString('vi-VN', { hour12: false }) }}</div>
           <div class="flex justify-end gap-1 mt-auto pt-1">
-            <button @click="openEdit(note)" class="text-sm px-1.5 py-0.5 font-mono text-cyber-accent border border-cyber-accent/50 hover:bg-cyber-accent/10 transition-colors duration-150">{{ t('notes.edit') }}</button>
-            <button @click="deleteNote(note.id)" class="text-sm px-1.5 py-0.5 font-mono text-red-400 border border-red-400/50 hover:bg-red-400/10 transition-colors duration-150">{{ t('notes.delete') }}</button>
+            <button @click="openEdit(note)" class="text-sm px-2.5 py-1 rounded-lg text-primary border border-primary/30 hover:bg-primary/10 transition-colors duration-150">{{ t('notes.edit') }}</button>
+            <button @click="deleteNote(note.id)" class="text-sm px-2.5 py-1 text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">{{ t('notes.delete') }}</button>
           </div>
         </div>
       </div>

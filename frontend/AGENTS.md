@@ -14,7 +14,7 @@ Single-page application with a multi-panel IDE layout: icon sidebar + content pa
 |---|---|
 | Framework | Vue 3 (Composition API, `<script setup>`) |
 | Build | Vite |
-| Styling | TailwindCSS — custom `cyber-*` color tokens + `.markdown-body` CSS |
+| Styling | TailwindCSS (default palette, GitHub-light) + Headless UI (`@headlessui/vue`) + `.markdown-body` CSS |
 | i18n | vue-i18n v9 (`legacy: false`, Composition API mode) |
 | Type safety | TypeScript strict |
 | Sanitization | DOMPurify — required on every `v-html` binding |
@@ -27,32 +27,32 @@ Single-page application with a multi-panel IDE layout: icon sidebar + content pa
 
 ---
 
-## Color Tokens (tailwind.config.ts)
+## Theme: Semantic Tokens (Mintlify-style)
 
-| Token | Hex / Value | Usage |
-|---|---|---|
-| `cyber-bg` | `#000000` | Page background |
-| `cyber-dark` | `#111111` | Panel backgrounds, cards |
-| `cyber-status` | `#161616` | Status bar |
-| `cyber-modal-bg` | `#0a0e1a` | Modal backgrounds |
-| `cyber-accent` | `#3B82F6` | Primary accent (blue), borders, interactive elements |
-| `cyber-green` | `#22C55E` | Success, connected state |
-| `cyber-blue` | `#3B82F6` | Alias for accent |
-| `cyber-muted` | `#888888` | Dimmed/secondary text |
-| `cyber-text` | `#EEEEEE` | Primary text |
-| `cyber-orange` | `#FFA500` | Warning, processing state |
-| `cyber-cyan` | `#00d4ff` | Secondary accent, headings |
-| `cyber-link` | `#58a6ff` | Links |
-| `cyber-code-bg` | `#0d1117` | Code block background |
-| `cyber-code-border` | `#30363d` | Code block borders |
-| `cyber-code-text` | `#e6edf3` | Code text |
-| `cyber-row` | `#161b22` | Table rows |
+Theming uses CSS variable semantic tokens defined in `main.css` (`:root` / `.dark`) and mapped to Tailwind via `rgb(var(--name) / <alpha-value>)`. Components use semantic utility classes only — no raw hex or Tailwind color literals. `darkMode: 'class'` toggles `.dark` on `<html>`. Interactive primitives are built on **Headless UI** (`@headlessui/vue`).
 
-**Font:** `font-mono` everywhere. Stack: JetBrains Mono → Fira Code → Courier New (via Google Fonts).
+| Token | Light value | Dark value | Usage |
+|---|---|---|---|
+| `background` | `255 255 255` | `15 17 23` | View background |
+| `surface` | `255 255 255` | `22 27 34` | Panels, cards, headers, sidebar, modals |
+| `muted` | `249 250 251` | `26 32 40` | Hover rows, code/terminal, inset fills |
+| `elevated` | `255 255 255` | `30 37 46` | Modals, dropdowns, popovers |
+| `border` | `229 231 235` | `34 43 54` | Panel/section dividers |
+| `input` | `209 213 219` | `48 58 70` | Inputs, selects, secondary buttons |
+| `ring` | `59 130 246` | `59 130 246` | Input focus ring |
+| `foreground` | `17 24 39` | `230 237 243` | Primary/code text |
+| `muted-foreground` | `107 114 128` | `139 148 158` | Secondary/muted/meta text |
+| `primary` | `37 99 235` | `59 130 246` | Links, active state, primary buttons |
+| `primary-foreground` | `255 255 255` | `255 255 255` | Primary button label |
+| `success` | `22 163 74` | `34 197 94` | Connected / SUCCESS |
+| `warning` | `217 119 6` | `245 158 11` | Processing / pending |
+| `danger` | `220 38 38` | `248 113 113` | Errors, delete |
 
-**Border radius:** Max `rounded` (4px). Never `rounded-lg` or larger.
+**Font:** `font-sans` (Inter stack: `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI"…`) for UI chrome. `font-mono` (`"JetBrains Mono"`, `"Fira Code"`, monospace) currently unused (all UI uses `font-sans`). Reserve for future code-specific display if needed.
 
-**No shadows. No gradients.**
+**Border radius:** `rounded-lg` (8px) for controls, inputs, cards, modals; `rounded-xl` (12px) for modals.
+
+**Shadows:** subtle only — `shadow-sm` on hover cards, `shadow-lg` on popovers/menus, `shadow-xl` on modals. **No gradients.**
 
 ---
 
@@ -61,7 +61,8 @@ Single-page application with a multi-panel IDE layout: icon sidebar + content pa
 ```
 App.vue
 └── AppShell.vue
-    ├── SidebarNav.vue       — desktop icon column, RouterLink nav + VI/EN toggle
+    ├── TopBar.vue           — top bar: brand, search trigger (⌘K), ThemeToggle, lang toggle, settings
+    ├── SidebarNav.vue       — grouped desktop nav, RouterLink items from navGroups
     ├── <router-view>        — active screen by URL (see src/router/index.ts)
     │   ├── CoworkView.vue       — /cowork: project + chat + artifacts (cowork/ subcomponents)
     │   ├── ScheduleTasksView.vue — /tasks: scheduled task list
@@ -78,9 +79,10 @@ App.vue
     │       ├── UsageView.vue     — token usage totals + per-session
     │       ├── MemoryView.vue    — memory CRUD with type filter, search
     │       └── PermissionView.vue — tool permission / YOLO config
-    ├── BottomTabBar.vue     — mobile navigation (visible < md)
-    └── StatusBar.vue        — bottom bar: model, DB, WS status, clock
+    ├── StatusBar.vue        — bottom bar: backend status, DB status, sub-agent count, clock
+    └── CommandPalette.vue   — ⌘K global command palette (Headless UI Dialog + Combobox)
 
+ThemeToggle.vue              — light/dark toggle button (used by TopBar)
 SessionModal.vue             — session list modal (teleported, BaseModal wrapper)
 ModelSelector.vue            — model dropdown (uses BaseSelect)
 ProviderFormModal.vue        — create/edit provider form modal (uses BaseModal)
@@ -104,7 +106,7 @@ src/
 ├── router/
 │   └── index.ts         — vue-router routes (createWebHistory)
 ├── config/
-│   └── navigation.ts    — NAV map + sidebarItems / bottomItems
+│   └── navigation.ts    — NAV map + sidebarItems / bottomItems (back-compat) + navGroups (grouped nav, consumed by SidebarNav/CommandPalette)
 ├── assets/
 │   └── main.css         — Tailwind imports + scrollbar + .markdown-body styles
 ├── locales/
@@ -186,9 +188,11 @@ npm run preview          # Preview production build
 ## Coding Rules
 
 1. **`<script setup>` always** — no Options API.
-2. **`font-mono`** on every text element. Never use system sans-serif.
-3. **`rounded` max** — 4px border radius.
-4. **No shadows, no gradients.**
-5. **No `any` types** — TypeScript strict throughout.
-6. **i18n required** — all user-facing strings via `t('key')`.
-7. **Icons** — `vue-icons-plus/hi` (Hero Icons). No inline SVG.
+2. **`font-sans`** for all UI (no `font-mono` in components currently).
+3. **`rounded-lg`** (8px) for controls, inputs, cards; `rounded-xl` for modals.
+4. **Subtle shadows only** (popovers/modals/hover cards); no gradients.
+5. **Semantic token utilities only** (`bg-surface`, `text-foreground`, `border-border`, `bg-primary`…); no Tailwind color literals or `cyber-*` tokens in components.
+6. **Headless UI** for interactive primitives (modal/select); see `BaseModal`, `BaseSelect`.
+7. **No `any` types** — TypeScript strict throughout.
+8. **i18n required** — all user-facing strings via `t('key')`.
+9. **Icons** — `vue-icons-plus/hi` (Hero Icons). No inline SVG.

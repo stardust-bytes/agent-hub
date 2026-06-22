@@ -1,37 +1,37 @@
 <template>
-  <div v-show="visible" class="flex flex-col h-full bg-cyber-bg border-l border-cyber-code-border">
-    <div class="flex items-center justify-between px-3 py-2 border-b border-cyber-code-border shrink-0">
-      <span class="text-sm text-cyber-accent font-mono">{{ t('cowork.artifacts') }}</span>
-      <button @click="emit('close')" class="text-cyber-muted text-sm font-mono hover:text-cyber-accent">✕</button>
+  <div v-show="visible" class="flex flex-col h-full bg-surface border-l border-border">
+    <div class="flex items-center justify-between px-3 py-2 border-b border-border shrink-0">
+      <span class="text-sm text-foreground font-semibold">{{ t('cowork.artifacts') }}</span>
+      <button @click="emit('close')" class="text-muted-foreground text-base leading-none hover:text-foreground">✕</button>
     </div>
     <div class="flex-1 overflow-y-auto px-3 py-2 space-y-3">
-      <div v-if="fileContent === null && plans.length === 0 && toolResults.length === 0" class="text-sm text-cyber-muted font-mono text-center pt-8">{{ t('cowork.no_artifacts') }}</div>
-      <div v-if="fileContent !== null" class="border border-cyber-code-border">
-        <div class="bg-cyber-dark px-2 py-1 text-sm text-cyber-muted font-mono border-b border-cyber-code-border">
+      <div v-if="fileContent === null && plans.length === 0 && toolResults.length === 0" class="text-sm text-muted-foreground text-center pt-8">{{ t('cowork.no_artifacts') }}</div>
+      <div v-if="fileContent !== null" class="border border-border rounded-lg overflow-hidden">
+        <div class="bg-muted px-3 py-1.5 text-sm text-muted-foreground font-sans border-b border-border">
           📄 {{ fileName }}
         </div>
-        <pre class="text-sm text-cyber-code-text font-mono p-2 whitespace-pre-wrap break-all max-h-60 overflow-y-auto bg-cyber-code-bg">{{ fileContent }}</pre>
+        <pre class="text-sm text-foreground font-sans p-3 whitespace-pre-wrap break-all max-h-60 overflow-y-auto bg-muted">{{ fileContent }}</pre>
       </div>
 
-      <div v-for="plan in plans" :key="plan.id" class="border border-cyber-accent/40">
-        <div class="bg-cyber-dark px-2 py-1 text-sm text-cyber-cyan font-mono border-b border-cyber-accent/20">
+      <div v-for="plan in plans" :key="plan.id" class="border border-border rounded-lg overflow-hidden">
+        <div class="bg-muted px-3 py-1.5 text-sm text-primary font-semibold border-b border-border">
           PLAN: {{ plan.title }}
         </div>
-        <div class="px-2 py-1 space-y-0.5">
-          <div v-for="step in plan.steps" :key="step.id" class="flex gap-2 items-start text-sm font-mono">
-            <span :class="step.status === 'DONE' ? 'text-cyber-green' : step.status === 'DOING' ? 'text-cyber-orange' : step.status === 'FAILED' ? 'text-red-400' : 'text-cyber-muted'" class="shrink-0 w-6 text-sm leading-5">
+        <div class="px-3 py-2 space-y-0.5">
+          <div v-for="step in plan.steps" :key="step.id" class="flex gap-2 items-start text-sm">
+            <span :class="step.status === 'DONE' ? 'text-success' : step.status === 'DOING' ? 'text-warning' : step.status === 'FAILED' ? 'text-danger' : 'text-muted-foreground'" class="shrink-0 w-6 text-sm leading-5 font-sans">
               {{ step.status === 'DONE' ? '[✓]' : step.status === 'DOING' ? '[⟳]' : step.status === 'FAILED' ? '[✗]' : '[ ]' }}
             </span>
-            <span :class="step.status === 'DONE' ? 'text-cyber-green' : 'text-cyber-code-text'">{{ step.text }}</span>
+            <span :class="step.status === 'DONE' ? 'text-success' : 'text-foreground'">{{ step.text }}</span>
           </div>
         </div>
       </div>
 
-      <div v-for="(result, i) in toolResults" :key="i" class="border border-cyber-code-border">
-        <div class="bg-cyber-dark px-2 py-1 text-sm text-cyber-orange font-mono border-b border-cyber-code-border">
+      <div v-for="(result, i) in toolResults" :key="i" class="border border-border rounded-lg overflow-hidden">
+        <div class="bg-muted px-3 py-1.5 text-sm text-warning font-sans border-b border-border">
           ⚙ {{ result.toolName }}
         </div>
-        <pre class="text-sm text-cyber-code-text font-mono p-2 whitespace-pre-wrap break-all max-h-40 overflow-y-auto bg-cyber-code-bg">{{ result.content }}</pre>
+        <pre class="text-sm text-foreground font-sans p-3 whitespace-pre-wrap break-all max-h-40 overflow-y-auto bg-muted">{{ result.content }}</pre>
       </div>
     </div>
   </div>

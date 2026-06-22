@@ -6,17 +6,17 @@
     max-height="90vh"
   >
     <template #header>
-      <span class="text-sm font-mono text-cyber-accent">{{ editingId ? t('notes.edit') : t('notes.add') }}</span>
+      <span class="text-sm text-foreground font-sans">{{ editingId ? t('notes.edit') : t('notes.add') }}</span>
     </template>
-    <div class="p-3 flex flex-col gap-3 bg-cyber-modal-bg">
+    <div class="p-3 space-y-3">
       <input
         v-model="title"
-        class="w-full bg-cyber-dark text-cyber-text text-sm font-mono font-semibold outline-none px-3 py-2 placeholder-cyber-muted/40"
+        class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"
         :placeholder="t('notes.form.title')"
       />
       <textarea
         v-model="content"
-        class="flex-1 w-full bg-cyber-dark text-cyber-text text-sm font-mono outline-none p-3 resize-none placeholder-cyber-muted/40"
+        class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring resize-none"
         style="min-height:30vh"
         :placeholder="t('notes.form.content')"
       />
@@ -25,11 +25,11 @@
       <div class="flex justify-end gap-2">
         <button
           @click="cancel"
-          class="text-sm font-mono text-cyber-muted px-3 py-1 rounded hover:text-cyber-text transition-colors duration-150"
+          class="text-sm text-muted-foreground font-sans px-3 py-1.5 border border-border rounded-lg transition-colors duration-150 hover:text-foreground"
         >{{ t('notes.form.cancel') }}</button>
         <button
           @click="save"
-          class="text-sm font-mono text-cyber-accent px-3 py-1 rounded border border-cyber-accent/30 hover:bg-cyber-accent/10 transition-colors duration-150"
+          class="text-sm text-primary-foreground font-sans px-3 py-1.5 rounded-lg bg-primary transition-colors duration-150 hover:bg-primary/90"
         >{{ t('notes.form.save') }}</button>
       </div>
     </template>

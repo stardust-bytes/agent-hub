@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-full bg-cyber-bg font-mono">
+  <div class="flex flex-col h-full bg-background">
     <ProjectBar
       :project-path="projectPath"
       :saved-projects="savedProjects"
@@ -30,9 +30,12 @@
         />
         <div v-else class="flex-1 flex items-center justify-center min-h-0">
           <div class="text-center">
-            <div class="font-['Press_Start_2P'] text-3xl text-cyber-accent mb-2">Agent Hub</div>
-            <div class="text-sm font-mono text-cyber-muted">Code 171305</div>
-            <div class="text-sm font-mono text-cyber-muted/60 mt-2">// {{ t('chat.empty.subtitle') }}</div>
+            <div class="flex items-center justify-center gap-3 mb-1">
+              <span class="text-3xl font-medium bg-primary/10 text-primary rounded-lg px-2 py-0.5 font-mono">Agent</span>
+              <span class="text-3xl font-semibold text-foreground font-mono">Hub</span>
+            </div>
+            <div class="text-sm text-muted-foreground font-mono">Code 171305 · ready</div>
+            <div class="text-sm text-muted-foreground mt-2">{{ t('chat.empty.subtitle') }}</div>
           </div>
         </div>
 

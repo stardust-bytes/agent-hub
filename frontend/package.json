@@ -12,6 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@headlessui/vue": "^1.7.23",
     "dompurify": "^3.0.0",
     "marked": "^9.0.0",
     "pinia": "^3.0.4",

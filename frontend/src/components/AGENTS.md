@@ -1,12 +1,13 @@
 # components/ — Agent Context
 
-All UI components for the AI Workspace. The layout is a multi-panel IDE: icon sidebar (desktop) + router-view content column + bottom tab bar (mobile). Routing is handled by `vue-router` (`src/router/index.ts`); settings sub-screens (providers, tools, usage, memories, permissions) are tabs inside `SettingsView`.
+All UI components for the AI Workspace. The layout is a Mintlify-style shell: TopBar + grouped sidebar (desktop) + router-view content column + StatusBar + ⌘K command palette. Routing is handled by `vue-router` (`src/router/index.ts`); settings sub-screens are routed as `/settings/:tab` and listed in the sidebar Config group.
 
 ## Component Map
 
 ```
-AppShell.vue              — layout shell, hosts <router-view>, reads ui state from useUiStore
-├── SidebarNav.vue        — desktop nav column, RouterLink items from config/navigation
+AppShell.vue              — layout shell, hosts TopBar + SidebarNav + router-view + StatusBar + CommandPalette
+├── TopBar.vue            — top bar: brand, ⌘K search trigger, ThemeToggle, lang toggle, settings
+├── SidebarNav.vue        — grouped desktop nav column, RouterLink items from config/navigation navGroups
 ├── [Content area — router-view, see router/index.ts]
 │   ├── CoworkView.vue            — /cowork: coordinator (project + chat + artifacts)
 │   │   ├── cowork/MessageList.vue  — scroll wrapper + v-for MessageItem, forward events
@@ -29,7 +30,6 @@ AppShell.vue              — layout shell, hosts <router-view>, reads ui state 
 │   ├── NotesView.vue           — /notes: markdown notes CRUD (uses NoteModal)
 │   ├── ConnectorsView.vue      — /connectors: Google connector accounts + OAuth
 │   ├── AgentOutputView.vue     — /agent-output: list + download agent files
-│   ├── PlansView.vue           — /plans: execution plan list
 │   ├── OAuthCallbackPage.vue   — /oauth/callback: OAuth redirect handler (state+code → confirmOAuth)
 │   └── SettingsView.vue        — /settings/:tab: tabbed settings host
 │       ├── ProvidersView.vue   — LLM provider CRUD + model management (uses ProviderFormModal)
@@ -38,10 +38,11 @@ AppShell.vue              — layout shell, hosts <router-view>, reads ui state 
 │       ├── UsageView.vue       — token usage totals + per-session breakdown
 │       ├── MemoryView.vue      — memory CRUD with type filter, search, auto-extracted badge
 │       └── PermissionView.vue  — tool permission / YOLO config
-├── BottomTabBar.vue     — mobile navigation (visible < md)
-└── StatusBar.vue        — bottom bar: model name, DB status, WS status, live clock
+├── StatusBar.vue        — bottom bar: backend status, DB status, sub-agent count, live clock
+└── CommandPalette.vue   — ⌘K global command palette (Headless UI Dialog + Combobox)
 
 Shared/reusable:
+ThemeToggle.vue              — light/dark toggle button (used by TopBar)
 ModelSelector.vue            — model dropdown (uses BaseSelect)
 BaseModal.vue                — reusable modal shell (Teleport)
 BaseConfirmModal.vue         — confirm dialog (uses BaseModal)
@@ -59,7 +60,7 @@ SubagentMonitorPanel.vue     — sub-agent live log sessions panel
 
 **Owns:** nothing — reads all state from `useUiStore()`.
 
-**Layout:** flex-col h-screen → flex flex-1 (SidebarNav + `<router-view>`) + BottomTabBar + StatusBar.
+**Layout:** TopBar → flex flex-1 (SidebarNav + `<router-view>`) + StatusBar + CommandPalette.
 
 **Routing:** `<router-view>` renders the active view based on the current URL. `watch(route.fullPath)` closes the mobile sidebar on navigation.
 
@@ -76,14 +77,6 @@ SubagentMonitorPanel.vue     — sub-agent live log sessions panel
 Visible on desktop only (`hidden xl:flex`, `w-60`).
 
 ---
-
-## BottomTabBar.vue
-
-**Props:** none
-
-**Emits:** none
-
-Visible on mobile only (`flex md:hidden`, `h-[3rem]`). Renders `bottomItems` from `config/navigation.ts` as `<RouterLink>` elements. Items: cowork, tasks, agent-output, plans, notes, connectors, settings.
 
 ---
 
@@ -255,35 +248,114 @@ Right-side collapsible panel for live sub-agent monitoring. Each active/complete
 
 ## Design Rules
 
+> Theme: **Semantic Tokens** (Mintlify-style). CSS variable tokens via `rgb(var(--name))` + `darkMode: 'class'`. No Tailwind color literals in components — use `bg-surface`, `text-foreground`, `border-border`, `bg-primary`, etc.
+
 | Rule | Value |
 |---|---|
-| Font | `font-mono` everywhere. Never sans or serif. |
-| Background | `bg-cyber-bg` / `bg-cyber-dark` |
-| Border radius | Max `rounded` (4px). Never `rounded-lg` |
-| Shadows | Forbidden (`shadow-*`) |
+| Font | `font-sans` (Inter stack) for all UI; `font-mono` (JetBrains Mono) currently unused (reserve for future code display). |
+| Background | `bg-background` (page root), `bg-surface` (panels/cards/headers), `bg-muted` (hover/inset/code), `bg-elevated` (modals/popovers). |
+| Dividers | `border-border` (panel/section dividers), `border-input` (inputs, selects). |
+| Text | `text-foreground` (primary), `text-muted-foreground` (secondary/muted). |
+| Accent | `text-primary` / `bg-primary text-primary-foreground` for links/buttons; `bg-primary/10` for active/hover tint. |
+| Status | `text-success` (connected), `text-warning` (pending), `text-danger` (errors/delete). |
+| Border radius | `rounded-lg` (8px) for controls, inputs, cards; `rounded-xl` for modals. |
+| Shadows | Subtle only — `shadow-sm` on hover cards, `shadow-lg` on popovers/menus, `shadow-xl` on modals. |
 | Gradients | Forbidden |
-| Animations | `animate-blink` for cursor only. `transition-colors duration-150` on interactive elements |
+| Animations | `animate-blink` (cursor), `animate-dot-pulse` (streaming). `transition-colors duration-150` on interactive elements |
 | Icons | `vue-icons-plus/hi` (Hero Icons). No inline SVG |
-| Buttons | Text labels (not icons) for action buttons. Delete button: `text-red-400 border-red-400/50 hover:bg-red-400/10`. Primary: `text-cyber-accent border-cyber-accent/30 hover:bg-cyber-accent/10` |
-| Cards | Flex column (`flex flex-col`). Action buttons at bottom-right (`mt-auto justify-end`). No `rounded`. |
-| Text size | `text-sm` everywhere. No `text-xs` or `text-2xs`. |
-| Border radius | None. All inputs, buttons, selects, cards are flat (no `rounded`). |
+| Buttons | Primary recipe: `inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/90`. Secondary: `inline-flex items-center gap-1.5 rounded-lg border border-input bg-surface px-3 py-1.5 text-sm text-foreground transition-colors duration-150 hover:bg-muted`. Delete: `rounded-lg border border-danger/40 px-2.5 py-1 text-sm text-danger transition-colors duration-150 hover:bg-danger/10`. |
+| Cards | `flex flex-col rounded-lg border border-border bg-surface p-3 transition-shadow hover:shadow-sm`. |
+| Inputs | `w-full rounded-lg border border-input bg-surface px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring`. |
+| Modals/selects | Built on Headless UI (`@headlessui/vue`): `Dialog`/`TransitionRoot` (`BaseModal`), `Listbox` (`BaseSelect`). |
+| Text size | `text-sm` for body; `text-xs` allowed for meta/badges. |
 
-## Header Pattern (standard cho mọi màn hình)
+## Header Pattern (seamless — no border between header and content)
+
+All pages use a seamless layout where header and content share the same `mx-auto max-w-5xl w-full px-6` container. No `border-b` separates them.
+
+### A. List view (ScheduleTasks, Notes, AgentOutput, Connectors, Files)
 
 ```html
-<div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-cyber-code-border shrink-0 bg-cyber-dark">
-  <Icon class="w-3 h-3 text-cyber-accent" />
-  <span class="text-sm text-cyber-accent font-mono">{{ t('view.header') }}</span>
-  <button class="ml-auto text-sm text-cyber-accent font-mono px-2 py-0.5 border border-cyber-accent/30 transition-colors duration-150 hover:bg-cyber-accent/10">
-    {{ t('view.action') }}
-  </button>
+<div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-4">
+  <div class="flex items-center gap-3">
+    <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+      <HiIcon class="w-4 h-4" />
+    </div>
+    <span class="text-base font-semibold text-foreground">{{ t('view.header') }}</span>
+    <span class="text-xs font-mono text-muted-foreground bg-muted rounded px-1.5 py-0.5">badge</span>
+    <div class="ml-auto">
+      <button class="text-sm rounded-lg border border-primary/30 text-primary hover:bg-primary/10 px-2.5 py-1">{{ t('view.action') }}</button>
+    </div>
+  </div>
+</div>
+<div class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 pb-6">
+  (content)
 </div>
 ```
 
-- Chiều cao cố định `h-[3rem]`
-- Icon + title bên trái, action button `ml-auto` bên phải
-- Button style: `text-cyber-accent border-cyber-accent/30 hover:bg-cyber-accent/10`
+### B. Detail view (ScheduleTaskDetail)
+
+```html
+<div class="mx-auto max-w-5xl w-full px-6 pt-4 pb-4">
+  <div class="flex items-center gap-1 text-xs font-mono text-muted-foreground mb-2">
+    <span class="hover:text-primary">Parent</span>
+    <span class="text-input">/</span>
+    <span class="text-foreground">Current</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+      <HiIcon class="w-4 h-4" />
+    </div>
+    <span class="text-lg font-bold text-foreground tracking-tight">Title</span>
+    <span class="text-xs font-mono text-muted-foreground bg-muted rounded px-1.5 py-0.5">N runs</span>
+    <div class="ml-auto flex gap-2">
+      <button class="secondary-recipe">{{ t('view.secondary') }}</button>
+      <button class="primary-recipe">{{ t('view.primary') }}</button>
+    </div>
+  </div>
+</div>
+```
+
+### C. Settings tab bar
+
+```html
+<div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-0">
+  <div class="flex items-center gap-3">
+    <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+      <HiCog class="w-4 h-4" />
+    </div>
+    <span class="text-base font-semibold text-foreground">{{ t('settings.header') }}</span>
+  </div>
+</div>
+<div class="mx-auto max-w-5xl w-full px-6">
+  <div class="flex gap-0 border-b border-border">
+    <button class="font-mono text-sm px-3 py-1.5 text-muted-foreground hover:text-foreground">Tab</button>
+    <button class="font-mono text-sm px-3 py-1.5 text-primary border-b-2 border-primary">Active</button>
+  </div>
+</div>
+```
+
+### D. CoworkView ProjectBar
+
+CoworkView uses a `ProjectBar` instead of a standard header. Styled consistently with icon box + path segments + status badge:
+
+```html
+<div class="flex items-center gap-3 px-6 py-3">
+  <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+    <svg><!-- folder icon --></svg>
+  </div>
+  <span class="w-2 h-2 rounded-full bg-success"></span>
+  <span class="font-mono text-sm"><span class="text-foreground font-medium">~/projects</span><span class="text-muted-foreground">/my-app</span></span>
+</div>
+```
+
+**Rules:**
+- No `border-b` between header and content (seamless flow)
+- Header and content share `mx-auto max-w-5xl w-full px-6`
+- Icon in `w-7 h-7 bg-primary/10 text-primary rounded-lg` accent box
+- Action buttons: ghost recipe (`border border-primary/30 text-primary hover:bg-primary/10`) for secondary, primary recipe for CTA
+- No `h-[3rem]` on page headers
+- No `xl:pl-3 pl-10` legacy padding
 
 ## Data Access
 

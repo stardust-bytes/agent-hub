@@ -1,31 +1,48 @@
 <template>
-  <Teleport to="body">
-    <div
-      v-if="modelValue"
-      class="fixed inset-0 bg-cyber-dark/80 z-50 flex items-center justify-center"
-    >
-      <div :class="modalClass" :style="{ maxHeight, 'max-width': '90vw' }">
-        <div v-if="$slots.header" class="px-3 py-2 bg-cyber-modal-bg flex items-center justify-between shrink-0">
-          <slot name="header" />
-          <button
-            v-if="closable"
-            @click="$emit('update:modelValue', false)"
-            class="text-cyber-accent/50 text-sm font-mono transition-colors duration-150 hover:text-cyber-accent"
-          >✕</button>
-        </div>
-        <div class="overflow-y-auto flex-1">
-          <slot />
-        </div>
-        <div v-if="$slots.footer" class="px-3 py-2 bg-cyber-modal-bg shrink-0">
-          <slot name="footer" />
+  <TransitionRoot :show="modelValue" as="template">
+    <Dialog as="div" class="relative z-50" @close="onClose">
+      <TransitionChild
+        as="template"
+        enter="duration-150 ease-out" enter-from="opacity-0" enter-to="opacity-100"
+        leave="duration-100 ease-in" leave-from="opacity-100" leave-to="opacity-0"
+      >
+        <div class="fixed inset-0 bg-foreground/40" aria-hidden="true" />
+      </TransitionChild>
+
+      <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+          <TransitionChild
+            as="template"
+            enter="duration-150 ease-out" enter-from="opacity-0 translate-y-1 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100"
+            leave="duration-100 ease-in" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-1 sm:scale-95"
+          >
+            <DialogPanel :class="panelClass" :style="panelStyle">
+              <div v-if="$slots.header" class="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
+                <slot name="header" />
+                <button
+                  v-if="closable"
+                  @click="onClose"
+                  class="text-muted-foreground text-base leading-none transition-colors duration-150 hover:text-foreground"
+                  aria-label="Close"
+                >✕</button>
+              </div>
+              <div class="overflow-y-auto flex-1">
+                <slot />
+              </div>
+              <div v-if="$slots.footer" class="px-4 py-3 border-t border-border shrink-0">
+                <slot name="footer" />
+              </div>
+            </DialogPanel>
+          </TransitionChild>
         </div>
       </div>
-    </div>
-  </Teleport>
+    </Dialog>
+  </TransitionRoot>
 </template>
 
 <script setup lang="ts">
-import { watch, onUnmounted } from 'vue'
+import { computed } from 'vue'
+import { Dialog, DialogPanel, TransitionRoot, TransitionChild } from '@headlessui/vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -41,27 +58,17 @@ const SIZE_MAP: Record<string, string> = {
   xl: 'w-[48rem]',
 }
 
-const modalClass = `bg-cyber-modal-bg border-t border-cyber-orange flex flex-col ${SIZE_MAP[props.size ?? 'md']}`
+const panelClass = computed(() =>
+  `bg-elevated rounded-xl border border-border shadow-xl flex flex-col max-w-[90vw] ${SIZE_MAP[props.size ?? 'md']}`,
+)
+
+const panelStyle = computed(() => ({ maxHeight: props.maxHeight ?? '85vh' }))
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
 
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && props.modelValue) {
-    emit('update:modelValue', false)
-  }
+function onClose() {
+  emit('update:modelValue', false)
 }
-
-watch(() => props.modelValue, (val) => {
-  if (val) {
-    window.addEventListener('keydown', onKeydown)
-  } else {
-    window.removeEventListener('keydown', onKeydown)
-  }
-}, { immediate: true })
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', onKeydown)
-})
 </script>

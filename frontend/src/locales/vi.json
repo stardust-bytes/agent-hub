@@ -35,16 +35,16 @@
   "settings.save": "Lưu",
   "settings.saved": "✓ Đã lưu",
   "settings.version": "Phiên bản",
-  "settings.info": "THÔNG TIN",
+  "settings.info": "Thông tin",
   "settings.embedModel": "Model Embedding",
   "settings.summaryModel": "Model Tóm tắt",
   "settings.defaultOption": "Mặc định (env)",
-  "settings.models": "CẤU HÌNH MODEL",
+  "settings.models": "Cấu hình Model",
   "settings.fetchError": "Không thể tải cấu hình model",
-  "settings.mcpServers": "MCP SERVERS",
+  "settings.mcpServers": "MCP Servers",
   "settings.noMcpServers": "Chưa có MCP server nào",
-  "settings.mcpOn": "BẬT",
-  "settings.mcpOff": "TẮT",
+  "settings.mcpOn": "Bật",
+  "settings.mcpOff": "Tắt",
   "connectors.fetch_failed": "Không tải được danh sách kết nối",
   "connectors.oauth_failed": "Xác thực OAuth thất bại",
   "connectors.oauth_confirm_failed": "Xác thực OAuth thất bại",
@@ -59,7 +59,7 @@
 
   "connectors.delete_failed": "Không xóa được kết nối",
 
-  "connectors.header": "KẾT NỐI",
+  "connectors.header": "Kết nối",
   "connectors.connected": "Đã kết nối",
   "connectors.disconnected": "Chưa kết nối",
   "connectors.connect": "Kết nối",
@@ -79,11 +79,11 @@
   "tasks.form.cancel": "Huỷ",
   "tasks.form.save": "Lưu",
   "tasks.delete.confirm.btn": "Xoá",
-  "tasks.filter.label": "LỌC:",
+  "tasks.filter.label": "Lọc:",
 
   "knowledge.fetch_failed": "Không tải được tệp kiến thức",
 
-  "files.header": "KIẾN THỨC",
+  "files.header": "Kiến thức",
   "files.dropzone": "Thả file hoặc click để upload",
   "files.filter": "Lọc theo tên...",
   "files.status.ready": "✓ sẵn sàng",
@@ -109,13 +109,14 @@
     "delete": "Xóa bộ nhớ",
     "deleteConfirm": "Xóa bộ nhớ này?",
     "empty": "Chưa có bộ nhớ nào",
+    "all": "Tất cả",
     "searchPlaceholder": "Tìm kiếm...",
     "auto_extracted": "[tự động]",
     "type": {
-      "user": "USER",
-      "feedback": "FEEDBACK",
-      "project": "PROJECT",
-      "reference": "REFERENCE"
+      "user": "User",
+      "feedback": "Feedback",
+      "project": "Project",
+      "reference": "Reference"
     },
     "form": {
       "type": "Loại",
@@ -154,7 +155,7 @@
   "sessions.create_failed": "Không tạo được session",
   "sessions.delete_failed": "Không xóa được session",
 
-  "sessions.header": "SESSIONS",
+  "sessions.header": "Sessions",
   "sessions.new": "+ Mới",
   "sessions.empty": "Chưa có session nào",
   "sessions.messages": "{n} tin nhắn",
@@ -186,7 +187,7 @@
   "nav.providers": "Providers",
   "nav.tools": "Tools",
   "tools.fetch_failed": "Không tải được danh sách tool",
-  "tools.header": "Công cụ (Tools)",
+  "tools.header": "Công cụ",
   "tools.loading": "Đang tải tools...",
   "tools.no_tools": "Chưa có tool nào",
   "tools.status": "Trạng thái",
@@ -201,15 +202,17 @@
   "tools.config.save": "Lưu",
   "tools.config.noConfig": "Không có cấu hình",
   "tools.form.cancel": "Huỷ",
-  "nav.plans": "Kế hoạch",
   "nav.notes": "Ghi chú",
   "nav.agentOutput": "Kết quả",
   "nav.connectors": "Kết nối",
+  "nav.group.workspace": "Không gian",
+  "nav.group.knowledge": "Kiến thức",
+  "nav.group.config": "Cấu hình",
   "notes.fetch_failed": "Không tải được ghi chú",
   "notes.save_failed": "Không lưu được ghi chú",
   "notes.delete_failed": "Không xóa được ghi chú",
 
-  "notes.header": "GHI CHÚ",
+  "notes.header": "Ghi chú",
   "notes.empty": "Chưa có ghi chú nào",
   "notes.add": "+ Thêm ghi chú",
   "notes.form.title": "Tiêu đề",
@@ -263,16 +266,7 @@
   "subagent.log.view": "xem kết quả",
   "subagent.log.collapse": "thu gọn",
 
-  "plans.header": "Kế hoạch thực thi",
-  "plans.empty": "Chưa có kế hoạch nào",
-  "plans.steps": "bước",
-  "plans.execute": "Thực thi",
-  "plans.resume": "Tiếp tục",
-  "plans.pending": "Chờ duyệt",
-  "plans.approved": "Đã duyệt",
-  "plans.executing": "Đang thực hiện",
-  "plans.interrupted": "Bị gián đoạn",
-  "plans.done": "Hoàn thành",
+
   "plans.approve": "Phê duyệt",
   "plans.reject": "Từ chối",
   "plans.status.pending": "Chờ phê duyệt",
@@ -365,9 +359,10 @@
   "schedules.delete_failed": "Không xóa được lịch",
   "schedules.run_failed": "Không chạy được lịch",
 
-  "schedules.header": "CÔNG VIỆC HẸN LỊCH",
+  "schedules.header": "Công việc hẹn lịch",
   "schedules.add": "+ Thêm lịch",
   "schedules.empty": "Chưa có lịch nào",
+  "schedules.active": "đang chạy",
   "schedules.edit": "Sửa lịch",
   "schedules.delete": "Xoá",
   "schedules.deleteConfirm": "Xóa lịch này?",
@@ -377,7 +372,7 @@
   "schedules.frequency.weekdays": "Ngày trong tuần",
   "schedules.frequency.weekly": "Hàng tuần",
   "schedules.hasModel": "có model",
-  "schedules.logs.header": "NHẬT KÝ",
+  "schedules.logs.header": "Nhật ký",
   "schedules.logs.empty": "Chưa có nhật ký",
   "schedules.form.name": "Tên lịch",
   "schedules.form.description": "Mô tả",
@@ -395,15 +390,18 @@
   "schedules.model": "Model",
   "schedules.timezone": "Timezone",
   "schedules.frequency": "Tần suất",
-  "schedules.runNow": "CHẠY NGAY",
+  "schedules.runNow": "Chạy ngay",
   "schedules.hint.hourly": "Mỗi giờ ở phút {m}",
   "schedules.hint.daily": "Mỗi ngày lúc {time}",
   "schedules.hint.weekdays": "Ngày trong tuần lúc {time}",
   "schedules.hint.weekly": "Thứ {day} lúc {time}",
+  "schedules.status.success": "Thành công",
+  "schedules.status.failed": "Thất bại",
+  "schedules.status.running": "Đang chạy",
 
   "agentOutput": {
     "fetch_failed": "Không tải được kết quả agent",
-    "header": "KẾT QUẢ AGENT",
+    "header": "Kết quả Agent",
     "empty": "Chưa có file nào",
     "download": "Tải",
     "filename": "Tên file",
@@ -416,5 +414,28 @@
     "delete": "Xoá",
     "deleteConfirm": "Xoá file này?",
     "delete_failed": "Không xoá được file"
+  },
+
+  "topbar": {
+    "search": "Tìm kiếm…",
+    "theme": {
+      "dark": "Chế độ tối",
+      "light": "Chế độ sáng"
+    },
+    "menu": "Menu"
+  },
+
+  "palette": {
+    "placeholder": "Đi tới hoặc tìm lệnh…",
+    "empty": "Không có kết quả",
+    "section": {
+      "navigate": "Điều hướng",
+      "actions": "Hành động"
+    },
+    "action": {
+      "newSession": "Phiên mới",
+      "toggleTheme": "Đổi giao diện",
+      "toggleLang": "Đổi ngôn ngữ"
+    }
   }
 }

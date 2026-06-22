@@ -1,31 +1,31 @@
 <template>
-  <form @submit.prevent="onSubmit" class="border border-cyber-code-border p-3 my-2 bg-cyber-dark">
+  <form @submit.prevent="onSubmit" class="rounded-lg border border-border bg-muted p-3 my-2">
     <div v-for="(field, i) in fields" :key="i" class="mb-2">
-      <label class="text-sm text-cyber-muted font-mono block mb-1">{{ field.label }}</label>
+      <label class="text-sm text-muted-foreground block mb-1">{{ field.label }}</label>
       <input
         v-if="field.type === 'input'"
         v-model="field.value"
-        class="w-full bg-cyber-bg px-2 py-1 text-sm font-mono text-cyber-text outline-none"
+        class="w-full rounded-lg border border-input bg-surface px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring"
         :placeholder="field.placeholder"
       />
       <select
         v-else-if="field.type === 'select'"
         v-model="field.value"
-        class="w-full bg-cyber-bg px-2 py-1 text-sm font-mono text-cyber-text outline-none"
+        class="w-full rounded-lg border border-input bg-surface px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring"
       >
-        <option v-for="opt in field.options" :key="opt" :value="opt" class="bg-cyber-dark">{{ opt }}</option>
+        <option v-for="opt in field.options" :key="opt" :value="opt">{{ opt }}</option>
       </select>
       <textarea
         v-else-if="field.type === 'textarea'"
         v-model="field.value"
-        class="w-full bg-cyber-bg px-2 py-1 text-sm font-mono text-cyber-text outline-none resize-none"
+        class="w-full rounded-lg border border-input bg-surface px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors resize-none focus:border-primary focus:ring-1 focus:ring-ring"
         :placeholder="field.placeholder"
         rows="3"
       />
     </div>
     <button
       type="submit"
-      class="text-sm font-mono font-bold text-black bg-cyber-accent px-3 py-1 hover:bg-cyber-accent/80 transition-colors duration-150"
+      class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/90"
     >{{ submitText }}</button>
   </form>
 </template>

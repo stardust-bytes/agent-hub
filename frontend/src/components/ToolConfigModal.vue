@@ -1,31 +1,31 @@
 <template>
   <BaseModal :model-value="modelValue" :closable="true" max-height="80vh" @update:model-value="$emit('update:modelValue', $event)">
     <template #header>
-      <span class="text-cyber-text text-sm font-mono">{{ t('tools.config.title') }}: {{ tool?.name }}</span>
+      <span class="text-foreground text-sm font-sans">{{ t('tools.config.title') }}: {{ tool?.name }}</span>
     </template>
     <div class="px-3 py-4 space-y-3">
       <div v-for="(schema, key) in schemaProps" :key="key" class="mb-2">
-        <label class="text-sm text-cyber-muted font-mono block mb-1">{{ schema.title || key }}</label>
+        <label class="text-sm text-muted-foreground font-sans block mb-1">{{ schema.title || key }}</label>
         <input
           v-if="!schema.enum"
           v-model="formData[key]"
           :type="schema.format === 'password' ? 'password' : 'text'"
-          class="w-full bg-cyber-dark px-2 py-1.5 text-sm font-mono text-cyber-text outline-none"
+          class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm font-sans text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"
         />
         <select
           v-else
           v-model="formData[key]"
-          class="w-full bg-cyber-dark px-2 py-1.5 text-sm font-mono text-cyber-text outline-none"
+          class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm font-sans text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"
         >
-          <option v-for="opt in schema.enum" :key="opt" :value="opt" class="bg-cyber-dark">{{ opt }}</option>
+          <option v-for="opt in schema.enum" :key="opt" :value="opt" class="bg-surface">{{ opt }}</option>
         </select>
       </div>
-      <p v-if="!schemaProps || Object.keys(schemaProps).length === 0" class="text-cyber-muted text-sm font-mono">{{ t('tools.config.noConfig') }}</p>
+      <p v-if="!schemaProps || Object.keys(schemaProps).length === 0" class="text-muted-foreground text-sm font-sans">{{ t('tools.config.noConfig') }}</p>
     </div>
     <template #footer>
       <div class="flex gap-2 justify-end">
-        <button @click="$emit('update:modelValue', false)" class="px-3 py-1.5 text-sm font-mono text-cyber-muted bg-cyber-dark hover:text-cyber-text transition-colors duration-150">{{ t('tools.form.cancel') }}</button>
-        <button @click="onSave" class="px-3 py-1.5 text-sm font-mono text-black bg-cyber-accent hover:bg-cyber-accent/80 transition-colors duration-150">{{ t('tools.config.save') }}</button>
+        <button @click="$emit('update:modelValue', false)" class="px-3 py-1.5 text-sm font-sans text-muted-foreground bg-surface hover:text-foreground transition-colors duration-150">{{ t('tools.form.cancel') }}</button>
+        <button @click="onSave" class="px-3 py-1.5 text-sm font-sans text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-colors duration-150">{{ t('tools.config.save') }}</button>
       </div>
     </template>
   </BaseModal>

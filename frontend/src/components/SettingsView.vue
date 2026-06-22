@@ -1,139 +1,134 @@
 <template>
-  <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
-    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-cyber-dark flex items-center shrink-0">
-      <span class="text-cyber-accent text-sm tracking-widest font-mono">
-        <HiCog class="w-3 h-3 inline" /> {{ t('settings.header') }}
-      </span>
+  <div class="flex-1 flex flex-col bg-background overflow-hidden">
+    <div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-0">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+          <HiCog class="w-4 h-4" />
+        </div>
+        <span class="text-base font-semibold text-foreground">{{ t('settings.header') }}</span>
+      </div>
+    </div>
+    <div class="mx-auto max-w-5xl w-full px-6">
+      <div class="flex gap-0 border-b border-border">
+        <button v-for="tab in TABS" :key="tab.key"
+          @click="router.push('/settings/' + tab.key)"
+          class="font-sans text-sm px-3 py-1.5 transition-colors duration-150"
+          :class="activeSettingsTab === tab.key ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'"
+        >{{ t(tab.labelKey) }}</button>
+      </div>
     </div>
 
-    <div class="flex border-b border-cyber-code-border shrink-0">
-      <button
-        v-for="tab in TABS"
-        :key="tab.key"
-        @click="router.push('/settings/' + tab.key)"
-        :class="[
-          'text-sm px-3 py-1.5 font-mono transition-colors duration-150',
-          activeSettingsTab === tab.key
-            ? 'text-cyber-accent border-b-2 border-cyber-accent'
-            : 'text-cyber-muted hover:text-cyber-accent',
-        ]"
-      >{{ t(tab.labelKey) }}</button>
-    </div>
-
-    <MemoryView v-if="activeSettingsTab === 'memories'" />
-    <UsageView v-else-if="activeSettingsTab === 'usage'" />
-    <ProvidersView v-else-if="activeSettingsTab === 'providers'" />
-    <AgentsView v-else-if="activeSettingsTab === 'agents'" />
-    <ToolsView v-else-if="activeSettingsTab === 'tools'" />
+    <UsageView v-if="activeSettingsTab === 'usage'" />
     <PermissionView v-else-if="activeSettingsTab === 'permissions'" />
-    <div v-else class="flex-1 overflow-y-auto px-4 py-4">
-      <div class="max-w-xl">
-        <div class="border-t border-cyber-accent/10 pt-4">
-          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.info') }}</div>
-          <div class="text-sm font-mono text-cyber-muted space-y-1">
-            <div>{{ t('settings.version') }}: 0.10.1</div>
-            <div :class="healthy ? 'text-cyber-green' : 'text-red-400'">
-              ● {{ healthy ? t('health.ok') : t('health.error') }}
-            </div>
+    <div v-else class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 py-6 space-y-4">
+      <div class="border border-border rounded-lg bg-surface p-4 space-y-3">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+            <HiInformationCircle class="w-3.5 h-3.5" />
+          </div>
+          <span class="text-sm font-semibold text-foreground font-sans">{{ t('settings.info') }}</span>
+        </div>
+        <div class="text-sm font-sans text-muted-foreground space-y-1 pl-8">
+          <div>{{ t('settings.version') }}: <span class="text-foreground">0.10.1</span></div>
+          <div :class="healthy ? 'text-success' : 'text-danger'">
+            ● {{ healthy ? t('health.ok') : t('health.error') }}
           </div>
         </div>
+      </div>
 
-        <div class="border-t border-cyber-accent/10 pt-4 mt-4">
-          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.models') }}</div>
-          <div class="space-y-3">
-            <div>
-              <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('settings.embedModel') }}</label>
-              <select v-model="embedModelId" @change="saveSetting('embed_model_id', embedModelId)"
-                class="w-full bg-cyber-dark text-cyber-text text-sm font-mono  border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent">
-                <option value="">{{ t('settings.defaultOption') }}</option>
-                <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('settings.summaryModel') }}</label>
-              <select v-model="summaryModelId" @change="saveSetting('summary_model_id', summaryModelId)"
-                class="w-full bg-cyber-dark text-cyber-text text-sm font-mono  border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent">
-                <option value="">{{ t('settings.defaultOption') }}</option>
-                <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
-              </select>
-            </div>
-            <div v-if="saved" class="text-cyber-green text-sm font-mono">{{ t('settings.saved') }}</div>
-            <div v-if="fetchError" class="text-red-400 text-sm font-mono mt-2">{{ t('settings.fetchError') }}</div>
+      <div class="border border-border rounded-lg bg-surface p-4 space-y-3">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+            <HiCube class="w-3.5 h-3.5" />
           </div>
+          <span class="text-sm font-semibold text-foreground font-sans">{{ t('settings.models') }}</span>
         </div>
+        <div class="space-y-3 pl-8">
+          <div>
+            <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('settings.embedModel') }}</label>
+            <select v-model="embedModelId" @change="saveSetting('embed_model_id', embedModelId)"
+              class="w-full bg-surface text-foreground text-sm font-sans border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring">
+              <option value="">{{ t('settings.defaultOption') }}</option>
+              <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('settings.summaryModel') }}</label>
+            <select v-model="summaryModelId" @change="saveSetting('summary_model_id', summaryModelId)"
+              class="w-full bg-surface text-foreground text-sm font-sans border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring">
+              <option value="">{{ t('settings.defaultOption') }}</option>
+              <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
+            </select>
+          </div>
+          <div v-if="saved" class="text-success text-sm font-sans">{{ t('settings.saved') }}</div>
+          <div v-if="fetchError" class="text-danger text-sm font-sans mt-2">{{ t('settings.fetchError') }}</div>
+        </div>
+      </div>
 
-        <div class="border-t border-cyber-accent/10 pt-4 mt-4">
-          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('agents.header') }}</div>
-          <label class="flex items-center gap-2 text-cyber-muted text-sm font-mono cursor-pointer">
-            <input type="checkbox" v-model="autoDispatch" @change="saveAutoDispatch" class="accent-cyber-accent" />
+      <div class="border border-border rounded-lg bg-surface p-4 space-y-3">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+            <HiUserGroup class="w-3.5 h-3.5" />
+          </div>
+          <span class="text-sm font-semibold text-foreground font-sans">{{ t('agents.header') }}</span>
+        </div>
+        <div class="pl-8">
+          <label class="flex items-center gap-2 text-muted-foreground text-sm font-sans cursor-pointer">
+            <input type="checkbox" v-model="autoDispatch" @change="saveAutoDispatch" class="accent-blue-600" />
             {{ t('agents.autoDispatch') }}
           </label>
         </div>
+      </div>
 
-        <div class="border-t border-cyber-accent/10 pt-4 mt-4">
-          <div class="text-cyber-muted text-sm font-mono mb-2">{{ t('settings.mcpServers') }}</div>
-          <div v-if="mcpServers.length === 0" class="text-cyber-muted/50 text-sm font-mono">
+      <div class="border border-border rounded-lg bg-surface p-4 space-y-3">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+            <HiServer class="w-3.5 h-3.5" />
+          </div>
+          <span class="text-sm font-semibold text-foreground font-sans">{{ t('settings.mcpServers') }}</span>
+        </div>
+        <div class="pl-8 space-y-2">
+          <div v-if="mcpServers.length === 0" class="text-muted-foreground/50 text-sm font-sans">
             {{ t('settings.noMcpServers') }}
           </div>
           <div v-for="server in mcpServers" :key="server.id"
-            class="flex items-center justify-between py-1.5 px-2 bg-cyber-dark border border-cyber-code-border  mb-1">
+            class="flex items-center justify-between py-1.5 px-2 bg-muted border border-border rounded-lg">
             <div>
-              <div class="text-cyber-text text-sm font-mono">{{ server.name }}</div>
-              <div class="text-cyber-muted/50 text-2xs font-mono">{{ server.type }} &middot; {{ server.id }}</div>
+              <div class="text-foreground text-sm font-sans">{{ server.name }}</div>
+              <div class="text-muted-foreground/50 text-xs font-sans">{{ server.type }} &middot; {{ server.id }}</div>
             </div>
-            <span :class="server.enabled ? 'text-cyber-green' : 'text-cyber-muted/50'"
-              class="text-sm font-mono">{{ server.enabled ? t('settings.mcpOn') : t('settings.mcpOff') }}</span>
+            <span :class="server.enabled ? 'text-success' : 'text-muted-foreground/50'"
+              class="text-sm font-sans">{{ server.enabled ? t('settings.mcpOn') : t('settings.mcpOff') }}</span>
           </div>
         </div>
-
-
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { HiCog } from 'vue-icons-plus/hi'
+import { useI18n } from 'vue-i18n'
+import { HiCog, HiInformationCircle, HiCube, HiUserGroup, HiServer } from 'vue-icons-plus/hi'
 import { storeToRefs } from 'pinia'
-import MemoryView from './MemoryView.vue'
 import PermissionView from './PermissionView.vue'
 import UsageView from './UsageView.vue'
-import ProvidersView from './ProvidersView.vue'
-import ToolsView from './ToolsView.vue'
-import AgentsView from './AgentsView.vue'
 import { getHealth } from '../api/health'
 import { listSettings, updateSetting } from '../api/settings'
 import { useProvidersStore } from '../stores/providers'
 
-const props = defineProps<{ tab?: string }>()
-
-const { t } = useI18n()
-const router = useRouter()
-
 const TABS = [
-  { key: 'general', labelKey: 'settings.header' },
-  { key: 'providers', labelKey: 'providers.header' },
-  { key: 'agents', labelKey: 'agents.header' },
-  { key: 'tools', labelKey: 'tools.header' },
-  { key: 'memories', labelKey: 'memory.title' },
+  { key: 'general', labelKey: 'nav.settings' },
   { key: 'usage', labelKey: 'usage.header' },
   { key: 'permissions', labelKey: 'permissions.header' },
 ]
 
-const TAB_KEYS = new Set(TABS.map(t => t.key))
+const props = defineProps<{ tab?: string }>()
+const router = useRouter()
+const { t } = useI18n()
 
-function resolveTab(tab: string | undefined): string {
-  return tab && TAB_KEYS.has(tab) ? tab : 'general'
-}
-
-const activeSettingsTab = ref(resolveTab(props.tab))
-
-watch(() => props.tab, (val) => {
-  activeSettingsTab.value = resolveTab(val)
-})
+const activeSettingsTab = computed(() => props.tab ?? 'general')
 
 const healthy = ref(false)
 

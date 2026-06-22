@@ -1,39 +1,49 @@
 <template>
-  <div class="flex items-center gap-2 xl:pl-3 pl-10 px-3 h-[3rem] border-b border-cyber-code-border shrink-0 bg-cyber-dark">
-    <span class="w-2 h-2 rounded-full shrink-0" :class="projectPath ? 'bg-cyber-green' : 'bg-cyber-muted'"></span>
-    <div class="relative">
-      <button @click="showProjectMenu = !showProjectMenu" class="flex items-center gap-1 text-sm text-cyber-text font-mono truncate max-w-60 hover:text-cyber-accent transition-colors duration-150 border border-cyber-code-border rounded px-2 py-0.5">
-        {{ projectPath ? projectPath.replace(/\\/g, '/').split('/').filter(Boolean).pop() : t('cowork.project.select') }}
-        <svg class="w-3 h-3 shrink-0" :class="showProjectMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+  <div class="flex items-center gap-3 px-6 py-3 shrink-0 border-b border-border">
+    <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+    </div>
+    <span class="w-2 h-2 rounded-full shrink-0" :class="projectPath ? 'bg-success' : 'bg-border'"></span>
+    <div class="relative min-w-0">
+      <button @click="showProjectMenu = !showProjectMenu" class="flex items-center gap-1 text-sm font-sans truncate max-w-60 hover:bg-muted transition-colors duration-150 border border-input rounded-lg px-2.5 py-1">
+        <span v-if="projectPath" class="truncate">
+          <span class="text-foreground font-medium">{{ projectPath.replace(/\\/g, '/').split('/').filter(Boolean).shift() }}</span>
+          <span class="text-muted-foreground">/{{ projectPath.replace(/\\/g, '/').split('/').filter(Boolean).slice(1).join('/') }}</span>
+        </span>
+        <span v-else class="text-muted-foreground">{{ t('cowork.project.select') }}</span>
+        <svg class="w-3 h-3 shrink-0 text-muted-foreground" :class="showProjectMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
       </button>
       <div v-if="showProjectMenu" class="fixed inset-0 z-40" @click="showProjectMenu = false"></div>
-      <div v-if="showProjectMenu" class="absolute top-full left-0 mt-1 w-72 bg-cyber-dark border border-cyber-code-border rounded z-50">
-        <button @click="emit('browseDirectory'); showProjectMenu = false" class="w-full text-left px-3 py-2 text-sm text-cyber-text font-mono hover:bg-cyber-accent/10 transition-colors duration-150 flex items-center gap-2 border-b border-cyber-code-border">
+      <div v-if="showProjectMenu" class="absolute top-full left-0 mt-1 w-72 bg-surface border border-border rounded-lg shadow-lg z-50 overflow-hidden">
+        <button @click="emit('browseDirectory'); showProjectMenu = false" class="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors duration-150 flex items-center gap-2 border-b border-border">
           <span>📁</span> {{ t('cowork.connect.browse') }}
         </button>
-        <div v-for="project in savedProjects" :key="project.id" class="flex items-center px-3 py-2 text-sm text-cyber-text font-mono hover:bg-cyber-accent/10 transition-colors duration-150 border-b border-cyber-code-border">
+        <div v-for="project in savedProjects" :key="project.id" class="flex items-center px-3 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors duration-150 border-b border-border">
           <button @click="emit('selectProject', project.path); showProjectMenu = false" class="flex-1 text-left truncate">{{ project.name }}</button>
-          <button @click="emit('deleteProject', project.id)" class="text-cyber-muted hover:text-red-400 transition-colors duration-150 shrink-0 ml-2 text-sm">✕</button>
+          <button @click="emit('deleteProject', project.id)" class="text-muted-foreground hover:text-danger transition-colors duration-150 shrink-0 ml-2 text-sm">✕</button>
         </div>
-        <button @click="showSaveModal = true; showProjectMenu = false" class="w-full text-left px-3 py-2 text-sm text-cyber-accent font-mono hover:bg-cyber-accent/10 transition-colors duration-150 flex items-center gap-2">
+        <button @click="showSaveModal = true; showProjectMenu = false" class="w-full text-left px-3 py-2 text-sm text-primary hover:bg-muted transition-colors duration-150 flex items-center gap-2">
           <span>+</span> {{ t('cowork.project.saveAs') }}
         </button>
       </div>
     </div>
-    <button v-if="projectPath" @click="emit('disconnect')" class="text-sm text-red-400 font-mono px-2 py-0.5 border border-red-400/40 transition-colors duration-150 hover:bg-red-400/10">✕ {{ t('cowork.disconnect') }}</button>
-    <div class="flex items-center gap-2 ml-auto">
-      <button v-if="subagentCount != null && subagentCount > 0" @click="emit('toggleSubagentMonitor')" class="text-sm text-cyber-cyan font-mono px-2 py-0.5 border border-cyber-cyan/30 transition-colors duration-150 hover:bg-cyber-cyan/10">◈ {{ subagentCount }}</button>
-      <button v-if="projectPath" @click="emit('toggleArtifacts')" class="text-sm text-cyber-muted font-mono px-2 py-0.5 border border-cyber-code-border transition-colors duration-150 hover:text-cyber-accent hover:border-cyber-accent/40">{{ t('cowork.artifacts') }}</button>
+    <button v-if="projectPath" @click="emit('disconnect')" class="text-sm text-danger px-2.5 py-1 rounded-lg border border-danger/40 transition-colors duration-150 hover:bg-danger/10 shrink-0">✕ {{ t('cowork.disconnect') }}</button>
+    <div class="flex items-center gap-2 ml-auto shrink-0">
+      <span v-if="subagentCount != null && subagentCount > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded-full px-1.5 py-0.5 flex items-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+        {{ subagentCount }}
+      </span>
+      <button v-if="projectPath" @click="emit('toggleArtifacts')" class="text-sm text-muted-foreground px-2.5 py-1 rounded-lg border border-input transition-colors duration-150 hover:bg-muted hover:text-foreground">{{ t('cowork.artifacts') }}</button>
     </div>
     <BaseModal v-model="showSaveModal" :closable="false">
-      <template #header><span class="text-sm text-cyber-text font-mono">{{ t('cowork.project.saveAs') }}</span></template>
-      <div class="p-3">
-        <input v-model="saveProjectName" @keyup.enter="onSave" class="w-full bg-cyber-bg border border-cyber-code-border rounded px-2 py-1.5 text-sm text-cyber-code-text font-mono" :placeholder="t('cowork.project.name')" />
+      <template #header><span class="text-sm text-foreground font-semibold">{{ t('cowork.project.saveAs') }}</span></template>
+      <div class="p-4">
+        <input v-model="saveProjectName" @keyup.enter="onSave" class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring" :placeholder="t('cowork.project.name')" />
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <button @click="showSaveModal = false" class="text-sm text-cyber-muted font-mono px-3 py-1.5 border border-cyber-code-border rounded transition-colors duration-150 hover:text-cyber-text">{{ t('tasks.form.cancel') }}</button>
-          <button @click="onSave" class="text-sm text-white font-mono px-3 py-1.5 bg-cyber-accent rounded transition-colors duration-150 hover:bg-cyber-accent/80">{{ t('cowork.project.save') }}</button>
+          <button @click="showSaveModal = false" class="text-sm text-muted-foreground px-3 py-1.5 border border-input rounded-lg transition-colors duration-150 hover:bg-muted">{{ t('tasks.form.cancel') }}</button>
+          <button @click="onSave" class="text-sm text-primary-foreground px-3 py-1.5 bg-primary rounded-lg transition-colors duration-150 hover:bg-primary/90">{{ t('cowork.project.save') }}</button>
         </div>
       </template>
     </BaseModal>

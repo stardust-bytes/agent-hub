@@ -1,18 +1,18 @@
 <template>
-  <div class="flex flex-col h-full bg-cyber-bg border-r border-cyber-code-border">
-    <div class="px-3 py-2 text-sm text-cyber-accent font-mono border-b border-cyber-code-border shrink-0">
+  <div class="flex flex-col h-full bg-surface border-r border-border">
+    <div class="px-3 py-2 text-sm text-foreground font-semibold border-b border-border shrink-0">
       {{ t('cowork.files') }}
     </div>
     <div class="flex-1 overflow-y-auto">
-      <div v-if="loading" class="text-sm text-cyber-muted font-mono px-3 py-2">{{ t('cowork.browse.loading') }}</div>
-      <div v-else-if="error" class="text-sm text-red-400 font-mono px-3 py-2">{{ error }}</div>
+      <div v-if="loading" class="text-sm text-muted-foreground px-3 py-2">{{ t('cowork.browse.loading') }}</div>
+      <div v-else-if="error" class="text-sm text-danger px-3 py-2">{{ error }}</div>
       <div v-else class="py-1">
         <div
           v-for="entry in tree"
           :key="entry.path"
           :style="{ paddingLeft: entry.depth * 16 + 8 + 'px' }"
-          class="flex items-center gap-1 px-2 py-0.5 cursor-pointer text-sm font-mono transition-colors duration-150"
-          :class="selectedPath === entry.path ? 'bg-cyber-accent/10 text-cyber-accent' : 'text-cyber-text hover:bg-cyber-dark'"
+          class="flex items-center gap-1 px-2 py-1 cursor-pointer text-sm font-sans transition-colors duration-150"
+          :class="selectedPath === entry.path ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'"
           @click="onClick(entry)"
         >
           <span class="w-4 shrink-0 text-center">

@@ -1,41 +1,41 @@
 <template>
   <div v-if="visible" class="fixed inset-0 z-40 flex">
-    <div class="fixed inset-0 bg-cyber-dark/80" @click="emit('close')"></div>
-    <div class="relative w-full max-w-3xl mx-auto my-4 bg-cyber-bg border border-cyber-code-border flex flex-col overflow-hidden" style="max-height: calc(100vh - 2rem)">
-      <div class="flex items-center gap-2 px-3 py-2 bg-cyber-dark border-b border-cyber-code-border shrink-0">
-        <span class="text-sm text-cyber-cyan font-mono">{{ t('subagent.panel.header') }}</span>
-        <span v-if="sessions.length" class="text-xs text-cyber-muted font-mono">({{ sessions.length }})</span>
-        <button @click="emit('close')" class="ml-auto text-cyber-muted text-sm font-mono hover:text-cyber-accent transition-colors duration-150">✕</button>
+    <div class="fixed inset-0 bg-foreground/40" @click="emit('close')"></div>
+    <div class="relative w-full max-w-3xl mx-auto my-4 bg-surface border border-border rounded-lg shadow-xl flex flex-col overflow-hidden" style="max-height: calc(100vh - 2rem)">
+      <div class="flex items-center gap-2 px-3 py-2 bg-muted border-b border-border shrink-0">
+        <span class="text-sm text-foreground font-semibold">{{ t('subagent.panel.header') }}</span>
+        <span v-if="sessions.length" class="text-xs text-muted-foreground font-sans">({{ sessions.length }})</span>
+        <button @click="emit('close')" class="ml-auto text-muted-foreground text-base leading-none hover:text-foreground transition-colors duration-150">✕</button>
       </div>
 
       <div ref="panelBody" class="flex-1 overflow-y-auto p-2 space-y-2">
-        <div v-for="s in sessions" :key="s.id" class="border-l-2 pl-2 py-1.5" :class="s.status === 'running' ? 'border-cyber-green' : 'border-cyber-code-border'">
+        <div v-for="s in sessions" :key="s.id" class="border-l-2 pl-2 py-1.5" :class="s.status === 'running' ? 'border-green-500' : 'border-border'">
           <div class="flex items-center gap-2 mb-1">
-            <span class="text-xs text-cyber-cyan font-mono">◈ {{ s.name }}</span>
-            <span v-if="s.status === 'running'" class="text-xs text-cyber-green font-mono">● {{ t('subagent.session.running') }}</span>
-            <span v-else-if="s.status === 'completed'" class="text-xs text-cyber-green font-mono">✓ {{ t('subagent.session.done') }}</span>
-            <span v-else class="text-xs text-red-400 font-mono">✗ {{ t('subagent.session.failed') }}</span>
-            <span class="text-xs text-cyber-muted font-mono ml-auto">{{ elapsed(s) }}</span>
+            <span class="text-xs text-primary font-sans">◈ {{ s.name }}</span>
+            <span v-if="s.status === 'running'" class="text-xs text-success font-sans">● {{ t('subagent.session.running') }}</span>
+            <span v-else-if="s.status === 'completed'" class="text-xs text-success font-sans">✓ {{ t('subagent.session.done') }}</span>
+            <span v-else class="text-xs text-danger font-sans">✗ {{ t('subagent.session.failed') }}</span>
+            <span class="text-xs text-muted-foreground font-sans ml-auto">{{ elapsed(s) }}</span>
           </div>
           <div ref="logAreaRefs" :data-session-id="s.id" class="max-h-96 overflow-y-auto space-y-0.5">
-            <div v-for="(log, li) in s.logs" :key="li" class="text-xs font-mono leading-relaxed">
-              <div v-if="log.type === 'thinking'" class="text-cyber-accent/60">⟳ {{ log.text }}</div>
-              <div v-else-if="log.type === 'toolCall'" class="text-cyber-orange break-all">
+            <div v-for="(log, li) in s.logs" :key="li" class="text-xs font-sans leading-relaxed">
+              <div v-if="log.type === 'thinking'" class="text-muted-foreground">⟳ {{ log.text }}</div>
+              <div v-else-if="log.type === 'toolCall'" class="text-warning break-all">
                 <span v-if="isToolLong(log.text)">
                   <span v-if="!logExpanded[log.id || '']">[⚙] {{ toolPreview(log.text) }}</span>
                   <span v-else>[⚙] {{ log.text }}</span>
-                  <button @click="toggleLogExpand(log.id || '')" class="text-cyber-accent/60 hover:text-cyber-accent ml-1 transition-colors duration-150">{{ logExpanded[log.id || ''] ? t('subagent.log.collapse') : t('subagent.log.view') }}</button>
+                  <button @click="toggleLogExpand(log.id || '')" class="text-primary hover:text-primary ml-1 transition-colors duration-150">{{ logExpanded[log.id || ''] ? t('subagent.log.collapse') : t('subagent.log.view') }}</button>
                 </span>
                 <span v-else>[⚙] {{ log.text }}</span>
               </div>
-              <div v-else-if="log.type === 'toolResult'" class="text-cyber-green break-all">{{ toolPreview(log.text) }}</div>
-              <div v-else-if="log.type === 'token'" class="text-cyber-text">{{ log.text }}</div>
-              <div v-else-if="log.type === 'error'" class="text-red-400">✗ {{ log.text }}</div>
-              <div v-else-if="log.type === 'done'" class="text-cyber-green">✓ {{ t('subagent.session.done') }}</div>
+              <div v-else-if="log.type === 'toolResult'" class="text-success break-all">{{ toolPreview(log.text) }}</div>
+              <div v-else-if="log.type === 'token'" class="text-foreground">{{ log.text }}</div>
+              <div v-else-if="log.type === 'error'" class="text-danger">✗ {{ log.text }}</div>
+              <div v-else-if="log.type === 'done'" class="text-success">✓ {{ t('subagent.session.done') }}</div>
             </div>
           </div>
         </div>
-        <div v-if="!sessions.length" class="text-center text-cyber-muted text-sm font-mono py-8">{{ t('subagent.panel.empty') }}</div>
+        <div v-if="!sessions.length" class="text-center text-muted-foreground text-sm py-8">{{ t('subagent.panel.empty') }}</div>
       </div>
     </div>
   </div>

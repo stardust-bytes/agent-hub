@@ -1,82 +1,90 @@
 <template>
-  <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
-    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-cyber-dark flex items-center justify-between shrink-0">
-      <span class="text-cyber-accent text-sm tracking-widest font-mono">
-        <HiSave class="w-3 h-3 inline" /> {{ t('memory.title') }}
-      </span>
-      <button
-        @click="openAddModal"
-        class="text-sm font-mono font-bold text-black bg-cyber-accent px-2 py-1 hover:bg-cyber-accent/80 transition-colors duration-150"
-      >{{ t('memory.create') }}</button>
+  <div class="flex-1 flex flex-col bg-background overflow-hidden">
+    <div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+          <HiDatabase class="w-4 h-4" />
+        </div>
+        <span class="text-base font-semibold text-foreground">{{ t('memory.title') }}</span>
+        <span v-if="memories.length > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">{{ memories.length }}</span>
+        <div class="ml-auto">
+          <button @click="openAddModal"
+            class="text-sm rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-colors duration-150 px-2.5 py-1">
+            {{ t('memory.create') }}
+          </button>
+        </div>
+      </div>
     </div>
-
-    <div class="xl:pl-3 pl-10 px-3 py-1.5 bg-cyber-dark/40 flex items-center gap-2 shrink-0">
-      <span class="text-cyber-muted text-sm font-mono">{{ t('tasks.filter.label') }}</span>
-      <button
-        v-for="f in TYPE_FILTERS"
-        :key="f.value"
-        @click="activeType = activeType === f.value ? '' : f.value"
-        :class="[
-          'text-sm px-2 py-0.5 font-mono transition-colors duration-150',
-          activeType === f.value ? 'text-cyber-accent bg-cyber-accent/10' : 'text-cyber-muted/50 hover:text-cyber-accent',
-        ]"
-      >{{ t(f.labelKey) }}</button>
+    <div class="flex items-center gap-2 px-6 py-1.5 bg-background shrink-0 mx-auto max-w-5xl w-full">
+      <div class="flex items-center border border-border rounded-lg overflow-hidden">
+        <button @click="activeType = ''"
+          class="px-2.5 py-1 text-sm font-sans transition-colors duration-150 border-r border-border last:border-r-0"
+          :class="activeType === '' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted'"
+        >{{ t('memory.all') }}</button>
+        <button
+          v-for="f in TYPE_FILTERS"
+          :key="f.value"
+          @click="activeType = activeType === f.value ? '' : f.value"
+          class="px-2.5 py-1 text-sm font-sans transition-colors duration-150 border-r border-border last:border-r-0"
+          :class="activeType === f.value ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted'"
+        >{{ t(f.labelKey) }}</button>
+      </div>
       <input
         v-model="searchQuery"
         :placeholder="t('memory.searchPlaceholder')"
-        class="ml-auto bg-cyber-dark text-cyber-text text-sm font-mono  border border-cyber-code-border px-2 py-1 outline-none focus:border-cyber-accent w-48"
+        class="ml-auto bg-surface text-foreground text-sm rounded-lg border border-input px-2.5 py-1 outline-none focus:border-primary focus:ring-1 focus:ring-ring w-48"
       />
     </div>
 
-    <div class="flex-1 overflow-y-auto">
-      <div v-if="loading" class="text-cyber-muted/50 text-sm font-mono text-center py-8">
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl px-6 pt-3 pb-6 w-full">
+      <div v-if="loading" class="text-muted-foreground/50 text-sm font-sans text-center py-8">
         {{ t('chat.thinking') }}
       </div>
-      <div v-else-if="memories.length === 0" class="text-cyber-muted/50 text-sm font-mono text-center py-8">
+      <div v-else-if="memories.length === 0" class="text-muted-foreground/50 text-sm font-sans text-center py-8">
         {{ t('memory.empty') }}
       </div>
       <div v-for="mem in filteredMemories" :key="mem.id"
-        class="border border-cyber-code-border bg-cyber-dark p-3 flex flex-col gap-2">
+        class="border border-border rounded-lg bg-surface p-3 flex flex-col gap-2 mb-2">
         <div class="flex items-center gap-2 min-w-0">
-          <span class="text-sm font-mono" :class="typeColor(mem.type)">{{ typeLabel(mem.type) }}</span>
-          <span class="text-cyber-text text-sm font-mono truncate">{{ mem.title }}</span>
-          <span v-if="isAutoExtracted(mem)" class="text-cyber-muted/40 text-2xs font-mono">{{ t('memory.auto_extracted') }}</span>
+          <span class="text-xs font-sans rounded-full px-1.5 py-0.5 shrink-0" :class="typeBadgeClass(mem.type)">{{ typeLabel(mem.type) }}</span>
+          <span class="text-foreground text-sm font-sans truncate">{{ mem.title }}</span>
+          <span v-if="isAutoExtracted(mem)" class="text-xs font-sans rounded-full px-1.5 py-0.5 bg-muted text-muted-foreground shrink-0">{{ t('memory.auto_extracted') }}</span>
         </div>
-        <div class="text-cyber-muted/80 text-sm font-mono line-clamp-2">{{ mem.content }}</div>
+        <div class="text-muted-foreground/80 text-sm font-sans line-clamp-2">{{ mem.content }}</div>
         <div class="flex justify-end gap-1 mt-auto pt-1">
-          <button @click="openEditModal(mem)" class="text-sm px-1.5 py-0.5 font-mono text-cyber-accent border border-cyber-accent/50 hover:bg-cyber-accent/10 transition-colors duration-150">{{ t('memory.edit') }}</button>
-          <button @click="openDeleteConfirm(mem.id)" class="text-sm px-1.5 py-0.5 font-mono text-red-400 border border-red-400/50 hover:bg-red-400/10 transition-colors duration-150">{{ t('memory.delete') }}</button>
+          <button @click="openEditModal(mem)" class="text-sm px-1.5 py-0.5 font-sans text-primary rounded-lg border border-primary/30 hover:bg-primary/10 transition-colors duration-150">{{ t('memory.edit') }}</button>
+          <button @click="openDeleteConfirm(mem.id)" class="text-sm px-1.5 py-0.5 font-sans text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">{{ t('memory.delete') }}</button>
         </div>
       </div>
     </div>
 
     <BaseModal v-model="showFormModal">
-      <template #header>{{ editing ? t('memory.edit') : t('memory.create') }}</template>
+      <template #header><span class="text-foreground text-sm font-sans">{{ editing ? t('memory.edit') : t('memory.create') }}</span></template>
       <div class="p-3 space-y-3">
           <div>
-            <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('memory.form.type') }}</label>
+            <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('memory.form.type') }}</label>
             <BaseSelect v-model="formType" :options="typeFilterOptions" />
           </div>
           <div>
-            <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('memory.form.title') }}</label>
+            <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('memory.form.title') }}</label>
             <input v-model="formTitle"
-              class="w-full bg-cyber-dark text-cyber-text text-sm font-mono  border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent"
+              class="w-full bg-surface text-foreground text-sm font-sans border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring"
             />
           </div>
           <div>
-            <label class="text-cyber-muted text-sm font-mono block mb-1">{{ t('memory.form.content') }}</label>
+            <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('memory.form.content') }}</label>
             <textarea v-model="formContent" rows="4"
-              class="w-full bg-cyber-dark text-cyber-text text-sm font-mono  border border-cyber-code-border px-2 py-1.5 outline-none focus:border-cyber-accent resize-none"
+              class="w-full bg-surface text-foreground text-sm font-sans border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring resize-none"
             ></textarea>
         </div>
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
           <button @click="showFormModal = false"
-            class="text-sm font-mono text-cyber-muted px-3 py-1 hover:text-cyber-text transition-colors duration-150"
+            class="text-sm text-muted-foreground font-sans px-3 py-1.5 border border-border rounded-lg transition-colors duration-150 hover:text-foreground"
           >{{ t('tasks.form.cancel') }}</button>
           <button @click="saveMemory"
-            class="text-sm font-mono font-bold text-black bg-cyber-accent px-4 py-1 hover:bg-cyber-accent/80 transition-colors duration-150"
+            class="text-sm text-primary-foreground font-sans px-3 py-1.5 rounded-lg bg-primary transition-colors duration-150 hover:bg-primary/90"
           >{{ t('tasks.form.save') }}</button>
         </div>
       </template>
@@ -94,7 +102,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { HiSave } from 'vue-icons-plus/hi'
+import { HiDatabase } from 'vue-icons-plus/hi'
 import BaseModal from './BaseModal.vue'
 import BaseConfirmModal from './BaseConfirmModal.vue'
 import BaseSelect from './BaseSelect.vue'
@@ -145,8 +153,13 @@ const filteredMemories = computed(() => {
 })
 
 function typeColor(type: string): string {
-  const colors: Record<string, string> = { USER: 'text-cyber-green', FEEDBACK: 'text-cyber-orange', PROJECT: 'text-cyber-cyan', REFERENCE: 'text-cyber-muted' }
-  return colors[type] || 'text-cyber-muted'
+  const colors: Record<string, string> = { USER: 'text-success', FEEDBACK: 'text-warning', PROJECT: 'text-primary', REFERENCE: 'text-muted-foreground' }
+  return colors[type] || 'text-muted-foreground'
+}
+
+function typeBadgeClass(type: string): string {
+  const badges: Record<string, string> = { USER: 'bg-success/10 text-success', FEEDBACK: 'bg-warning/10 text-warning', PROJECT: 'bg-primary/10 text-primary', REFERENCE: 'bg-muted text-muted-foreground' }
+  return badges[type] || 'bg-muted text-muted-foreground'
 }
 
 function typeLabel(type: string): string {

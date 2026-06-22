@@ -4,37 +4,37 @@
       type="button"
       @click="showModal = true"
       :disabled="disabled"
-      class="text-sm font-mono text-cyber-accent px-2 py-0.5 border border-cyber-accent/40 transition-colors duration-150 hover:bg-cyber-accent/10 disabled:opacity-50 disabled:cursor-not-allowed truncate"
+      class="inline-flex items-center gap-1.5 rounded-lg border border-input bg-surface px-3 py-1.5 text-sm text-foreground transition-colors duration-150 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed truncate"
     >{{ currentLabel || t('chat.no_provider') }}</button>
 
     <Teleport to="body">
-      <div v-if="showModal" class="fixed inset-0 bg-cyber-dark/80 z-50 flex items-center justify-center">
-        <div class="w-120 bg-cyber-modal-bg border border-cyber-border flex flex-col" style="max-height: 70vh; max-width: 90vw">
-          <div class="px-3 py-2 bg-cyber-dark flex items-center justify-between shrink-0 border-b border-cyber-border">
-            <span class="text-cyber-text text-sm font-mono">{{ t('providers.select_model') }}</span>
-            <button @click="showModal = false" class="text-cyber-muted text-sm font-mono hover:text-cyber-accent">✕</button>
+      <div v-if="showModal" class="fixed inset-0 bg-foreground/40 z-50 flex items-center justify-center p-4" @click.self="showModal = false">
+        <div class="w-120 bg-elevated rounded-xl border border-border shadow-xl flex flex-col" style="max-height: 70vh; max-width: 90vw">
+          <div class="px-4 py-3 flex items-center justify-between shrink-0 border-b border-border">
+            <span class="text-foreground text-sm font-semibold">{{ t('providers.select_model') }}</span>
+            <button @click="showModal = false" class="text-muted-foreground text-base leading-none hover:text-foreground">✕</button>
           </div>
-          <div class="px-3 py-2 border-b border-cyber-border">
+          <div class="px-3 py-2 border-b border-border">
             <input
               ref="filterInput"
               v-model="filter"
-              class="w-full bg-cyber-dark text-cyber-text text-sm px-2 py-1 font-mono outline-none border border-cyber-accent/20"
+              class="w-full rounded-lg border border-input bg-surface px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring"
               :placeholder="t('providers.search_model')"
               autocomplete="off"
             />
           </div>
-          <div class="overflow-y-auto flex-1 px-3 py-2">
+          <div class="overflow-y-auto flex-1 px-2 py-2">
             <div
               v-for="m in filteredModels"
               :key="m.id"
-              class="flex items-center justify-between px-2 py-1.5 cursor-pointer font-mono text-sm transition-colors duration-150"
-              :class="m.id === modelValue ? 'bg-cyber-accent/15 text-cyber-accent' : 'text-cyber-text hover:bg-cyber-dark'"
+              class="flex items-center justify-between px-2.5 py-1.5 rounded-md cursor-pointer text-sm transition-colors duration-150"
+              :class="m.id === modelValue ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted'"
               @click="selectModel(m.id)"
             >
               <span class="truncate">{{ m.providerName }} / {{ m.name }}</span>
-              <span v-if="m.id === modelValue" class="text-cyber-accent shrink-0 ml-2">✓</span>
+              <span v-if="m.id === modelValue" class="text-primary shrink-0 ml-2">✓</span>
             </div>
-            <div v-if="filteredModels.length === 0" class="text-cyber-muted text-sm font-mono text-center py-4">{{ t('providers.no_models_found') }}</div>
+            <div v-if="filteredModels.length === 0" class="text-muted-foreground text-sm text-center py-4">{{ t('providers.no_models_found') }}</div>
           </div>
         </div>
       </div>

@@ -29,22 +29,22 @@
 
   "settings.fetch_failed": "Could not load settings",
 
-  "settings.header": "SETTINGS",
+  "settings.header": "Settings",
   "settings.ollamaUrl": "Ollama Base URL",
   "settings.defaultModel": "Default Model",
   "settings.save": "Save",
   "settings.saved": "✓ Saved",
   "settings.version": "Version",
-  "settings.info": "INFO",
+  "settings.info": "Info",
   "settings.embedModel": "Embedding Model",
   "settings.summaryModel": "Summary Model",
   "settings.defaultOption": "Default (env)",
-  "settings.models": "MODEL CONFIG",
+  "settings.models": "Model Config",
   "settings.fetchError": "Could not load model config",
-  "settings.mcpServers": "MCP SERVERS",
+  "settings.mcpServers": "MCP Servers",
   "settings.noMcpServers": "No MCP servers configured",
-  "settings.mcpOn": "ON",
-  "settings.mcpOff": "OFF",
+  "settings.mcpOn": "On",
+  "settings.mcpOff": "Off",
   "connectors.fetch_failed": "Could not load connectors",
   "connectors.oauth_failed": "OAuth authentication failed",
   "connectors.oauth_confirm_failed": "OAuth confirmation failed",
@@ -59,7 +59,7 @@
 
   "connectors.delete_failed": "Could not delete connector",
 
-  "connectors.header": "CONNECTORS",
+  "connectors.header": "Connectors",
   "connectors.connected": "Connected",
   "connectors.disconnected": "Disconnected",
   "connectors.connect": "Connect",
@@ -79,11 +79,11 @@
   "tasks.form.cancel": "Cancel",
   "tasks.form.save": "Save",
   "tasks.delete.confirm.btn": "Delete",
-  "tasks.filter.label": "FILTER:",
+  "tasks.filter.label": "Filter:",
 
   "knowledge.fetch_failed": "Could not load knowledge files",
 
-  "files.header": "KNOWLEDGE BASE",
+  "files.header": "Knowledge Base",
   "files.dropzone": "Drop files or click to upload",
   "files.filter": "Filter by name...",
   "files.status.ready": "✓ ready",
@@ -109,13 +109,14 @@
     "delete": "Delete Memory",
     "deleteConfirm": "Delete this memory?",
     "empty": "No memories yet",
+    "all": "All",
     "searchPlaceholder": "Search...",
     "auto_extracted": "[auto]",
     "type": {
-      "user": "USER",
-      "feedback": "FEEDBACK",
-      "project": "PROJECT",
-      "reference": "REFERENCE"
+      "user": "User",
+      "feedback": "Feedback",
+      "project": "Project",
+      "reference": "Reference"
     },
     "form": {
       "type": "Type",
@@ -154,7 +155,7 @@
   "sessions.create_failed": "Could not create session",
   "sessions.delete_failed": "Could not delete session",
 
-  "sessions.header": "SESSIONS",
+  "sessions.header": "Sessions",
   "sessions.new": "+ New",
   "sessions.empty": "No sessions yet",
   "sessions.messages": "{n} messages",
@@ -165,7 +166,7 @@
   "providers.delete_failed": "Could not delete provider",
   "providers.sync_failed": "Could not sync provider",
 
-  "providers.header": "PROVIDERS",
+  "providers.header": "Providers",
   "providers.add": "+ add provider",
   "providers.empty": "No providers yet",
   "providers.edit": "Edit provider",
@@ -186,7 +187,7 @@
   "nav.providers": "Providers",
   "nav.tools": "Tools",
   "tools.fetch_failed": "Could not load tools",
-  "tools.header": "TOOL REGISTRY",
+  "tools.header": "Tool Registry",
   "tools.loading": "Loading tools...",
   "tools.no_tools": "No tools registered",
   "tools.status": "Status",
@@ -201,15 +202,17 @@
   "tools.config.save": "Save",
   "tools.config.noConfig": "No configuration needed",
   "tools.form.cancel": "Cancel",
-  "nav.plans": "Plans",
   "nav.notes": "Notes",
   "nav.agentOutput": "Outputs",
   "nav.connectors": "Connectors",
+  "nav.group.workspace": "Workspace",
+  "nav.group.knowledge": "Knowledge",
+  "nav.group.config": "Config",
   "notes.fetch_failed": "Could not load notes",
   "notes.save_failed": "Could not save note",
   "notes.delete_failed": "Could not delete note",
 
-  "notes.header": "NOTES",
+  "notes.header": "Notes",
   "notes.empty": "No notes yet",
   "notes.add": "+ add note",
   "notes.form.title": "Title",
@@ -263,16 +266,7 @@
   "subagent.log.view": "view full result",
   "subagent.log.collapse": "collapse",
 
-  "plans.header": "Execution Plan",
-  "plans.empty": "No plans yet",
-  "plans.steps": "steps",
-  "plans.execute": "Execute",
-  "plans.resume": "Resume",
-  "plans.pending": "Pending",
-  "plans.approved": "Approved",
-  "plans.executing": "Executing...",
-  "plans.interrupted": "Interrupted",
-  "plans.done": "Done",
+
   "plans.approve": "Approve",
   "plans.reject": "Reject",
   "plans.status.pending": "Awaiting approval",
@@ -365,9 +359,10 @@
   "schedules.delete_failed": "Could not delete schedule",
   "schedules.run_failed": "Could not run schedule",
 
-  "schedules.header": "SCHEDULED TASKS",
+  "schedules.header": "Scheduled Tasks",
   "schedules.add": "+ add schedule",
   "schedules.empty": "No scheduled tasks",
+  "schedules.active": "active",
   "schedules.edit": "Edit schedule",
   "schedules.delete": "Delete",
   "schedules.deleteConfirm": "Delete this schedule?",
@@ -377,7 +372,7 @@
   "schedules.frequency.weekdays": "Weekdays",
   "schedules.frequency.weekly": "Weekly",
   "schedules.hasModel": "has model",
-  "schedules.logs.header": "LOGS",
+  "schedules.logs.header": "Logs",
   "schedules.logs.empty": "No logs",
   "schedules.form.name": "Schedule name",
   "schedules.form.description": "Description",
@@ -395,15 +390,18 @@
   "schedules.model": "Model",
   "schedules.timezone": "Timezone",
   "schedules.frequency": "Frequency",
-  "schedules.runNow": "RUN NOW",
+  "schedules.runNow": "Run now",
   "schedules.hint.hourly": "Every hour at minute {m}",
   "schedules.hint.daily": "Every day at {time}",
   "schedules.hint.weekdays": "Weekdays at {time}",
   "schedules.hint.weekly": "{day} at {time}",
+  "schedules.status.success": "Success",
+  "schedules.status.failed": "Failed",
+  "schedules.status.running": "Running",
 
   "agentOutput": {
     "fetch_failed": "Could not load agent outputs",
-    "header": "AGENT OUTPUTS",
+    "header": "Agent Outputs",
     "empty": "No files yet",
     "download": "Download",
     "filename": "File",
@@ -416,5 +414,28 @@
     "delete": "Delete",
     "deleteConfirm": "Delete this file?",
     "delete_failed": "Could not delete file"
+  },
+
+  "topbar": {
+    "search": "Search…",
+    "theme": {
+      "dark": "Dark mode",
+      "light": "Light mode"
+    },
+    "menu": "Menu"
+  },
+
+  "palette": {
+    "placeholder": "Go to or search a command…",
+    "empty": "No results",
+    "section": {
+      "navigate": "Navigate",
+      "actions": "Actions"
+    },
+    "action": {
+      "newSession": "New session",
+      "toggleTheme": "Toggle theme",
+      "toggleLang": "Toggle language"
+    }
   }
 }

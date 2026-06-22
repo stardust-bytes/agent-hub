@@ -1,25 +1,30 @@
 <template>
-  <div class="flex-1 flex flex-col bg-cyber-bg overflow-hidden">
-    <div class="xl:pl-3 pl-10 px-3 h-[3rem] bg-cyber-dark flex items-center justify-between shrink-0">
-      <span class="text-cyber-accent text-sm tracking-widest font-mono">{{ t('connectors.header') }}</span>
+  <div class="flex-1 flex flex-col bg-background overflow-hidden">
+    <div class="mx-auto max-w-5xl w-full px-6 pt-5 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+        </div>
+        <span class="text-base font-semibold text-foreground">{{ t('connectors.header') }}</span>
+      </div>
     </div>
-    <div class="flex-1 overflow-y-auto px-4 py-4">
-      <div class="max-w-xl">
+    <div class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 pb-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 
-        <div v-for="connector in displayConnectors" :key="connector.type" class="flex items-center justify-between px-3 h-[3rem] border border-cyber-code-border mb-2 bg-cyber-dark">
+        <div v-for="connector in displayConnectors" :key="connector.type" class="flex items-center justify-between px-3 h-[3rem] border border-border rounded-lg bg-surface">
           <div class="flex items-center gap-3 min-w-0">
-            <span class="text-sm text-cyber-text font-mono truncate">{{ connector.name }}</span>
+            <span class="text-sm text-foreground font-sans truncate">{{ connector.name }}</span>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <span class="text-sm font-mono" :class="connector.enabled ? 'text-cyber-green' : 'text-cyber-muted'">
+            <span class="text-sm font-sans" :class="connector.enabled ? 'text-success' : 'text-muted-foreground'">
               {{ connector.enabled ? t('connectors.connected') : t('connectors.disconnected') }}
             </span>
             <button v-if="!connector.enabled" @click="connect(connector.type)"
-              class="text-sm font-mono px-2 py-0.5 border border-cyber-green/30 text-cyber-green hover:bg-cyber-green/10 transition-colors duration-150">
+              class="text-sm font-sans px-2.5 py-1 rounded-lg border border-green-600/30 text-success hover:bg-green-50 transition-colors duration-150">
               {{ t('connectors.connect') }}
             </button>
             <button v-if="connector.enabled" @click="disconnect(connector)"
-              class="text-sm px-1.5 py-0.5 font-mono text-red-400 border border-red-400/50 hover:bg-red-400/10 transition-colors duration-150">
+              class="text-sm px-1.5 py-0.5 font-sans text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">
               {{ t('connectors.disconnect') }}
             </button>
           </div>
