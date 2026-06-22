@@ -2,7 +2,7 @@ import type { Component } from 'vue'
 import {
   HiCode, HiClipboardList, HiDocumentText, HiCog, HiDownload,
   HiFolder, HiDatabase, HiServer, HiUserGroup,
-  HiAdjustments, HiLightBulb,
+  HiAdjustments, HiLightBulb, HiLink,
 } from 'vue-icons-plus/hi'
 
 export interface NavItem {
@@ -23,7 +23,7 @@ export const NAV: Record<string, NavItem> = {
   'agent-output':  { name: 'agent-output',  path: '/agent-output',  labelKey: 'nav.agentOutput', icon: HiDownload },
   notes:           { name: 'notes',         path: '/notes',         labelKey: 'nav.notes',       icon: HiDocumentText },
   files:           { name: 'files',         path: '/settings/general', labelKey: 'nav.files',    icon: HiFolder },
-  connectors:      { name: 'connectors',    path: '/connectors',    labelKey: 'nav.connectors',  icon: HiCog },
+  connectors:      { name: 'connectors',    path: '/connectors',    labelKey: 'nav.connectors',  icon: HiLink },
   settings:        { name: 'settings',      path: '/settings',      labelKey: 'nav.settings',    icon: HiCog },
   skills:          { name: 'skills',        path: '/skills',        labelKey: 'skills.header',   icon: HiLightBulb },
 }
@@ -51,7 +51,7 @@ export const navGroups: NavGroup[] = [
       { name: 'providers',   path: '/providers',   labelKey: 'providers.header',   icon: HiServer },
       { name: 'agents',      path: '/agents',      labelKey: 'agents.header',      icon: HiUserGroup },
       { name: 'tools',       path: '/tools',       labelKey: 'tools.header',       icon: HiAdjustments },
-      { name: 'connectors',  path: '/connectors',       labelKey: 'nav.connectors', icon: HiCog },
+      { name: 'connectors',  path: '/connectors',       labelKey: 'nav.connectors', icon: HiLink },
       { name: 'general',     path: '/settings/general', labelKey: 'nav.settings',   icon: HiCog },
     ],
   },

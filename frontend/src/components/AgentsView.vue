@@ -36,17 +36,17 @@
         <div class="ml-auto flex items-center gap-2 shrink-0">
           <button
             @click="toggleEnabled(p)"
-            :class="p.enabled ? 'text-warning hover:text-warning/80' : 'text-primary hover:text-primary/80'"
-            class="text-sm font-sans transition-colors duration-150"
+            :class="p.enabled ? 'text-warning border-warning/30 hover:bg-warning/10' : 'text-primary border-primary/30 hover:bg-primary/10'"
+            class="text-sm px-2.5 py-1 rounded-lg border transition-colors duration-150"
           >{{ p.enabled ? t('agents.disable') : t('agents.enable') }}</button>
           <button
             @click="startEdit(p)"
-            class="text-sm font-sans text-primary/70 hover:text-primary transition-colors duration-150"
+            class="text-sm px-2.5 py-1 rounded-lg border border-input text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-150"
           >{{ t('agents.edit') }}</button>
           <button
             v-if="!p.builtin"
             @click="askDelete(p)"
-            class="text-sm font-sans text-danger hover:text-danger/80 transition-colors duration-150"
+            class="text-sm px-2.5 py-1 rounded-lg border border-danger/40 text-danger hover:bg-danger/10 transition-colors duration-150"
           >{{ t('agents.delete') }}</button>
         </div>
       </div>

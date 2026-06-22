@@ -33,15 +33,15 @@
             <td class="py-2 px-2 text-right">
               <button
                 @click="toggle(tool.name)"
-                :class="tool.enabled ? 'text-warning hover:text-warning/80' : 'text-primary hover:text-primary/80'"
-                class="text-sm font-sans transition-colors duration-150"
+                :class="tool.enabled ? 'text-warning border-warning/30 hover:bg-warning/10' : 'text-primary border-primary/30 hover:bg-primary/10'"
+                class="text-sm px-2.5 py-1 rounded-lg border transition-colors duration-150"
               >{{ tool.enabled ? t('tools.disable') : t('tools.enable') }}</button>
             </td>
             <td class="py-2 px-2 text-right">
               <button
                 v-if="tool.configSchema"
                 @click="openConfig(tool)"
-                class="text-sm font-sans text-primary/70 hover:text-primary transition-colors duration-150"
+                class="text-sm px-2.5 py-1 rounded-lg border border-input text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-150"
               >{{ t('tools.config.edit') }}</button>
             </td>
           </tr>

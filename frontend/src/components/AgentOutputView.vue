@@ -21,23 +21,21 @@
       {{ t('agentOutput.empty') }}
     </div>
 
-    <div v-else class="flex-1 overflow-y-auto">
-      <div class="mx-auto max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 px-6 pb-6">
+    <div v-else class="flex-1 overflow-y-auto mx-auto max-w-5xl w-full px-6 pb-6">
+      <div class="space-y-1">
         <div v-for="file in files" :key="file.filename"
-          class="border border-border rounded-lg bg-surface p-3 flex flex-col gap-2">
-          <div class="text-sm font-sans text-foreground truncate" :title="file.filename">{{ file.filename }}</div>
-          <div class="text-sm font-sans text-muted-foreground">{{ formatSize(file.size) }} · {{ formatDate(file.modifiedAt) }}</div>
-          <div class="flex justify-end gap-1 mt-auto">
-            <a :href="`/api/agent-output/${encodeURIComponent(file.filename)}/download`"
-              class="text-sm px-1.5 py-0.5 font-sans text-primary rounded-lg border border-primary/30 hover:bg-primary/10 transition-colors duration-150"
-              download>
-              {{ t('agentOutput.download') }}
-            </a>
-            <button @click="deleteFile(file.filename)"
-              class="text-sm px-1.5 py-0.5 font-sans text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">
-              {{ t('agentOutput.delete') }}
-            </button>
-          </div>
+          class="flex items-center gap-3 px-3 h-[3rem] border border-border rounded-lg bg-surface">
+          <span class="flex-1 text-sm text-foreground font-sans truncate" :title="file.filename">{{ file.filename }}</span>
+          <span class="text-xs text-muted-foreground font-sans shrink-0">{{ formatSize(file.size) }} · {{ formatDate(file.modifiedAt) }}</span>
+          <a :href="`/api/agent-output/${encodeURIComponent(file.filename)}/download`"
+            class="text-sm px-2.5 py-1 font-sans text-primary rounded-lg border border-primary/30 hover:bg-primary/10 transition-colors duration-150 shrink-0"
+            download>
+            {{ t('agentOutput.download') }}
+          </a>
+          <button @click="deleteFile(file.filename)"
+            class="text-sm px-2.5 py-1 font-sans text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150 shrink-0">
+            {{ t('agentOutput.delete') }}
+          </button>
         </div>
       </div>
     </div>
