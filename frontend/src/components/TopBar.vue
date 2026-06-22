@@ -9,9 +9,9 @@
       <HiMenu class="h-5 w-5" />
     </button>
 
-    <RouterLink to="/cowork" class="flex items-center gap-2 shrink-0">
-      <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">A</span>
-      <span class="hidden text-sm font-semibold text-foreground sm:block">Agent Hub</span>
+    <RouterLink to="/cowork" class="flex items-center gap-1.5 shrink-0">
+      <span class="text-sm font-medium bg-primary/10 text-primary rounded-lg px-1.5 py-0.5 font-mono">Agent</span>
+      <span class="hidden text-sm font-semibold text-foreground font-mono sm:inline">Hub</span>
     </RouterLink>
 
     <button

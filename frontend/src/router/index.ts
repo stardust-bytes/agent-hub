@@ -10,6 +10,7 @@ import ProvidersView from '../components/ProvidersView.vue'
 import AgentsView from '../components/AgentsView.vue'
 import ToolsView from '../components/ToolsView.vue'
 import MemoryView from '../components/MemoryView.vue'
+import SkillsView from '../components/SkillsView.vue'
 
 import ScheduleTaskDetailView from '../components/ScheduleTaskDetailView.vue'
 
@@ -26,6 +27,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/agents', name: 'agents', component: AgentsView },
   { path: '/tools', name: 'tools', component: ToolsView },
   { path: '/memories', name: 'memories', component: MemoryView },
+  { path: '/skills', name: 'skills', component: SkillsView },
   { path: '/settings', redirect: '/settings/general' },
   { path: '/settings/:tab', name: 'settings', component: SettingsView, props: true },
   { path: '/:pathMatch(.*)*', redirect: '/cowork' },

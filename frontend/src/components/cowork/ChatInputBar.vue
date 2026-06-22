@@ -60,6 +60,7 @@ import { useI18n } from 'vue-i18n'
 import ModelSelector from '../ModelSelector.vue'
 import SlashMenu, { type SlashCommand } from '../SlashMenu.vue'
 import { useAgentProfilesStore } from '../../stores/agentProfiles'
+import { listSkills } from '../../api/skills'
 import type { ProviderModelFlat } from './types'
 
 const props = defineProps<{
@@ -82,6 +83,11 @@ const slashVisible = ref(false)
 const slashIndex = ref(0)
 
 const profilesStore = useAgentProfilesStore()
+const skills = ref<Array<{ name: string; description: string }>>([])
+
+onMounted(async () => {
+  try { skills.value = await listSkills() } catch {}
+})
 
 const staticSlashCommands = computed<SlashCommand[]>(() => [
   { command: '/help', description: t('slash.help') },
@@ -95,11 +101,16 @@ const slashCommands = computed<SlashCommand[]>(() => {
   const fromProfiles: SlashCommand[] = profilesStore.profiles
     .filter(p => p.enabled)
     .map(p => ({
-      command: `/agent ${p.slug}`,
+      command: `/agent:${p.slug}`,
       description: `${t('slash.agent')} — ${p.name}`,
     }))
 
-  const all = [...staticSlashCommands.value, ...fromProfiles]
+  const fromSkills: SlashCommand[] = skills.value.map(s => ({
+    command: `/skill:${s.name}`,
+    description: s.description,
+  }))
+
+  const all = [...staticSlashCommands.value, ...fromProfiles, ...fromSkills]
 
   if (!prefix) return all
   return all.filter(c => c.command.startsWith(prefix))

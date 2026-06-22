@@ -44,6 +44,7 @@ import { ListExcelSheetsExecutor } from '../excel/executors/list-excel-sheets.ex
 import { ExcelChartExecutor } from '../excel/executors/excel-chart.executor';
 import { ConnectorModule } from '../connector/connector.module';
 import { AgentProfilesModule } from '../agent-profiles/agent-profiles.module';
+import { SkillsModule } from '../skills/skills.module';
 import { GoogleGmailSearchExecutor } from '../tools/executors/google-gmail-search.executor';
 import { GoogleGmailReadExecutor } from '../tools/executors/google-gmail-read.executor';
 import { GoogleGmailSendExecutor } from '../tools/executors/google-gmail-send.executor';
@@ -78,7 +79,7 @@ import { NotionUpdatePageExecutor } from '../tools/executors/notion-update-page.
 import { NotionQueryDatabaseExecutor } from '../tools/executors/notion-query-database.executor';
 
 @Module({
-  imports: [MemoryModule, forwardRef(() => ScheduleTasksModule), KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule, ConnectorModule, AgentProfilesModule],
+  imports: [MemoryModule, forwardRef(() => ScheduleTasksModule), KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule, ConnectorModule, AgentProfilesModule, SkillsModule],
   controllers: [AgentController],
   providers: [
     AgentService,

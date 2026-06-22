@@ -233,6 +233,7 @@ async function connectProject(p: string) {
     await setProject(p)
     projectPath.value = p
     showDirBrowser.value = false
+    await loadSavedProjects()
   } catch { /* ignore */ }
 }
 
@@ -430,9 +431,11 @@ async function submitText(text: string) {
         if (currentAgentIdx >= 0) {
           messages.value[currentAgentIdx].typing = false
         }
+        const isProviderError = /insufficient.?(balance|quota)|rate.limit|exhausted|provider.*error/i.test(error)
+        const label = isProviderError ? t('chat.error.provider') : t('chat.error.unreachable')
         messages.value.push({
           role: 'system',
-          content: `${t('chat.error.unreachable')} (${error})`,
+          content: `${label} (${error})`,
           timestamp: now(),
         })
         scrollToBottom()

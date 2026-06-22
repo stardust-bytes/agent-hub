@@ -10,7 +10,9 @@ import { PermissionsConfig } from './dto/permissions-config';
 import { AgentRunState } from './dto/agent-run-state';
 import { WriteStream } from './dto/write-stream.interface';
 import { AgentProfilesService } from '../agent-profiles/agent-profiles.service';
+import { SkillsService } from '../skills/skills.service';
 import { parseAgentCommand } from './dto/agent-command.util';
+import { parseSkillCommand } from './dto/skill-command.util';
 import { filterSubagentTools } from './subagent/subagent-tools.util';
 
 @Injectable()
@@ -24,6 +26,7 @@ export class AgentService {
     private readonly plansService: PlansService,
     private readonly cowork: CoworkService,
     private readonly agentProfiles: AgentProfilesService,
+    private readonly skills: SkillsService,
   ) {}
 
   async streamChat(
@@ -95,6 +98,35 @@ export class AgentService {
         cmdProviderType, cmdModel, profile.systemPrompt, history,
         agentCmd.task, tools, res, signal, sessionId, projectPath, cmdProviderConfig,
         agentCmd.slug,
+      );
+      if (!signal.aborted) {
+        await this.sessionsService.autoTitle(sessionId, message);
+      }
+      return;
+    }
+
+    const skillCmd = parseSkillCommand(message);
+    if (skillCmd) {
+      const skill = await this.skills.findByName(skillCmd.slug);
+      if (!skill) {
+        res.write(`data: ${JSON.stringify({ error: `unknown skill "${skillCmd.slug}". Use /skill list to see available skills.` })}\n\n`);
+        res.write('data: [DONE]\n\n');
+        return;
+      }
+
+      const skillPrompt = `${skill.content}\n\nUser request: ${skillCmd.task}`;
+      if (!signal.aborted) {
+        await this.sessionsService.saveMessage(sessionId, 'user', message);
+      }
+      const runState = {
+        step: 0, maxIterations: 10, roomId: String(sessionId),
+        steps: [], startTime: Date.now(), currentState: 'PLANNING',
+      } as AgentRunState;
+      const context = await this.contextBuilder.build(runState, sessionId, skillPrompt);
+      const history = await this.sessionsService.getHistory(sessionId);
+      await this.agentLoop.run(
+        providerType, providerModel.name, context.systemPrompt, history,
+        skillCmd.task, context.tools, res, signal, sessionId, projectPath, providerConfig,
       );
       if (!signal.aborted) {
         await this.sessionsService.autoTitle(sessionId, message);

@@ -23,6 +23,7 @@ import { WordModule } from './word/word.module';
 import { UsageModule } from './usage/usage.module';
 import { ConnectorModule } from './connector/connector.module';
 import { ScheduleTasksModule } from './schedule-tasks/schedule-tasks.module';
+import { SkillsModule } from './skills/skills.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ScheduleTasksModule } from './schedule-tasks/schedule-tasks.module';
     UsageModule,
     ConnectorModule,
     ScheduleTasksModule,
+    SkillsModule,
   ],
   controllers: [AppController],
 })

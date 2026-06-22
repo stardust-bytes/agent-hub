@@ -30,7 +30,7 @@ export function listProjects() {
 }
 
 export function setProject(path: string) {
-  return requestRaw('/cowork/project', { method: 'POST', body: { path } })
+  return request<{ ok: boolean }>('/cowork/project', { method: 'POST', body: { path }, errorCode: 'cowork.fetch_failed' })
 }
 
 export function saveProject(name: string, path: string) {
@@ -46,7 +46,7 @@ export function readFile(path: string) {
 }
 
 export function clearProject() {
-  return requestRaw('/cowork/project', { method: 'DELETE' })
+  return request<{ ok: boolean }>('/cowork/project', { method: 'DELETE', errorCode: 'cowork.fetch_failed' })
 }
 
 export function browse(path: string, signal?: AbortSignal) {

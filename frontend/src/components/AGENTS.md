@@ -108,7 +108,7 @@ Visible on desktop only (`hidden xl:flex`, `w-60`).
 
 **Emits:** `browse-directory`, `select-project(path)`, `delete-project(id)`, `save-project(name)`, `toggle-artifacts`, `toggle-subagent-monitor`
 
-Owns its own dropdown state (`showProjectMenu`, `showSaveModal`, `saveProjectName`). Renders the project path bar with a connected indicator dot, dropdown menu for saved projects, and save/delete/browse actions. When `subagentCount > 0`, shows a clickable count badge that emits `toggleSubagentMonitor` to open the SubagentMonitorPanel.
+Owns its own dropdown state (`showProjectMenu`, `showSaveModal`, `saveProjectName`). Renders the project path bar with a connected indicator dot, dropdown menu for saved projects, and save/delete/browse actions. When `subagentCount > 0`, shows a `"N Sub-agents"` button that emits `toggleSubagentMonitor` to open the SubagentMonitorPanel.
 
 ---
 

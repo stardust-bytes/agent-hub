@@ -2,7 +2,7 @@ import type { Component } from 'vue'
 import {
   HiCode, HiClipboardList, HiDocumentText, HiCog, HiDownload,
   HiFolder, HiDatabase, HiServer, HiUserGroup,
-  HiAdjustments,
+  HiAdjustments, HiLightBulb,
 } from 'vue-icons-plus/hi'
 
 export interface NavItem {
@@ -25,6 +25,7 @@ export const NAV: Record<string, NavItem> = {
   files:           { name: 'files',         path: '/settings/general', labelKey: 'nav.files',    icon: HiFolder },
   connectors:      { name: 'connectors',    path: '/connectors',    labelKey: 'nav.connectors',  icon: HiCog },
   settings:        { name: 'settings',      path: '/settings',      labelKey: 'nav.settings',    icon: HiCog },
+  skills:          { name: 'skills',        path: '/skills',        labelKey: 'skills.header',   icon: HiLightBulb },
 }
 
 export const navGroups: NavGroup[] = [
@@ -41,6 +42,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { name: 'notes',       path: '/notes',     labelKey: 'nav.notes',      icon: HiDocumentText },
       { name: 'memories',    path: '/memories',  labelKey: 'memory.title',   icon: HiDatabase },
+      { name: 'skills',      path: '/skills',    labelKey: 'skills.header',  icon: HiLightBulb },
     ],
   },
   {
