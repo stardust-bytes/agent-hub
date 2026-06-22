@@ -28,12 +28,12 @@ Base path: `/api/sessions`
 | `POST` | `/api/sessions` | Create a new session |
 | `DELETE` | `/api/sessions` | Delete all sessions |
 | `DELETE` | `/api/sessions/:id` | Delete a session (cascades messages) |
-| `GET` | `/api/sessions/:id/messages` | Get all messages for a session (ordered by `createdAt ASC`) |
+| `GET` | `/api/sessions/:id/messages` | Get all messages for a session (ordered by `createdAt ASC, id ASC`) |
 
 ## Key Patterns
 
 - **Auto-title**: On first user message, sets session title to first 5 words of the message
-- **History format**: `getHistory()` returns messages in Ollama format (`{ role, content }[]`) for context building. Filters out non-standard roles (`plan`, etc.) — only `system`, `user`, `assistant`, `tool` are included.
+- **History format**: `getHistory()` returns messages in Ollama format (`{ role, content }[]`) for context building. Filters out non-standard roles (`plan`, etc.) — only `system`, `user`, `assistant`, `tool` are included. Both `getMessages()` and `getHistory()` order by `createdAt ASC, id ASC` to ensure stable ordering even when multiple messages share the same timestamp.
 - **Cascade delete**: Deleting a session cascades to all its `ChatMessage` records (via Prisma schema `onDelete: Cascade`)
 
 ## Dependencies

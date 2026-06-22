@@ -47,11 +47,19 @@ Base path: `/api/connectors`
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/api/connectors` | List all connector accounts |
-| `POST` | `/api/connectors` | Upsert connector by type |
+| `POST` | `/api/connectors` | Upsert connector by type (saves config including clientId/clientSecret or token) |
 | `PATCH` | `/api/connectors/:id` | Update connector |
 | `DELETE` | `/api/connectors/:id` | Delete connector |
-| `GET` | `/api/connectors/oauth/auth-url` | Get OAuth URL (query: type) |
-| `POST` | `/api/connectors/oauth/confirm` | Confirm OAuth (body: state, code) |
+| `GET` | `/api/connectors/oauth/auth-url` | Get OAuth URL (query: type) — reads clientId/clientSecret from DB or env |
+| `POST` | `/api/connectors/oauth/confirm` | Confirm OAuth (body: state, code) — exchanges code for tokens and updates connector |
+| `GET` | `/api/connectors/google-types` | List Google OAuth connector type slugs |
+
+## Auth Method
+
+- Google services: OAuth 2.0 (client ID + secret, redirect URI, token exchange). Credentials can be entered via the UI (stored in DB) or set via environment variables (`GOOGLE_*_CLIENT_ID`/`GOOGLE_*_CLIENT_SECRET`) as fallback.
+- GitHub: Personal Access Token (stored in connector config as `{ token }`)
+- Slack: Bot Token (stored in connector config as `{ token }`)
+- Notion: Internal Integration Token (stored in connector config as `{ token }`)
 
 ## Tools Registered (Google)
 
@@ -113,13 +121,6 @@ Base path: `/api/connectors`
 | `notion_update_page` | `NotionUpdatePageExecutor` | NotionService |
 | `notion_query_database` | `NotionQueryDatabaseExecutor` | NotionService |
 
-## Auth Method
-
-- Google services: OAuth 2.0 (client ID + secret, redirect URI, token exchange)
-- GitHub: Personal Access Token (stored in connector config as `{ token }`)
-- Slack: Bot Token (stored in connector config as `{ token }`)
-- Notion: Internal Integration Token (stored in connector config as `{ token }`)
-
 ## Dependencies
 
 - `googleapis` — Google API client library
@@ -140,10 +141,12 @@ model Connector {
 }
 ```
 
-## Dependencies
+## Testing
 
-- `googleapis` — Google API client library
-- ConnectorModule imported by AgentModule and ToolsModule
+```bash
+npx jest src/connector          # connector service + controller tests
+npx jest src/tools/executors/google-*  # executor tests
+```
 
 ## Testing
 

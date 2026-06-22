@@ -5,6 +5,8 @@ import { UpdateConnectorDto } from './dto/update-connector.dto';
 import { OAuthConfirmDto } from './dto/oauth-confirm.dto';
 import { GoogleOAuthService, GoogleTokens } from './providers/google/google-oauth.service';
 
+const GOOGLE_TYPES = ['google_gmail', 'google_calendar', 'google_drive', 'google_sheets'] as const;
+
 @Controller('connectors')
 export class ConnectorController {
   constructor(
@@ -16,8 +18,15 @@ export class ConnectorController {
     return `${process.env.APP_URL ?? 'http://localhost:17135'}/oauth/callback`;
   }
 
-  private getCreds(type: string) {
-    const map: Record<string, { clientId: string; clientSecret: string }> = {
+  private async getCreds(type: string): Promise<{ clientId: string; clientSecret: string } | null> {
+    const connector = await this.connector.findByType(type);
+    if (connector) {
+      const config = JSON.parse(connector.config);
+      if (config.clientId && config.clientSecret) {
+        return { clientId: config.clientId, clientSecret: config.clientSecret };
+      }
+    }
+    const envMap: Record<string, { clientId: string; clientSecret: string }> = {
       google_gmail: {
         clientId: process.env.GOOGLE_GMAIL_CLIENT_ID ?? '',
         clientSecret: process.env.GOOGLE_GMAIL_CLIENT_SECRET ?? '',
@@ -35,7 +44,11 @@ export class ConnectorController {
         clientSecret: process.env.GOOGLE_SHEETS_CLIENT_SECRET ?? '',
       },
     };
-    return map[type] ?? null;
+    const envCreds = envMap[type];
+    if (envCreds && envCreds.clientId && envCreds.clientSecret) {
+      return envCreds;
+    }
+    return null;
   }
 
   @Get()
@@ -61,8 +74,8 @@ export class ConnectorController {
 
   @Get('oauth/auth-url')
   async oauthAuthUrl(@Query('type') type: string) {
-    const creds = this.getCreds(type);
-    if (!creds) return { error: 'unknown_type', type };
+    const creds = await this.getCreds(type);
+    if (!creds) return { error: 'missing_credentials', type };
     return { url: this.googleOAuth.getAuthUrl(type, { ...creds, redirectUri: this.getRedirectUri() }) };
   }
 
@@ -70,30 +83,28 @@ export class ConnectorController {
   async oauthConfirm(@Body() body: OAuthConfirmDto) {
     const { state, code } = body;
     const type = state;
-    const creds = this.getCreds(type);
-    if (!creds) return { error: 'unknown_type', state };
-    if (!creds.clientId || !creds.clientSecret) {
+    const existing = await this.connector.findByType(type);
+    if (!existing) return { error: 'missing_credentials', type };
+    const existingConfig = JSON.parse(existing.config);
+    if (!existingConfig.clientId || !existingConfig.clientSecret) {
       return { error: 'missing_credentials', type };
     }
     const redirectUri = this.getRedirectUri();
     let tokens: GoogleTokens;
     try {
-      tokens = await this.googleOAuth.handleCallback(code, { ...creds, redirectUri });
+      tokens = await this.googleOAuth.handleCallback(code, { clientId: existingConfig.clientId, clientSecret: existingConfig.clientSecret, redirectUri });
     } catch {
       throw new BadRequestException('oauth_failed');
     }
-    const names: Record<string, string> = {
-      google_gmail: 'Gmail',
-      google_calendar: 'Google Calendar',
-      google_drive: 'Google Drive',
-      google_sheets: 'Google Sheets',
-    };
-    await this.connector.upsert(type, {
-      type,
-      name: names[type] ?? type,
-      config: { ...creds, redirectUri, tokens },
+    await this.connector.update(existing.id, {
+      config: { ...existingConfig, redirectUri, tokens },
       enabled: true,
     });
     return { ok: true };
+  }
+
+  @Get('google-types')
+  async getGoogleTypes() {
+    return GOOGLE_TYPES;
   }
 }

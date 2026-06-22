@@ -29,10 +29,10 @@
     </div>
     <button v-if="projectPath" @click="emit('disconnect')" class="text-sm text-danger px-2.5 py-1 rounded-lg border border-danger/40 transition-colors duration-150 hover:bg-danger/10 shrink-0">✕ {{ t('cowork.disconnect') }}</button>
     <div class="flex items-center gap-2 ml-auto shrink-0">
-      <span v-if="subagentCount != null && subagentCount > 0" class="text-xs font-sans text-muted-foreground bg-muted rounded-full px-1.5 py-0.5 flex items-center gap-1">
+      <button v-if="subagentCount != null && subagentCount > 0" @click="emit('toggleSubagentMonitor')" class="text-xs font-sans text-muted-foreground bg-muted rounded-full px-1.5 py-0.5 flex items-center gap-1 transition-colors duration-150 hover:bg-primary/10" :title="t('cowork.subagent.monitor')">
         <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
         {{ subagentCount }}
-      </span>
+      </button>
       <button v-if="projectPath" @click="emit('toggleArtifacts')" class="text-sm text-muted-foreground px-2.5 py-1 rounded-lg border border-input transition-colors duration-150 hover:bg-muted hover:text-foreground">{{ t('cowork.artifacts') }}</button>
     </div>
     <BaseModal v-model="showSaveModal" :closable="false">

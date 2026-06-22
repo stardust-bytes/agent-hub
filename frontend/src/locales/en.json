@@ -74,6 +74,8 @@
   "connectors.token_hint": "Enter your {name} API token. Your token is stored locally and never shared.",
   "connectors.token_placeholder": "Paste your API token here",
   "connectors.cancel": "Cancel",
+  "connectors.oauth_key_title": "Connect {name}",
+  "connectors.oauth_key_hint": "Enter your Google Client ID and Client Secret. Credentials are stored locally and never shared.",
   "settings.oauth": "Google OAuth",
   "settings.oauthClientId": "Client ID",
   "settings.oauthClientSecret": "Client Secret",
@@ -155,6 +157,7 @@
   "cowork.project.saveAs": "Save project as...",
   "cowork.project.name": "Project name",
   "cowork.project.save": "Save",
+  "cowork.subagent.monitor": "View running sub-agents",
 
   "sessions.fetch_failed": "Could not load sessions",
   "sessions.create_failed": "Could not create session",

@@ -36,14 +36,14 @@ export class SessionsService {
     if (!session) throw new NotFoundException(`Session ${sessionId} not found`);
     return this.prisma.chatMessage.findMany({
       where: { sessionId },
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
     });
   }
 
   async getHistory(sessionId: number): Promise<OllamaMessage[]> {
     const messages = await this.prisma.chatMessage.findMany({
       where: { sessionId },
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
     });
     const validRoles = new Set(['system', 'user', 'assistant', 'tool']);
     return messages

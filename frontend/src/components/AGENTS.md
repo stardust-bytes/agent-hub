@@ -94,7 +94,7 @@ Visible on desktop only (`hidden xl:flex`, `w-60`).
 
 **Session history:** Uses `loadSessionMessages` from `src/composables/useSessionMessages.ts`.
 
-**Sub-agent monitoring:** Manages `subagentSessions` ref and `SubagentMonitorPanel` toggle. Sub-agent SSE events are routed to session logs for live display, with brief inline messages in the main chat. `activeSubagentCount` shown via `ProjectBar` prop.
+**Sub-agent monitoring:** Manages `subagentSessions` ref and `SubagentMonitorPanel` toggle. Sub-agent SSE events are routed to session logs for live display, with brief inline messages in the main chat. Sub-agent label defaults to `[subagent:worker]` when no profile slug is provided by the LLM. `activeSubagentCount` shown via `ProjectBar` prop.
 
 **File tree:** Refreshed via `fileTreeRefreshKey` counter incremented on stream complete.
 
@@ -108,7 +108,7 @@ Visible on desktop only (`hidden xl:flex`, `w-60`).
 
 **Emits:** `browse-directory`, `select-project(path)`, `delete-project(id)`, `save-project(name)`, `toggle-artifacts`, `toggle-subagent-monitor`
 
-Owns its own dropdown state (`showProjectMenu`, `showSaveModal`, `saveProjectName`). Renders the project path bar with a connected indicator dot, dropdown menu for saved projects, and save/delete/browse actions. When `subagentCount > 0`, shows a ◈ button that toggles the SubagentMonitorPanel.
+Owns its own dropdown state (`showProjectMenu`, `showSaveModal`, `saveProjectName`). Renders the project path bar with a connected indicator dot, dropdown menu for saved projects, and save/delete/browse actions. When `subagentCount > 0`, shows a clickable count badge that emits `toggleSubagentMonitor` to open the SubagentMonitorPanel.
 
 ---
 
@@ -118,7 +118,7 @@ Owns its own dropdown state (`showProjectMenu`, `showSaveModal`, `saveProjectNam
 
 **Emits:** `formSubmit(data)`, `approve(id)`, `reject(id)`, `resume(id)`, `toggleExpand(msg)`
 
-Renders one message block. Handles thinking indicator, tool call/result with expand/collapse, agent answer with markdown+form segments, PlanBubble, user highlight, and system messages. Uses `renderMarkdown`/`parseSegments`/`highlightUserMessage` from `markdown.ts`.
+Renders one message block. Handles thinking indicator, tool call/result with expand/collapse, agent answer with markdown+form segments, PlanBubble, user highlight, and system messages. Sub-agent tool messages show a `◈ <name>` badge parsed from `[subagent:<name>]` prefix; main agent messages show a `◈ Agent` badge. Uses `renderMarkdown`/`parseSegments`/`highlightUserMessage` from `markdown.ts`.
 
 ---
 
@@ -162,7 +162,7 @@ Owns its own `input` ref and text state. Emits `submit` with trimmed text on for
 
 ## ConnectorsView.vue
 
-`/connectors` route. Lists connector accounts, starts Google OAuth (`GET /api/connectors/oauth/auth-url`), enables/disables and deletes connectors.
+`/connectors` route. Lists connector accounts. Token-based connectors (GitHub, Slack, Notion) use a single-input modal for API tokens. Google OAuth connectors (Gmail, Calendar, Drive, Sheets) use a two-input modal for Client ID + Client Secret before starting the OAuth popup. Credentials are stored in the `Connector` DB table via `POST /api/connectors` upsert before the OAuth flow begins.
 
 ---
 

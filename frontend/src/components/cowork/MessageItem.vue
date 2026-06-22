@@ -100,7 +100,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const subagentPattern = /^\[subagent:([^\]]+)\]\s*(.*)$/
+const subagentPattern = /^\[subagent(?::([^\]]+))?\]\s*(.*)$/
 
 const toolContent = computed(() => {
   if (props.msg.role !== 'tool') return props.msg.content
@@ -111,7 +111,7 @@ const toolContent = computed(() => {
 const subagentBadge = computed(() => {
   if (props.msg.role !== 'tool') return null
   const m = props.msg.content.match(subagentPattern)
-  return m ? `◈ ${m[1]}` : null
+  return m ? `◈ ${m[1] || 'worker'}` : null
 })
 
 const isThinking = computed(() =>

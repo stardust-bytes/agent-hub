@@ -74,6 +74,8 @@
   "connectors.token_hint": "Nhập API token {name} của bạn. Token được lưu trữ cục bộ và không chia sẻ.",
   "connectors.token_placeholder": "Dán API token vào đây",
   "connectors.cancel": "Hủy",
+  "connectors.oauth_key_title": "Kết nối {name}",
+  "connectors.oauth_key_hint": "Nhập Client ID và Client Secret của Google. Thông tin được lưu trữ cục bộ và không chia sẻ.",
   "settings.oauth": "Google OAuth",
   "settings.oauthClientId": "Client ID",
   "settings.oauthClientSecret": "Client Secret",
@@ -155,6 +157,7 @@
   "cowork.project.saveAs": "Lưu project...",
   "cowork.project.name": "Tên project",
   "cowork.project.save": "Lưu",
+  "cowork.subagent.monitor": "Xem sub-agent đang chạy",
 
   "sessions.fetch_failed": "Không tải được danh sách session",
   "sessions.create_failed": "Không tạo được session",

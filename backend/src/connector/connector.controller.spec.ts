@@ -7,6 +7,11 @@ let controller: ConnectorController;
 
 const mockConnectorService = {
   upsert: jest.fn().mockResolvedValue({ id: '1', type: 'google_sheets', enabled: true }),
+  findByType: jest.fn().mockResolvedValue(null),
+  update: jest.fn().mockResolvedValue({ id: '1', type: 'google_sheets', enabled: true }),
+  findAll: jest.fn().mockResolvedValue([]),
+  findById: jest.fn(),
+  remove: jest.fn(),
 };
 
 const mockGoogleOAuthService = {
@@ -37,35 +42,66 @@ describe('ConnectorController', () => {
     jest.clearAllMocks();
   });
 
-  it('oauthConfirm returns ok for valid state and code', async () => {
+  it('oauthConfirm returns ok when connector exists with stored creds', async () => {
+    mockConnectorService.findByType.mockResolvedValueOnce({
+      id: '1', type: 'google_sheets',
+      config: JSON.stringify({ clientId: 'stored-id', clientSecret: 'stored-secret' }),
+      enabled: false,
+    });
     const result = await controller.oauthConfirm({ state: 'google_sheets', code: 'auth-code-123' });
     expect(result).toEqual({ ok: true });
     expect(mockGoogleOAuthService.handleCallback).toHaveBeenCalledWith('auth-code-123', {
-      clientId: 'test-id',
-      clientSecret: 'test-secret',
+      clientId: 'stored-id',
+      clientSecret: 'stored-secret',
       redirectUri: 'http://localhost:17135/oauth/callback',
     });
-    expect(mockConnectorService.upsert).toHaveBeenCalledWith('google_sheets', {
-      type: 'google_sheets',
-      name: 'Google Sheets',
-      config: expect.objectContaining({ tokens: { access_token: 'abc', refresh_token: 'def', expiry_date: 999 } }),
+    expect(mockConnectorService.update).toHaveBeenCalledWith('1', {
+      config: expect.objectContaining({ clientId: 'stored-id', clientSecret: 'stored-secret', tokens: { access_token: 'abc', refresh_token: 'def', expiry_date: 999 } }),
       enabled: true,
     });
   });
 
-  it('oauthConfirm returns error for unknown type', async () => {
+  it('oauthConfirm returns error when connector does not exist in DB', async () => {
+    mockConnectorService.findByType.mockResolvedValue(null);
     const result = await controller.oauthConfirm({ state: 'unknown_type', code: 'code' });
-    expect(result).toEqual({ error: 'unknown_type', state: 'unknown_type' });
+    expect(result).toEqual({ error: 'missing_credentials', type: 'unknown_type' });
     expect(mockGoogleOAuthService.handleCallback).not.toHaveBeenCalled();
   });
 
-  it('oauthConfirm returns error for missing client credentials', async () => {
-    delete process.env.GOOGLE_SHEETS_CLIENT_ID;
-    delete process.env.GOOGLE_SHEETS_CLIENT_SECRET;
+  it('oauthConfirm returns error when stored config lacks clientId/clientSecret', async () => {
+    mockConnectorService.findByType.mockResolvedValueOnce({
+      id: '2', type: 'google_sheets',
+      config: '{}',
+      enabled: false,
+    });
     const result = await controller.oauthConfirm({ state: 'google_sheets', code: 'code' });
     expect(result).toEqual({ error: 'missing_credentials', type: 'google_sheets' });
     expect(mockGoogleOAuthService.handleCallback).not.toHaveBeenCalled();
-    process.env.GOOGLE_SHEETS_CLIENT_ID = 'test-id';
-    process.env.GOOGLE_SHEETS_CLIENT_SECRET = 'test-secret';
+  });
+
+  it('oauthAuthUrl falls back to env vars when no DB connector exists', async () => {
+    mockConnectorService.findByType.mockResolvedValue(null);
+    const result = await controller.oauthAuthUrl('google_sheets');
+    expect(result).toEqual({ url: expect.stringContaining('accounts.google.com') });
+    expect(mockGoogleOAuthService.getAuthUrl).toHaveBeenCalledWith('google_sheets', {
+      clientId: 'test-id',
+      clientSecret: 'test-secret',
+      redirectUri: 'http://localhost:17135/oauth/callback',
+    });
+  });
+
+  it('oauthAuthUrl uses DB stored creds when available', async () => {
+    mockConnectorService.findByType.mockResolvedValueOnce({
+      id: '1', type: 'google_sheets',
+      config: JSON.stringify({ clientId: 'db-id', clientSecret: 'db-secret' }),
+      enabled: false,
+    });
+    const result = await controller.oauthAuthUrl('google_sheets');
+    expect(result).toEqual({ url: expect.stringContaining('accounts.google.com') });
+    expect(mockGoogleOAuthService.getAuthUrl).toHaveBeenCalledWith('google_sheets', {
+      clientId: 'db-id',
+      clientSecret: 'db-secret',
+      redirectUri: 'http://localhost:17135/oauth/callback',
+    });
   });
 });

@@ -94,6 +94,7 @@ export class AgentService {
       await this.agentLoop.run(
         cmdProviderType, cmdModel, profile.systemPrompt, history,
         agentCmd.task, tools, res, signal, sessionId, projectPath, cmdProviderConfig,
+        agentCmd.slug,
       );
       if (!signal.aborted) {
         await this.sessionsService.autoTitle(sessionId, message);

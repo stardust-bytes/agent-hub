@@ -439,8 +439,9 @@ async function submitText(text: string) {
       },
       onSubagent(ev) {
         clearThinking()
-        const session = getOrCreateSession(ev.subagentRunId, ev.subagentName || 'subagent')
-        const saLabel = ev.subagentName ? `[subagent:${ev.subagentName}]` : '[subagent]'
+        const saName = ev.subagentName || 'worker'
+        const session = getOrCreateSession(ev.subagentRunId, saName)
+        const saLabel = `[subagent:${saName}]`
         const ts = now()
         if (ev.done) {
           session.status = 'completed'
