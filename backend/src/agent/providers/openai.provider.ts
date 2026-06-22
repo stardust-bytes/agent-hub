@@ -64,7 +64,11 @@ export class OpenAIProvider implements LLMProvider {
     let reasoningContent = '';
     let lastUsage: { promptTokens: number; completionTokens: number; totalTokens: number } | undefined;
 
-    signal.addEventListener('abort', () => reader.cancel(), { once: true });
+    signal.addEventListener('abort', () => {
+      try {
+        reader.cancel().catch(() => { /* stream already torn down by fetch abort */ });
+      } catch { /* reader.cancel() can throw synchronously mid-teardown */ }
+    }, { once: true });
 
     while (!signal.aborted) {
       const { done, value } = await reader.read();

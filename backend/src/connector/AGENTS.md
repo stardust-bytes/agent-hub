@@ -9,6 +9,10 @@ External service connector management. Handles OAuth-based account connections f
 - `GmailService` — Gmail API wrapper: search, read, send, draft, labels
 - `GoogleCalendarService` — Calendar API wrapper: list, create, update, availability
 - `GoogleDriveService` — Drive API wrapper: search, read, list, upload
+- `GoogleSheetsService` — Sheets API v4: read/listTabs/update/append/create/addTab/format/chart + resolveSpreadsheetId
+- `GitHubService` — GitHub REST API wrapper via Octokit: repo search, issue CRUD, PR listing, commit history
+- `SlackService` — Slack Web API wrapper: send message, list channels, conversation history, message search
+- `NotionService` — Notion SDK wrapper: search pages/databases, get page content, create/update pages, query databases
 
 ## Files
 
@@ -22,12 +26,18 @@ connector/
 │   ├── update-connector.dto.ts   — PartialType(UpsertConnectorDto)
 │   └── oauth-confirm.dto.ts      — @IsString state, code
 └── providers/
-    └── google/
-        ├── google-oauth.service.ts       — OAuth2 URL gen, token exchange, refresh
-        ├── gmail.service.ts              — Gmail API (search/read/send/draft/labels)
-        ├── google-calendar.service.ts    — Calendar API (list/create/update/availability)
-        ├── google-drive.service.ts       — Drive API (search/read/list/upload)
-        └── google-sheets.service.ts     — Sheets API v4: read/listTabs/update/append/create/addTab/format/chart + resolveSpreadsheetId
+    ├── google/
+    │   ├── google-oauth.service.ts       — OAuth2 URL gen, token exchange, refresh
+    │   ├── gmail.service.ts              — Gmail API (search/read/send/draft/labels)
+    │   ├── google-calendar.service.ts    — Calendar API (list/create/update/availability)
+    │   ├── google-drive.service.ts       — Drive API (search/read/list/upload)
+    │   └── google-sheets.service.ts     — Sheets API v4: read/listTabs/update/append/create/addTab/format/chart + resolveSpreadsheetId
+    ├── github/
+    │   └── github.service.ts            — GitHub REST API via Octokit (search repos, issue CRUD, PR listing, commits)
+    ├── slack/
+    │   └── slack.service.ts             — Slack Web API (send message, list channels, history, search)
+    └── notion/
+        └── notion.service.ts            — Notion SDK (search, get page, create/update page, query database)
 ```
 
 ## API Endpoints
@@ -43,7 +53,7 @@ Base path: `/api/connectors`
 | `GET` | `/api/connectors/oauth/auth-url` | Get OAuth URL (query: type) |
 | `POST` | `/api/connectors/oauth/confirm` | Confirm OAuth (body: state, code) |
 
-## Tools Registered
+## Tools Registered (Google)
 
 | Tool Name | Executor | Service |
 |---|---|---|
@@ -70,15 +80,53 @@ Base path: `/api/connectors`
 | `google_sheets_format` | `GoogleSheetsFormatExecutor` | GoogleSheetsService |
 | `google_sheets_chart` | `GoogleSheetsChartExecutor` | GoogleSheetsService |
 
-## OAuth Scopes
+## Tools Registered (GitHub)
 
-- Mail: `https://mail.google.com/`
-- Calendar: `https://www.googleapis.com/auth/calendar`
-- Drive: `https://www.googleapis.com/auth/drive`
-- Sheets: `https://www.googleapis.com/auth/spreadsheets`
-- Sheets (Drive search): `https://www.googleapis.com/auth/drive.readonly`
+| Tool Name | Executor | Service |
+|---|---|---|
+| `github_search_repos` | `GitHubSearchReposExecutor` | GitHubService |
+| `github_get_repo` | `GitHubGetRepoExecutor` | GitHubService |
+| `github_search_issues` | `GitHubSearchIssuesExecutor` | GitHubService |
+| `github_list_issues` | `GitHubListIssuesExecutor` | GitHubService |
+| `github_create_issue` | `GitHubCreateIssueExecutor` | GitHubService |
+| `github_get_issue` | `GitHubGetIssueExecutor` | GitHubService |
+| `github_list_pull_requests` | `GitHubListPullRequestsExecutor` | GitHubService |
+| `github_get_pull_request` | `GitHubGetPullRequestExecutor` | GitHubService |
+| `github_list_commits` | `GitHubListCommitsExecutor` | GitHubService |
 
-## Data Model
+## Tools Registered (Slack)
+
+| Tool Name | Executor | Service |
+|---|---|---|
+| `slack_send_message` | `SlackSendMessageExecutor` | SlackService |
+| `slack_list_channels` | `SlackListChannelsExecutor` | SlackService |
+| `slack_get_history` | `SlackGetHistoryExecutor` | SlackService |
+| `slack_search` | `SlackSearchExecutor` | SlackService |
+
+## Tools Registered (Notion)
+
+| Tool Name | Executor | Service |
+|---|---|---|
+| `notion_search` | `NotionSearchExecutor` | NotionService |
+| `notion_get_page` | `NotionGetPageExecutor` | NotionService |
+| `notion_create_page` | `NotionCreatePageExecutor` | NotionService |
+| `notion_update_page` | `NotionUpdatePageExecutor` | NotionService |
+| `notion_query_database` | `NotionQueryDatabaseExecutor` | NotionService |
+
+## Auth Method
+
+- Google services: OAuth 2.0 (client ID + secret, redirect URI, token exchange)
+- GitHub: Personal Access Token (stored in connector config as `{ token }`)
+- Slack: Bot Token (stored in connector config as `{ token }`)
+- Notion: Internal Integration Token (stored in connector config as `{ token }`)
+
+## Dependencies
+
+- `googleapis` — Google API client library
+- `@octokit/rest` — GitHub REST API client
+- `@slack/web-api` — Slack Web API client
+- `@notionhq/client` — Notion SDK client
+- ConnectorModule imported by AgentModule and ToolsModule
 
 ```prisma
 model Connector {

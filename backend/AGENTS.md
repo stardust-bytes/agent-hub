@@ -180,12 +180,18 @@ src/
 │   │   ├── upsert-connector.dto.ts
 │   │   └── update-connector.dto.ts
 │   └── providers/
-│       └── google/
-│           ├── google-oauth.service.ts       — OAuth2 URL gen, token exchange, refresh
-│           ├── gmail.service.ts              — Gmail API (search/read/send/draft/labels)
-│           ├── google-calendar.service.ts    — Calendar API (list/create/update/availability)
-│           ├── google-drive.service.ts       — Drive API (search/read/list/upload)
-│           └── google-sheets.service.ts      — Sheets API (read/update/append/create/format/chart)
+│       ├── google/
+│       │   ├── google-oauth.service.ts       — OAuth2 URL gen, token exchange, refresh
+│       │   ├── gmail.service.ts              — Gmail API (search/read/send/draft/labels)
+│       │   ├── google-calendar.service.ts    — Calendar API (list/create/update/availability)
+│       │   ├── google-drive.service.ts       — Drive API (search/read/list/upload)
+│       │   └── google-sheets.service.ts      — Sheets API (read/update/append/create/format/chart)
+│       ├── github/
+│       │   └── github.service.ts            — GitHub REST API (Octokit: repos, issues, PRs, commits)
+│       ├── slack/
+│       │   └── slack.service.ts             — Slack Web API (messages, channels, history, search)
+│       └── notion/
+│           └── notion.service.ts            — Notion SDK (pages, databases, search)
 │
 └── knowledge/
     ├── knowledge.module.ts

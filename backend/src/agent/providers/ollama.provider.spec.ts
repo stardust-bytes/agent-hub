@@ -149,6 +149,38 @@ describe('OllamaProvider', () => {
     expect(chunks).toHaveLength(0);
   });
 
+  it('abort handler swallows synchronous reader.cancel() failures', async () => {
+    const reader = {
+      read: jest.fn().mockResolvedValue({ done: true, value: undefined }),
+      cancel: jest.fn(() => { throw new DOMException('This operation was aborted', 'AbortError'); }),
+    };
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      body: { getReader: () => reader },
+    } as unknown as Response);
+
+    const ctrl = new AbortController();
+    const abortHandlers: Array<() => void> = [];
+    const original = ctrl.signal.addEventListener.bind(ctrl.signal);
+    jest.spyOn(ctrl.signal, 'addEventListener').mockImplementation((type, listener, opts) => {
+      if (type === 'abort') abortHandlers.push(listener as () => void);
+      return original(type, listener as EventListener, opts);
+    });
+
+    const gen = provider.stream({
+      model: 'llama3.2',
+      messages,
+      tools: [],
+      signal: ctrl.signal,
+      baseUrl: 'http://localhost:11434',
+    });
+    for await (const _c of gen) { /* drain so the abort listener is registered */ }
+
+    expect(abortHandlers.length).toBeGreaterThan(0);
+    for (const handler of abortHandlers) expect(() => handler()).not.toThrow();
+    expect(reader.cancel).toHaveBeenCalled();
+  });
+
   it('includes tools in request body when provided', async () => {
     const encoder = new TextEncoder();
     const stream = new ReadableStream({

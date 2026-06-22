@@ -58,7 +58,24 @@ import { GoogleDriveReadExecutor } from '../tools/executors/google-drive-read.ex
 import { GoogleDriveListExecutor } from '../tools/executors/google-drive-list.executor';
 import { GoogleDriveUploadExecutor } from '../tools/executors/google-drive-upload.executor';
 import { GoogleDriveCreateFolderExecutor } from '../tools/executors/google-drive-create-folder.executor';
-
+import { GitHubSearchReposExecutor } from '../tools/executors/github-search-repos.executor';
+import { GitHubGetRepoExecutor } from '../tools/executors/github-get-repo.executor';
+import { GitHubSearchIssuesExecutor } from '../tools/executors/github-search-issues.executor';
+import { GitHubListIssuesExecutor } from '../tools/executors/github-list-issues.executor';
+import { GitHubCreateIssueExecutor } from '../tools/executors/github-create-issue.executor';
+import { GitHubGetIssueExecutor } from '../tools/executors/github-get-issue.executor';
+import { GitHubListPullRequestsExecutor } from '../tools/executors/github-list-pull-requests.executor';
+import { GitHubGetPullRequestExecutor } from '../tools/executors/github-get-pull-request.executor';
+import { GitHubListCommitsExecutor } from '../tools/executors/github-list-commits.executor';
+import { SlackSendMessageExecutor } from '../tools/executors/slack-send-message.executor';
+import { SlackListChannelsExecutor } from '../tools/executors/slack-list-channels.executor';
+import { SlackGetHistoryExecutor } from '../tools/executors/slack-get-history.executor';
+import { SlackSearchExecutor } from '../tools/executors/slack-search.executor';
+import { NotionSearchExecutor } from '../tools/executors/notion-search.executor';
+import { NotionGetPageExecutor } from '../tools/executors/notion-get-page.executor';
+import { NotionCreatePageExecutor } from '../tools/executors/notion-create-page.executor';
+import { NotionUpdatePageExecutor } from '../tools/executors/notion-update-page.executor';
+import { NotionQueryDatabaseExecutor } from '../tools/executors/notion-query-database.executor';
 
 @Module({
   imports: [MemoryModule, forwardRef(() => ScheduleTasksModule), KnowledgeModule, SessionsModule, ProvidersModule, ToolsModule, NotesModule, PlansModule, McpModule, CoworkModule, WorkspaceModule, ModePolicyModule, ExcelModule, ConnectorModule, AgentProfilesModule],
@@ -107,6 +124,24 @@ import { GoogleDriveCreateFolderExecutor } from '../tools/executors/google-drive
     GoogleDriveListExecutor,
     GoogleDriveUploadExecutor,
     GoogleDriveCreateFolderExecutor,
+    GitHubSearchReposExecutor,
+    GitHubGetRepoExecutor,
+    GitHubSearchIssuesExecutor,
+    GitHubListIssuesExecutor,
+    GitHubCreateIssueExecutor,
+    GitHubGetIssueExecutor,
+    GitHubListPullRequestsExecutor,
+    GitHubGetPullRequestExecutor,
+    GitHubListCommitsExecutor,
+    SlackSendMessageExecutor,
+    SlackListChannelsExecutor,
+    SlackGetHistoryExecutor,
+    SlackSearchExecutor,
+    NotionSearchExecutor,
+    NotionGetPageExecutor,
+    NotionCreatePageExecutor,
+    NotionUpdatePageExecutor,
+    NotionQueryDatabaseExecutor,
   ],
   exports: [
     AgentLoopService,

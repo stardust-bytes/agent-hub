@@ -13,7 +13,12 @@ export const useConnectorsStore = defineStore('connectors', () => {
     catch (e) { error.value = errorCode(e) }
   }
 
+  async function upsert(type: string, data: { name?: string; config?: Record<string, unknown>; enabled?: boolean }) {
+    await api.upsertConnector(type, data)
+    await load()
+  }
+
   async function remove(id: string) { await api.deleteConnector(id); await load() }
 
-  return { connectors, error, load, remove }
+  return { connectors, error, load, upsert, remove }
 })

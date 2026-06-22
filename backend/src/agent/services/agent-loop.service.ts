@@ -68,6 +68,24 @@ import { GoogleSheetsCreateExecutor } from '../../tools/executors/google-sheets-
 import { GoogleSheetsAddTabExecutor } from '../../tools/executors/google-sheets-add-tab.executor';
 import { GoogleSheetsFormatExecutor } from '../../tools/executors/google-sheets-format.executor';
 import { GoogleSheetsChartExecutor } from '../../tools/executors/google-sheets-chart.executor';
+import { GitHubSearchReposExecutor } from '../../tools/executors/github-search-repos.executor';
+import { GitHubGetRepoExecutor } from '../../tools/executors/github-get-repo.executor';
+import { GitHubSearchIssuesExecutor } from '../../tools/executors/github-search-issues.executor';
+import { GitHubListIssuesExecutor } from '../../tools/executors/github-list-issues.executor';
+import { GitHubCreateIssueExecutor } from '../../tools/executors/github-create-issue.executor';
+import { GitHubGetIssueExecutor } from '../../tools/executors/github-get-issue.executor';
+import { GitHubListPullRequestsExecutor } from '../../tools/executors/github-list-pull-requests.executor';
+import { GitHubGetPullRequestExecutor } from '../../tools/executors/github-get-pull-request.executor';
+import { GitHubListCommitsExecutor } from '../../tools/executors/github-list-commits.executor';
+import { SlackSendMessageExecutor } from '../../tools/executors/slack-send-message.executor';
+import { SlackListChannelsExecutor } from '../../tools/executors/slack-list-channels.executor';
+import { SlackGetHistoryExecutor } from '../../tools/executors/slack-get-history.executor';
+import { SlackSearchExecutor } from '../../tools/executors/slack-search.executor';
+import { NotionSearchExecutor } from '../../tools/executors/notion-search.executor';
+import { NotionGetPageExecutor } from '../../tools/executors/notion-get-page.executor';
+import { NotionCreatePageExecutor } from '../../tools/executors/notion-create-page.executor';
+import { NotionUpdatePageExecutor } from '../../tools/executors/notion-update-page.executor';
+import { NotionQueryDatabaseExecutor } from '../../tools/executors/notion-query-database.executor';
 
 const MAX_ITERATIONS = 100;
 const MAX_MAIN_ITERATIONS = 50;
@@ -140,6 +158,24 @@ export class AgentLoopService {
     private readonly googleSheetsAddTab: GoogleSheetsAddTabExecutor,
     private readonly googleSheetsFormat: GoogleSheetsFormatExecutor,
     private readonly googleSheetsChart: GoogleSheetsChartExecutor,
+    private readonly gitHubSearchRepos: GitHubSearchReposExecutor,
+    private readonly gitHubGetRepo: GitHubGetRepoExecutor,
+    private readonly gitHubSearchIssues: GitHubSearchIssuesExecutor,
+    private readonly gitHubListIssues: GitHubListIssuesExecutor,
+    private readonly gitHubCreateIssue: GitHubCreateIssueExecutor,
+    private readonly gitHubGetIssue: GitHubGetIssueExecutor,
+    private readonly gitHubListPullRequests: GitHubListPullRequestsExecutor,
+    private readonly gitHubGetPullRequest: GitHubGetPullRequestExecutor,
+    private readonly gitHubListCommits: GitHubListCommitsExecutor,
+    private readonly slackSendMessage: SlackSendMessageExecutor,
+    private readonly slackListChannels: SlackListChannelsExecutor,
+    private readonly slackGetHistory: SlackGetHistoryExecutor,
+    private readonly slackSearch: SlackSearchExecutor,
+    private readonly notionSearch: NotionSearchExecutor,
+    private readonly notionGetPage: NotionGetPageExecutor,
+    private readonly notionCreatePage: NotionCreatePageExecutor,
+    private readonly notionUpdatePage: NotionUpdatePageExecutor,
+    private readonly notionQueryDatabase: NotionQueryDatabaseExecutor,
     private readonly usageService: UsageService,
   ) {
     this.executorMap = new Map<string, ToolExecutor>([
@@ -194,6 +230,24 @@ export class AgentLoopService {
       [googleSheetsAddTab.name, googleSheetsAddTab],
       [googleSheetsFormat.name, googleSheetsFormat],
       [googleSheetsChart.name, googleSheetsChart],
+      [gitHubSearchRepos.name, gitHubSearchRepos],
+      [gitHubGetRepo.name, gitHubGetRepo],
+      [gitHubSearchIssues.name, gitHubSearchIssues],
+      [gitHubListIssues.name, gitHubListIssues],
+      [gitHubCreateIssue.name, gitHubCreateIssue],
+      [gitHubGetIssue.name, gitHubGetIssue],
+      [gitHubListPullRequests.name, gitHubListPullRequests],
+      [gitHubGetPullRequest.name, gitHubGetPullRequest],
+      [gitHubListCommits.name, gitHubListCommits],
+      [slackSendMessage.name, slackSendMessage],
+      [slackListChannels.name, slackListChannels],
+      [slackGetHistory.name, slackGetHistory],
+      [slackSearch.name, slackSearch],
+      [notionSearch.name, notionSearch],
+      [notionGetPage.name, notionGetPage],
+      [notionCreatePage.name, notionCreatePage],
+      [notionUpdatePage.name, notionUpdatePage],
+      [notionQueryDatabase.name, notionQueryDatabase],
     ]);
   }
 

@@ -3,11 +3,31 @@ import { request } from './client'
 export interface Connector {
   id: string
   type: string
-  connected: boolean
+  config: string
+  account: string | null
+  enabled: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 export function listConnectors() {
   return request<Connector[]>('/connectors', { errorCode: 'connectors.fetch_failed' })
+}
+
+export function upsertConnector(type: string, data: { name?: string; config?: Record<string, unknown>; enabled?: boolean }) {
+  return request<Connector>('/connectors', {
+    method: 'POST',
+    body: { type, ...data },
+    errorCode: 'connectors.upsert_failed',
+  })
+}
+
+export function updateConnector(id: string, data: { config?: Record<string, unknown>; enabled?: boolean }) {
+  return request<Connector>(`/connectors/${id}`, {
+    method: 'PATCH',
+    body: data,
+    errorCode: 'connectors.upsert_failed',
+  })
 }
 
 export function getOAuthUrl(type: string) {

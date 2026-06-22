@@ -19,11 +19,11 @@
             <span class="text-sm font-sans" :class="connector.enabled ? 'text-success' : 'text-muted-foreground'">
               {{ connector.enabled ? t('connectors.connected') : t('connectors.disconnected') }}
             </span>
-            <button v-if="!connector.enabled" @click="connect(connector.type)"
+            <button v-if="!connector.enabled" @click="handleConnect(connector)"
               class="text-sm font-sans px-2.5 py-1 rounded-lg border border-green-600/30 text-success hover:bg-green-50 transition-colors duration-150">
               {{ t('connectors.connect') }}
             </button>
-            <button v-if="connector.enabled" @click="disconnect(connector)"
+            <button v-if="connector.enabled" @click="handleDisconnect(connector)"
               class="text-sm px-1.5 py-0.5 font-sans text-danger rounded-lg border border-danger/40 hover:bg-danger/10 transition-colors duration-150">
               {{ t('connectors.disconnect') }}
             </button>
@@ -31,12 +31,31 @@
         </div>
 
       </div>
+
+      <div v-if="showTokenModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" @click.self="showTokenModal = false">
+        <div class="w-full max-w-md rounded-xl bg-elevated p-5 shadow-xl border border-border">
+          <h3 class="text-sm font-semibold text-foreground mb-3">{{ t('connectors.token_title', { name: tokenConnectorName }) }}</h3>
+          <p class="text-xs text-muted-foreground mb-3">{{ t('connectors.token_hint', { name: tokenConnectorName }) }}</p>
+          <input v-model="tokenInput" type="password" :placeholder="t('connectors.token_placeholder')"
+            class="w-full rounded-lg border border-input bg-surface px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring mb-3" />
+          <div class="flex items-center justify-end gap-2">
+            <button @click="showTokenModal = false; tokenInput = ''"
+              class="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-foreground transition-colors duration-150 hover:bg-muted">
+              {{ t('connectors.cancel') }}
+            </button>
+            <button @click="saveTokenConnector()" :disabled="!tokenInput.trim()"
+              class="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/90 disabled:opacity-50">
+              {{ t('connectors.connect') }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useConnectorsStore } from '../stores/connectors'
 import { getOAuthUrl } from '../api/connectors'
@@ -44,7 +63,7 @@ import { getOAuthUrl } from '../api/connectors'
 const { t } = useI18n()
 const connectorsStore = useConnectorsStore()
 
-interface Connector {
+interface ConnectorItem {
   id: string
   name: string
   type: string
@@ -53,16 +72,24 @@ interface Connector {
   enabled: boolean
 }
 
-const connectorTemplates = [
+const oauthConnectors = [
   { type: 'google_gmail', name: 'Gmail' },
   { type: 'google_calendar', name: 'Google Calendar' },
   { type: 'google_drive', name: 'Google Drive' },
   { type: 'google_sheets', name: 'Google Sheets' },
 ]
 
+const tokenConnectors = [
+  { type: 'github', name: 'GitHub' },
+  { type: 'slack', name: 'Slack' },
+  { type: 'notion', name: 'Notion' },
+]
+
+const allConnectorTemplates = [...oauthConnectors, ...tokenConnectors]
+
 const displayConnectors = computed(() => {
-  return connectorTemplates.map(tmpl => {
-    const saved = connectorsStore.connectors.find(c => c.type === tmpl.type) as Connector | undefined
+  return allConnectorTemplates.map(tmpl => {
+    const saved = connectorsStore.connectors.find(c => c.type === tmpl.type) as ConnectorItem | undefined
     return {
       ...(saved ?? { id: '', config: '{}', account: null, enabled: false }),
       name: tmpl.name,
@@ -71,11 +98,28 @@ const displayConnectors = computed(() => {
   })
 })
 
+const showTokenModal = ref(false)
+const tokenInput = ref('')
+const tokenConnectorType = ref('')
+const tokenConnectorName = ref('')
+
 onMounted(async () => {
   await connectorsStore.load()
 })
 
-async function connect(type: string) {
+async function handleConnect(connector: ConnectorItem) {
+  const isOAuth = oauthConnectors.some(c => c.type === connector.type)
+  if (isOAuth) {
+    await oauthConnect(connector.type)
+  } else {
+    tokenConnectorType.value = connector.type
+    tokenConnectorName.value = connector.name
+    tokenInput.value = ''
+    showTokenModal.value = true
+  }
+}
+
+async function oauthConnect(type: string) {
   try {
     const data = await getOAuthUrl(type)
     if (data.url) {
@@ -84,8 +128,19 @@ async function connect(type: string) {
   } catch {}
 }
 
-async function disconnect(connector: Connector) {
-  await connectorsStore.remove(connector.id)
+async function saveTokenConnector() {
+  await connectorsStore.upsert(tokenConnectorType.value, {
+    name: tokenConnectorName.value,
+    config: { token: tokenInput.value.trim() },
+    enabled: true,
+  })
+  showTokenModal.value = false
+  tokenInput.value = ''
+}
+
+async function handleDisconnect(connector: ConnectorItem) {
+  if (connector.id) {
+    await connectorsStore.remove(connector.id)
+  }
 }
 </script>
-

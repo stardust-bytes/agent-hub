@@ -56,6 +56,24 @@ import { GoogleSheetsCreateExecutor } from './executors/google-sheets-create.exe
 import { GoogleSheetsAddTabExecutor } from './executors/google-sheets-add-tab.executor';
 import { GoogleSheetsFormatExecutor } from './executors/google-sheets-format.executor';
 import { GoogleSheetsChartExecutor } from './executors/google-sheets-chart.executor';
+import { GitHubSearchReposExecutor } from './executors/github-search-repos.executor';
+import { GitHubGetRepoExecutor } from './executors/github-get-repo.executor';
+import { GitHubSearchIssuesExecutor } from './executors/github-search-issues.executor';
+import { GitHubListIssuesExecutor } from './executors/github-list-issues.executor';
+import { GitHubCreateIssueExecutor } from './executors/github-create-issue.executor';
+import { GitHubGetIssueExecutor } from './executors/github-get-issue.executor';
+import { GitHubListPullRequestsExecutor } from './executors/github-list-pull-requests.executor';
+import { GitHubGetPullRequestExecutor } from './executors/github-get-pull-request.executor';
+import { GitHubListCommitsExecutor } from './executors/github-list-commits.executor';
+import { SlackSendMessageExecutor } from './executors/slack-send-message.executor';
+import { SlackListChannelsExecutor } from './executors/slack-list-channels.executor';
+import { SlackGetHistoryExecutor } from './executors/slack-get-history.executor';
+import { SlackSearchExecutor } from './executors/slack-search.executor';
+import { NotionSearchExecutor } from './executors/notion-search.executor';
+import { NotionGetPageExecutor } from './executors/notion-get-page.executor';
+import { NotionCreatePageExecutor } from './executors/notion-create-page.executor';
+import { NotionUpdatePageExecutor } from './executors/notion-update-page.executor';
+import { NotionQueryDatabaseExecutor } from './executors/notion-query-database.executor';
 
 const EXECUTORS = [
   CreateTaskExecutor,
@@ -105,6 +123,24 @@ const EXECUTORS = [
   GoogleSheetsAddTabExecutor,
   GoogleSheetsFormatExecutor,
   GoogleSheetsChartExecutor,
+  GitHubSearchReposExecutor,
+  GitHubGetRepoExecutor,
+  GitHubSearchIssuesExecutor,
+  GitHubListIssuesExecutor,
+  GitHubCreateIssueExecutor,
+  GitHubGetIssueExecutor,
+  GitHubListPullRequestsExecutor,
+  GitHubGetPullRequestExecutor,
+  GitHubListCommitsExecutor,
+  SlackSendMessageExecutor,
+  SlackListChannelsExecutor,
+  SlackGetHistoryExecutor,
+  SlackSearchExecutor,
+  NotionSearchExecutor,
+  NotionGetPageExecutor,
+  NotionCreatePageExecutor,
+  NotionUpdatePageExecutor,
+  NotionQueryDatabaseExecutor,
 ];
 
 @Module({

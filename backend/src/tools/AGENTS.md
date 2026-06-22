@@ -48,10 +48,13 @@ tools/
 │   ├── google-gmail-{search,read,send,draft,labels}.executor.ts
 │   ├── google-calendar-{list,create,update,availability}.executor.ts
 │   ├── google-drive-{search,read,list,upload,create-folder}.executor.ts
-│   └── google-sheets-{read,list-tabs,update,append,create,add-tab,format,chart}.executor.ts
+│   ├── google-sheets-{read,list-tabs,update,append,create,add-tab,format,chart}.executor.ts
+│   ├── github-{search-repos,get-repo,search-issues,list-issues,create-issue,get-issue,list-pull-requests,get-pull-request,list-commits}.executor.ts
+│   ├── slack-{send-message,list-channels,get-history,search}.executor.ts
+│   └── notion-{search,get-page,create-page,update-page,query-database}.executor.ts
 ```
 
-Note: Excel and Word tool executors live in `excel/executors/` and `word/executors/`, not here. All executors are registered as providers in `AgentModule`.
+Note: Excel and Word tool executors live in `excel/executors/` and `word/executors/`, not here. GitHub, Slack, and Notion executors live here alongside the Google executors. All executors are registered as providers in `AgentModule`.
 
 ## API Endpoints
 
@@ -109,6 +112,24 @@ Base path: `/api/tools`
 | `GoogleSheetsAddTabExecutor` | `google_sheets_add_tab` | Add a tab to a spreadsheet |
 | `GoogleSheetsFormatExecutor` | `google_sheets_format` | Format a cell range |
 | `GoogleSheetsChartExecutor` | `google_sheets_chart` | Add a chart to a tab |
+| `GitHubSearchReposExecutor` | `github_search_repos` | Search GitHub repositories |
+| `GitHubGetRepoExecutor` | `github_get_repo` | Get repository details |
+| `GitHubSearchIssuesExecutor` | `github_search_issues` | Search issues/PRs across repos |
+| `GitHubListIssuesExecutor` | `github_list_issues` | List repository issues |
+| `GitHubCreateIssueExecutor` | `github_create_issue` | Create an issue |
+| `GitHubGetIssueExecutor` | `github_get_issue` | Get issue details |
+| `GitHubListPullRequestsExecutor` | `github_list_pull_requests` | List repository PRs |
+| `GitHubGetPullRequestExecutor` | `github_get_pull_request` | Get PR details |
+| `GitHubListCommitsExecutor` | `github_list_commits` | List recent commits |
+| `SlackSendMessageExecutor` | `slack_send_message` | Send message to channel |
+| `SlackListChannelsExecutor` | `slack_list_channels` | List public channels |
+| `SlackGetHistoryExecutor` | `slack_get_history` | Get conversation history |
+| `SlackSearchExecutor` | `slack_search` | Search messages |
+| `NotionSearchExecutor` | `notion_search` | Search pages/databases |
+| `NotionGetPageExecutor` | `notion_get_page` | Read page content |
+| `NotionCreatePageExecutor` | `notion_create_page` | Create page in database |
+| `NotionUpdatePageExecutor` | `notion_update_page` | Update page properties |
+| `NotionQueryDatabaseExecutor` | `notion_query_database` | Query database with filters/sorts |
 
 ## Security
 
@@ -125,6 +146,9 @@ Executors import domain services directly:
 - `PlansModule` → `PlansService` for resume_plan, create_plan executors
 - `WorkspaceModule` → `WorkspaceService` for file-op path validation (read_file/write_file/list_directory)
 - `ConnectorModule` → `GmailService`, `GoogleCalendarService`, `GoogleDriveService`, `GoogleSheetsService` for Google connector executors
+- `ConnectorModule` → `GitHubService` for GitHub executors
+- `ConnectorModule` → `SlackService` for Slack executors
+- `ConnectorModule` → `NotionService` for Notion executors
 
 ## Testing
 
