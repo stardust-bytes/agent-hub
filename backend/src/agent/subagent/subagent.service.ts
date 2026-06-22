@@ -60,9 +60,14 @@ export class SubagentService {
     subagentRunId?: string,
   ): Promise<string> {
     const runId = subagentRunId ?? crypto.randomUUID();
+    let projectContext = '';
+    if (projectPath) {
+      projectContext = `\nThe current working project is at: ${projectPath}\nUse this directory as the base path for all file operations (read_file, write_file, list_directory, glob, grep).\n`;
+    }
     const subagentPrompt = systemPromptOverride ??
       (`You are a sub-agent. Your task: ${task}\n\n` +
-       'You have access to the same workspace tools. Complete the task and report back concisely.');
+       'You have access to the same workspace tools. Complete the task and report back concisely.' +
+       projectContext);
 
     const subRes = this.createPrefixedResponse(res, subagentName, runId);
 

@@ -28,15 +28,21 @@ export class AgentController {
     res.flushHeaders();
 
     const ctrl = new AbortController();
-    req.on('close', () => ctrl.abort());
+    const onAbort = () => ctrl.abort();
+    req.on('close', onAbort);
+    res.on('close', onAbort);
 
     try {
       await this.agentService.streamChat(dto.message, dto.providerModelId, res, ctrl.signal, dto.sessionId);
     } catch (e) {
-      console.error('[AgentController] chat error:', e instanceof Error ? e.message : e);
-      res.write('data: {"error":"internal_error"}\n\n');
+      if (!res.destroyed && !res.writableEnded) {
+        console.error('[AgentController] chat error:', e instanceof Error ? e.message : e);
+        res.write('data: {"error":"internal_error"}\n\n');
+      }
     } finally {
-      res.end();
+      if (!res.destroyed && !res.writableEnded) {
+        res.end();
+      }
     }
   }
 

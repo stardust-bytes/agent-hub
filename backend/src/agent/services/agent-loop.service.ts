@@ -70,6 +70,7 @@ import { GoogleSheetsFormatExecutor } from '../../tools/executors/google-sheets-
 import { GoogleSheetsChartExecutor } from '../../tools/executors/google-sheets-chart.executor';
 
 const MAX_ITERATIONS = 100;
+const MAX_MAIN_ITERATIONS = 50;
 const KB_NO_RESULTS = 'No relevant information found in knowledge base.';
 
 @Injectable()
@@ -217,8 +218,10 @@ export class AgentLoopService {
     let finalText = '';
     const downloadLinks: string[] = [];
     let messages = this.llmController.buildMessages(systemPrompt, history, userMessage);
+    let iterations = 0;
 
-    while (!signal.aborted) {
+    while (!signal.aborted && iterations < MAX_MAIN_ITERATIONS) {
+      iterations++;
       this.state = AgentState.EXECUTING;
 
       let text: string;
@@ -411,6 +414,12 @@ export class AgentLoopService {
           messages = await this.handleKnowledgeResult(messages, result, res, sessionId);
         }
       }
+    }
+
+    if (!signal.aborted && iterations >= MAX_MAIN_ITERATIONS) {
+      const limitMsg = `I've reached the maximum number of iterations (${MAX_MAIN_ITERATIONS}). Please refine your request or start a new conversation.`;
+      res.write(`data: ${JSON.stringify({ token: limitMsg })}\n\n`);
+      finalText += limitMsg;
     }
 
     this.state = AgentState.RESPONDING;
