@@ -17,6 +17,13 @@ import { parseAgentCommand } from './dto/agent-command.util';
 import { parseSkillCommand } from './dto/skill-command.util';
 import { filterSubagentTools } from './subagent/subagent-tools.util';
 
+function buildImageMetadata(records: Array<{ id: number; filename: string }>): string {
+  return JSON.stringify(records.map(r => ({
+    url: `/api/chat/uploads/${r.id}/${encodeURIComponent(r.filename)}`,
+    filename: r.filename,
+  })));
+}
+
 @Injectable()
 export class AgentService {
   constructor(
@@ -60,6 +67,7 @@ export class AgentService {
     const providerType = providerModel.provider.type ?? 'ollama';
 
     let images: string[] | undefined;
+    let imageMetadata: string | undefined;
     if (fileIds && fileIds.length > 0) {
       if (!isVisionModel(providerModel.name)) {
         res.write(`data: ${JSON.stringify({ error: 'no_vision' })}\n\n`);
@@ -68,6 +76,7 @@ export class AgentService {
       }
       const records = await this.chatUpload.findByIds(fileIds);
       images = records.map(r => this.chatUpload.loadImageBase64(r.filepath, r.mimeType));
+      imageMetadata = buildImageMetadata(records);
     }
 
     const project = await this.cowork.getProject().catch(() => null);
@@ -107,7 +116,7 @@ export class AgentService {
       const tools = filterSubagentTools(context.tools, profile.allowedTools);
       const history = await this.sessionsService.getHistory(sessionId);
       if (!signal.aborted) {
-        await this.sessionsService.saveMessage(sessionId, 'user', message);
+        await this.sessionsService.saveMessage(sessionId, 'user', message, undefined, undefined, imageMetadata);
       }
       const cmdRes: WriteStream = {
         write(data: string): boolean {
@@ -153,7 +162,7 @@ export class AgentService {
 
       const skillPrompt = `${skill.content}\n\nUser request: ${skillCmd.task}`;
       if (!signal.aborted) {
-        await this.sessionsService.saveMessage(sessionId, 'user', message);
+        await this.sessionsService.saveMessage(sessionId, 'user', message, undefined, undefined, imageMetadata);
       }
       const runState = {
         step: 0, maxIterations: 10, roomId: String(sessionId),
@@ -178,7 +187,7 @@ export class AgentService {
         const planId = parseInt(approveMatch[1], 10);
         if (!isNaN(planId)) {
           if (!signal.aborted) {
-            await this.sessionsService.saveMessage(sessionId, 'user', message);
+            await this.sessionsService.saveMessage(sessionId, 'user', message, undefined, undefined, imageMetadata);
           }
           await this.plansService.approve(planId);
           const runState = {
@@ -199,7 +208,7 @@ export class AgentService {
         const planId = parseInt(resumeMatch[1], 10);
         if (!isNaN(planId)) {
           if (!signal.aborted) {
-            await this.sessionsService.saveMessage(sessionId, 'user', message);
+            await this.sessionsService.saveMessage(sessionId, 'user', message, undefined, undefined, imageMetadata);
           }
           const runState = {
             step: 0, maxIterations: 10, roomId: String(sessionId),
@@ -224,7 +233,7 @@ export class AgentService {
       } else {
         const taskText = message.slice(6).trim();
         if (!signal.aborted) {
-          await this.sessionsService.saveMessage(sessionId, 'user', message);
+          await this.sessionsService.saveMessage(sessionId, 'user', message, undefined, undefined, imageMetadata);
         }
         await this.agentLoop.runPlanMode(
           taskText, providerType, providerModel.name, providerConfig, sessionId, res, signal,
@@ -241,7 +250,7 @@ export class AgentService {
     const history = await this.sessionsService.getHistory(sessionId);
 
     if (!signal.aborted) {
-      await this.sessionsService.saveMessage(sessionId, 'user', message);
+      await this.sessionsService.saveMessage(sessionId, 'user', message, undefined, undefined, imageMetadata);
     }
 
     const finalText = await this.agentLoop.run(
