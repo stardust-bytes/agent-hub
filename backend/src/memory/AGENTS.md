@@ -9,7 +9,7 @@ Persistent memory system with 4 memory types (USER/FEEDBACK/PROJECT/REFERENCE), 
 - `MemoryController` — REST endpoints under `/api/memories` + `GET /api/memories/context`
 - `MemoryService` — CRUD with dedup logic, context query for prompt injection
 - `MemoryGateway` — Socket.io `/memories` namespace emitting `memory:created/updated/deleted`
-- `MemoryExtractionService` — Listens to `agent.idle` event, extracts memories from recent chat via keyword patterns, deduplicates before insert
+- `MemoryExtractionService` — Listens to `agent.idle` event, extracts memories from recent chat via keyword patterns with quality filters (min length, negation/question/greeting exclusion, preceding-context check), deduplicates before insert
 
 ## Files
 
@@ -84,14 +84,22 @@ sessionId?: string      // filter by session
 
 ## Memory Extraction
 
-Triggered by `agent.idle` event (emitted when agent loop completes a turn with 0 tool calls).
+Triggered by `agent.idle` event (emitted when agent loop completes a turn).
 
 Extraction flow:
 1. Fetch last 10 messages from session
 2. Filter user + assistant messages
-3. Run keyword regex patterns to classify memories into 4 types
-4. Check dedup (same hash within 24h)
-5. Insert new memories via MemoryService.create()
+3. Run targeted regex patterns to classify memories into 4 types
+4. Apply quality filters: min length (20 chars), exclude questions, greetings, negated statements (via preceding-sentence context check), and overly broad keywords (e.g. standalone "remember", "never", "always", "project" without qualifiers are no longer extracted)
+5. Check dedup (same type + title prefix within 24h)
+6. Insert new memories via MemoryService.create()
+
+### Extraction Quality Improvements (2026-06-23)
+
+- **Narrowed patterns**: FEEDBACK removed standalone `don't`, `never`, `always`, `remember`. PROJECT requires qualifiers (`deadline for`, `release date`, `sprint goal`, etc.) instead of bare `project`/`version`/`release`.
+- **Exclusion filters**: `isValidMemory()` rejects text <20 chars, questions (ending with `?`), greetings (`hi`, `thanks`, `okay`), and negated statements (checks preceding sentence for `don't`, `doesn't`, etc.).
+- **Dynamic titles**: USER uses the extracted detail as title (e.g. `User: a software developer`); FEEDBACK uses `Lesson`, `Preference`, `Important`, `Best practice`, `Tip` based on matched keyword.
+- **Preceding context**: `getPrecedingContext()` extracts the sentence before each match to detect negation patterns that appear before the keyword.
 
 ## Integration
 
@@ -108,6 +116,6 @@ Extraction flow:
 ## Testing
 
 ```bash
-npx jest src/memory          # 4 suites, 14 tests
+npx jest src/memory          # 4 suites, 27 tests
 npx jest src/agent           # agent integration test (60 tests)
 ```
