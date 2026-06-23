@@ -10,24 +10,35 @@ export class OpenAIProvider implements LLMProvider {
     const { model, messages, tools, signal, baseUrl, key } = options;
     if (signal.aborted) return;
 
-    const msgs: Array<Record<string, unknown>> = messages.map(m => ({
-      role: m.role,
-      content: m.content,
-      ...(m.role === 'assistant' ? { reasoning_content: m.reasoningContent ?? '' } : {}),
-      ...(m.toolCalls ? {
-        tool_calls: m.toolCalls.map(tc => ({
-          id: tc.id ?? `call_${Date.now()}`,
-          type: 'function',
-          function: {
-            name: tc.function.name,
-            arguments: typeof tc.function.arguments === 'string'
-              ? tc.function.arguments
-              : JSON.stringify(tc.function.arguments),
-          },
-        })),
-      } : {}),
-      ...(m.toolCallId ? { tool_call_id: m.toolCallId } : {}),
-    }));
+    const msgs: Array<Record<string, unknown>> = messages.map(m => {
+      let content: unknown = m.content;
+
+      if (m.images && m.images.length > 0 && m.role === 'user') {
+        content = [
+          { type: 'text', text: m.content },
+          ...m.images.map(img => ({ type: 'image_url', image_url: { url: img } })),
+        ];
+      }
+
+      return {
+        role: m.role,
+        content,
+        ...(m.role === 'assistant' ? { reasoning_content: m.reasoningContent ?? '' } : {}),
+        ...(m.toolCalls ? {
+          tool_calls: m.toolCalls.map(tc => ({
+            id: tc.id ?? `call_${Date.now()}`,
+            type: 'function',
+            function: {
+              name: tc.function.name,
+              arguments: typeof tc.function.arguments === 'string'
+                ? tc.function.arguments
+                : JSON.stringify(tc.function.arguments),
+            },
+          })),
+        } : {}),
+        ...(m.toolCallId ? { tool_call_id: m.toolCallId } : {}),
+      };
+    });
 
     const body: Record<string, unknown> = { model, messages: msgs, stream: true };
     if (tools.length > 0) body.tools = tools;

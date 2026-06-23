@@ -10,11 +10,18 @@ export class OllamaProvider implements LLMProvider {
     const { model, messages, tools, signal, baseUrl, key } = options;
     if (signal.aborted) return;
 
-    const msgs: Array<Record<string, unknown>> = messages.map(m => ({
-      role: m.role,
-      content: m.content,
-      ...(m.toolCalls ? { tool_calls: m.toolCalls } : {}),
-    }));
+    const msgs: Array<Record<string, unknown>> = messages.map(m => {
+      const msg: Record<string, unknown> = {
+        role: m.role,
+        content: m.content,
+        ...(m.toolCalls ? { tool_calls: m.toolCalls } : {}),
+      };
+      if (m.images && m.images.length > 0) {
+        const stripped = m.images.map(img => img.includes(';base64,') ? img.split(';base64,')[1] : img);
+        msg.images = stripped;
+      }
+      return msg;
+    });
 
     const body: Record<string, unknown> = { model, messages: msgs, stream: true };
     if (tools.length > 0) body.tools = tools;
