@@ -6,6 +6,18 @@ export interface StoredMessage {
   createdAt: string
   toolName?: string
   isResult?: boolean
+  images?: string
+}
+
+function parseImages(raw?: string): { url: string; filename: string }[] | undefined {
+  if (!raw) return undefined
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed) && parsed.every((i: unknown) => typeof i === 'object' && i && 'url' in i)) {
+      return parsed as { url: string; filename: string }[]
+    }
+  } catch { /* ignore */ }
+  return undefined
 }
 
 function dateToTimestamp(createdAt: string): string {
@@ -67,11 +79,14 @@ export async function loadSessionMessages(
       }
     } else {
       const mappedRole = msg.role === 'assistant' ? 'agent' : msg.role
-      result.push({
+      const entry: Message = {
         role: mappedRole as 'user' | 'agent',
         content: msg.content,
         timestamp: dateToTimestamp(msg.createdAt),
-      })
+      }
+      const parsed = parseImages(msg.images)
+      if (parsed) entry.images = parsed
+      result.push(entry)
     }
   }
 

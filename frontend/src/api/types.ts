@@ -19,5 +19,6 @@ export interface StoredMessage {
   createdAt: string
   toolName?: string
   isResult?: boolean
+  images?: string
 }
 
