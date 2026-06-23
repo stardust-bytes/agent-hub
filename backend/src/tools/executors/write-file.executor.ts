@@ -23,7 +23,10 @@ export class WriteFileExecutor implements ToolExecutor {
 
     if (context?.projectPath) {
       filePath = path.isAbsolute(rawPath) ? rawPath : path.join(context.projectPath, rawPath);
-      if (!this.workspace.isPathAllowed(filePath)) return `Error: path "${filePath}" is not allowed.`;
+      if (!this.workspace.isPathAllowed(filePath)) {
+        const allowed = this.workspace.getAllowedPaths().join(', ');
+        return `Error: path "${filePath}" is not allowed. Allowed paths: ${allowed}`;
+      }
     } else {
       const sessionDir = path.join(
         this.workspace.getWorkspaceRoot(),

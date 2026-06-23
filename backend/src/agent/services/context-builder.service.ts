@@ -8,6 +8,7 @@ import { CoworkService } from '../../cowork/cowork.service';
 import { ModePolicyService } from '../../mode-policy/mode-policy.service';
 import { MemoryService } from '../../memory/memory.service';
 import { SettingsService } from '../../settings/settings.service';
+import { WorkspaceService } from '../../workspace/workspace.service';
 import { ToolDefinition } from '../../mode-policy/mode-policy.config';
 export { ToolDefinition };
 
@@ -27,6 +28,7 @@ export class ContextBuilderService {
     private readonly modePolicy: ModePolicyService,
     private readonly memoryService: MemoryService,
     private readonly settings: SettingsService,
+    private readonly workspace: WorkspaceService,
   ) {}
 
   async build(
@@ -144,8 +146,17 @@ export class ContextBuilderService {
     );
 
     if (projectPath) {
+      const allowedPaths = this.workspace.getAllowedPaths();
       lines.push('',
         `Current working project: ${projectPath}`,
+        '',
+        'ALLOWED PATHS FOR FILE TOOLS (CRITICAL):',
+        'The following directories are the ONLY paths you can access with read_file, write_file, list_directory, glob, grep and other file tools:',
+        ...allowedPaths.map(p => `  - ${p}`),
+        '',
+        'CRITICAL: Paths like ".", "/", "/workspace", or any path outside the list above WILL BE REJECTED.',
+        'Always use one of the allowed paths above as the base directory for file operations.',
+        'If you need to work in the project directory, use the full project path shown above.',
         '',
         'FILE CREATION RULES (CRITICAL):',
         '- To create or write any file, you MUST call the appropriate tool: write_file, write_word, write_excel, etc.',

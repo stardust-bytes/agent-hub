@@ -7,6 +7,7 @@ describe('ListDirectoryExecutor', () => {
   const mockWorkspace = {
     isPathAllowed: jest.fn().mockReturnValue(true),
     listDirectory: jest.fn().mockResolvedValue('- file1.txt\n- file2.ts\nd subdir'),
+    getAllowedPaths: jest.fn().mockReturnValue(['/allowed']),
   };
 
   beforeEach(async () => {
@@ -29,6 +30,6 @@ describe('ListDirectoryExecutor', () => {
   it('list_directory returns error when path not allowed', async () => {
     mockWorkspace.isPathAllowed.mockReturnValue(false);
     const result = await executor.execute({ path: '/etc' });
-    expect(result).toBe('Error: path "/etc" is not allowed.');
+    expect(result).toContain('not allowed');
   });
 });

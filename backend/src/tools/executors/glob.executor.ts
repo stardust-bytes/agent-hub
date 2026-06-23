@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ToolExecutor } from './tool-executor.interface';
+import { ToolExecutor, ToolContext } from './tool-executor.interface';
 import { WorkspaceService } from '../../workspace/workspace.service';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -10,12 +10,16 @@ export class GlobExecutor implements ToolExecutor {
 
   constructor(private readonly workspace: WorkspaceService) {}
 
-  async execute(args: Record<string, unknown>): Promise<string> {
+  async execute(args: Record<string, unknown>, context?: ToolContext): Promise<string> {
     const pattern = args.pattern as string | undefined;
-    const searchPath = (args.path as string) || '.';
+    const searchPath = (args.path as string) || context?.projectPath;
     if (!pattern) return 'Error: pattern is required.';
+    if (!searchPath) return 'Error: path is required. Specify a path or set a project path first.';
     const resolved = path.resolve(searchPath);
-    if (!this.workspace.isPathAllowed(resolved)) return `Error: path "${searchPath}" is not allowed.`;
+    if (!this.workspace.isPathAllowed(resolved)) {
+      const allowed = this.workspace.getAllowedPaths().join(', ');
+      return `Error: path "${searchPath}" is not allowed. Allowed paths: ${allowed}`;
+    }
 
     const results: string[] = [];
     const re = this.patternToRegex(pattern);

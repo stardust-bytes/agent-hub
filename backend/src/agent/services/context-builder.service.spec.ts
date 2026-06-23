@@ -7,6 +7,7 @@ import { CoworkService } from '../../cowork/cowork.service';
 import { ModePolicyService } from '../../mode-policy/mode-policy.service';
 import { MemoryService } from '../../memory/memory.service';
 import { SettingsService } from '../../settings/settings.service';
+import { WorkspaceService } from '../../workspace/workspace.service';
 import { AgentRunState } from '../dto/agent-run-state';
 
 describe('ContextBuilderService', () => {
@@ -49,6 +50,10 @@ describe('ContextBuilderService', () => {
     get: jest.fn().mockImplementation((_key: string, fallback: string) => Promise.resolve(fallback)),
   };
 
+  const mockWorkspace = {
+    getAllowedPaths: jest.fn().mockReturnValue(['/tmp/workspace_data']),
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -60,6 +65,7 @@ describe('ContextBuilderService', () => {
         { provide: ModePolicyService, useValue: mockModePolicy },
         { provide: MemoryService, useValue: mockMemoryService },
         { provide: SettingsService, useValue: mockSettings },
+        { provide: WorkspaceService, useValue: mockWorkspace },
       ],
     }).compile();
     service = module.get(ContextBuilderService);

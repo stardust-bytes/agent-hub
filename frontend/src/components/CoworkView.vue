@@ -391,6 +391,7 @@ async function submitText(text: string) {
   abortController.value = ctrl
 
   let currentAgentIdx = -1
+  let currentSubagentName = ''
   const thinkingMsg: Message = { role: 'system', content: t('chat.thinking'), timestamp: now() }
   messages.value.push(thinkingMsg)
   await scrollToBottom()
@@ -443,6 +444,7 @@ async function submitText(text: string) {
       onSubagent(ev) {
         clearThinking()
         const saName = ev.subagentName || 'worker'
+        currentSubagentName = ev.done ? '' : saName
         const session = getOrCreateSession(ev.subagentRunId, saName)
         const saLabel = `[subagent:${saName}]`
         const ts = now()
@@ -473,7 +475,7 @@ async function submitText(text: string) {
           session.logs.push({ type: 'toolCall', text: `${tc.name}(${argsStr})`, timestamp: ts, toolName: tc.name })
           messages.value.push({
             role: 'tool',
-            content: `${saLabel} ${tc.name}`,
+            content: `${saLabel} ${tc.name}(${argsStr})`,
             timestamp: ts,
             toolName: tc.name,
             isResult: false,
@@ -508,9 +510,10 @@ async function submitText(text: string) {
         clearThinking()
         currentAgentIdx = -1
         const argsStr = Object.entries(args).map(([k, v]) => `${k}=${v}`).join(', ')
+        const saPrefix = currentSubagentName ? `[subagent:${currentSubagentName}] ` : ''
         messages.value.push({
           role: 'tool',
-          content: `${name}(${argsStr})`,
+          content: `${saPrefix}${name}(${argsStr})`,
           timestamp: now(),
           toolName: name,
           isResult: false,
@@ -522,9 +525,10 @@ async function submitText(text: string) {
         scrollToBottom()
       },
       onToolResult(name, result) {
+        const saPrefix = currentSubagentName ? `[subagent:${currentSubagentName}] ` : ''
         messages.value.push({
           role: 'tool',
-          content: result,
+          content: `${saPrefix}${result}`,
           timestamp: now(),
           toolName: name,
           isResult: true,

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import * as os from 'os';
 
 @Injectable()
 export class WorkspaceService {
@@ -16,13 +15,16 @@ export class WorkspaceService {
       : [];
     this.allowedPaths = [
       this.workspaceRoot,
-      path.resolve(os.tmpdir()),
       ...envPaths,
     ];
   }
 
   getWorkspaceRoot(): string {
     return this.workspaceRoot;
+  }
+
+  getAllowedPaths(): string[] {
+    return [...this.allowedPaths];
   }
 
   isPathAllowed(filePath: string): boolean {

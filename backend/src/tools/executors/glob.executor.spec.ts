@@ -14,6 +14,7 @@ describe('GlobExecutor', () => {
   let executor: GlobExecutor;
   const mockWorkspace = {
     isPathAllowed: jest.fn().mockReturnValue(true),
+    getAllowedPaths: jest.fn().mockReturnValue(['/allowed']),
   };
 
   beforeEach(async () => {

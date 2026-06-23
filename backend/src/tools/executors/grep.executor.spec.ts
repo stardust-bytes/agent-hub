@@ -13,6 +13,7 @@ describe('GrepExecutor', () => {
   let executor: GrepExecutor;
   const mockWorkspace = {
     isPathAllowed: jest.fn().mockReturnValue(true),
+    getAllowedPaths: jest.fn().mockReturnValue(['/allowed']),
   };
 
   beforeEach(async () => {

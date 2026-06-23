@@ -7,6 +7,7 @@ describe('ReadFileExecutor', () => {
   const mockWorkspace = {
     isPathAllowed: jest.fn().mockReturnValue(true),
     readFile: jest.fn().mockResolvedValue('file content'),
+    getAllowedPaths: jest.fn().mockReturnValue(['/allowed']),
   };
 
   beforeEach(async () => {
@@ -29,6 +30,6 @@ describe('ReadFileExecutor', () => {
   it('read_file returns error when path not allowed', async () => {
     mockWorkspace.isPathAllowed.mockReturnValue(false);
     const result = await executor.execute({ path: '/etc/passwd' });
-    expect(result).toBe('Error: path "/etc/passwd" is not allowed.');
+    expect(result).toContain('not allowed');
   });
 });

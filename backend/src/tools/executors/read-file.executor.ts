@@ -11,7 +11,10 @@ export class ReadFileExecutor implements ToolExecutor {
   async execute(args: Record<string, unknown>): Promise<string> {
     const filePath = args.path as string | undefined;
     if (!filePath) return 'Error: path is required.';
-    if (!this.workspace.isPathAllowed(filePath)) return `Error: path "${filePath}" is not allowed.`;
+    if (!this.workspace.isPathAllowed(filePath)) {
+      const allowed = this.workspace.getAllowedPaths().join(', ');
+      return `Error: path "${filePath}" is not allowed. Allowed paths: ${allowed}`;
+    }
     try {
       const content = await this.workspace.readFile(filePath);
       const maxSize = 100 * 1024;

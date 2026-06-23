@@ -3,13 +3,17 @@ import * as crypto from 'crypto';
 import { AgentLoopService } from '../services/agent-loop.service';
 import { ToolDefinition } from '../services/context-builder.service';
 import { WriteStream } from '../dto/write-stream.interface';
+import { WorkspaceService } from '../../workspace/workspace.service';
 import { runWithConcurrency } from './subagent-tools.util';
 
 @Injectable()
 export class SubagentService {
   private static readonly MAX_PARALLEL = 4;
 
-  constructor(@Inject(forwardRef(() => AgentLoopService)) private readonly agentLoop: AgentLoopService) {}
+  constructor(
+    @Inject(forwardRef(() => AgentLoopService)) private readonly agentLoop: AgentLoopService,
+    private readonly workspace: WorkspaceService,
+  ) {}
 
   async delegate(
     tasks: string[],
@@ -62,7 +66,9 @@ export class SubagentService {
     const runId = subagentRunId ?? crypto.randomUUID();
     let projectContext = '';
     if (projectPath) {
-      projectContext = `\nThe current working project is at: ${projectPath}\nUse this directory as the base path for all file operations (read_file, write_file, list_directory, glob, grep).\n`;
+      const allowedPaths = this.workspace.getAllowedPaths();
+      const allowedList = allowedPaths.map(p => `  - ${p}`).join('\n');
+      projectContext = `\nThe current working project is at: ${projectPath}\n\nALLOWED PATHS FOR FILE TOOLS:\n${allowedList}\n\nCRITICAL: Only the paths listed above are accessible. Paths like ".", "/", "/workspace" WILL BE REJECTED. Use the full project path for all file operations.\n`;
     }
     const subagentPrompt = systemPromptOverride ??
       (`You are a sub-agent. Your task: ${task}\n\n` +
@@ -88,7 +94,7 @@ export class SubagentService {
           return originalWrite(`data: ${JSON.stringify(donePayload)}\n\n`);
         }
         const modified = data.replace(
-          /^(data: )(\{.*?\})(\n\n)$/gm,
+          /^(data: )(.+)(\n\n)$/gm,
           (_match: string, prefix: string, json: string, suffix: string) => {
             try {
               const parsed = JSON.parse(json);

@@ -94,9 +94,31 @@ export class AgentService {
       if (!signal.aborted) {
         await this.sessionsService.saveMessage(sessionId, 'user', message);
       }
+      const cmdRes: WriteStream = {
+        write(data: string): boolean {
+          if (/^data: \[DONE\]\n?$/m.test(data)) {
+            const donePayload: Record<string, unknown> = { subagent: true, done: true, subagentName: agentCmd.slug };
+            return res.write(`data: ${JSON.stringify(donePayload)}\n\n`);
+          }
+          const modified = data.replace(
+            /^(data: )(.+)(\n\n)$/gm,
+            (_match: string, prefix: string, json: string, suffix: string) => {
+              try {
+                const parsed = JSON.parse(json);
+                parsed.subagent = true;
+                parsed.subagentName = agentCmd.slug;
+                return `${prefix}${JSON.stringify(parsed)}${suffix}`;
+              } catch {
+                return _match;
+              }
+            },
+          );
+          return res.write(modified);
+        },
+      };
       await this.agentLoop.run(
         cmdProviderType, cmdModel, profile.systemPrompt, history,
-        agentCmd.task, tools, res, signal, sessionId, projectPath, cmdProviderConfig,
+        agentCmd.task, tools, cmdRes, signal, sessionId, projectPath, cmdProviderConfig,
         agentCmd.slug,
       );
       if (!signal.aborted) {
