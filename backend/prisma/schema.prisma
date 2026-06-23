@@ -60,6 +60,7 @@ model ChatMessage {
   content   String
   toolName  String?
   isResult  Boolean  @default(false)
+  images    String?
   createdAt DateTime @default(now())
 }
 
