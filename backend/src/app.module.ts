@@ -24,6 +24,8 @@ import { UsageModule } from './usage/usage.module';
 import { ConnectorModule } from './connector/connector.module';
 import { ScheduleTasksModule } from './schedule-tasks/schedule-tasks.module';
 import { SkillsModule } from './skills/skills.module';
+import { ChatUploadModule } from './chat-upload/chat-upload.module';
+
 
 @Module({
   imports: [
@@ -51,6 +53,7 @@ import { SkillsModule } from './skills/skills.module';
     ConnectorModule,
     ScheduleTasksModule,
     SkillsModule,
+    ChatUploadModule,
   ],
   controllers: [AppController],
 })
