@@ -1,6 +1,6 @@
 {
   "name": "@stardust-bytes/agent-hub",
-  "version": "0.16.2",
+  "version": "0.16.3",
   "private": false,
   "bin": {
     "agent-hub": "./bin/workspace-cli.js"
