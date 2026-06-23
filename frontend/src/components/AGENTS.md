@@ -12,7 +12,7 @@ AppShell.vue              — layout shell, hosts TopBar + SidebarNav + router-v
 │   ├── CoworkView.vue            — /cowork: coordinator (project + chat + artifacts)
 │   │   ├── cowork/MessageList.vue  — scroll wrapper + v-for MessageItem, forward events
 │   │   ├── cowork/MessageItem.vue  — per-message render (thinking/tool/agent/plan/user/system)
-│   │   ├── cowork/ChatInputBar.vue — input form + ModelSelector + mode toggle + sessions button
+│   │   ├── cowork/ChatInputBar.vue — input form + ModelSelector + sessions button + attachment upload (image/*)
 │   │   ├── cowork/ProjectBar.vue   — project path + connect/save/delete menu
 │   │   ├── cowork/types.ts         — shared interfaces (Message, PlanData, ProviderModelFlat, …)
 │   │   ├── cowork/markdown.ts      — renderMarkdown, parseSegments, highlightUserMessage
@@ -139,9 +139,11 @@ Scroll wrapper with `messagesEl` ref. Renders `<MessageItem>` per message. Expos
 
 **Props:** `streaming: boolean`, `models: ProviderModelFlat[]`, `modelId: number | null`
 
-**Emits:** `update:modelId`, `submit(text)`, `stop`, `openSessions`
+**Emits:** `update:modelId`, `submit(text, fileIds)`, `stop`, `openSessions`
 
-Owns its own `input` ref and text state. Emits `submit` with trimmed text on form submit. Contains `<SlashMenu>` with full keyboard navigation (ArrowUp/Down/Enter/Escape). Computes `slashCommands` from static entries (`/plan`, `/resume-plan`, `/help`, `/clear`) plus dynamic `/agent <slug>` per enabled profile (loaded from `useAgentProfilesStore`). Filters commands by current input prefix. Contains `<ModelSelector>`, sessions button, and streaming dots animation.
+Owns its own `input` ref and text state. Emits `submit` with trimmed text + array of uploaded file IDs on form submit. Contains `<SlashMenu>` with full keyboard navigation (ArrowUp/Down/Enter/Escape). Computes `slashCommands` from static entries (`/help`, `/clear`) plus dynamic `/agent <slug>` per enabled profile (loaded from `useAgentProfilesStore`) and `/skill:<name>` per registered skill. Filters commands by current input prefix.
+
+**Attachment feature:** paperclip button (`HiPaperClip`) opens file picker (`accept="image/*"` multiple). Selected files are uploaded to `POST /api/chat/upload` concurrently with status chips (uploading/uploaded/error). Submit is blocked while any file is uploading (`hasUploadingAttachments`). Chips can be removed (except during upload). Supports 20MB max per file, image MIME types only. Contains `<ModelSelector>`, sessions button, and streaming dots animation.
 
 ---
 
