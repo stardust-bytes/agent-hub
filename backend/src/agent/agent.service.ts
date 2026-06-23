@@ -11,6 +11,8 @@ import { AgentRunState } from './dto/agent-run-state';
 import { WriteStream } from './dto/write-stream.interface';
 import { AgentProfilesService } from '../agent-profiles/agent-profiles.service';
 import { SkillsService } from '../skills/skills.service';
+import { ChatUploadService } from '../chat-upload/chat-upload.service';
+import { isVisionModel } from './providers/llm-provider.interface';
 import { parseAgentCommand } from './dto/agent-command.util';
 import { parseSkillCommand } from './dto/skill-command.util';
 import { filterSubagentTools } from './subagent/subagent-tools.util';
@@ -27,6 +29,7 @@ export class AgentService {
     private readonly cowork: CoworkService,
     private readonly agentProfiles: AgentProfilesService,
     private readonly skills: SkillsService,
+    private readonly chatUpload: ChatUploadService,
   ) {}
 
   async streamChat(
@@ -35,6 +38,7 @@ export class AgentService {
     res: WriteStream,
     signal: AbortSignal,
     sessionId: number,
+    fileIds?: number[],
   ): Promise<void> {
     if (!sessionId || sessionId <= 0) {
       res.write('data: {"error":"Invalid session ID"}\n\n');
@@ -54,6 +58,17 @@ export class AgentService {
       key: providerModel.provider.key ?? undefined,
     };
     const providerType = providerModel.provider.type ?? 'ollama';
+
+    let images: string[] | undefined;
+    if (fileIds && fileIds.length > 0) {
+      if (!isVisionModel(providerModel.name)) {
+        res.write(`data: ${JSON.stringify({ error: 'no_vision' })}\n\n`);
+        res.write('data: [DONE]\n\n');
+        return;
+      }
+      const records = await this.chatUpload.findByIds(fileIds);
+      images = records.map(r => this.chatUpload.loadImageBase64(r.filepath, r.mimeType));
+    }
 
     const project = await this.cowork.getProject().catch(() => null);
     const projectPath = project ?? undefined;
@@ -119,7 +134,7 @@ export class AgentService {
       await this.agentLoop.run(
         cmdProviderType, cmdModel, profile.systemPrompt, history,
         agentCmd.task, tools, cmdRes, signal, sessionId, projectPath, cmdProviderConfig,
-        agentCmd.slug,
+        agentCmd.slug, undefined,
       );
       if (!signal.aborted) {
         await this.sessionsService.autoTitle(sessionId, message);
@@ -149,6 +164,7 @@ export class AgentService {
       await this.agentLoop.run(
         providerType, providerModel.name, context.systemPrompt, history,
         skillCmd.task, context.tools, res, signal, sessionId, projectPath, providerConfig,
+        undefined, undefined, images,
       );
       if (!signal.aborted) {
         await this.sessionsService.autoTitle(sessionId, message);
@@ -231,6 +247,7 @@ export class AgentService {
     const finalText = await this.agentLoop.run(
       providerType, providerModel.name, context.systemPrompt, history,
       message, context.tools, res, signal, sessionId, projectPath, providerConfig,
+      undefined, undefined, images,
     );
 
     if (!signal.aborted) {
