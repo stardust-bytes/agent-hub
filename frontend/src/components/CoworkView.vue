@@ -58,6 +58,7 @@
             :model-id="selectedModelId"
             @update:model-id="selectedModelId = $event"
             @submit="submitText"
+            
             @stop="stopStream"
             @open-sessions="showSessionModal = true"
           />
@@ -351,7 +352,7 @@ function stopStream() {
   abortController.value?.abort()
 }
 
-async function submitText(text: string) {
+async function submitText(text: string, fileIds?: number[], images?: { url: string; filename: string }[]) {
   if (!text || streaming.value) return
 
   if (text === '/clear') {
@@ -384,7 +385,7 @@ async function submitText(text: string) {
   localStorage.setItem('workspace.modelId', String(selectedModelId.value))
   streaming.value = true
 
-  messages.value.push({ role: 'user', content: text, timestamp: now() })
+  messages.value.push({ role: 'user', content: text, timestamp: now(), images })
   await scrollToBottom()
 
   const ctrl = new AbortController()
@@ -419,6 +420,7 @@ async function submitText(text: string) {
         providerModelId: selectedModelId.value,
         sessionId: currentSessionId.value ?? 0,
         mode: 'cowork',
+        fileIds: fileIds ?? [],
       },
       signal: ctrl.signal,
     })
