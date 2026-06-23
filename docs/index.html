@@ -252,8 +252,9 @@
     </div>
     <h1>Your own <span class="accent">AI workspace</span>,<br />running on <span class="accent2">your hardware</span>.</h1>
     <p>
-      Agent Hub is a self-hosted interface for AI agents — chat, tools, MCP, RAG, email,
-      scheduling, and more. Privacy-first, local-first, and entirely under your control.
+      Agent Hub is a self-hosted interface for AI agents — chat, tools, MCP, RAG,
+      connectors (Gmail, Calendar, Drive, Sheets, GitHub, Slack, Notion),
+      scheduling, and more. Privacy-first, local-first, entirely under your control.
     </p>
     <div class="hero-actions">
       <a href="#start" class="btn btn-primary">Get started</a>
@@ -276,8 +277,8 @@
     </div>
     <div class="hero-stats">
       <div class="hero-stat">
-        <div class="num">10+</div>
-        <div class="label">Tools &amp; Connectors</div>
+        <div class="num">50+</div>
+        <div class="label">Built-in Tools</div>
       </div>
       <div class="hero-stat">
         <div class="num">270+</div>
@@ -302,12 +303,12 @@
       <div class="feature-card">
         <div class="feature-icon">&#x1F4AC;</div>
         <h3>Chat &amp; Agents</h3>
-        <p>Multi-turn chat plus autonomous agents that plan, call tools, and work through complex tasks — all against your local or remote models.</p>
+        <p>Multi-turn chat plus autonomous ReAct agents with sub-agent orchestration. Spawn parallel workers with their own profiles, tools, and models — monitor all activity in real time.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">&#x1F527;</div>
         <h3>Tools &amp; MCP</h3>
-        <p>Built-in tools (bash, files, web, memory, code execution) plus any MCP server you connect. Toggle per tool with granular permission control.</p>
+        <p>50+ built-in tools: file ops, Excel/Word, Gmail, Calendar, Drive, Sheets, GitHub, Slack, Notion, and web. Plus any MCP server. Toggle per tool with granular permission control.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">&#x1F4DA;</div>
@@ -317,12 +318,22 @@
       <div class="feature-card">
         <div class="feature-icon">&#x1F4E7;</div>
         <h3>Email &amp; Calendar</h3>
-        <p>AI-powered email summaries, style-matched draft replies, auto-tagging, and spam triage over IMAP/SMTP. Google Calendar integration for scheduling.</p>
+        <p>Connect Gmail and Google Calendar via OAuth. The agent reads your inbox, drafts replies, and manages your schedule — all with your privacy preserved.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">&#x1F4CA;</div>
         <h3>Google Workspace</h3>
-        <p>Connect Gmail, Calendar, Google Drive, and Google Sheets. The agent can read, write, and manage your data directly.</p>
+        <p>Connect Gmail, Calendar, Google Drive, and Google Sheets. The agent can read, write, and manage your data directly via OAuth.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F310;</div>
+        <h3>External Connectors</h3>
+        <p>GitHub (repos, issues, PRs, commits), Slack (messages, channels, search), and Notion (pages, databases, search) — all managed through token-based auth in the UI.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x2699;&#xFE0F;</div>
+        <h3>Skills &amp; Agent Profiles</h3>
+        <p>Reusable skills with `/skill` slash commands. Named agent profiles with custom system prompts, scoped tools, and default models — switch at chat time.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">&#x1F4C5;</div>
@@ -337,7 +348,7 @@
       <div class="feature-card">
         <div class="feature-icon">&#x1F3AF;</div>
         <h3>Model Agnostic</h3>
-        <p>Works with Ollama, OpenAI, DeepSeek, or any OpenAI-compatible API. Full provider management UI — add, configure, and switch models on the fly.</p>
+        <p>Works with Ollama, OpenAI, DeepSeek, Google Gemini, or any OpenAI-compatible API. Full provider management UI — add, configure, and switch models on the fly.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">&#x1F512;</div>
