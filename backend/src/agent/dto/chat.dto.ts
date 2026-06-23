@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsIn } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsIn, IsArray } from 'class-validator';
 
 export class ChatDto {
   @IsString()
@@ -14,4 +14,9 @@ export class ChatDto {
   @IsOptional()
   @IsIn(['cowork'])
   mode?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  fileIds?: number[];
 }
