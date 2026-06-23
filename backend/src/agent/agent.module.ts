@@ -5,6 +5,7 @@ import { AgentLoopService } from './services/agent-loop.service';
 import { LLMControllerService } from './services/llm-controller.service';
 import { OllamaProvider } from './providers/ollama.provider';
 import { OpenAIProvider } from './providers/openai.provider';
+import { GeminiProvider } from './providers/gemini.provider';
 import { ContextBuilderService } from './services/context-builder.service';
 import { PermissionsService } from './services/permissions.service';
 import { YoloClassifierService } from './services/yolo-classifier.service';
@@ -87,6 +88,7 @@ import { NotionQueryDatabaseExecutor } from '../tools/executors/notion-query-dat
     LLMControllerService,
     OllamaProvider,
     OpenAIProvider,
+    GeminiProvider,
     ContextBuilderService,
     PermissionsService,
     YoloClassifierService,

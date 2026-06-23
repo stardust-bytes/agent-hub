@@ -1,6 +1,6 @@
 # providers/ — Agent Context
 
-LLM provider management module. CRUD for AI providers (Ollama, OpenAI-compatible, etc.) and their models. Used by the agent module for model resolution at request time.
+LLM provider management module. CRUD for AI providers (Ollama, OpenAI-compatible, Gemini, etc.) and their models. Used by the agent module for model resolution at request time.
 
 ## Responsibility
 

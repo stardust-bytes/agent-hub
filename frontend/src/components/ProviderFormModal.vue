@@ -13,6 +13,7 @@
           { value: 'ollama', label: 'Ollama' },
           { value: 'openai', label: 'OpenAI' },
           { value: 'deepseek', label: 'DeepSeek' },
+          { value: 'gemini', label: 'Gemini' },
           { value: 'openai', label: 'OpenAI-compatible' },
         ]" within-dialog @update:model-value="onTypeChange" />
       </div>
@@ -96,6 +97,7 @@ const providerTypes: Record<string, ProviderTypeConfig> = {
   ollama: { baseUrl: 'http://localhost:11434', models: ['llama3.2', 'codellama', 'mistral'] },
   openai: { baseUrl: 'https://api.openai.com/v1', models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'] },
   deepseek: { baseUrl: 'https://api.deepseek.com', models: ['deepseek-chat', 'deepseek-reasoner'] },
+  gemini: { baseUrl: 'https://generativelanguage.googleapis.com/v1beta', models: ['gemini-2.0-flash', 'gemini-2.5-flash-preview-04-17', 'gemini-2.5-pro-exp-03-25'] },
 }
 
 const form = ref({ type: 'ollama', name: '', baseUrl: '', key: '' })

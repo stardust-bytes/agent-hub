@@ -97,7 +97,7 @@ src/
 │   │         yolo-config.dto.ts, execute-plan.dto.ts, write-stream.interface.ts)
 │   ├── services/ (agent-loop, llm-controller, context-builder, permissions, approval-manager,
 │   │              yolo-classifier, danger-patterns.config, denial-tracking)
-│   ├── providers/ (llm-provider.interface.ts, ollama.provider.ts, openai.provider.ts)
+│       ├── providers/ (llm-provider.interface.ts, ollama.provider.ts, openai.provider.ts, gemini.provider.ts)
 │   ├── mcp/ (mcp.module.ts, mcp.service.ts, mcp-client.service.ts)
 │   ├── subagent/ (subagent.service.ts)
 │   └── *.spec.ts

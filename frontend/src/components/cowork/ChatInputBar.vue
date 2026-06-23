@@ -47,7 +47,7 @@
         </div>
         <button
           @click="emit('openSessions')"
-          class="text-primary text-sm px-2 py-0.5 transition-colors duration-150 hover:text-primary"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-input bg-surface px-3 py-1.5 text-sm text-foreground transition-colors duration-150 hover:bg-muted"
         >{{ t('sessions.header') }}</button>
       </div>
     </div>

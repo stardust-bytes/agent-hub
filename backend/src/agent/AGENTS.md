@@ -66,7 +66,8 @@ agent/
     ├── llm-provider.interface.ts   — LLMProvider interface + StreamChunk/OllamaMessage/StreamOptions types
     ├── ollama.provider.ts          — raw Ollama stream only (no loop/tool/SSE logic)
     ├── ollama.provider.spec.ts
-    └── openai.provider.ts          — OpenAI-compatible streaming provider (OpenAI/DeepSeek spec)
+    ├── openai.provider.ts          — OpenAI-compatible streaming provider (OpenAI/DeepSeek spec)
+    └── gemini.provider.ts          — Google Gemini streaming provider
 ```
 
 ## API

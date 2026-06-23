@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OllamaProvider } from '../providers/ollama.provider';
 import { OpenAIProvider } from '../providers/openai.provider';
+import { GeminiProvider } from '../providers/gemini.provider';
 import { LLMProvider, OllamaMessage, StreamOptions, StreamChunk } from '../providers/llm-provider.interface';
 import { ToolDefinition } from './context-builder.service';
 
@@ -8,11 +9,12 @@ import { ToolDefinition } from './context-builder.service';
 export class LLMControllerService {
   private readonly providers: Map<string, LLMProvider>;
 
-  constructor(private readonly ollama: OllamaProvider, private readonly openai: OpenAIProvider) {
+  constructor(private readonly ollama: OllamaProvider, private readonly openai: OpenAIProvider, private readonly gemini: GeminiProvider) {
     this.providers = new Map<string, LLMProvider>([
       ['ollama', ollama],
       ['openai', openai],
       ['deepseek', openai],
+      ['gemini', gemini],
     ]);
   }
 

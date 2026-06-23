@@ -66,6 +66,15 @@ export class ProvidersService {
       if (!res.ok) throw new Error(`ollama_tags_error_${res.status}`);
       const data = await res.json() as { models?: Array<{ name: string }> };
       modelNames = (data.models ?? []).map(m => m.name);
+    } else if (provider.type === 'gemini') {
+      const key = provider.key ?? process.env.GEMINI_API_KEY ?? '';
+      if (!key) throw new Error('gemini_api_key_required');
+      const res = await fetch(`${baseUrl}/models?key=${encodeURIComponent(key)}`);
+      if (!res.ok) throw new Error(`gemini_models_error_${res.status}`);
+      const data = await res.json() as { models?: Array<{ name: string }> };
+      modelNames = (data.models ?? [])
+        .map(m => m.name.replace(/^models\//, ''))
+        .filter(n => n.startsWith('gemini-'));
     } else {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (provider.key) headers['Authorization'] = `Bearer ${provider.key}`;

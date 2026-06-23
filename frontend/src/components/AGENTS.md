@@ -191,7 +191,7 @@ Fetches providers from `GET /api/providers`. Each provider is expandable to show
 
 **Emits:** `update:modelValue`, `saved`
 
-Form fields: name, baseUrl (optional), key (optional, password field). POST to create or PATCH to update.
+Form fields: name, type dropdown (Ollama/OpenAI/DeepSeek/Gemini/OpenAI-compatible), baseUrl (optional), key (optional, password field). POST to create or PATCH to update.
 
 ---
 
