@@ -59,7 +59,31 @@
     <div v-else-if="msg.role === 'user'"
       class="border-l-2 border-input pl-3 py-1">
       <div class="text-sm text-muted-foreground mb-0.5 font-sans">{{ rolePrefix(msg.role) }} · {{ msg.timestamp }}</div>
-      <div class="text-sm leading-relaxed break-words text-foreground" v-html="highlightUserMessage(msg.content)"></div>
+      <div v-if="msg.images && msg.images.length > 0" class="flex flex-wrap gap-2 mb-2">
+        <img
+          v-for="(img, ii) in msg.images" :key="ii"
+          :src="img.url"
+          :alt="img.filename"
+          class="max-h-32 rounded-lg border border-border object-cover cursor-pointer hover:opacity-80 transition-opacity"
+          @click="previewImage = img.url"
+        />
+      </div>
+      <div v-if="msg.content" class="text-sm leading-relaxed break-words text-foreground" v-html="highlightUserMessage(msg.content)"></div>
+      <Teleport to="body">
+        <div
+          v-if="previewImage"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60"
+          @click.self="previewImage = ''"
+        >
+          <img :src="previewImage" class="max-w-[90vw] max-h-[90vh] rounded-xl shadow-xl" />
+          <button
+            @click="previewImage = ''"
+            class="absolute top-4 right-4 text-primary-foreground bg-foreground/40 rounded-full p-2 hover:bg-foreground/60 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+      </Teleport>
     </div>
 
     <div v-else-if="msg.role === 'system'"
@@ -99,6 +123,8 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+const previewImage = ref('')
 
 const subagentPattern = /^\[subagent(?::([^\]]+))?\]\s*(.*)$/
 
