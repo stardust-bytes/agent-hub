@@ -51,7 +51,7 @@ A multi-layered safety stack built for autonomous agents:
 Over 40 built-in tools, each with a Prisma-backed record for enable/disable toggle and per-tool configuration:
 
 | Category | Tools |
-|---|---|---|
+|---|---|
 | **File operations** | Read, write, list, grep, search (path-sandboxed) |
 | **Office (Excel)** | Read, write, list sheets, add sheets, create charts |
 | **Office (Word)** | Read, write, round-trip editing |
