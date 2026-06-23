@@ -15,6 +15,10 @@
     "backend/package.json",
     "frontend/dist/"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stardust-bytes/agent-hub.git"
+  },
   "scripts": {
     "build": "node scripts/build.mjs",
     "prepublishOnly": "npm run build"
