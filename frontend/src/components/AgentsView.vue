@@ -107,7 +107,7 @@
         </div>
 
         <label class="flex items-center gap-2 text-muted-foreground text-sm font-sans cursor-pointer">
-          <input type="checkbox" v-model="form.enabled" class="accent-blue-600" />
+          <BaseSwitch v-model="form.enabled" />
           {{ t('agents.enabled') }}
         </label>
 
@@ -146,6 +146,7 @@ import { HiUserGroup } from 'vue-icons-plus/hi'
 import ModelSelector from './ModelSelector.vue'
 import BaseModal from './BaseModal.vue'
 import BaseConfirmModal from './BaseConfirmModal.vue'
+import BaseSwitch from './BaseSwitch.vue'
 import ToolPickerModal from './ToolPickerModal.vue'
 import { useAgentProfilesStore } from '../stores/agentProfiles'
 import type { AgentProfile } from '../api/agentProfiles'

@@ -46,19 +46,11 @@
         <div class="space-y-3 pl-8">
           <div>
             <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('settings.embedModel') }}</label>
-            <select v-model="embedModelId" @change="saveSetting('embed_model_id', embedModelId)"
-              class="w-full bg-surface text-foreground text-sm font-sans border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring">
-              <option value="">{{ t('settings.defaultOption') }}</option>
-              <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
-            </select>
+            <BaseSelect v-model="embedModelId" :options="[{ value: '', label: t('settings.defaultOption') }, ...providers.map(p => ({ value: String(p.id), label: p.label }))]" @update:model-value="saveSetting('embed_model_id', $event as string)" />
           </div>
           <div>
             <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('settings.summaryModel') }}</label>
-            <select v-model="summaryModelId" @change="saveSetting('summary_model_id', summaryModelId)"
-              class="w-full bg-surface text-foreground text-sm font-sans border border-input rounded-lg px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-ring">
-              <option value="">{{ t('settings.defaultOption') }}</option>
-              <option v-for="p in providers" :key="p.id" :value="String(p.id)">{{ p.label }}</option>
-            </select>
+            <BaseSelect v-model="summaryModelId" :options="[{ value: '', label: t('settings.defaultOption') }, ...providers.map(p => ({ value: String(p.id), label: p.label }))]" @update:model-value="saveSetting('summary_model_id', $event as string)" />
           </div>
           <div v-if="saved" class="text-success text-sm font-sans">{{ t('settings.saved') }}</div>
           <div v-if="fetchError" class="text-danger text-sm font-sans mt-2">{{ t('settings.fetchError') }}</div>
@@ -74,7 +66,7 @@
         </div>
         <div class="pl-8">
           <label class="flex items-center gap-2 text-muted-foreground text-sm font-sans cursor-pointer">
-            <input type="checkbox" v-model="autoDispatch" @change="saveAutoDispatch" class="accent-blue-600" />
+            <BaseSwitch v-model="autoDispatch" @update:model-value="saveAutoDispatch" />
             {{ t('agents.autoDispatch') }}
           </label>
         </div>
@@ -114,6 +106,8 @@ import { HiCog, HiInformationCircle, HiCube, HiUserGroup, HiServer } from 'vue-i
 import { storeToRefs } from 'pinia'
 import PermissionView from './PermissionView.vue'
 import UsageView from './UsageView.vue'
+import BaseSelect from './BaseSelect.vue'
+import BaseSwitch from './BaseSwitch.vue'
 import { getHealth } from '../api/health'
 import { listSettings, updateSetting } from '../api/settings'
 import { useProvidersStore } from '../stores/providers'

@@ -71,10 +71,7 @@
         </div>
         <div>
           <label class="text-sm text-muted-foreground font-sans block mb-1">{{ t('schedules.frequency') }}</label>
-          <select v-model="form.frequency"
-            class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
-            <option v-for="f in FREQUENCIES" :key="f" :value="f">{{ t(`schedules.frequency.${f}`) }}</option>
-          </select>
+          <BaseSelect v-model="form.frequency" :options="FREQUENCIES.map(f => ({ value: f, label: t(`schedules.frequency.${f}`) }))" within-dialog />
         </div>
 
         <!-- Time picker for non-manual -->
@@ -82,36 +79,27 @@
           <div v-if="['daily','weekdays','weekly'].includes(form.frequency)" class="flex items-center gap-2">
             <div class="flex items-center gap-1">
               <span class="text-xs text-muted-foreground font-sans">HH</span>
-              <select v-model.number="form.cronHour"
-                class="bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
-                <option v-for="h in 24" :key="h-1" :value="h-1">{{ String(h-1).padStart(2,'0') }}</option>
-              </select>
+              <BaseSelect v-model="form.cronHour" :options="Array.from({ length: 24 }, (_, i) => ({ value: i, label: String(i).padStart(2,'0') }))" within-dialog class="w-20" />
             </div>
             <span class="text-muted-foreground font-sans">:</span>
             <div class="flex items-center gap-1">
-              <select v-model.number="form.cronMinute"
-                class="bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
-                <option v-for="m in 60" :key="m-1" :value="m-1">{{ String(m-1).padStart(2,'0') }}</option>
-              </select>
+              <BaseSelect v-model="form.cronMinute" :options="Array.from({ length: 60 }, (_, i) => ({ value: i, label: String(i).padStart(2,'0') }))" within-dialog class="w-20" />
               <span class="text-xs text-muted-foreground font-sans">MM</span>
             </div>
           </div>
 
           <div v-if="form.frequency === 'hourly'" class="flex items-center gap-2">
             <span class="text-sm text-muted-foreground font-sans">{{ t('schedules.form.atMinute') }}</span>
-            <select v-model.number="form.cronMinute"
-              class="bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
-              <option v-for="m in 60" :key="m-1" :value="m-1">{{ String(m-1).padStart(2,'0') }}</option>
-            </select>
+            <BaseSelect v-model="form.cronMinute" :options="Array.from({ length: 60 }, (_, i) => ({ value: i, label: String(i).padStart(2,'0') }))" within-dialog class="w-20" />
           </div>
 
           <div v-if="form.frequency === 'weekly'">
             <div class="text-sm text-muted-foreground font-sans mb-1">{{ t('schedules.form.days') }}</div>
             <div class="flex flex-wrap gap-2">
-<label v-for="(label, idx) in DAYS" :key="idx"
-  class="flex items-center gap-1 px-2 py-1 border border-border cursor-pointer text-sm font-sans select-none rounded-lg transition-colors duration-150"
+              <label v-for="(label, idx) in DAYS" :key="idx"
+                class="flex items-center gap-1 px-2 py-1 border border-border cursor-pointer text-sm font-sans select-none rounded-lg transition-colors duration-150"
                 :class="selectedDays.includes(idx) ? 'bg-primary/20 text-primary border-primary/40' : 'text-muted-foreground hover:text-foreground hover:border-primary/30'">
-                <input type="checkbox" :value="idx" v-model="selectedDays" class="sr-only" />
+                <BaseCheckbox :value="idx" v-model="selectedDays" />
                 {{ label }}
               </label>
             </div>
@@ -125,20 +113,13 @@
         <!-- Model selector -->
         <div>
           <label class="text-sm text-muted-foreground font-sans block mb-1">{{ t('schedules.form.selectModel') }}</label>
-          <select v-model.number="form.modelId"
-            class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
-            <option v-for="m in models" :key="m.id" :value="m.id">{{ m.providerName }} / {{ m.name }}</option>
-          </select>
+          <BaseSelect v-model="form.modelId" :options="models.map(m => ({ value: m.id, label: `${m.providerName} / ${m.name}` }))" :placeholder="t('schedules.form.selectModel')" within-dialog />
         </div>
 
         <!-- Project path -->
         <div>
           <label class="text-sm text-muted-foreground font-sans block mb-1">{{ t('schedules.form.projectPath') }}</label>
-          <select v-model="form.projectPath"
-            class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring">
-            <option :value="null">{{ t('schedules.form.noProject') }}</option>
-            <option v-for="p in savedProjects" :key="p.id" :value="p.path">{{ p.name }} ({{ p.path }})</option>
-          </select>
+          <BaseSelect v-model="form.projectPath" :options="[{ value: '', label: t('schedules.form.noProject') }, ...savedProjects.map(p => ({ value: p.path, label: `${p.name} (${p.path})` }))]" within-dialog />
         </div>
       </div>
       <template #footer>
@@ -160,6 +141,8 @@ import { useI18n } from 'vue-i18n'
 import { HiClock } from 'vue-icons-plus/hi'
 import BaseModal from './BaseModal.vue'
 import BaseConfirmModal from './BaseConfirmModal.vue'
+import BaseSelect from './BaseSelect.vue'
+import BaseCheckbox from './BaseCheckbox.vue'
 import * as api from '../api/scheduleTasks'
 import * as coworkApi from '../api/cowork'
 import type { ScheduleTask } from '../api/scheduleTasks'
@@ -193,7 +176,7 @@ const form = ref({
   cronDayOfWeek: 0,
   cronDaysOfWeek: '',
   modelId: null as number | null,
-  projectPath: null as string | null,
+  projectPath: '',
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 })
 
@@ -208,7 +191,7 @@ watch(selectedDays, (days) => {
 })
 
 function resetForm() {
-  form.value = { name: '', description: '', prompt: '', frequency: 'manual', cronMinute: 0, cronHour: 0, cronDayOfWeek: 0, cronDaysOfWeek: '', modelId: null, projectPath: null, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }
+  form.value = { name: '', description: '', prompt: '', frequency: 'manual', cronMinute: 0, cronHour: 0, cronDayOfWeek: 0, cronDaysOfWeek: '', modelId: null, projectPath: '', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }
   selectedDays.value = []
 }
 
@@ -301,7 +284,7 @@ function editTask(task: ScheduleTask) {
     cronDayOfWeek: task.cronDayOfWeek ?? 0,
     cronDaysOfWeek: task.cronDaysOfWeek ?? '',
     modelId: task.modelId ?? null,
-    projectPath: task.projectPath ?? null,
+    projectPath: task.projectPath ?? '',
     timezone: task.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
   }
   if (task.cronDaysOfWeek) {
@@ -316,7 +299,7 @@ function editTask(task: ScheduleTask) {
 
 async function saveTask() {
   try {
-    const body = { ...form.value }
+    const body = { ...form.value, projectPath: form.value.projectPath || null }
     if (editingTask.value) {
       const updated = await api.updateTask(editingTask.value.id, body)
       const idx = tasks.value.findIndex(t => t.id === editingTask.value!.id)

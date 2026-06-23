@@ -43,10 +43,13 @@ AppShell.vue              — layout shell, hosts TopBar + SidebarNav + router-v
 
 Shared/reusable:
 ThemeToggle.vue              — light/dark toggle button (used by TopBar)
-ModelSelector.vue            — model dropdown (uses BaseSelect)
-BaseModal.vue                — reusable modal shell (Teleport)
+ModelSelector.vue            — model dropdown (custom modal, uses BaseSelect)
+BaseModal.vue                — reusable modal shell (Teleport, Headless UI Dialog)
 BaseConfirmModal.vue         — confirm dialog (uses BaseModal)
-BaseSelect.vue               — reusable styled select
+BaseSelect.vue               — reusable styled select (Headless UI Listbox, supports string/number/null)
+BaseCheckbox.vue             — reusable styled checkbox (supports boolean and array v-model)
+BaseSwitch.vue               — reusable toggle switch (Headless UI Switch)
+BaseRadioGroup.vue           — reusable radio group (Headless UI RadioGroup)
 FormBlock.vue                — agent-rendered form segment
 NoteModal.vue                — create/edit note modal
 ProviderFormModal.vue        — create/edit provider form
@@ -210,7 +213,7 @@ File upload zone (drag-and-drop + click), filter input, file list with status po
 
 ## SettingsView.vue
 
-`/settings/:tab` route. Tabbed host that renders one of `ProvidersView`, `AgentsView`, `ToolsView`, `UsageView`, `MemoryView`, `PermissionView` based on the `:tab` param, plus a general tab with version and health check status (pings `GET /api/health`) and an `agent.autoDispatch` toggle (persisted via `PATCH /api/settings/agent.autoDispatch`).
+`/settings/:tab` route. Tabbed host that renders one of `ProvidersView`, `AgentsView`, `ToolsView`, `UsageView`, `MemoryView`, `PermissionView` based on the `:tab` param, plus a general tab with version and health check status (pings `GET /api/health`) and an `agent.autoDispatch` toggle (`BaseSwitch`, persisted via `PATCH /api/settings/agent.autoDispatch`). Model selectors use `BaseSelect`.
 
 ---
 
@@ -226,7 +229,7 @@ File upload zone (drag-and-drop + click), filter input, file list with status po
 
 **Emits:** `update:modelValue`, `confirm(tools: string[])`
 
-`BaseModal` listing all registry tools (`GET /api/tools`, loaded once) with a filter input and a checkbox per tool. Initializes checked state from `selected` each open; "Thêm" emits `confirm` with the checked names and closes. Used by `AgentsView` to pick a profile's allowed tools.
+`BaseModal` listing all registry tools (`GET /api/tools`, loaded once) with a filter input and a `BaseCheckbox` per tool (array v-model). Initializes checked state from `selected` each open; "Thêm" emits `confirm` with the checked names and closes. Used by `AgentsView` to pick a profile's allowed tools.
 
 ---
 
@@ -266,7 +269,7 @@ Right-side collapsible panel for live sub-agent monitoring. Each active/complete
 | Buttons | Primary recipe: `inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/90`. Secondary: `inline-flex items-center gap-1.5 rounded-lg border border-input bg-surface px-3 py-1.5 text-sm text-foreground transition-colors duration-150 hover:bg-muted`. Delete: `rounded-lg border border-danger/40 px-2.5 py-1 text-sm text-danger transition-colors duration-150 hover:bg-danger/10`. |
 | Cards | `flex flex-col rounded-lg border border-border bg-surface p-3 transition-shadow hover:shadow-sm`. |
 | Inputs | `w-full rounded-lg border border-input bg-surface px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-ring`. |
-| Modals/selects | Built on Headless UI (`@headlessui/vue`): `Dialog`/`TransitionRoot` (`BaseModal`), `Listbox` (`BaseSelect`). |
+| Modals/selects | Built on Headless UI (`@headlessui/vue`): `Dialog`/`TransitionRoot` (`BaseModal`), `Listbox` (`BaseSelect`), `Switch` (`BaseSwitch`), `RadioGroup`/`RadioGroupOption` (`BaseRadioGroup`). |
 | Text size | `text-sm` for body; `text-xs` allowed for meta/badges. |
 
 ## Header Pattern (seamless — no border between header and content)

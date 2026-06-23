@@ -9,16 +9,12 @@
     <div class="px-3 py-3 space-y-3">
       <div>
         <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('providers.form.type') }}</label>
-        <select
-          v-model="form.type"
-          @change="onTypeChange"
-          class="w-full bg-surface text-foreground text-sm px-2.5 py-1.5 font-sans outline-none border border-input rounded-lg focus:border-primary focus:ring-1 focus:ring-ring"
-        >
-          <option value="ollama">Ollama</option>
-          <option value="openai">OpenAI</option>
-          <option value="deepseek">DeepSeek</option>
-          <option value="openai">OpenAI-compatible</option>
-        </select>
+        <BaseSelect v-model="form.type" :options="[
+          { value: 'ollama', label: 'Ollama' },
+          { value: 'openai', label: 'OpenAI' },
+          { value: 'deepseek', label: 'DeepSeek' },
+          { value: 'openai', label: 'OpenAI-compatible' },
+        ]" within-dialog @update:model-value="onTypeChange" />
       </div>
       <div>
         <label class="text-muted-foreground text-sm font-sans block mb-1">{{ t('providers.form.name') }}</label>
@@ -68,6 +64,7 @@
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from './BaseModal.vue'
+import BaseSelect from './BaseSelect.vue'
 import { createProvider, updateProvider } from '../api/providers'
 
 interface Provider {

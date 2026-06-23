@@ -24,7 +24,7 @@
           :key="tool.name"
           class="flex items-start gap-2 px-2 py-1.5 cursor-pointer hover:bg-surface transition-colors duration-150"
         >
-          <input type="checkbox" :value="tool.name" v-model="checked" class="accent-blue-600 mt-0.5 shrink-0" />
+          <BaseCheckbox :value="tool.name" v-model="checked" />
           <span class="min-w-0">
             <span class="text-foreground text-sm font-sans block">{{ tool.name }}</span>
             <span class="text-muted-foreground/60 text-sm font-sans block truncate">{{ tool.description }}</span>
@@ -56,6 +56,7 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from './BaseModal.vue'
+import BaseCheckbox from './BaseCheckbox.vue'
 import { listTools } from '../api/tools'
 import type { Tool } from '../api/tools'
 

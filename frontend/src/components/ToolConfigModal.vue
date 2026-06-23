@@ -12,13 +12,12 @@
           :type="schema.format === 'password' ? 'password' : 'text'"
           class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm font-sans text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"
         />
-        <select
+        <BaseSelect
           v-else
           v-model="formData[key]"
-          class="w-full bg-surface border border-input rounded-lg px-2.5 py-1.5 text-sm font-sans text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"
-        >
-          <option v-for="opt in schema.enum" :key="opt" :value="opt" class="bg-surface">{{ opt }}</option>
-        </select>
+          :options="schema.enum as string[]"
+          within-dialog
+        />
       </div>
       <p v-if="!schemaProps || Object.keys(schemaProps).length === 0" class="text-muted-foreground text-sm font-sans">{{ t('tools.config.noConfig') }}</p>
     </div>
@@ -35,6 +34,7 @@
 import { ref, reactive, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from './BaseModal.vue'
+import BaseSelect from './BaseSelect.vue'
 import { saveToolConfig } from '../api/tools'
 import type { Tool } from '../api/tools'
 
