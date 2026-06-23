@@ -60,6 +60,7 @@ model ChatMessage {
   content   String
   toolName  String?
   isResult  Boolean  @default(false)
+  images    String?
   createdAt DateTime @default(now())
 }
 
@@ -128,6 +129,15 @@ model AgentFile {
   path      String
   sessionId Int
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model ChatUpload {
+  id        Int      @id @default(autoincrement())
+  filename  String
+  filepath  String
+  size      Int
+  mimeType  String
   createdAt DateTime @default(now())
 }
 

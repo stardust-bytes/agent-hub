@@ -20,6 +20,16 @@ export interface Message {
   toolName?: string
   isResult?: boolean
   plan?: PlanData
+  images?: { url: string; filename: string }[]
+}
+
+export interface ChatAttachment {
+  id: string | number
+  filename: string
+  size: number
+  mimeType: string
+  url?: string
+  status: 'uploading' | 'uploaded' | 'error'
 }
 
 export interface ProviderModelFlat {

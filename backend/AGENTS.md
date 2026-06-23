@@ -36,7 +36,7 @@ src/
 │                              SessionsModule, ProvidersModule, ToolsModule, PlansModule,
 │                              WorkspaceModule, CoworkModule, FilesModule, ModePolicyModule, MemoryModule,
 │                              ExcelModule, WordModule, UsageModule, ConnectorModule, ScheduleTasksModule,
-│                              AgentProfilesModule)
+│                              AgentProfilesModule, ChatUploadModule)
 ├── app.controller.ts        — GET /api/health → { status, db, timestamp }
 ├── http-exception.filter.ts — global filter: returns { statusCode, message, timestamp }
 │
@@ -119,6 +119,11 @@ src/
 │   ├── sessions.controller.ts — CRUD under /api/sessions
 │   ├── sessions.service.ts    — chat history + auto-title
 │   └── *.spec.ts
+│
+├── chat-upload/
+│   ├── chat-upload.module.ts
+│   ├── chat-upload.controller.ts — POST /api/chat/upload (multer), GET /api/chat/uploads/:id/:filename
+│   └── chat-upload.service.ts    — file persistence + cleanup
 │
 ├── cowork/
 │   ├── cowork.controller.ts      — REST endpoints under /api/cowork
@@ -287,6 +292,8 @@ All routes are prefixed with `/api`.
 | `GET` | `/api/agent-output/:filename/download` | Download agent-generated file |
 | `DELETE` | `/api/agent-output/:filename` | Delete agent-generated file |
 | `GET` | `/api/files/agent/:id/download` | Download an AgentFile by id |
+| `POST` | `/api/chat/upload` | Upload image file for chat attachment (multipart, field: `file`) |
+| `GET` | `/api/chat/uploads/:id/:filename` | Serve uploaded chat attachment image |
 
 **Agent chat response:** SSE stream (`text/event-stream`)
 ```
@@ -422,6 +429,15 @@ model AgentFile {
   path      String
   sessionId Int
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model ChatUpload {
+  id        Int      @id @default(autoincrement())
+  filename  String
+  filepath  String
+  size      Int
+  mimeType  String
   createdAt DateTime @default(now())
 }
 

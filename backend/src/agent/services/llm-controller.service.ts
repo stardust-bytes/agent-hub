@@ -61,12 +61,18 @@ export class LLMControllerService {
     systemPrompt: string,
     history: OllamaMessage[],
     userMessage: string,
+    images?: string[],
     toolResults?: Array<{ name: string; content: string }>,
   ): OllamaMessage[] {
+    const userMsg: OllamaMessage = { role: 'user', content: userMessage };
+    if (images && images.length > 0) {
+      userMsg.images = images;
+    }
+
     const messages: OllamaMessage[] = [
       { role: 'system', content: systemPrompt },
       ...history.filter(m => m.role !== 'tool'),
-      { role: 'user', content: userMessage },
+      userMsg,
     ];
 
     if (toolResults) {

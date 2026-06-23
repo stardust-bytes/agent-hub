@@ -33,7 +33,7 @@ export class AgentController {
     res.on('close', onAbort);
 
     try {
-      await this.agentService.streamChat(dto.message, dto.providerModelId, res, ctrl.signal, dto.sessionId);
+      await this.agentService.streamChat(dto.message, dto.providerModelId, res, ctrl.signal, dto.sessionId, dto.fileIds);
     } catch (e) {
       if (!res.destroyed && !res.writableEnded) {
         console.error('[AgentController] chat error:', e instanceof Error ? e.message : e);

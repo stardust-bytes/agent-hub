@@ -8,6 +8,7 @@ const GEMINI_PARAM_KEYS = new Set([
 
 interface GeminiPart {
   text?: string;
+  inlineData?: { mimeType: string; data: string };
   functionCall?: { name: string; args: Record<string, unknown> };
   functionResponse?: { name: string; response: Record<string, unknown> };
 }
@@ -205,6 +206,15 @@ export class GeminiProvider implements LLMProvider {
 
       if (msg.content) {
         parts.push({ text: msg.content });
+      }
+
+      if (msg.images && msg.images.length > 0 && msg.role === 'user') {
+        for (const img of msg.images) {
+          const match = img.match(/^data:([^;]+);base64,(.+)$/);
+          if (match) {
+            parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+          }
+        }
       }
 
       if (msg.toolCalls) {

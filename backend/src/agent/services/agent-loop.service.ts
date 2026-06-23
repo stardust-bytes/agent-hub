@@ -265,13 +265,14 @@ export class AgentLoopService {
     providerConfig: { baseUrl: string; key?: string } = { baseUrl: 'http://localhost:11434' },
     subagentName?: string,
     subagentRunId?: string,
+    images?: string[],
   ): Promise<string> {
     this.state = AgentState.PLANNING;
 
     let activeTools = tools;
     let finalText = '';
     const downloadLinks: string[] = [];
-    let messages = this.llmController.buildMessages(systemPrompt, history, userMessage);
+    let messages = this.llmController.buildMessages(systemPrompt, history, userMessage, images);
     let iterations = 0;
 
     while (!signal.aborted && iterations < MAX_MAIN_ITERATIONS) {
